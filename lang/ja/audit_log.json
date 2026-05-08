@@ -71,6 +71,9 @@
     "user": {
       "registered": "がアカウントを登録しました。",
       "logged_in": "がログインしました。",
+      "account": {
+        "deleted": "がアカウントを削除しました。"
+      },
       "social_account": {
         "linked": "がソーシャルアカウントを連携しました。",
         "unlinked": "がソーシャルアカウントの連携を解除しました。"
@@ -271,6 +274,9 @@
     "user": {
       "registered": "ユーザー登録",
       "logged_in": "ユーザーログイン",
+      "account": {
+        "deleted": "ユーザーアカウント削除"
+      },
       "social_account": {
         "linked": "ソーシャルアカウント連携",
         "unlinked": "ソーシャルアカウント連携解除"

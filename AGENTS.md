@@ -354,6 +354,7 @@ components/
   Groups/
     Activities/
   Navigation/
+  Settings/
 ```
 
 Do not create new `components/Pages/...` areas. That folder exists as legacy
@@ -622,9 +623,9 @@ in an unrelated task, but agents should avoid making them worse.
 
 - `resources/js/Pages/Dashboard/Groups/Activities/Show.vue` is about 1,500 lines.
   Extract new roster, queue, modal, realtime, and type logic instead of growing it.
-- Several Vue components are over 500 lines, including group member management,
-  character definitions, roster slot cards, member notes, applicant queue details,
-  and activity application forms. Keep new component responsibilities smaller.
+- Several Vue components are over 500 lines, including character definitions,
+  roster slot cards, applicant queue details, and activity application forms.
+  Keep new component responsibilities smaller.
 - `ActivityTypeController`, `GroupActivityApplicationController`,
   `CharacterController`, and `GroupActivityController` are large. New substantial
   backend workflows should move into services or form requests.

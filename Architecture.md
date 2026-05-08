@@ -574,6 +574,10 @@ GroupActivityController@show
 This second style exists because activity management data is large, interactive,
 and updated through realtime patches.
 
+The account settings surface now uses focused components under
+`resources/js/components/Settings/*`. Do not treat
+`resources/js/components/Pages/Settings/*` as the pattern for new work.
+
 ### Activity Management Frontend
 
 `resources/js/Pages/Dashboard/Groups/Activities/Show.vue` is the main management
@@ -892,4 +896,3 @@ Before finishing an architectural change, ask:
   PostgreSQL?
 - Did the request add user-visible strings across every supported locale?
 - Did the request change frontend payload shapes that should become shared types?
-

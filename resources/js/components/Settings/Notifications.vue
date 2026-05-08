@@ -1,10 +1,13 @@
 <script setup lang="ts">
-import {useI18n} from "vue-i18n";
-import {useForm} from "@inertiajs/vue3";
-import {route} from "ziggy-js";
-const props = defineProps({
-	user: Object
-})
+import type { SettingsUser } from "@/Types/Settings";
+import { useForm } from "@inertiajs/vue3";
+import { route } from "ziggy-js";
+import { useI18n } from "vue-i18n";
+
+const props = defineProps<{
+	user: SettingsUser
+}>();
+
 const { t } = useI18n();
 
 const form = useForm({
@@ -16,26 +19,26 @@ const form = useForm({
 	system_notice_notifications: props.user.system_notice_notifications,
 	email_notifications: props.user.email_notifications,
 	discord_notifications: props.user.discord_notifications,
-})
+});
 
-const hasProvider = (provider_name) => {
-	return !!props.user.social_accounts.find(account => account.provider === provider_name);
-}
+const hasProvider = (providerName: string) => {
+	return !!props.user.social_accounts.find((account) => account.provider === providerName);
+};
 
-function submit() {
+const submit = () => {
 	form.post(route('settings.notifications'));
-}
-
+};
 </script>
 
 <template>
 	<UCard class="w-full dark:bg-elevated/25">
 		<template #header>
 			<div class="flex flex-row items-center font-semibold text-md">
-				<UIcon name="i-lucide-bell" class="mr-2" size="22"/>
+				<UIcon name="i-lucide-bell" class="mr-2" size="22" />
 				<p>{{ t('settings.notifications.title') }}</p>
 			</div>
 		</template>
+
 		<form @submit.prevent="submit" class="w-full flex flex-col items-stretch gap-4 mb-4">
 			<div class="section">
 				<div class="section-heading">
@@ -116,15 +119,15 @@ function submit() {
 			</div>
 
 			<div class="m-0 p-0">
-				<UButton type="submit" :label="t('settings.notifications.save')" size="lg" color="neutral"/>
+				<UButton type="submit" :label="t('settings.notifications.save')" size="lg" color="neutral" />
 			</div>
 		</form>
-
 	</UCard>
 </template>
 
 <style scoped>
-@reference "../../../../css/app.css";
+@reference "../../../css/app.css";
+
 .option {
 	@apply w-full flex flex-row items-center justify-between;
 }

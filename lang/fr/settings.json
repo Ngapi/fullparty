@@ -48,7 +48,14 @@
     "save": "Enregistrer les préférences",
     "danger_zone": "Zone de danger",
     "delete_account": "Supprimer le compte",
-    "delete_account_description": "Une fois votre compte supprimé, il n'y a pas de retour en arrière. Veuillez en être certain."
+    "delete_account_description": "Une fois votre compte supprimé, il n'y a pas de retour en arrière. Veuillez en être certain.",
+    "delete_account_owner_blocked": "Transférez ou supprimez vos groupes possédés avant de supprimer votre compte.",
+    "delete_account_modal": {
+      "title": "Supprimer le compte",
+      "description": "Cela fermera votre compte FullParty et vous déconnectera immédiatement.",
+      "warning": "L'accès de connexion et l'état actif du compte seront supprimés. Les enregistrements historiques de groupes et d'activités seront conservés.",
+      "confirm": "Supprimer le compte"
+    }
   },
   "toasts": {
     "username_updated": "Nom d'utilisateur mis à jour avec succès",

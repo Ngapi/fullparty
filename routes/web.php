@@ -212,6 +212,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 	Route::post('/settings/username', [UserController::class, 'changeUsername'])->name('settings.username');
 	Route::post('/settings/notifications', [UserController::class, 'changeNotificationSettings'])->name('settings.notifications');
 	Route::post('/settings/privacy', [UserController::class, 'changePrivacySettings'])->name('settings.privacy');
+	Route::delete('/settings/account', [UserController::class, 'destroyAccount'])->name('settings.account.destroy');
 	Route::delete('/settings/social-accounts/{socialAccount}', [SocialAccountController::class, 'destroy'])->name('settings.social-accounts.destroy');
 	
 	//Character Routes

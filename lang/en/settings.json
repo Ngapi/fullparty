@@ -48,7 +48,14 @@
     "save": "Save Preferences",
     "danger_zone": "Danger Zone",
     "delete_account": "Delete Account",
-    "delete_account_description": "Once you delete your account, there is no going back. Please be certain."
+    "delete_account_description": "Once you delete your account, there is no going back. Please be certain.",
+    "delete_account_owner_blocked": "Transfer or delete your owned groups before deleting your account.",
+    "delete_account_modal": {
+      "title": "Delete account",
+      "description": "This will close your FullParty account and sign you out immediately.",
+      "warning": "Sign-in access and live account state will be removed. Historical group and run records will be kept.",
+      "confirm": "Delete account"
+    }
   },
   "toasts": {
     "username_updated": "Username updated successfully",

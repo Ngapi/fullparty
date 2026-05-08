@@ -5,10 +5,13 @@ namespace App\Http\Controllers;
 use App\Models\User;
 use App\Services\AuditLogger;
 use App\Services\Notifications\NotificationService;
+use App\Services\Users\UserAccountDeletionService;
 use App\Support\Audit\AuditScope;
 use App\Support\Audit\AuditSeverity;
 use App\Support\Notifications\NotificationCategory;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class UserController extends Controller
 {
@@ -38,6 +41,7 @@ class UserController extends Controller
     public function __construct(
         private readonly AuditLogger $auditLogger,
         private readonly NotificationService $notificationService,
+        private readonly UserAccountDeletionService $userAccountDeletionService,
     ) {}
 
     public function changeUsername(Request $request)
@@ -181,6 +185,20 @@ class UserController extends Controller
 			->route('settings')
 			->with('success', ['privacy_settings_updated']);
 	}
+
+    public function destroyAccount(Request $request): RedirectResponse
+    {
+        $user = $request->user();
+
+        $this->userAccountDeletionService->delete($user);
+
+        Auth::logout();
+
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+
+        return redirect('/');
+    }
 
     /**
      * @param  array<string, array{old: mixed, new: mixed}>  $changes

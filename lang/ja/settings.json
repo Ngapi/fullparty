@@ -48,7 +48,14 @@
     "save": "設定を保存",
     "danger_zone": "危険ゾーン",
     "delete_account": "アカウントを削除",
-    "delete_account_description": "アカウントを削除すると元に戻せません。十分にご注意ください。"
+    "delete_account_description": "アカウントを削除すると元に戻せません。十分にご注意ください。",
+    "delete_account_owner_blocked": "アカウントを削除する前に、所有しているグループを譲渡または削除してください。",
+    "delete_account_modal": {
+      "title": "アカウントを削除",
+      "description": "これにより FullParty アカウントが閉鎖され、すぐにサインアウトされます。",
+      "warning": "サインイン権限と現在のアカウント状態は削除されます。グループや活動の履歴記録は保持されます。",
+      "confirm": "アカウントを削除"
+    }
   },
   "toasts": {
     "username_updated": "ユーザー名を更新しました",

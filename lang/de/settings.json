@@ -48,7 +48,14 @@
     "save": "Einstellungen speichern",
     "danger_zone": "Gefahrenbereich",
     "delete_account": "Konto löschen",
-    "delete_account_description": "Wenn du dein Konto löschst, gibt es kein Zurück mehr. Bitte sei dir sicher."
+    "delete_account_description": "Wenn du dein Konto löschst, gibt es kein Zurück mehr. Bitte sei dir sicher.",
+    "delete_account_owner_blocked": "Übertrage oder lösche deine eigenen Gruppen, bevor du dein Konto löschst.",
+    "delete_account_modal": {
+      "title": "Konto löschen",
+      "description": "Dadurch wird dein FullParty-Konto geschlossen und du wirst sofort abgemeldet.",
+      "warning": "Der Login-Zugang und der aktive Kontostatus werden entfernt. Historische Gruppen- und Laufdaten bleiben erhalten.",
+      "confirm": "Konto löschen"
+    }
   },
   "toasts": {
     "username_updated": "Benutzername erfolgreich aktualisiert",

@@ -1,11 +1,12 @@
 <script setup lang="ts">
+import type { SettingsUser } from "@/Types/Settings";
 import {useI18n} from "vue-i18n";
 import PageHeader from "@/components/PageHeader.vue";
-import AccountSettings from "@/components/Pages/Settings/AccountSettings.vue";
-import ConnectedAccounts from "@/components/Pages/Settings/ConnectedAccounts.vue";
-import Notifications from "@/components/Pages/Settings/Notifications.vue";
-import PrivacySecurity from "@/components/Pages/Settings/PrivacySecurity.vue";
-import {useForm, usePage} from "@inertiajs/vue3";
+import AccountSettings from "@/components/Settings/AccountSettings.vue";
+import ConnectedAccounts from "@/components/Settings/ConnectedAccounts.vue";
+import Notifications from "@/components/Settings/Notifications.vue";
+import PrivacySecurity from "@/components/Settings/PrivacySecurity.vue";
+import {usePage} from "@inertiajs/vue3";
 import {computed, watch} from "vue";
 import {useToast} from "@nuxt/ui/composables";
 
@@ -13,7 +14,7 @@ const { t } = useI18n();
 
 const page = usePage()
 const toast = useToast()
-const user = computed(() => page.props.auth?.user)
+const user = computed(() => page.props.auth?.user as SettingsUser)
 
 watch(
 	() => page.props.flash?.success,
@@ -86,7 +87,3 @@ watch(
 		</div>
 	</div>
 </template>
-
-<style scoped>
-
-</style>

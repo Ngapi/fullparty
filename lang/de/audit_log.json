@@ -71,6 +71,9 @@
     "user": {
       "registered": "hat ein Konto registriert.",
       "logged_in": "hat sich angemeldet.",
+      "account": {
+        "deleted": "hat das Konto gelöscht."
+      },
       "social_account": {
         "linked": "hat ein Social-Konto verknüpft.",
         "unlinked": "hat ein Social-Konto getrennt."
@@ -271,6 +274,9 @@
     "user": {
       "registered": "Benutzer registriert",
       "logged_in": "Benutzer angemeldet",
+      "account": {
+        "deleted": "Benutzerkonto gelöscht"
+      },
       "social_account": {
         "linked": "Social-Konto verknüpft",
         "unlinked": "Social-Konto getrennt"

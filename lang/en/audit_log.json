@@ -71,6 +71,9 @@
     "user": {
       "registered": "registered an account.",
       "logged_in": "logged in.",
+      "account": {
+        "deleted": "deleted their account."
+      },
       "social_account": {
         "linked": "linked a social account.",
         "unlinked": "unlinked a social account."
@@ -288,6 +291,9 @@
     "user": {
       "registered": "User registered",
       "logged_in": "User logged in",
+      "account": {
+        "deleted": "User account deleted"
+      },
       "social_account": {
         "linked": "Social account linked",
         "unlinked": "Social account unlinked"
