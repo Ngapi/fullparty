@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\ActivityTag;
 use App\Models\ActivityType;
 use App\Models\ActivityTypeVersion;
+use App\Models\CharacterClass;
+use App\Models\PhantomJob;
 use App\Services\AuditLogger;
 use App\Support\Audit\AuditScope;
 use App\Support\Audit\AuditSeverity;
@@ -33,22 +35,7 @@ class ActivityTypeController extends Controller
 
         return Inertia::render('Admin/ActivityTypes', [
             'activityTypes' => $activityTypes->map(fn (ActivityType $activityType) => $this->transformActivityType($activityType)),
-            'schemaReference' => [
-                'supportedFieldTypes' => [
-                    'text',
-                    'textarea',
-                    'number',
-                    'boolean',
-                    'single_select',
-                    'multi_select',
-                    'url',
-                ],
-                'supportedOptionSources' => [
-                    'character_classes',
-                    'phantom_jobs',
-                    'static_options',
-                ],
-            ],
+            'schemaReference' => $this->schemaReference(),
         ]);
     }
 
@@ -155,6 +142,7 @@ class ActivityTypeController extends Controller
             'draft_layout_schema' => $activityType->draft_layout_schema,
             'draft_slot_schema' => $activityType->draft_slot_schema,
             'draft_application_schema' => $activityType->draft_application_schema,
+            'draft_roster_summary_presets' => $activityType->draft_roster_summary_presets ?? [],
             'draft_progress_schema' => $activityType->draft_progress_schema,
             'draft_bench_size' => $activityType->draft_bench_size,
             'draft_prog_points' => $activityType->draft_prog_points,
@@ -173,6 +161,7 @@ class ActivityTypeController extends Controller
                 'layout_schema' => $activityType->draft_layout_schema,
                 'slot_schema' => $activityType->draft_slot_schema,
                 'application_schema' => $activityType->draft_application_schema,
+                'roster_summary_presets' => $activityType->draft_roster_summary_presets,
                 'progress_schema' => $activityType->draft_progress_schema,
                 'bench_size' => $activityType->draft_bench_size,
                 'prog_points' => $activityType->draft_prog_points,
@@ -254,6 +243,7 @@ class ActivityTypeController extends Controller
             'draft_layout_schema' => ['required', 'array'],
             'draft_slot_schema' => ['required', 'array'],
             'draft_application_schema' => ['required', 'array'],
+            'draft_roster_summary_presets' => ['nullable', 'array'],
             'draft_progress_schema' => ['required', 'array'],
             'draft_bench_size' => ['sometimes', 'integer', 'min:0', 'max:24'],
             'draft_prog_points' => ['nullable', 'array'],
@@ -271,6 +261,7 @@ class ActivityTypeController extends Controller
         $layoutSchema = $validated['draft_layout_schema'] ?? null;
         $slotSchema = $validated['draft_slot_schema'] ?? null;
         $applicationSchema = $validated['draft_application_schema'] ?? null;
+        $rosterSummaryPresets = $validated['draft_roster_summary_presets'] ?? [];
         $progressSchema = $validated['draft_progress_schema'] ?? null;
         $benchSize = $validated['draft_bench_size'] ?? 0;
         $progPoints = $validated['draft_prog_points'] ?? null;
@@ -312,6 +303,14 @@ class ActivityTypeController extends Controller
 
         $this->validateSchemaFields($slotSchema, 'draft_slot_schema');
         $this->validateSchemaFields($applicationSchema, 'draft_application_schema');
+        $layoutGroupKeys = collect($layoutSchema['groups'])
+            ->pluck('key')
+            ->filter(fn (mixed $key) => filled($key))
+            ->map(fn (mixed $key) => (string) $key)
+            ->values()
+            ->all();
+
+        $this->validateRosterSummaryPresets($rosterSummaryPresets, 'draft_roster_summary_presets', $layoutGroupKeys);
         $this->validateProgressSchema($progressSchema, 'draft_progress_schema');
         $this->validateBenchSize($benchSize, 'draft_bench_size');
         $this->validateProgPoints($progPoints, 'draft_prog_points');
@@ -483,6 +482,195 @@ class ActivityTypeController extends Controller
         }
     }
 
+    /**
+     * @param  array<int, string>  $layoutGroupKeys
+     */
+    private function validateRosterSummaryPresets(mixed $presets, string $attribute, array $layoutGroupKeys): void
+    {
+        if (is_null($presets)) {
+            return;
+        }
+
+        if (!is_array($presets)) {
+            throw ValidationException::withMessages([
+                $attribute => 'Roster summary presets must be an array.',
+            ]);
+        }
+
+        $seenPresetKeys = [];
+
+        foreach ($presets as $presetIndex => $preset) {
+            if (!is_array($preset)) {
+                throw ValidationException::withMessages([
+                    "$attribute.$presetIndex" => 'Each roster summary preset must be an object.',
+                ]);
+            }
+
+            $presetKey = $preset['key'] ?? null;
+
+            if (blank($presetKey)) {
+                throw ValidationException::withMessages([
+                    "$attribute.$presetIndex.key" => 'Each roster summary preset requires a key.',
+                ]);
+            }
+
+            if (in_array($presetKey, $seenPresetKeys, true)) {
+                throw ValidationException::withMessages([
+                    "$attribute.$presetIndex.key" => 'Roster summary preset keys must be unique.',
+                ]);
+            }
+
+            $seenPresetKeys[] = $presetKey;
+
+            $this->assertLocalizedValue($preset['label'] ?? null, "$attribute.$presetIndex.label");
+
+            if (isset($preset['description'])) {
+                $this->assertLocalizedValue($preset['description'], "$attribute.$presetIndex.description", false);
+            }
+
+            $requirements = $preset['requirements'] ?? null;
+
+            if (!is_array($requirements) || $requirements === []) {
+                throw ValidationException::withMessages([
+                    "$attribute.$presetIndex.requirements" => 'Each roster summary preset requires at least one requirement.',
+                ]);
+            }
+
+            $seenRequirementKeys = [];
+
+            foreach ($requirements as $requirementIndex => $requirement) {
+                if (!is_array($requirement)) {
+                    throw ValidationException::withMessages([
+                        "$attribute.$presetIndex.requirements.$requirementIndex" => 'Each roster summary requirement must be an object.',
+                    ]);
+                }
+
+                $source = $requirement['source'] ?? null;
+                $sourceId = $requirement['source_id'] ?? null;
+                $comparison = $requirement['comparison'] ?? null;
+                $targetCount = $requirement['target_count'] ?? null;
+                $scopeType = $requirement['scope_type'] ?? null;
+                $scopeGroupKeys = $requirement['scope_group_keys'] ?? [];
+
+                if (!in_array($source, ['character_classes', 'phantom_jobs'], true)) {
+                    throw ValidationException::withMessages([
+                        "$attribute.$presetIndex.requirements.$requirementIndex.source" => 'Unsupported roster summary requirement source.',
+                    ]);
+                }
+
+                if (!is_numeric($sourceId) || (int) $sourceId < 1) {
+                    throw ValidationException::withMessages([
+                        "$attribute.$presetIndex.requirements.$requirementIndex.source_id" => 'Each roster summary requirement requires a valid source option.',
+                    ]);
+                }
+
+                $sourceExists = match ($source) {
+                    'character_classes' => CharacterClass::query()->whereKey((int) $sourceId)->exists(),
+                    'phantom_jobs' => PhantomJob::query()->whereKey((int) $sourceId)->exists(),
+                    default => false,
+                };
+
+                if (!$sourceExists) {
+                    throw ValidationException::withMessages([
+                        "$attribute.$presetIndex.requirements.$requirementIndex.source_id" => 'The selected roster summary source option does not exist.',
+                    ]);
+                }
+
+                if (!in_array($comparison, ['at_least', 'exactly', 'at_most'], true)) {
+                    throw ValidationException::withMessages([
+                        "$attribute.$presetIndex.requirements.$requirementIndex.comparison" => 'Unsupported roster summary comparison mode.',
+                    ]);
+                }
+
+                if (!is_numeric($targetCount) || (int) $targetCount < 1) {
+                    throw ValidationException::withMessages([
+                        "$attribute.$presetIndex.requirements.$requirementIndex.target_count" => 'Each roster summary requirement needs a target count of at least 1.',
+                    ]);
+                }
+
+                if (!in_array($scopeType, ['all_slots', 'slot_group', 'slot_group_set'], true)) {
+                    throw ValidationException::withMessages([
+                        "$attribute.$presetIndex.requirements.$requirementIndex.scope_type" => 'Unsupported roster summary scope type.',
+                    ]);
+                }
+
+                if (!is_array($scopeGroupKeys)) {
+                    throw ValidationException::withMessages([
+                        "$attribute.$presetIndex.requirements.$requirementIndex.scope_group_keys" => 'Roster summary scope group keys must be an array.',
+                    ]);
+                }
+
+                $normalizedScopeGroupKeys = collect($scopeGroupKeys)
+                    ->map(fn (mixed $key) => is_string($key) ? trim($key) : null)
+                    ->filter(fn (?string $key) => filled($key))
+                    ->values()
+                    ->all();
+
+                if (count($normalizedScopeGroupKeys) !== count($scopeGroupKeys)) {
+                    throw ValidationException::withMessages([
+                        "$attribute.$presetIndex.requirements.$requirementIndex.scope_group_keys" => 'Roster summary scope group keys must only contain non-empty strings.',
+                    ]);
+                }
+
+                if (collect($normalizedScopeGroupKeys)->duplicates()->isNotEmpty()) {
+                    throw ValidationException::withMessages([
+                        "$attribute.$presetIndex.requirements.$requirementIndex.scope_group_keys" => 'Roster summary scope group keys must be unique.',
+                    ]);
+                }
+
+                $unknownScopeGroupKeys = collect($normalizedScopeGroupKeys)
+                    ->reject(fn (string $groupKey) => in_array($groupKey, $layoutGroupKeys, true))
+                    ->values()
+                    ->all();
+
+                if ($unknownScopeGroupKeys !== []) {
+                    throw ValidationException::withMessages([
+                        "$attribute.$presetIndex.requirements.$requirementIndex.scope_group_keys" => 'Roster summary requirements can only reference groups defined in the activity layout.',
+                    ]);
+                }
+
+                if ($scopeType === 'all_slots' && $normalizedScopeGroupKeys !== []) {
+                    throw ValidationException::withMessages([
+                        "$attribute.$presetIndex.requirements.$requirementIndex.scope_group_keys" => 'All-roster requirements cannot target specific groups.',
+                    ]);
+                }
+
+                if ($scopeType === 'slot_group' && count($normalizedScopeGroupKeys) !== 1) {
+                    throw ValidationException::withMessages([
+                        "$attribute.$presetIndex.requirements.$requirementIndex.scope_group_keys" => 'Single-group requirements must target exactly one group.',
+                    ]);
+                }
+
+                if ($scopeType === 'slot_group_set' && count($normalizedScopeGroupKeys) < 1) {
+                    throw ValidationException::withMessages([
+                        "$attribute.$presetIndex.requirements.$requirementIndex.scope_group_keys" => 'Group-set requirements must target at least one group.',
+                    ]);
+                }
+
+                $normalizedScopeGroupSetKey = collect($normalizedScopeGroupKeys)
+                    ->sort()
+                    ->values()
+                    ->implode('|');
+
+                $requirementKey = sprintf(
+                    '%s:%s:%s:%s',
+                    $source,
+                    (int) $sourceId,
+                    $scopeType,
+                    $normalizedScopeGroupSetKey,
+                );
+
+                if (in_array($requirementKey, $seenRequirementKeys, true)) {
+                    throw ValidationException::withMessages([
+                        "$attribute.$presetIndex.requirements.$requirementIndex.source_id" => 'Each roster summary requirement must be unique within its scope.',
+                    ]);
+                }
+
+                $seenRequirementKeys[] = $requirementKey;
+            }
+        }
+    }
+
     private function validateSchemaFields(mixed $fields, string $attribute): void
     {
         if (!is_array($fields)) {
@@ -594,6 +782,47 @@ class ActivityTypeController extends Controller
                 'phantom_jobs',
                 'static_options',
             ],
+            'rosterSummarySources' => [
+                'character_classes',
+                'phantom_jobs',
+            ],
+            'rosterSummaryComparisonModes' => [
+                'at_least',
+                'exactly',
+                'at_most',
+            ],
+            'rosterSummaryScopeTypes' => [
+                'all_slots',
+                'slot_group',
+                'slot_group_set',
+            ],
+            'rosterSummarySourceOptions' => [
+                'character_classes' => CharacterClass::query()
+                    ->orderBy('role')
+                    ->orderBy('name')
+                    ->get(['id', 'name', 'shorthand', 'role'])
+                    ->map(fn (CharacterClass $class) => [
+                        'value' => $class->id,
+                        'label' => filled($class->shorthand)
+                            ? sprintf('%s (%s)', $class->name, $class->shorthand)
+                            : $class->name,
+                        'meta' => [
+                            'role' => $class->role,
+                            'shorthand' => $class->shorthand,
+                        ],
+                    ])
+                    ->values()
+                    ->all(),
+                'phantom_jobs' => PhantomJob::query()
+                    ->orderBy('name')
+                    ->get(['id', 'name'])
+                    ->map(fn (PhantomJob $phantomJob) => [
+                        'value' => $phantomJob->id,
+                        'label' => $phantomJob->name,
+                    ])
+                    ->values()
+                    ->all(),
+            ],
         ];
     }
 
@@ -614,6 +843,7 @@ class ActivityTypeController extends Controller
             'draft_layout_schema' => $activityType->draft_layout_schema,
             'draft_slot_schema' => $activityType->draft_slot_schema,
             'draft_application_schema' => $activityType->draft_application_schema,
+            'draft_roster_summary_presets' => $activityType->draft_roster_summary_presets ?? [],
             'draft_progress_schema' => $activityType->draft_progress_schema,
             'draft_bench_size' => $activityType->draft_bench_size,
             'draft_prog_points' => $activityType->draft_prog_points,
@@ -624,6 +854,7 @@ class ActivityTypeController extends Controller
                 'version' => $currentVersion->version,
                 'bench_size' => $currentVersion->bench_size,
                 'fflogs_zone_id' => $currentVersion->fflogs_zone_id,
+                'roster_summary_presets' => $currentVersion->roster_summary_presets ?? [],
                 'published_at' => $currentVersion->published_at?->toIso8601String(),
                 'published_by' => $currentVersion->publisher?->name,
             ] : null,
@@ -653,6 +884,7 @@ class ActivityTypeController extends Controller
             'draft_layout_schema' => $activityType->draft_layout_schema,
             'draft_slot_schema' => $activityType->draft_slot_schema,
             'draft_application_schema' => $activityType->draft_application_schema,
+            'draft_roster_summary_presets' => $activityType->draft_roster_summary_presets ?? [],
             'draft_progress_schema' => $activityType->draft_progress_schema,
             'draft_bench_size' => $activityType->draft_bench_size,
             'draft_prog_points' => $activityType->draft_prog_points,

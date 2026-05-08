@@ -8,6 +8,10 @@ defineProps<{
 	schemaReference: {
 		supportedFieldTypes: string[]
 		supportedOptionSources: string[]
+		rosterSummarySources: string[]
+		rosterSummaryComparisonModes: string[]
+		rosterSummaryScopeTypes: string[]
+		rosterSummarySourceOptions: Record<string, Array<{ value: number, label: string }>>
 	}
 	existingTags: string[]
 }>();
@@ -37,6 +41,7 @@ const form = useForm({
 	},
 	draft_slot_schema: [],
 	draft_application_schema: [],
+	draft_roster_summary_presets: [],
 	draft_progress_schema: {
 		milestones: [],
 	},

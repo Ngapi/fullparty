@@ -59,6 +59,7 @@ class ActivityTypeFactory extends Factory
                     ],
                 ],
             ],
+            'draft_roster_summary_presets' => [],
             'draft_progress_schema' => [
                 'milestones' => [
                     [
@@ -97,6 +98,7 @@ class ActivityTypeFactory extends Factory
                     'layout_schema' => $activityType->draft_layout_schema,
                     'slot_schema' => $activityType->draft_slot_schema,
                     'application_schema' => $activityType->draft_application_schema,
+                    'roster_summary_presets' => $activityType->draft_roster_summary_presets,
                     'progress_schema' => $activityType->draft_progress_schema,
                     'prog_points' => $activityType->draft_prog_points,
                 ]);

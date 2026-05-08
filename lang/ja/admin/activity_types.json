@@ -66,6 +66,51 @@
     "title": "Application Questions",
     "subtitle": "Define what applicants need to submit for this activity type."
   },
+  "roster_summary": {
+    "title": "Roster Summary Presets",
+    "subtitle": "Define reusable composition targets that moderators can later choose from while reviewing a roster.",
+    "presets_count": "{count} presets",
+    "add_preset": "Add Preset",
+    "preset_title": "Preset {index}",
+    "preset_hint": "Use presets for different composition lenses like minimum, relaxed, or optimized group setups.",
+    "key": "Preset Key",
+    "key_placeholder": "minimum-composition",
+    "label": "Localized Preset Label",
+    "label_help": "This is the name moderators will see when choosing which summary preset to view.",
+    "label_placeholder": "Minimum Composition",
+    "description": "Localized Preset Description",
+    "description_help": "Optional supporting context shown alongside this preset later.",
+    "description_placeholder": "Explain what this composition preset is aiming for",
+    "requirements_title": "Requirements",
+    "requirements_subtitle": "Each requirement tracks one item, target count, and the part of the roster it should be checked against.",
+    "add_requirement": "Add Requirement",
+    "requirement_title": "Requirement {index}",
+    "requirement_hint": "Keep these focused on the counts moderators actually need to sanity-check quickly.",
+    "requirement_source": "Requirement Source",
+    "requirement_item": "Tracked Item",
+    "requirement_comparison": "Target Rule",
+    "requirement_scope": "Scope",
+    "requirement_scope_groups": "Target Groups",
+    "requirement_scope_group_placeholder": "Choose a group",
+    "requirement_scope_group_set_placeholder": "Choose one or more groups",
+    "requirement_scope_all_hint": "This requirement will be checked against the full roster.",
+    "requirement_target_count": "Target Count",
+    "requirement_target_count_placeholder": "2",
+    "sources": {
+      "character_classes": "Character Classes",
+      "phantom_jobs": "Phantom Jobs"
+    },
+    "comparisons": {
+      "at_least": "At Least",
+      "exactly": "Exactly",
+      "at_most": "At Most"
+    },
+    "scope_types": {
+      "all_slots": "Entire Roster",
+      "slot_group": "Single Group",
+      "slot_group_set": "Group Set"
+    }
+  },
   "progress": {
     "title": "Progress Tracking",
     "subtitle": "Define the milestones groups can report when they finish an activity.",
@@ -157,6 +202,7 @@
     "slots": "Slots",
     "slot_fields": "Slot Fields",
     "application_questions": "Application Questions",
+    "roster_summary_presets": "Roster Presets",
     "progress_milestones": "Progress Milestones",
     "prog_points": "Prog Points",
     "fflogs_zone_id": "FF Logs Zone ID"

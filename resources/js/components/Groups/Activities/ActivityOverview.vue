@@ -1,7 +1,9 @@
 <script setup lang="ts">
+import ActivityRosterSummaryPanel from "@/components/Groups/Activities/ActivityRosterSummaryPanel.vue";
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 import { getActivityStatusMeta } from "@/utils/activityStatusMeta";
+import type { ActivitySlot } from "@/components/Groups/Activities/rosterTypes";
 
 const props = defineProps<{
 	title: string
@@ -25,6 +27,37 @@ const props = defineProps<{
 	needsApplication: boolean
 	description: string | null
 	notes: string | null
+	rosterSummaryPresets: Array<{
+		key: string
+		label: Record<string, string | null | undefined> | null | undefined
+		description: Record<string, string | null | undefined> | null | undefined
+		requirements: Array<{
+			source: string
+			source_id: number
+			comparison: 'at_least' | 'exactly' | 'at_most'
+			target_count: number
+			scope_type: 'all_slots' | 'slot_group' | 'slot_group_set'
+			scope_group_keys: string[]
+			scope_groups: Array<{
+				key: string
+				label: Record<string, string | null | undefined> | null | undefined
+			}>
+			item: {
+				id: number
+				label: Record<string, string | null | undefined> | null | undefined
+				meta: {
+					role?: string | null
+					shorthand?: string | null
+					icon_url?: string | null
+					flaticon_url?: string | null
+					black_icon_url?: string | null
+					transparent_icon_url?: string | null
+					sprite_url?: string | null
+				} | null
+			}
+		}>
+	}>
+	slots: ActivitySlot[]
 	completedProgression: {
 		completedAt: string | null
 		sourceLabel: string
@@ -311,17 +344,17 @@ const milestoneProgressWidth = (progress: number | null) => {
 			</div>
 
 			<div class="flex flex-col gap-4 border-t border-default pt-4 xl:flex-row xl:items-start xl:justify-between">
-				<div v-if="description || notes || completedProgression" class="flex flex-1 flex-col gap-4">
-					<div class="inline-flex items-center gap-2">
-						<div v-if="description" class="text-sm whitespace-pre-wrap text-toned">
-							{{ description }}
-						</div>
+				<div
+					v-if="description || notes || completedProgression"
+					class="flex flex-1 flex-col gap-4"
+				>
+					<div v-if="description" class="text-sm whitespace-pre-wrap text-toned">
+						{{ description }}
 					</div>
 
 					<div v-if="notes" class="text-sm whitespace-pre-wrap text-muted">
 						{{ notes }}
 					</div>
-
 
 				</div>
 
@@ -355,6 +388,12 @@ const milestoneProgressWidth = (progress: number | null) => {
 					/>
 				</div>
 			</div>
+
+			<ActivityRosterSummaryPanel
+				v-if="rosterSummaryPresets.length > 0"
+				:presets="rosterSummaryPresets"
+				:slots="slots"
+			/>
 		</div>
 	</section>
 	<div

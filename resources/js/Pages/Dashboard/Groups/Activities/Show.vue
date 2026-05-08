@@ -64,6 +64,36 @@ type ActivityDetails = {
 		key: string
 		label: LocalizedText
 	}>
+	roster_summary_presets: Array<{
+		key: string
+		label: LocalizedText
+		description: LocalizedText
+		requirements: Array<{
+			source: string
+			source_id: number
+			comparison: 'at_least' | 'exactly' | 'at_most'
+			target_count: number
+			scope_type: 'all_slots' | 'slot_group' | 'slot_group_set'
+			scope_group_keys: string[]
+			scope_groups: Array<{
+				key: string
+				label: LocalizedText
+			}>
+			item: {
+				id: number
+				label: LocalizedText
+				meta: {
+					role?: string | null
+					shorthand?: string | null
+					icon_url?: string | null
+					flaticon_url?: string | null
+					black_icon_url?: string | null
+					transparent_icon_url?: string | null
+					sprite_url?: string | null
+				} | null
+			}
+		}>
+	}>
 	slot_field_definitions: QueueFilterField[]
 	slots: ActivitySlot[]
 	missing_assignments: Array<{
@@ -234,16 +264,6 @@ const findSlotById = (slotId: number | null | undefined) => (
 		? null
 		: currentActivity.value.slots.find((slot) => slot.id === slotId) ?? null
 );
-
-const currentDesignationSlotId = (designation: SlotDesignation) => {
-	if (!currentActivity.value) {
-		return null;
-	}
-
-	return currentActivity.value.slots.find((slot) => (
-		designation === 'host' ? slot.is_host : slot.is_raid_leader
-	))?.id ?? null;
-};
 
 const handleSlotStateConflict = async (error: any) => {
 	if (error?.response?.status !== 409) {
@@ -976,16 +996,13 @@ const updateSlotDesignation = async (slotId: number, designation: SlotDesignatio
 	}
 
 	const slot = currentActivity.value.slots.find((entry) => entry.id === slotId);
-	const previousDesignationSlotId = currentDesignationSlotId(designation);
-	const pendingSlotIds = [slotId, previousDesignationSlotId]
-		.filter((value): value is number => value !== null);
 
 	if (!slot || !slot.assigned_character_id || slot.is_bench) {
 		return;
 	}
 
 	isSlotAssignmentPending.value = true;
-	pendingSwapSlotIds.value = [...new Set(pendingSlotIds)];
+	pendingSwapSlotIds.value = [slotId];
 
 	try {
 		const response = await axios.post(route('groups.dashboard.activities.slot-designations.store', {
@@ -995,7 +1012,6 @@ const updateSlotDesignation = async (slotId: number, designation: SlotDesignatio
 		}), {
 			designation,
 			expected_slot_state_token: slot.state_token,
-			expected_current_designation_slot_id: previousDesignationSlotId,
 		});
 
 		const updatedSlots = Array.isArray(response.data?.slots) ? response.data.slots as ActivitySlot[] : [];
@@ -1391,6 +1407,8 @@ onBeforeUnmount(() => {
 				:needs-application="currentActivity.needs_application"
 				:description="currentActivity.description"
 				:notes="currentActivity.notes"
+				:roster-summary-presets="currentActivity.roster_summary_presets"
+				:slots="currentActivity.slots"
 				:completed-progression="completedProgression"
 				@edit="goToEditPage"
 				@view-overview="goToOverviewPage"

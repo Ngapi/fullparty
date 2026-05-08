@@ -2,6 +2,7 @@
 import ActivityProgressMilestonesEditor from "@/components/Admin/ActivityTypes/ActivityProgressMilestonesEditor.vue";
 import ActivityProgPointsEditor from "@/components/Admin/ActivityTypes/ActivityProgPointsEditor.vue";
 import ActivityLayoutGroupsEditor from "@/components/Admin/ActivityTypes/ActivityLayoutGroupsEditor.vue";
+import ActivityRosterSummaryPresetsEditor from "@/components/Admin/ActivityTypes/ActivityRosterSummaryPresetsEditor.vue";
 import ActivitySchemaFieldsEditor from "@/components/Admin/ActivityTypes/ActivitySchemaFieldsEditor.vue";
 import ActivityTypeSectionCard from "@/components/Admin/ActivityTypes/ActivityTypeSectionCard.vue";
 import ActivityTypeSummaryCard from "@/components/Admin/ActivityTypes/ActivityTypeSummaryCard.vue";
@@ -16,6 +17,10 @@ const props = defineProps<{
 	schemaReference: {
 		supportedFieldTypes: string[]
 		supportedOptionSources: string[]
+		rosterSummarySources: string[]
+		rosterSummaryComparisonModes: string[]
+		rosterSummaryScopeTypes: string[]
+		rosterSummarySourceOptions: Record<string, Array<{ value: number, label: string }>>
 	}
 	existingTags: string[]
 	submitLabel: string
@@ -222,6 +227,18 @@ const addCreatedTag = (rawTag: string) => {
 					field-kind="application"
 					:supported-field-types="schemaReference.supportedFieldTypes"
 					:supported-option-sources="schemaReference.supportedOptionSources"
+				/>
+
+				<ActivityRosterSummaryPresetsEditor
+					v-model="form.draft_roster_summary_presets"
+					:locales="locales"
+					:layout-groups="form.draft_layout_schema?.groups ?? []"
+					:summary-reference="{
+						supportedSources: schemaReference.rosterSummarySources,
+						supportedComparisons: schemaReference.rosterSummaryComparisonModes,
+						supportedScopeTypes: schemaReference.rosterSummaryScopeTypes,
+						sourceOptions: schemaReference.rosterSummarySourceOptions,
+					}"
 				/>
 
 				<ActivityProgressMilestonesEditor

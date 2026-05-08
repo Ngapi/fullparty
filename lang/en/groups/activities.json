@@ -176,6 +176,17 @@
             "application_link_copied": "Application link copied.",
             "export": "Export",
             "export_csv": "Export CSV",
+            "roster_summary": {
+                "eyebrow": "Composition Summary",
+                "requirements_count": "{count} requirements",
+                "scope_all": "Entire roster",
+                "scope_unknown": "Unknown scope",
+                "comparisons": {
+                    "at_least": "Minimum",
+                    "exactly": "Exact",
+                    "at_most": "Maximum"
+                }
+            },
             "progression": {
                 "title": "Recorded Progression",
                 "subtitle": "The final progression result stored for this completed run.",

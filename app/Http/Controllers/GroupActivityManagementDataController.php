@@ -8,6 +8,7 @@ use App\Models\Group;
 use App\Services\Groups\ActivitySlotBench;
 use App\Services\Groups\ActivityBenchSlotBackfillService;
 use App\Services\Groups\ActivityCompletionService;
+use App\Services\Groups\ActivityRosterSummaryPresetBuilder;
 use App\Services\Groups\ActivitySlotAttendanceService;
 use App\Services\Groups\ActivitySlotFieldDefinitionBuilder;
 use App\Services\Groups\ActivitySlotSerializer;
@@ -23,6 +24,7 @@ class GroupActivityManagementDataController extends Controller
         ActivitySlotAttendanceService $attendanceService,
         ActivitySlotSerializer $slotSerializer,
         ActivitySlotFieldDefinitionBuilder $fieldDefinitionBuilder,
+        ActivityRosterSummaryPresetBuilder $rosterSummaryPresetBuilder,
         ActivitySlotBench $slotBench,
     ): JsonResponse
     {
@@ -104,6 +106,7 @@ class GroupActivityManagementDataController extends Controller
                     ->filter(fn (array $progPoint) => $progPoint['key'] !== '')
                     ->values()
                     ->all(),
+                'roster_summary_presets' => $rosterSummaryPresetBuilder->build($activity->activityTypeVersion),
                 'can_use_fflogs_completion' => $completionService->supportsFflogsCompletion($activity->activityTypeVersion),
                 'slot_field_definitions' => $fieldDefinitionBuilder->build($activity->activityTypeVersion),
                 'slots' => $activity->slots->map(fn ($slot) => $slotSerializer->serialize($slot))->values(),

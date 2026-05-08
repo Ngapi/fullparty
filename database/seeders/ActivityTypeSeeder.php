@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use App\Models\ActivityType;
+use App\Models\PhantomJob;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
@@ -28,6 +29,7 @@ class ActivityTypeSeeder extends Seeder
                     'draft_layout_schema' => $activityTypeData['draft_layout_schema'],
                     'draft_slot_schema' => $activityTypeData['draft_slot_schema'],
                     'draft_application_schema' => $activityTypeData['draft_application_schema'],
+                    'draft_roster_summary_presets' => $activityTypeData['draft_roster_summary_presets'] ?? [],
                     'draft_progress_schema' => $activityTypeData['draft_progress_schema'],
                     'draft_bench_size' => $activityTypeData['draft_bench_size'] ?? 0,
                     'draft_prog_points' => $activityTypeData['draft_prog_points'] ?? [],
@@ -49,6 +51,7 @@ class ActivityTypeSeeder extends Seeder
                     'layout_schema' => $activityTypeData['draft_layout_schema'],
                     'slot_schema' => $activityTypeData['draft_slot_schema'],
                     'application_schema' => $activityTypeData['draft_application_schema'],
+                    'roster_summary_presets' => $activityTypeData['draft_roster_summary_presets'] ?? [],
                     'progress_schema' => $activityTypeData['draft_progress_schema'],
                     'bench_size' => $activityTypeData['draft_bench_size'] ?? 0,
                     'prog_points' => $activityTypeData['draft_prog_points'] ?? [],
@@ -157,6 +160,101 @@ class ActivityTypeSeeder extends Seeder
                             $this->staticOption('fr', ['en' => 'French', 'de' => 'Franzoesisch', 'fr' => 'Francais', 'ja' => 'フランス語']),
                             $this->staticOption('de', ['en' => 'German', 'de' => 'Deutsch', 'fr' => 'Allemand', 'ja' => 'ドイツ語']),
                             $this->staticOption('ja', ['en' => 'Japanese', 'de' => 'Japanisch', 'fr' => 'Japonais', 'ja' => '日本語']),
+                        ],
+                    ),
+                ],
+                'draft_roster_summary_presets' => [
+                    $this->rosterSummaryPreset(
+                        key: 'minimal-composition',
+                        label: [
+                            'en' => 'Minimal Composition',
+                            'de' => 'Minimale Komposition',
+                            'fr' => 'Composition minimale',
+                            'ja' => '最低構成',
+                        ],
+                        description: [
+                            'en' => 'This is the bare minimum set of jobs needed to clear.',
+                            'de' => 'Dies ist das absolute Minimum an Jobs, das fuer einen Clear noetig ist.',
+                            'fr' => 'Il s agit du minimum strict de jobs necessaires pour reussir le clear.',
+                            'ja' => 'クリアに必要な最低限のジョブ構成です。',
+                        ],
+                        requirements: [
+                            $this->rosterSummaryRequirement('phantom_jobs', $this->phantomJobId('Phantom Bard'), 'at_least', 1, 'slot_group_set', ['party-a', 'party-b', 'party-c']),
+                            $this->rosterSummaryRequirement('phantom_jobs', $this->phantomJobId('Phantom Ranger'), 'at_least', 1, 'slot_group_set', ['party-a', 'party-b', 'party-c']),
+                            $this->rosterSummaryRequirement('phantom_jobs', $this->phantomJobId('Phantom Thief'), 'at_least', 1, 'slot_group_set', ['party-a', 'party-b', 'party-c']),
+                            $this->rosterSummaryRequirement('phantom_jobs', $this->phantomJobId('Phantom Geomancer'), 'at_least', 1, 'slot_group_set', ['party-a', 'party-b', 'party-c']),
+                            $this->rosterSummaryRequirement('phantom_jobs', $this->phantomJobId('Phantom Time Mage'), 'at_least', 1, 'slot_group_set', ['party-a', 'party-b', 'party-c']),
+                            $this->rosterSummaryRequirement('phantom_jobs', $this->phantomJobId('Phantom Bard'), 'at_least', 1, 'slot_group_set', ['party-d', 'party-e', 'party-f']),
+                            $this->rosterSummaryRequirement('phantom_jobs', $this->phantomJobId('Phantom Ranger'), 'at_least', 1, 'slot_group_set', ['party-d', 'party-e', 'party-f']),
+                            $this->rosterSummaryRequirement('phantom_jobs', $this->phantomJobId('Phantom Thief'), 'at_least', 1, 'slot_group_set', ['party-d', 'party-e', 'party-f']),
+                            $this->rosterSummaryRequirement('phantom_jobs', $this->phantomJobId('Phantom Geomancer'), 'at_least', 1, 'slot_group_set', ['party-d', 'party-e', 'party-f']),
+                            $this->rosterSummaryRequirement('phantom_jobs', $this->phantomJobId('Phantom Time Mage'), 'at_least', 1, 'slot_group_set', ['party-d', 'party-e', 'party-f']),
+                            $this->rosterSummaryRequirement('phantom_jobs', $this->phantomJobId('Phantom Oracle'), 'at_least', 1, 'all_slots'),
+                            $this->rosterSummaryRequirement('phantom_jobs', $this->phantomJobId('Phantom Berserker'), 'at_least', 1, 'all_slots'),
+                        ],
+                    ),
+                    $this->rosterSummaryPreset(
+                        key: 'recommended-composition',
+                        label: [
+                            'en' => 'Recommended Composition',
+                            'de' => 'Empfohlene Komposition',
+                            'fr' => 'Composition recommandee',
+                            'ja' => '推奨構成',
+                        ],
+                        description: [
+                            'en' => 'A safer, more rounded composition with the most useful support coverage on each side.',
+                            'de' => 'Eine sicherere und rundere Komposition mit der wichtigsten Support-Abdeckung auf beiden Seiten.',
+                            'fr' => 'Une composition plus sure et plus complete avec la couverture de soutien la plus utile de chaque cote.',
+                            'ja' => '各サイドに有用な支援ジョブを十分に揃えた、より安定した推奨構成です。',
+                        ],
+                        requirements: [
+                            $this->rosterSummaryRequirement('phantom_jobs', $this->phantomJobId('Phantom Bard'), 'at_least', 1, 'slot_group_set', ['party-a', 'party-b', 'party-c']),
+                            $this->rosterSummaryRequirement('phantom_jobs', $this->phantomJobId('Phantom Ranger'), 'at_least', 1, 'slot_group_set', ['party-a', 'party-b', 'party-c']),
+                            $this->rosterSummaryRequirement('phantom_jobs', $this->phantomJobId('Phantom Thief'), 'at_least', 1, 'slot_group_set', ['party-a', 'party-b', 'party-c']),
+                            $this->rosterSummaryRequirement('phantom_jobs', $this->phantomJobId('Phantom Geomancer'), 'at_least', 1, 'slot_group_set', ['party-a', 'party-b', 'party-c']),
+                            $this->rosterSummaryRequirement('phantom_jobs', $this->phantomJobId('Phantom Time Mage'), 'at_least', 1, 'slot_group_set', ['party-a', 'party-b', 'party-c']),
+                            $this->rosterSummaryRequirement('phantom_jobs', $this->phantomJobId('Phantom Cannoneer'), 'at_least', 1, 'slot_group_set', ['party-a', 'party-b', 'party-c']),
+                            $this->rosterSummaryRequirement('phantom_jobs', $this->phantomJobId('Phantom Mystic Knight'), 'at_least', 1, 'slot_group_set', ['party-a', 'party-b', 'party-c']),
+                            $this->rosterSummaryRequirement('phantom_jobs', $this->phantomJobId('Phantom Bard'), 'at_least', 1, 'slot_group_set', ['party-d', 'party-e', 'party-f']),
+                            $this->rosterSummaryRequirement('phantom_jobs', $this->phantomJobId('Phantom Ranger'), 'at_least', 1, 'slot_group_set', ['party-d', 'party-e', 'party-f']),
+                            $this->rosterSummaryRequirement('phantom_jobs', $this->phantomJobId('Phantom Thief'), 'at_least', 1, 'slot_group_set', ['party-d', 'party-e', 'party-f']),
+                            $this->rosterSummaryRequirement('phantom_jobs', $this->phantomJobId('Phantom Geomancer'), 'at_least', 1, 'slot_group_set', ['party-d', 'party-e', 'party-f']),
+                            $this->rosterSummaryRequirement('phantom_jobs', $this->phantomJobId('Phantom Time Mage'), 'at_least', 1, 'slot_group_set', ['party-d', 'party-e', 'party-f']),
+                            $this->rosterSummaryRequirement('phantom_jobs', $this->phantomJobId('Phantom Cannoneer'), 'at_least', 1, 'slot_group_set', ['party-d', 'party-e', 'party-f']),
+                            $this->rosterSummaryRequirement('phantom_jobs', $this->phantomJobId('Phantom Mystic Knight'), 'at_least', 1, 'slot_group_set', ['party-d', 'party-e', 'party-f']),
+                            $this->rosterSummaryRequirement('phantom_jobs', $this->phantomJobId('Phantom Berserker'), 'at_least', 1, 'all_slots'),
+                            $this->rosterSummaryRequirement('phantom_jobs', $this->phantomJobId('Phantom Oracle'), 'at_least', 1, 'all_slots'),
+                        ],
+                    ),
+                    $this->rosterSummaryPreset(
+                        key: 'risky-minmax-composition',
+                        label: [
+                            'en' => 'Risky Min-Maxing Composition',
+                            'de' => 'Riskante Min-Max-Komposition',
+                            'fr' => 'Composition min-max risquee',
+                            'ja' => 'ハイリスク最適化構成',
+                        ],
+                        description: [
+                            'en' => 'A greedier setup that trims safety tools in favor of more aggressive damage output.',
+                            'de' => 'Eine gierigere Aufstellung, die Sicherheitswerkzeuge zugunsten von mehr Schaden reduziert.',
+                            'fr' => 'Une composition plus agressive qui reduit les outils de securite au profit de degats plus eleves.',
+                            'ja' => '安全枠を削って火力を優先した、より欲張りな最適化構成です。',
+                        ],
+                        requirements: [
+                            $this->rosterSummaryRequirement('phantom_jobs', $this->phantomJobId('Phantom Bard'), 'at_least', 1, 'slot_group_set', ['party-a', 'party-b', 'party-c']),
+                            $this->rosterSummaryRequirement('phantom_jobs', $this->phantomJobId('Phantom Ranger'), 'at_least', 1, 'slot_group_set', ['party-a', 'party-b', 'party-c']),
+                            $this->rosterSummaryRequirement('phantom_jobs', $this->phantomJobId('Phantom Geomancer'), 'at_least', 2, 'slot_group_set', ['party-a', 'party-b', 'party-c']),
+                            $this->rosterSummaryRequirement('phantom_jobs', $this->phantomJobId('Phantom Time Mage'), 'at_least', 1, 'slot_group_set', ['party-a', 'party-b', 'party-c']),
+                            $this->rosterSummaryRequirement('phantom_jobs', $this->phantomJobId('Phantom Cannoneer'), 'at_least', 1, 'slot_group_set', ['party-a', 'party-b', 'party-c']),
+                            $this->rosterSummaryRequirement('phantom_jobs', $this->phantomJobId('Phantom Mystic Knight'), 'at_least', 1, 'slot_group_set', ['party-a', 'party-b', 'party-c']),
+                            $this->rosterSummaryRequirement('phantom_jobs', $this->phantomJobId('Phantom Bard'), 'at_least', 1, 'slot_group_set', ['party-d', 'party-e', 'party-f']),
+                            $this->rosterSummaryRequirement('phantom_jobs', $this->phantomJobId('Phantom Ranger'), 'at_least', 1, 'slot_group_set', ['party-d', 'party-e', 'party-f']),
+                            $this->rosterSummaryRequirement('phantom_jobs', $this->phantomJobId('Phantom Geomancer'), 'at_least', 2, 'slot_group_set', ['party-d', 'party-e', 'party-f']),
+                            $this->rosterSummaryRequirement('phantom_jobs', $this->phantomJobId('Phantom Time Mage'), 'at_least', 1, 'slot_group_set', ['party-d', 'party-e', 'party-f']),
+                            $this->rosterSummaryRequirement('phantom_jobs', $this->phantomJobId('Phantom Cannoneer'), 'at_least', 1, 'slot_group_set', ['party-d', 'party-e', 'party-f']),
+                            $this->rosterSummaryRequirement('phantom_jobs', $this->phantomJobId('Phantom Mystic Knight'), 'at_least', 1, 'slot_group_set', ['party-d', 'party-e', 'party-f']),
+                            $this->rosterSummaryRequirement('phantom_jobs', $this->phantomJobId('Phantom Berserker'), 'at_least', 6, 'all_slots'),
+                            $this->rosterSummaryRequirement('phantom_jobs', $this->phantomJobId('Phantom Oracle'), 'at_least', 3, 'all_slots'),
                         ],
                     ),
                 ],
@@ -468,5 +566,58 @@ class ActivityTypeSeeder extends Seeder
             $this->staticOption('r1', ['en' => 'DPS 3 / Phys Ranged', 'de' => 'DPS 3 / Phys. Fernkampf', 'fr' => 'DPS 3 / Distance physique', 'ja' => 'DPS 3 / Phys Ranged']),
             $this->staticOption('r2', ['en' => 'DPS 4 / Magic Ranged', 'de' => 'DPS 4 / Mag. Fernkampf', 'fr' => 'DPS 4 / Distance magique', 'ja' => 'DPS 4 / Magic Ranged']),
         ];
+    }
+
+    /**
+     * @param  array<int, array<string, mixed>>  $requirements
+     * @return array<string, mixed>
+     */
+    private function rosterSummaryPreset(
+        string $key,
+        array|string $label,
+        array|string $description,
+        array $requirements,
+    ): array {
+        return [
+            'key' => $key,
+            'label' => $this->localized($label),
+            'description' => $this->localized($description),
+            'requirements' => $requirements,
+        ];
+    }
+
+    /**
+     * @param  array<int, string>  $scopeGroupKeys
+     * @return array<string, mixed>
+     */
+    private function rosterSummaryRequirement(
+        string $source,
+        int $sourceId,
+        string $comparison,
+        int $targetCount,
+        string $scopeType,
+        array $scopeGroupKeys = [],
+    ): array {
+        return [
+            'source' => $source,
+            'source_id' => $sourceId,
+            'comparison' => $comparison,
+            'target_count' => $targetCount,
+            'scope_type' => $scopeType,
+            'scope_group_keys' => $scopeGroupKeys,
+        ];
+    }
+
+    private function phantomJobId(string $name): int
+    {
+        $phantomJobId = PhantomJob::query()
+            ->where('name', $name)
+            ->value('id');
+
+        if (!is_numeric($phantomJobId)) {
+            throw new \RuntimeException(sprintf('Expected phantom job [%s] to exist before seeding activity types.', $name));
+        }
+
+        return (int) $phantomJobId;
     }
 }

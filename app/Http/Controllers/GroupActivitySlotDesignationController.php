@@ -37,7 +37,6 @@ class GroupActivitySlotDesignationController extends Controller
         $validated = $request->validate([
             'designation' => ['required', 'string', 'in:host,raid_leader'],
             'expected_slot_state_token' => ['required', 'string'],
-            'expected_current_designation_slot_id' => ['sometimes', 'nullable', 'integer'],
         ]);
 
         $slot->load(['activity.slotAssignments', 'assignedCharacter', 'fieldValues', 'assignments']);
@@ -47,9 +46,6 @@ class GroupActivitySlotDesignationController extends Controller
             $slot,
             $validated['designation'],
             (int) $request->user()->id,
-            isset($validated['expected_current_designation_slot_id'])
-                ? (int) $validated['expected_current_designation_slot_id']
-                : null,
         );
 
         $serializedSlots = array_map(

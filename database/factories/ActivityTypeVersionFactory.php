@@ -57,6 +57,7 @@ class ActivityTypeVersionFactory extends Factory
                     ],
                 ],
             ],
+            'roster_summary_presets' => [],
             'progress_schema' => [
                 'milestones' => [
                     [

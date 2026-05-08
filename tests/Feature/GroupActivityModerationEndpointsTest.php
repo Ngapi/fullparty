@@ -8,9 +8,11 @@ use App\Models\ActivityType;
 use App\Models\ActivityTypeVersion;
 use App\Models\AuditLog;
 use App\Models\Character;
+use App\Models\CharacterClass;
 use App\Models\Group;
 use App\Models\NotificationDelivery;
 use App\Models\NotificationEvent;
+use App\Models\PhantomJob;
 use App\Models\SocialAccount;
 use App\Models\User;
 use App\Models\UserNotification;
@@ -247,6 +249,76 @@ it('includes assignment source metadata for filled slots in management data', fu
         ->assertJsonPath('activity.slots.0.can_return_to_queue', true);
 });
 
+it('includes roster summary presets with resolved items and scope labels in management data', function () {
+    $phantomJob = PhantomJob::query()->create([
+        'name' => 'Phantom Bard',
+        'max_level' => 99,
+    ]);
+
+    $characterClass = CharacterClass::query()->create([
+        'name' => 'Scholar',
+        'shorthand' => 'SCH',
+        'role' => 'healer',
+    ]);
+
+    extract(createModerationEndpointSetup([
+        'layout_schema' => [
+            'groups' => [
+                [
+                    'key' => 'party-a',
+                    'label' => ['en' => 'Party A'],
+                    'size' => 1,
+                ],
+                [
+                    'key' => 'party-b',
+                    'label' => ['en' => 'Party B'],
+                    'size' => 1,
+                ],
+            ],
+        ],
+        'roster_summary_presets' => [
+            [
+                'key' => 'recommended',
+                'label' => ['en' => 'Recommended Composition'],
+                'description' => ['en' => 'Glanceable coverage targets.'],
+                'requirements' => [
+                    [
+                        'source' => 'phantom_jobs',
+                        'source_id' => $phantomJob->id,
+                        'comparison' => 'at_least',
+                        'target_count' => 1,
+                        'scope_type' => 'slot_group_set',
+                        'scope_group_keys' => ['party-a', 'party-b'],
+                    ],
+                    [
+                        'source' => 'character_classes',
+                        'source_id' => $characterClass->id,
+                        'comparison' => 'exactly',
+                        'target_count' => 2,
+                        'scope_type' => 'all_slots',
+                        'scope_group_keys' => [],
+                    ],
+                ],
+            ],
+        ],
+    ]));
+
+    $this->actingAs($owner);
+
+    $this->getJson(route('groups.dashboard.activities.management-data', [
+        'group' => $group->slug,
+        'activity' => $activity->id,
+    ]))
+        ->assertOk()
+        ->assertJsonPath('activity.roster_summary_presets.0.key', 'recommended')
+        ->assertJsonPath('activity.roster_summary_presets.0.label.en', 'Recommended Composition')
+        ->assertJsonPath('activity.roster_summary_presets.0.requirements.0.item.label.en', 'Phantom Bard')
+        ->assertJsonPath('activity.roster_summary_presets.0.requirements.0.scope_groups.0.label.en', 'Party A')
+        ->assertJsonPath('activity.roster_summary_presets.0.requirements.0.scope_groups.1.label.en', 'Party B')
+        ->assertJsonPath('activity.roster_summary_presets.0.requirements.1.item.label.en', 'Scholar')
+        ->assertJsonPath('activity.roster_summary_presets.0.requirements.1.scope_type', 'all_slots');
+});
+
 it('returns a completion preview for supported ff logs completion requests', function () {
     extract(createModerationEndpointSetup([], [
         'status' => Activity::STATUS_ASSIGNED,
@@ -379,7 +451,7 @@ it('does not allow moderators to decline applications that are no longer pending
     expect($application->fresh()->status)->toBe(ActivityApplication::STATUS_APPROVED);
 });
 
-it('marks host designations on published slots with audit, notifications, and live sync', function () {
+it('allows multiple host designations on published slots with audit, notifications, and live sync', function () {
     Queue::fake();
 
     extract(createModerationEndpointSetup([], [
@@ -456,7 +528,6 @@ it('marks host designations on published slots with audit, notifications, and li
     ]), [
         'designation' => 'host',
         'expected_slot_state_token' => activity_slot_state_token($slot->fresh()),
-        'expected_current_designation_slot_id' => null,
     ])
         ->assertOk()
         ->assertJsonPath('slot.is_host', true);
@@ -484,26 +555,25 @@ it('marks host designations on published slots with audit, notifications, and li
     ]), [
         'designation' => 'host',
         'expected_slot_state_token' => activity_slot_state_token($secondSlot->fresh()),
-        'expected_current_designation_slot_id' => $slot->id,
     ])
         ->assertOk()
-        ->assertJsonCount(2, 'slots');
+        ->assertJsonCount(1, 'slots');
 
-    expect($slot->fresh()->is_host)->toBeFalse()
+    expect($slot->fresh()->is_host)->toBeTrue()
         ->and($secondSlot->fresh()->is_host)->toBeTrue()
         ->and(AuditLog::query()->where('action', 'group.activity.roster.host_marked')->count())->toBe(2)
-        ->and(AuditLog::query()->where('action', 'group.activity.roster.host_cleared')->count())->toBe(1)
+        ->and(AuditLog::query()->where('action', 'group.activity.roster.host_cleared')->count())->toBe(0)
         ->and(NotificationEvent::query()->where('type', 'assignments.designation_assigned')->count())->toBe(2)
-        ->and(NotificationEvent::query()->where('type', 'assignments.designation_removed')->count())->toBe(1);
+        ->and(NotificationEvent::query()->where('type', 'assignments.designation_removed')->count())->toBe(0);
 
     Event::assertDispatched(ActivityManagementUpdated::class, function (ActivityManagementUpdated $event) use ($activity, $group, $slot, $secondSlot) {
         $updatedSlots = collect($event->patch['updated_slots'] ?? []);
 
         return $event->activityId === $activity->id
             && $event->groupId === $group->id
-            && $updatedSlots->count() === 2
-            && $updatedSlots->contains(fn (array $entry) => ($entry['id'] ?? null) === $slot->id && ($entry['is_host'] ?? true) === false)
-            && $updatedSlots->contains(fn (array $entry) => ($entry['id'] ?? null) === $secondSlot->id && ($entry['is_host'] ?? false) === true);
+            && $updatedSlots->count() === 1
+            && $updatedSlots->contains(fn (array $entry) => ($entry['id'] ?? null) === $secondSlot->id && ($entry['is_host'] ?? false) === true)
+            && !$updatedSlots->contains(fn (array $entry) => ($entry['id'] ?? null) === $slot->id);
     });
 });
 
@@ -554,7 +624,6 @@ it('replaces an existing host designation when the same slot is marked as raid l
     ]), [
         'designation' => 'raid_leader',
         'expected_slot_state_token' => activity_slot_state_token($slot->fresh()),
-        'expected_current_designation_slot_id' => null,
     ])
         ->assertOk()
         ->assertJsonPath('slot.is_host', false)

@@ -9,6 +9,10 @@ const props = defineProps<{
 	schemaReference: {
 		supportedFieldTypes: string[]
 		supportedOptionSources: string[]
+		rosterSummarySources: string[]
+		rosterSummaryComparisonModes: string[]
+		rosterSummaryScopeTypes: string[]
+		rosterSummarySourceOptions: Record<string, Array<{ value: number, label: string }>>
 	}
 	existingTags: string[]
 }>();
@@ -23,6 +27,7 @@ const form = useForm({
 	draft_layout_schema: props.activityType.draft_layout_schema,
 	draft_slot_schema: props.activityType.draft_slot_schema,
 	draft_application_schema: props.activityType.draft_application_schema,
+	draft_roster_summary_presets: props.activityType.draft_roster_summary_presets ?? [],
 	draft_progress_schema: props.activityType.draft_progress_schema ?? { milestones: [] },
 	draft_bench_size: props.activityType.draft_bench_size ?? 0,
 	draft_prog_points: props.activityType.draft_prog_points ?? [],

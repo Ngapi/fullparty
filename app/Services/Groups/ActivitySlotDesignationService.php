@@ -8,7 +8,6 @@ use App\Models\User;
 use App\Services\Notifications\AssignmentNotificationService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
-use Symfony\Component\HttpKernel\Exception\ConflictHttpException;
 
 class ActivitySlotDesignationService
 {
@@ -25,7 +24,6 @@ class ActivitySlotDesignationService
         ActivitySlot $slot,
         string $designation,
         int $actorUserId,
-        ?int $expectedCurrentDesignationSlotId,
     ): array {
         $activity = $slot->activity;
 
@@ -55,28 +53,13 @@ class ActivitySlotDesignationService
         $actor = User::query()->find($actorUserId);
 
         /** @var array{updated_slots: array<int, ActivitySlot>, notifications: array<int, array{slot: ActivitySlot, designation: string, assigned: bool}>} $result */
-        $result = DB::transaction(function () use ($activity, $slot, $column, $designation, $oppositeColumn, $oppositeDesignation, $expectedCurrentDesignationSlotId, $actorUserId, $actor) {
+        $result = DB::transaction(function () use ($activity, $slot, $column, $designation, $oppositeColumn, $oppositeDesignation, $actorUserId, $actor) {
             $targetSlot = ActivitySlot::query()
                 ->with(['activity.group', 'assignedCharacter', 'fieldValues', 'assignments'])
                 ->lockForUpdate()
                 ->findOrFail($slot->id);
 
-            $currentDesignationSlot = ActivitySlot::query()
-                ->with(['activity.group', 'assignedCharacter', 'fieldValues', 'assignments'])
-                ->where('activity_id', $activity->id)
-                ->where($column, true)
-                ->lockForUpdate()
-                ->first();
-
-            $currentDesignationSlotId = $currentDesignationSlot?->id;
-
-            if ($currentDesignationSlotId !== $expectedCurrentDesignationSlotId) {
-                throw new ConflictHttpException('This slot changed while you were editing it. Refresh and try again.');
-            }
-
-            $shouldAssignDesignation = !($currentDesignationSlot
-                && (int) $currentDesignationSlot->id === (int) $targetSlot->id
-                && (bool) $targetSlot->{$column});
+            $shouldAssignDesignation = !(bool) $targetSlot->{$column};
 
             $updatedSlots = [];
             $pendingNotifications = [];
@@ -103,34 +86,6 @@ class ActivitySlotDesignationService
                         $pendingNotifications[] = [
                             'slot' => $updatedTargetSlot,
                             'designation' => $oppositeDesignation,
-                            'assigned' => false,
-                        ];
-                    }
-                }
-            }
-
-            if ($currentDesignationSlot && (int) $currentDesignationSlot->id !== (int) $targetSlot->id) {
-                $currentDesignationSlot->update([$column => false]);
-                $updatedPreviousSlot = $currentDesignationSlot->fresh(['activity.group', 'assignedCharacter', 'fieldValues', 'assignments']);
-
-                if ($updatedPreviousSlot) {
-                    $updatedSlots[$updatedPreviousSlot->id] = $updatedPreviousSlot;
-
-                    $this->activityAuditService->logRosterEvent(
-                        sprintf('%s_cleared', $designation),
-                        $updatedPreviousSlot,
-                        $actor ?? $actorUserId,
-                        [
-                            'designation' => $designation,
-                            'moved_to_slot_label' => $targetSlot->slot_label['en'] ?? $targetSlot->slot_key,
-                            'moved_to_group_label' => $targetSlot->group_label['en'] ?? $targetSlot->group_key,
-                        ],
-                    );
-
-                    if ($updatedPreviousSlot->assignedCharacter) {
-                        $pendingNotifications[] = [
-                            'slot' => $updatedPreviousSlot,
-                            'designation' => $designation,
                             'assigned' => false,
                         ];
                     }
