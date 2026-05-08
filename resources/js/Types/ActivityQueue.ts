@@ -1,5 +1,5 @@
 import type { LocalizedText } from "@/Types/Common"
-import type { MemberNotePayload } from "@/Types/Groups"
+import type { MemberNoteSummary } from "@/Types/Groups"
 
 export type QueueApplicationAnswerDisplayItem = {
 	label: string
@@ -47,7 +47,7 @@ export type QueueApplication = {
 		id: number
 		name: string
 		avatar_url: string | null
-		notes: MemberNotePayload
+		note_summary: MemberNoteSummary
 	} | null
 	applicant_character: {
 		lodestone_id: string

@@ -1,10 +1,6 @@
 {
   "title": "Gruppeneinstellungen",
   "subtitle": "Verwalte die allgemeine Konfiguration deiner Gruppe und zugriffssensible Details.",
-  "access": {
-    "owner": "Besitzerzugriff",
-    "moderator": "Moderatorzugriff"
-  },
   "general": {
     "title": "Allgemeine Einstellungen",
     "subtitle": "Aktualisiere die veränderbaren Details, die definieren, wie deine Gruppe erscheint und wie Mitglieder beitreten.",

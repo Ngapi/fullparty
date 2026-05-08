@@ -4,6 +4,7 @@ import { useI18n } from "vue-i18n";
 import { usePage } from "@inertiajs/vue3";
 import { localizedValue } from "@/utils/localizedValue";
 import { setQueueApplicationDragData } from "@/components/Groups/Activities/rosterDragData";
+import MemberNotesButton from "@/components/Shared/Notes/MemberNotesButton.vue";
 import type { LocalizedText } from "@/Types/Common";
 import type { QueueApplication } from "@/Types/ActivityQueue";
 
@@ -12,7 +13,7 @@ const props = defineProps<{
 }>();
 const emit = defineEmits<{
 	openDetails: [application: QueueApplication]
-	openNotes: [application: QueueApplication]
+	openNotes: [userId: number]
 }>();
 
 const { t, locale } = useI18n();
@@ -132,21 +133,6 @@ const notePreview = computed(() => {
 });
 
 const canDragToRoster = computed(() => Boolean(props.application.selected_character));
-const canViewMemberNotes = computed(() => Boolean(props.application.user?.notes.can_view));
-const memberNotesButtonLabel = computed(() => {
-	const notes = props.application.user?.notes;
-
-	if (!notes?.can_view) {
-		return t('general.notes');
-	}
-
-	const totalCount = notes.current_group_count + notes.shared_count;
-
-	return totalCount > 0
-		? `${t('general.notes')} (${totalCount})`
-		: t('general.notes');
-});
-
 const handleDragStart = (event: DragEvent) => {
 	if (!canDragToRoster.value) {
 		event.preventDefault();
@@ -267,15 +253,15 @@ const handleDragStart = (event: DragEvent) => {
 				:label="t('general.view')"
 				@click="emit('openDetails', props.application)"
 			/>
-			<UButton
-				v-if="canViewMemberNotes"
+			<MemberNotesButton
+				v-if="props.application.user"
+				:user-id="props.application.user.id"
+				:note-summary="props.application.user.note_summary"
 				color="secondary"
 				variant="soft"
 				size="md"
-				icon="i-lucide-notebook-pen"
 				class="flex-1 items-center justify-center"
-				:label="memberNotesButtonLabel"
-				@click="emit('openNotes', props.application)"
+				@open="emit('openNotes', $event)"
 			/>
 		</div>
 	</div>

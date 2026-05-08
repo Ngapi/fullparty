@@ -1,11 +1,7 @@
 {
   "group": {
     "title": "Audit-Log",
-    "subtitle": "Überprüfe Moderations- und Verwaltungsaktivitäten für diese Gruppe.",
-    "access": {
-      "owner": "Besitzerzugriff",
-      "moderator": "Moderatorzugriff"
-    }
+    "subtitle": "Überprüfe Moderations- und Verwaltungsaktivitäten für diese Gruppe."
   },
   "admin": {
     "title": "Admin-Audit-Log",

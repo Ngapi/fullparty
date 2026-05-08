@@ -7,18 +7,46 @@ use App\Models\GroupUserNote;
 use App\Models\GroupUserNoteAddendum;
 use App\Models\User;
 use App\Services\AuditLogger;
+use App\Services\Groups\GroupUserNoteVisibilityService;
 use App\Support\Audit\AuditScope;
 use App\Support\Audit\AuditSeverity;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Validation\Rule;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 
 class GroupMemberNoteController extends Controller
 {
     public function __construct(
         private readonly AuditLogger $auditLogger
     ) {}
+
+    public function show(Group $group, User $user, GroupUserNoteVisibilityService $noteVisibilityService): JsonResponse
+    {
+        $group->loadMissing(['memberships', 'bans']);
+        $this->authorizeModeratorAccess($group);
+
+        if (!$group->hasMember($user->id) && !$group->isBanned($user->id)) {
+            abort(404);
+        }
+
+        $visibleNotes = $noteVisibilityService->loadVisibleNotesForTargets($group, auth()->id(), collect([$user->id]));
+
+        return response()->json([
+            'member' => [
+                'id' => $user->id,
+                'name' => $user->name,
+                'notes' => $noteVisibilityService->serializeVisibleNotesForUser(
+                    $group,
+                    $user,
+                    auth()->id(),
+                    $visibleNotes['group_notes_by_user_id'],
+                    $visibleNotes['shared_notes_by_user_id'],
+                ),
+            ],
+        ]);
+    }
 
     public function store(Request $request, Group $group, User $user): RedirectResponse
     {

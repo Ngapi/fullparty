@@ -1,10 +1,6 @@
 {
   "title": "Group Settings",
   "subtitle": "Manage your group's general configuration and access-sensitive details.",
-  "access": {
-    "owner": "Owner Access",
-    "moderator": "Moderator Access"
-  },
   "general": {
     "title": "General Settings",
     "subtitle": "Update the mutable details that define how your group appears and how members join it.",

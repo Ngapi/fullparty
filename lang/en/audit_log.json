@@ -1,11 +1,7 @@
 {
   "group": {
     "title": "Audit Log",
-    "subtitle": "Review moderation and management activity for this group.",
-    "access": {
-      "owner": "Owner Access",
-      "moderator": "Moderator Access"
-    }
+    "subtitle": "Review moderation and management activity for this group."
   },
   "admin": {
     "title": "Admin Audit Log",

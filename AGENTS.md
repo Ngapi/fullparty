@@ -379,6 +379,30 @@ Useful suffixes:
 - `Menu`
 - `Picker`
 
+When a feature appears in several domains or page surfaces, prefer extracting a
+shared UI component into a neutral folder such as `components/Shared/...`
+instead of leaving it under the first domain where it happened to be built.
+
+For repeated detail workflows in lists and tables:
+
+- prefer one focused detail surface per page or page-level area, not one modal
+  instance per row
+- keep row payloads lightweight and fetch full detail payloads on demand when
+  the focused surface opens
+- let child rows or tables render simple trigger components, while the page owns
+  the singleton modal, drawer, or overlay
+- keep focused modal components mostly presentational and event-oriented; do not
+  let them become the long-term home for workflow state and CRUD behavior
+
+For repeated confirmation workflows:
+
+- prefer a shared confirmation component over many bespoke confirmation modals
+- when the app already supports it, prefer programmatic overlays for
+  create/open/confirm/close flows instead of leaving dormant modal instances in
+  large page templates
+- keep extra confirmation inputs prop-driven when that makes the overlay API
+  cleaner than slot-heavy page wiring
+
 ### Composables
 
 Use composables for shared reactive or stateful logic.
@@ -394,6 +418,25 @@ Good composable use cases:
 
 Do not use composables as dumping grounds. A composable should expose a small,
 clear API.
+
+When a reusable workflow spans several child components, the composable should
+usually own:
+
+- async loading state
+- form state
+- mutation actions
+- transient UI workflow state
+- reload behavior after mutations
+
+Prefer explicit, command-driven lifecycle methods such as `open...()`,
+`close...()`, `reload...()`, or `confirm...()` when a modal or overlay flow can
+be expressed directly. Avoid watcher-heavy synchronization when the same flow can
+be modeled with clear commands.
+
+When passing workflow behavior into child tables, lists, or cards, prefer a
+narrow controller object such as `notes`, `moderation`, or `selection` over a
+long list of individual props. Child components should depend on a coherent
+feature controller, not a large exploded prop surface.
 
 ### Utilities
 
@@ -421,6 +464,9 @@ Rules for new work:
 - Put shared frontend domain types in dedicated type files.
 - Prefer creating `resources/js/Types/<Domain>.ts` for cross-page or cross-component
   payloads.
+- For shared UI/workflow contracts, prefer dedicated shared type files such as
+  `resources/js/Types/Shared.ts` or a well-named domain type file instead of
+  declaring those contracts inside a composable or `.vue` file.
 - Near-feature type files are acceptable only when the type is genuinely local to
   that feature folder.
 - Do not duplicate the same payload type across several `.vue` files.
@@ -689,4 +735,3 @@ Before finishing a task, check the relevant items:
   considered for touched workflows.
 - Locale keys were added for user-visible text.
 - The final response says exactly what changed and what was verified.
-

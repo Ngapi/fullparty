@@ -9,7 +9,8 @@ import { route } from "ziggy-js";
 import ApplicantQueueItem from "@/components/Groups/Activities/ApplicantQueueItem.vue";
 import ApplicantQueueDetailsModal from "@/components/Groups/Activities/ApplicantQueueDetailsModal.vue";
 import { getRosterSlotDragData, isRosterSlotDrag } from "@/components/Groups/Activities/rosterDragData";
-import GroupMemberNotesModal from "@/components/Groups/GroupMemberNotesModal.vue";
+import MembersNotesModal from "@/components/Shared/Notes/MembersNotesModal.vue";
+import { useMemberNotes } from "@/composables/useMemberNotes";
 import type { LocalizedText } from "@/Types/Common";
 import type {
 	QueueApplication,
@@ -45,8 +46,10 @@ const minimumPhantomMastery = ref('');
 const isQueueDropActive = ref(false);
 const isReturningSlot = ref(false);
 const isApplicationModalOpen = ref(false);
-const isNotesModalOpen = ref(false);
 const selectedApplication = ref<QueueApplication | null>(null);
+const memberNotes = useMemberNotes({
+	groupSlug: computed(() => props.groupSlug),
+});
 
 const fallbackLocale = computed(() => String(page.props.locale?.fallback ?? 'en'));
 
@@ -190,7 +193,6 @@ const handleApplicationAssigned = (event: Event) => {
 	if (selectedApplication.value?.id === assignedApplicationId) {
 		selectedApplication.value = null;
 		isApplicationModalOpen.value = false;
-		isNotesModalOpen.value = false;
 	}
 };
 
@@ -222,7 +224,6 @@ const handleManagementQueueSync = async (event: Event) => {
 		if (selectedApplication.value && removeApplicationIds.has(selectedApplication.value.id)) {
 			selectedApplication.value = null;
 			isApplicationModalOpen.value = false;
-			isNotesModalOpen.value = false;
 		}
 	}
 
@@ -242,7 +243,6 @@ const handleManagementQueueSync = async (event: Event) => {
 			if (selectedApplication.value?.id === applicationId) {
 				selectedApplication.value = null;
 				isApplicationModalOpen.value = false;
-				isNotesModalOpen.value = false;
 			}
 
 			continue;
@@ -322,31 +322,9 @@ const handleDrop = async (event: DragEvent) => {
 	}
 };
 
-const selectedNotesSubject = computed(() => {
-	if (!selectedApplication.value?.user) {
-		return null;
-	}
-
-	return {
-		id: selectedApplication.value.user.id,
-		name: selectedApplication.value.user.name,
-		avatar_url: selectedApplication.value.user.avatar_url,
-		notes: selectedApplication.value.user.notes,
-	};
-});
-
 const openApplicationDetails = (application: QueueApplication) => {
 	selectedApplication.value = application;
 	isApplicationModalOpen.value = true;
-};
-
-const openApplicationNotes = (application: QueueApplication) => {
-	if (!application.user?.notes.can_view) {
-		return;
-	}
-
-	selectedApplication.value = application;
-	isNotesModalOpen.value = true;
 };
 
 onMounted(() => {
@@ -568,7 +546,7 @@ const visibleApplications = computed(() => {
 						:key="application.id"
 						:application="application"
 						@open-details="openApplicationDetails"
-						@open-notes="openApplicationNotes"
+						@open-notes="memberNotes.openMemberNotes"
 					/>
 			</div>
 
@@ -586,10 +564,6 @@ const visibleApplications = computed(() => {
 			@declined="handleApplicationDeclined"
 		/>
 
-		<GroupMemberNotesModal
-			v-model:open="isNotesModalOpen"
-			:group-slug="groupSlug"
-			:subject="selectedNotesSubject"
-		/>
+		<MembersNotesModal :notes="memberNotes" />
 	</aside>
 </template>

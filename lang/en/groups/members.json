@@ -1,11 +1,6 @@
 {
   "title": "Group Members",
   "subtitle": "Review your group roster, linked characters, and membership actions in one place.",
-  "access": {
-    "owner": "Owner Access",
-    "moderator": "Moderator Access",
-    "member": "Member Access"
-  },
   "roster": {
     "title": "Member Roster",
     "subtitle": "See who is in the group, what characters they have linked, and what actions are available to you.",
@@ -53,6 +48,7 @@
   },
   "notes": {
     "hidden": "Notes are not available for this user.",
+    "load_error": "Notes could not be loaded right now.",
     "unknown_group": "Unknown group",
     "shared_badge": "Shared",
     "shared_from": "Shared by {author} on {date}",

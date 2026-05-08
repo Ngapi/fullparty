@@ -1,57 +1,37 @@
 <script setup lang="ts">
-import type { MemberNote, MemberNotePayload } from "@/Types/Groups";
-import { computed, ref, watch } from "vue";
-import { useForm } from "@inertiajs/vue3";
-import { route } from "ziggy-js";
-import { useToast } from "@nuxt/ui/composables";
+import type { MemberNote } from "@/Types/Groups";
 import { useI18n } from "vue-i18n";
+import { useMemberNotes } from "@/composables/useMemberNotes";
 
 const props = defineProps<{
-	groupSlug: string
-	subject: {
-		id: number
-		name: string
-		avatar_url: string | null
-		notes: MemberNotePayload
-	} | null
+	notes: ReturnType<typeof useMemberNotes>
 }>();
 
-const isOpen = defineModel<boolean>('open', { required: true });
-
 const { t } = useI18n();
-const toast = useToast();
-
-const noteForm = useForm({
-	severity: 'info',
-	body: '',
-	is_shared_with_groups: false,
-});
-const noteUpdateForm = useForm({
-	severity: 'info' as MemberNote['severity'],
-	body: '',
-	is_shared_with_groups: false,
-});
-const addendumForm = useForm({
-	body: '',
-});
-const noteDeleteForm = useForm({});
-const editingNoteId = ref<number | null>(null);
-const addendumNoteId = ref<number | null>(null);
-const pendingDeleteNoteId = ref<number | null>(null);
-
-const severityOptions = computed(() => [
-	{ label: t('general.severity_levels.info'), value: 'info' },
-	{ label: t('general.severity_levels.warning'), value: 'warning' },
-	{ label: t('general.severity_levels.critical'), value: 'critical' },
-]);
-
-const totalVisibleNoteCount = computed(() => {
-	if (!props.subject?.notes) {
-		return 0;
-	}
-
-	return props.subject.notes.current_group_count + props.subject.notes.shared_count;
-});
+const {
+	isNotesModalOpen,
+	member,
+	isLoading,
+	hasLoadError,
+	totalVisibleNoteCount,
+	severityOptions,
+	noteForm,
+	noteUpdateForm,
+	addendumForm,
+	noteDeleteForm,
+	editingNoteId,
+	addendumNoteId,
+	pendingDeleteNoteId,
+	handleNotesModalOpenChange,
+	openEditNote,
+	cancelEditNote,
+	submitNoteUpdate,
+	openAddendum,
+	cancelAddendum,
+	submitAddendum,
+	removeNote,
+	submitNote,
+} = props.notes;
 
 const formatDate = (value: string | null) => {
 	if (!value) {
@@ -90,131 +70,53 @@ const severityBorderClass = (severity: MemberNote['severity']) => ({
 	warning: 'border-r-2 border-r-warning',
 	critical: 'border-r-2 border-r-error',
 }[severity]);
-
-const openEditNote = (note: MemberNote) => {
-	editingNoteId.value = note.id;
-	addendumNoteId.value = null;
-	noteUpdateForm.severity = note.severity;
-	noteUpdateForm.body = note.body;
-	noteUpdateForm.is_shared_with_groups = note.is_shared_with_groups;
-	noteUpdateForm.clearErrors();
-};
-
-const cancelEditNote = () => {
-	editingNoteId.value = null;
-	noteUpdateForm.reset();
-	noteUpdateForm.severity = 'info';
-	noteUpdateForm.is_shared_with_groups = false;
-	noteUpdateForm.clearErrors();
-};
-
-const submitNoteUpdate = (note: MemberNote) => {
-	noteUpdateForm.put(route('groups.members.notes.update', [props.groupSlug, note.id]), {
-		preserveScroll: true,
-		onSuccess: () => {
-			toast.add({
-				title: t('general.success'),
-				description: t('groups.members.toasts.note_updated'),
-				color: 'success',
-				icon: 'i-lucide-check',
-			});
-			cancelEditNote();
-		},
-	});
-};
-
-const openAddendum = (note: MemberNote) => {
-	addendumNoteId.value = note.id;
-	editingNoteId.value = null;
-	addendumForm.body = '';
-	addendumForm.clearErrors();
-};
-
-const cancelAddendum = () => {
-	addendumNoteId.value = null;
-	addendumForm.reset();
-	addendumForm.clearErrors();
-};
-
-const submitAddendum = (note: MemberNote) => {
-	addendumForm.post(route('groups.members.notes.addenda.store', [props.groupSlug, note.id]), {
-		preserveScroll: true,
-		onSuccess: () => {
-			toast.add({
-				title: t('general.success'),
-				description: t('groups.members.toasts.note_addendum_added'),
-				color: 'success',
-				icon: 'i-lucide-check',
-			});
-			cancelAddendum();
-		},
-	});
-};
-
-const removeNote = (note: MemberNote) => {
-	pendingDeleteNoteId.value = note.id;
-
-	noteDeleteForm.delete(route('groups.members.notes.destroy', [props.groupSlug, note.id]), {
-		preserveScroll: true,
-		onSuccess: () => {
-			toast.add({
-				title: t('general.success'),
-				description: t('groups.members.toasts.note_deleted'),
-				color: 'success',
-				icon: 'i-lucide-check',
-			});
-			if (editingNoteId.value === note.id) {
-				cancelEditNote();
-			}
-			if (addendumNoteId.value === note.id) {
-				cancelAddendum();
-			}
-		},
-		onFinish: () => {
-			pendingDeleteNoteId.value = null;
-		},
-	});
-};
-
-const submitNote = () => {
-	if (!props.subject) {
-		return;
-	}
-
-	noteForm.post(route('groups.members.notes.store', [props.groupSlug, props.subject.id]), {
-		preserveScroll: true,
-	onSuccess: () => {
-			toast.add({
-				title: t('general.success'),
-				description: t('groups.members.toasts.note_added'),
-				color: 'success',
-				icon: 'i-lucide-check',
-			});
-			noteForm.reset();
-			noteForm.severity = 'info';
-			noteForm.is_shared_with_groups = false;
-		},
-	});
-};
-
-watch(isOpen, (open) => {
-	if (!open) {
-		noteForm.clearErrors();
-		cancelEditNote();
-		cancelAddendum();
-	}
-});
 </script>
 
 <template>
 	<UModal
-		v-model:open="isOpen"
-		:title="t('groups.members.notes.modal.title', { name: subject?.name ?? '' })"
+		:open="isNotesModalOpen"
+		:title="t('groups.members.notes.modal.title', { name: member?.name ?? '' })"
 		:description="t('groups.members.notes.modal.subtitle')"
 		:ui="{ content: 'rounded-sm max-w-6xl', header: 'border-0 sm:px-6 sm:pt-6', body: 'sm:px-6 sm:pb-6' }"
+		@update:open="handleNotesModalOpenChange"
 	>
 		<template #body>
-			<div v-if="subject?.notes.can_view" class="flex flex-col gap-6">
+			<div v-if="isLoading" class="flex flex-col gap-6">
+				<div class="flex flex-wrap items-center gap-2">
+					<USkeleton class="h-6 w-32" />
+					<USkeleton class="h-6 w-32" />
+					<USkeleton class="h-6 w-32" />
+				</div>
+
+				<div class="flex w-full flex-row items-start justify-start gap-6">
+					<section class="flex w-2/5 flex-col gap-4">
+						<UCard class="dark:bg-elevated/25">
+							<div class="flex flex-col gap-4">
+								<USkeleton class="h-10 w-full" />
+								<USkeleton class="h-10 w-full" />
+								<USkeleton class="h-40 w-full" />
+								<USkeleton class="h-10 w-full" />
+							</div>
+						</UCard>
+					</section>
+
+					<section class="flex w-3/5 min-w-0 flex-col gap-4">
+						<USkeleton class="h-32 w-full" />
+						<USkeleton class="h-32 w-full" />
+						<USkeleton class="h-24 w-full" />
+					</section>
+				</div>
+			</div>
+
+			<UAlert
+				v-else-if="hasLoadError"
+				color="error"
+				variant="subtle"
+				icon="i-lucide-triangle-alert"
+				:title="t('groups.members.notes.load_error')"
+			/>
+
+			<div v-else-if="member?.notes.can_view" class="flex flex-col gap-6">
 				<div class="flex flex-wrap items-center gap-2">
 					<UBadge
 						color="neutral"
@@ -224,19 +126,18 @@ watch(isOpen, (open) => {
 					<UBadge
 						color="primary"
 						variant="subtle"
-						:label="t('groups.members.notes.count.current_group', { count: subject.notes.current_group_count })"
+						:label="t('groups.members.notes.count.current_group', { count: member.notes.current_group_count })"
 					/>
 					<UBadge
 						color="secondary"
 						variant="subtle"
-						:label="t('groups.members.notes.count.shared', { count: subject.notes.shared_count })"
+						:label="t('groups.members.notes.count.shared', { count: member.notes.shared_count })"
 					/>
 				</div>
 
-				<div class="flex max-h-[75vh] flex-row items-start justify-start gap-6 w-full">
+				<div class="flex max-h-[75vh] w-full flex-row items-start justify-start gap-6">
 					<section class="w-2/5 flex flex-col gap-4">
-						<UCard v-if="subject.notes.can_add" class="dark:bg-elevated/25">
-
+						<UCard v-if="member.notes.can_add" class="dark:bg-elevated/25">
 							<div class="flex flex-col gap-4">
 								<UFormField
 									:label="t('general.severity')"
@@ -293,9 +194,9 @@ watch(isOpen, (open) => {
 								<p class="text-sm text-muted">{{ t('groups.members.notes.sections.current_group.subtitle') }}</p>
 							</div>
 
-							<div v-if="subject.notes.current_group.length > 0" class="flex flex-col gap-3">
+							<div v-if="member.notes.current_group.length > 0" class="flex flex-col gap-3">
 								<UCard
-									v-for="note in subject.notes.current_group"
+									v-for="note in member.notes.current_group"
 									:key="`group-note-${note.id}`"
 									:class="['dark:bg-elevated/20', severityBorderClass(note.severity)]"
 								>
@@ -479,9 +380,9 @@ watch(isOpen, (open) => {
 								<p class="text-sm text-muted">{{ t('groups.members.notes.sections.shared.subtitle') }}</p>
 							</div>
 
-							<div v-if="subject.notes.shared.length > 0" class="flex flex-col gap-3">
+							<div v-if="member.notes.shared.length > 0" class="flex flex-col gap-3">
 								<UCard
-									v-for="note in subject.notes.shared"
+									v-for="note in member.notes.shared"
 									:key="`shared-note-${note.id}`"
 									:class="['dark:bg-elevated/20', severityBorderClass(note.severity)]"
 								>

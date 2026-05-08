@@ -1,11 +1,7 @@
 {
   "group": {
     "title": "Journal d'audit",
-    "subtitle": "Consultez les activités de modération et de gestion de ce groupe.",
-    "access": {
-      "owner": "Accès propriétaire",
-      "moderator": "Accès modérateur"
-    }
+    "subtitle": "Consultez les activités de modération et de gestion de ce groupe."
   },
   "admin": {
     "title": "Journal d'audit administrateur",

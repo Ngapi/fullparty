@@ -1,10 +1,6 @@
 {
   "title": "Paramètres du groupe",
   "subtitle": "Gérez la configuration générale de votre groupe et les détails sensibles liés à l'accès.",
-  "access": {
-    "owner": "Accès propriétaire",
-    "moderator": "Accès modérateur"
-  },
   "general": {
     "title": "Paramètres généraux",
     "subtitle": "Mettez à jour les détails modifiables qui définissent l'apparence de votre groupe et la manière dont les membres le rejoignent.",

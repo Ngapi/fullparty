@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { AuditLogRowRecord } from "@/Types/Audit";
 import AuditLogRow from "@/components/Audit/AuditLogRow.vue";
+import AccessBadge from "@/components/Groups/AccessBadge.vue";
 import PageHeader from "@/components/PageHeader.vue";
 import { computed, onBeforeUnmount, onMounted, ref, useTemplateRef, watch } from "vue";
 import { useI18n } from "vue-i18n";
@@ -16,22 +17,6 @@ const props = defineProps<{
 }>();
 
 const { t } = useI18n();
-
-const accessBadge = computed(() => {
-	if (props.group.current_user_role === 'owner') {
-		return {
-			label: t('audit_log.group.access.owner'),
-			color: 'warning',
-			icon: 'i-lucide-crown',
-		};
-	}
-
-	return {
-		label: t('audit_log.group.access.moderator'),
-		color: 'primary',
-		icon: 'i-lucide-shield',
-	};
-});
 
 const actionOptions = computed(() => [
 	{ label: t('audit_log.filters.any_action'), value: '__all__' },
@@ -143,13 +128,9 @@ onBeforeUnmount(() => {
 			:title="t('audit_log.group.title')"
 			:subtitle="t('audit_log.group.subtitle')"
 		>
-			<UBadge
-				size="lg"
-				variant="subtle"
-				class="min-w-44 justify-center py-2"
-				:color="accessBadge.color"
-				:icon="accessBadge.icon"
-				:label="accessBadge.label"
+			<AccessBadge
+				:role="group.current_user_role"
+				fallback-role="moderator"
 			/>
 		</PageHeader>
 

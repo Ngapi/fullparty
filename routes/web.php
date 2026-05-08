@@ -156,6 +156,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 	Route::put('/groups/{group:slug}/members/{user}', [GroupMembershipController::class, 'update'])->name('groups.members.update');
 	Route::delete('/groups/{group:slug}/members/{user}', [GroupMembershipController::class, 'destroy'])->name('groups.members.destroy');
 	Route::post('/groups/{group:slug}/members/{user}/ban', [GroupMembershipController::class, 'ban'])->name('groups.members.ban');
+	Route::get('/groups/{group:slug}/members/{user}/notes', [GroupMemberNoteController::class, 'show'])->name('groups.members.notes.show');
 	Route::post('/groups/{group:slug}/members/{user}/notes', [GroupMemberNoteController::class, 'store'])->name('groups.members.notes.store');
 	Route::put('/groups/{group:slug}/member-notes/{note}', [GroupMemberNoteController::class, 'update'])->name('groups.members.notes.update');
 	Route::delete('/groups/{group:slug}/member-notes/{note}', [GroupMemberNoteController::class, 'destroy'])->name('groups.members.notes.destroy');

@@ -127,7 +127,7 @@ class GroupMemberController extends Controller
                     'can_kick' => $this->canKick($group, $membership, $currentUserId),
                     'can_ban' => $this->canBan($group, $membership, $currentUserId),
                 ],
-                'notes' => $this->serializeVisibleNotesForUser(
+                'note_summary' => $this->serializeVisibleNoteSummaryForUser(
                     $group,
                     $membership->user,
                     $currentUserId,
@@ -137,6 +137,23 @@ class GroupMemberController extends Controller
                 ),
             ])
             ->all();
+    }
+
+    private function serializeVisibleNoteSummaryForUser(
+        Group $group,
+        ?User $user,
+        int $currentUserId,
+        Collection $groupNotesByUserId,
+        Collection $sharedNotesByUserId,
+        GroupUserNoteVisibilityService $noteVisibilityService
+    ): array {
+        return $noteVisibilityService->serializeVisibleNoteSummaryForUser(
+            $group,
+            $user,
+            $currentUserId,
+            $groupNotesByUserId,
+            $sharedNotesByUserId,
+        );
     }
 
     private function canPromote(Group $group, GroupMembership $membership, int $currentUserId): bool
@@ -217,7 +234,7 @@ class GroupMemberController extends Controller
                 'permissions' => [
                     'can_unban' => $group->hasModeratorAccess(auth()->id()),
                 ],
-                'notes' => $this->serializeVisibleNotesForUser(
+                'note_summary' => $this->serializeVisibleNoteSummaryForUser(
                     $group,
                     $ban->user,
                     $currentUserId,

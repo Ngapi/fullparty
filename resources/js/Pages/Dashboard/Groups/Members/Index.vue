@@ -1,65 +1,58 @@
 <script setup lang="ts">
 // Group members page: internal roster view for reviewing members, linked characters, and moderation actions.
+import type { GroupBannedMemberRecord, GroupMemberManagementGroup, GroupMemberRecord } from "@/Types/Groups";
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
+import AccessBadge from "@/components/Groups/AccessBadge.vue";
+import GroupBannedMembersTable from "@/components/Groups/GroupBannedMembersTable.vue";
+import GroupMembersTable from "@/components/Groups/GroupMembersTable.vue";
 import PageHeader from "@/components/PageHeader.vue";
-import GroupMembersManagement from "@/components/Groups/GroupMembersManagement.vue";
+import MembersNotesModal from "@/components/Shared/Notes/MembersNotesModal.vue";
+import { useGroupMemberModeration } from "@/composables/useGroupMemberModeration";
+import { useMemberNotes } from "@/composables/useMemberNotes";
 
 const props = defineProps<{
-	group: any
-	members: Array<any>
-	bannedMembers: Array<any>
+	group: GroupMemberManagementGroup
+	members: GroupMemberRecord[]
+	bannedMembers: GroupBannedMemberRecord[]
 }>();
 
 const { t } = useI18n();
-
-const accessBadge = computed(() => {
-	if (props.group.current_user_role === 'owner') {
-		return {
-			label: t('groups.members.access.owner'),
-			color: 'warning',
-			icon: 'i-lucide-crown',
-		};
-	}
-
-	if (props.group.current_user_role === 'moderator') {
-		return {
-			label: t('groups.members.access.moderator'),
-			color: 'primary',
-			icon: 'i-lucide-shield',
-		};
-	}
-
-	return {
-		label: t('groups.members.access.member'),
-		color: 'neutral',
-		icon: 'i-lucide-user',
-	};
+const memberNotes = useMemberNotes({
+	groupSlug: computed(() => props.group.slug),
+});
+const memberModeration = useGroupMemberModeration({
+	groupSlug: computed(() => props.group.slug),
+	groupName: computed(() => props.group.name),
 });
 </script>
 
 <template>
 	<div class="w-full">
+		<MembersNotesModal :notes="memberNotes" />
+
 		<PageHeader
 			:title="t('groups.members.title')"
 			:subtitle="t('groups.members.subtitle')"
 		>
-			<UBadge
-				size="lg"
-				variant="subtle"
-				class="min-w-44 justify-center py-2"
-				:color="accessBadge.color"
-				:icon="accessBadge.icon"
-				:label="accessBadge.label"
-			/>
+			<AccessBadge :role="group.current_user_role" />
 		</PageHeader>
 
 		<div class="mt-4">
-			<GroupMembersManagement
-				:group="group"
-				:members="members"
-				:banned-members="bannedMembers"
-			/>
+			<div class="flex flex-col gap-6">
+				<GroupMembersTable
+					:members="members"
+					:notes="memberNotes"
+					:moderation="memberModeration"
+				/>
+
+				<GroupBannedMembersTable
+					v-if="group.permissions.can_view_bans"
+					:banned-members="bannedMembers"
+					:notes="memberNotes"
+					:moderation="memberModeration"
+				/>
+			</div>
 		</div>
 	</div>
 </template>

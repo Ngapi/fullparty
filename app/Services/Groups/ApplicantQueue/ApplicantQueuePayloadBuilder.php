@@ -97,22 +97,15 @@ class ApplicantQueuePayloadBuilder
                 'id' => $application->user->id,
                 'name' => $application->user->name,
                 'avatar_url' => $application->user->avatar_url,
-                'notes' => $group
-                    ? $this->noteVisibilityService->serializeVisibleNotesForUser(
+                'note_summary' => $group
+                    ? $this->noteVisibilityService->serializeVisibleNoteSummaryForUser(
                         $group,
                         $application->user,
                         $currentUserId,
                         $groupNotesByUserId,
                         $sharedNotesByUserId,
                     )
-                    : [
-                        'can_view' => false,
-                        'can_add' => false,
-                        'current_group_count' => 0,
-                        'shared_count' => 0,
-                        'current_group' => [],
-                        'shared' => [],
-                    ],
+                    : $this->noteVisibilityService->emptyVisibleNoteSummary(),
             ] : null,
             'applicant_character' => $application->applicant_lodestone_id ? [
                 'lodestone_id' => $application->applicant_lodestone_id,

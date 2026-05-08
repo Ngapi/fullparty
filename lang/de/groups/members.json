@@ -1,11 +1,6 @@
 {
   "title": "Gruppenmitglieder",
   "subtitle": "Überprüfe die Mitgliederliste deiner Gruppe, verknüpfte Charaktere und Mitgliedschaftsaktionen an einem Ort.",
-  "access": {
-    "owner": "Besitzerzugriff",
-    "moderator": "Moderatorzugriff",
-    "member": "Mitgliedszugriff"
-  },
   "roster": {
     "title": "Mitgliederliste",
     "subtitle": "Sieh, wer in der Gruppe ist, welche Charaktere verknüpft sind und welche Aktionen dir zur Verfügung stehen.",
@@ -53,6 +48,7 @@
   },
   "notes": {
     "hidden": "Für diesen Benutzer sind keine Notizen verfügbar.",
+    "load_error": "Die Notizen konnten gerade nicht geladen werden.",
     "unknown_group": "Unbekannte Gruppe",
     "shared_badge": "Geteilt",
     "shared_from": "Geteilt von {author} am {date}",

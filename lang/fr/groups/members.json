@@ -1,11 +1,6 @@
 {
   "title": "Membres du groupe",
   "subtitle": "Consultez la liste des membres de votre groupe, leurs personnages liés et les actions de gestion au même endroit.",
-  "access": {
-    "owner": "Accès propriétaire",
-    "moderator": "Accès modérateur",
-    "member": "Accès membre"
-  },
   "roster": {
     "title": "Liste des membres",
     "subtitle": "Voyez qui fait partie du groupe, quels personnages ils ont liés et quelles actions sont disponibles.",
@@ -53,6 +48,7 @@
   },
   "notes": {
     "hidden": "Aucune note n'est disponible pour cet utilisateur.",
+    "load_error": "Les notes n'ont pas pu être chargées pour le moment.",
     "unknown_group": "Groupe inconnu",
     "shared_badge": "Partagé",
     "shared_from": "Partagé par {author} le {date}",

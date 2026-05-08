@@ -47,6 +47,33 @@ class GroupUserNoteVisibilityService
     /**
      * @param  Collection<int, Collection<int, GroupUserNote>>  $groupNotesByUserId
      * @param  Collection<int, Collection<int, GroupUserNote>>  $sharedNotesByUserId
+     * @return array{can_view: bool, current_group_count: int, shared_count: int}
+     */
+    public function serializeVisibleNoteSummaryForUser(
+        Group $group,
+        ?User $user,
+        int $currentUserId,
+        Collection $groupNotesByUserId,
+        Collection $sharedNotesByUserId
+    ): array {
+        if (
+            $user === null
+            || !$group->hasModeratorAccess($currentUserId)
+            || $user->id === $currentUserId
+        ) {
+            return $this->emptyVisibleNoteSummary();
+        }
+
+        return [
+            'can_view' => true,
+            'current_group_count' => count($groupNotesByUserId->get($user->id, [])),
+            'shared_count' => count($sharedNotesByUserId->get($user->id, [])),
+        ];
+    }
+
+    /**
+     * @param  Collection<int, Collection<int, GroupUserNote>>  $groupNotesByUserId
+     * @param  Collection<int, Collection<int, GroupUserNote>>  $sharedNotesByUserId
      * @return array<string, mixed>
      */
     public function serializeVisibleNotesForUser(
@@ -61,14 +88,7 @@ class GroupUserNoteVisibilityService
             || !$group->hasModeratorAccess($currentUserId)
             || $user->id === $currentUserId
         ) {
-            return [
-                'can_view' => false,
-                'can_add' => false,
-                'current_group_count' => 0,
-                'shared_count' => 0,
-                'current_group' => [],
-                'shared' => [],
-            ];
+            return $this->emptyVisibleNotes();
         }
 
         $currentGroupNotes = collect($groupNotesByUserId->get($user->id, []))
@@ -88,6 +108,33 @@ class GroupUserNoteVisibilityService
             'shared_count' => count($sharedNotes),
             'current_group' => $currentGroupNotes,
             'shared' => $sharedNotes,
+        ];
+    }
+
+    /**
+     * @return array{can_view: bool, current_group_count: int, shared_count: int}
+     */
+    public function emptyVisibleNoteSummary(): array
+    {
+        return [
+            'can_view' => false,
+            'current_group_count' => 0,
+            'shared_count' => 0,
+        ];
+    }
+
+    /**
+     * @return array{can_view: bool, can_add: bool, current_group_count: int, shared_count: int, current_group: array<int, array<string, mixed>>, shared: array<int, array<string, mixed>>}
+     */
+    public function emptyVisibleNotes(): array
+    {
+        return [
+            'can_view' => false,
+            'can_add' => false,
+            'current_group_count' => 0,
+            'shared_count' => 0,
+            'current_group' => [],
+            'shared' => [],
         ];
     }
 
