@@ -4,8 +4,8 @@ import { useI18n } from "vue-i18n";
 import ActivityRosterPartyView from "@/components/Groups/Activities/ActivityRosterPartyView.vue";
 import ActivityRosterRoleView from "@/components/Groups/Activities/ActivityRosterRoleView.vue";
 import ActivityRosterListView from "@/components/Groups/Activities/ActivityRosterListView.vue";
-import type { QueueApplication } from "@/components/Groups/Activities/queueTypes";
-import type { ActivitySlot } from "@/components/Groups/Activities/rosterTypes";
+import type { QueueApplication } from "@/Types/ActivityQueue";
+import type { ActivitySlot } from "@/Types/ActivityRoster";
 
 const props = defineProps<{
 	view: 'party' | 'role' | 'list'

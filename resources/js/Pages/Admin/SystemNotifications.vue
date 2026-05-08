@@ -1,30 +1,11 @@
 <script setup lang="ts">
 import PageHeader from "@/components/PageHeader.vue";
-import { formatNotificationTime, resolveNotificationDescription, resolveNotificationMeta, resolveNotificationTitle, type NotificationRecord } from "@/utils/notificationPresentation";
+import type { SystemBannerRecord, SystemNotificationHistoryItem } from "@/Types/Notifications";
+import { formatNotificationTime, resolveNotificationDescription, resolveNotificationMeta, resolveNotificationTitle } from "@/utils/notificationPresentation";
 import { useForm, usePage } from "@inertiajs/vue3";
 import { useToast } from "@nuxt/ui/composables";
 import { computed, watch } from "vue";
 import { useI18n } from "vue-i18n";
-
-type SystemNotificationHistoryItem = Pick<NotificationRecord,
-	'id' | 'type' | 'is_mandatory' | 'title_key' | 'body_key' | 'message_params' | 'payload' | 'action_url' | 'created_at'
-> & {
-	actor: {
-		id: number | null
-		name: string
-	}
-	read_count: number
-	delivery_count: number
-}
-
-type SystemBannerRecord = {
-	id: number
-	title: string
-	message: string
-	action_label: string | null
-	action_url: string | null
-	updated_at: string | null
-}
 
 const props = defineProps<{
 	currentBanner: SystemBannerRecord | null

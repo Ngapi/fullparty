@@ -3,8 +3,9 @@ import { computed, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { usePage } from "@inertiajs/vue3";
 import { localizedValue } from "@/utils/localizedValue";
-import type { ActivitySlot, LocalizedText } from "@/components/Groups/Activities/rosterTypes";
-import type { ManualAssignmentCharacter, QueueFilterField } from "@/components/Groups/Activities/queueTypes";
+import type { LocalizedText } from "@/Types/Common";
+import type { ManualAssignmentCharacter, QueueFilterField } from "@/Types/ActivityQueue";
+import type { ActivitySlot } from "@/Types/ActivityRoster";
 
 const props = defineProps<{
 	open: boolean

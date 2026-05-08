@@ -1,30 +1,10 @@
 <script setup lang="ts">
+import type { ActivityCompletionPreviewMilestone, ActivityProgressMilestone, ActivityProgressPoint } from "@/Types/ActivityManagement";
 import axios from "axios";
 import { computed, reactive, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { route } from "ziggy-js";
 import { localizedValue } from "@/utils/localizedValue";
-
-type LocalizedText = Record<string, string | null | undefined> | null | undefined;
-
-type ProgressPoint = {
-	key: string
-	label: LocalizedText
-};
-
-type ProgressMilestone = {
-	id: number
-	milestone_key: string
-	milestone_label: LocalizedText
-	kills: number
-	best_progress_percent: number | null
-};
-
-type PreviewMilestone = {
-	milestone_key: string
-	kills: number
-	best_progress_percent: number | null
-};
 
 const props = defineProps<{
 	open: boolean
@@ -32,8 +12,8 @@ const props = defineProps<{
 	activityId: number
 	isSubmitting: boolean
 	canUseFflogsCompletion: boolean
-	progPoints: ProgressPoint[]
-	progressMilestones: ProgressMilestone[]
+	progPoints: ActivityProgressPoint[]
+	progressMilestones: ActivityProgressMilestone[]
 	errors?: Record<string, string[] | undefined>
 }>();
 
@@ -169,7 +149,7 @@ const close = () => {
 
 const errorFor = (key: string) => props.errors?.[key]?.[0] ?? null;
 
-const applyPreviewMilestones = (milestones: PreviewMilestone[]) => {
+const applyPreviewMilestones = (milestones: ActivityCompletionPreviewMilestone[]) => {
 	for (const milestone of milestones) {
 		state.milestones[milestone.milestone_key] = {
 			kills: milestone.kills > 0 ? String(milestone.kills) : '',

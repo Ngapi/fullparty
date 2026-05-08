@@ -6,7 +6,7 @@ import { useI18n } from "vue-i18n";
 import PageHeader from "@/components/PageHeader.vue";
 import ActivityUpcomingList from "@/components/Groups/Activities/ActivityUpcomingList.vue";
 import ActivityMonthCalendar from "@/components/Groups/Activities/ActivityMonthCalendar.vue";
-import type { ActivityIndexItem } from "@/components/Groups/Activities/types";
+import type { ActivityIndexItem } from "@/Types/ActivityCore";
 import { isArchivedActivityStatus } from "@/utils/activityLifecycle";
 
 const props = defineProps<{

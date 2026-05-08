@@ -1,50 +1,14 @@
 import { computed, ref, watch, type Ref } from "vue";
+import type { ActivityFormOptions, ActivityFormShape, ActivityTypeOption, OrganizerCharacterOption } from "@/Types/ActivityCore";
 import { useI18n } from "vue-i18n";
 import { usePage } from "@inertiajs/vue3";
 import { localizedValue } from "@/utils/localizedValue";
-
-export type ActivityTypeOption = {
-	id: number
-	slug: string
-	draft_name: Record<string, string | null | undefined> | null | undefined
-	current_published_version_id: number | null
-	slot_count: number
-	prog_points: Array<{
-		key: string
-		label: Record<string, string | null | undefined> | null | undefined
-	}>
-}
-
-export type OrganizerCharacterOption = {
-	id: number
-	user_id: number
-	name: string | null
-	user_name: string | null
-	avatar_url: string | null
-	world: string | null
-}
-
-type ActivityFormShape = {
-	activity_type_id: number | null
-	organized_by_user_id: number | null
-	organized_by_character_id: number | null
-	status: string
-	title: string
-	notes: string
-	starts_at: string | null
-	duration_hours: number
-	target_prog_point_key: string | null
-}
-
-type Options = {
-	mode: 'create' | 'edit'
-}
 
 export const useActivityFormFields = (
 	activityTypes: Ref<ActivityTypeOption[]>,
 	organizerCharacters: Ref<OrganizerCharacterOption[]>,
 	form: ActivityFormShape,
-	options: Options,
+	options: ActivityFormOptions,
 ) => {
 	const { t, locale } = useI18n();
 	const page = usePage();

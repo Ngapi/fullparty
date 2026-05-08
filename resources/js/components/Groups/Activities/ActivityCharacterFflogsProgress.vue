@@ -1,21 +1,8 @@
 <script setup lang="ts">
+import type { FflogsProgressResponse } from "@/Types/ActivityManagement";
 import { computed, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { route } from "ziggy-js";
-
-type EncounterProgress = {
-	name: string
-	kills: number
-	progress: number
-}
-
-type FflogsProgressResponse = {
-	title: string
-	zone_id: number
-	encounters: EncounterProgress[]
-	encounter_count: number
-	total_kills: number
-} | null
 
 const props = withDefaults(defineProps<{
 	open: boolean

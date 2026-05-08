@@ -1,26 +1,9 @@
 <script setup lang="ts">
+import type { QueueApplicationUserStats } from "@/Types/ActivityQueue";
 import { useI18n } from "vue-i18n";
 
-type StatItem = {
-	label: string
-	count: number
-	role?: string | null
-	icon_url?: string | null
-	flat_icon_url?: string | null
-	transparent_icon_url?: string | null
-}
-
 const props = defineProps<{
-	stats: {
-		class: {
-			group: StatItem[]
-			overall: StatItem[]
-		}
-		phantom_job: {
-			group: StatItem[]
-			overall: StatItem[]
-		}
-	} | null
+	stats: QueueApplicationUserStats | null
 	emptyMessage?: string
 }>();
 

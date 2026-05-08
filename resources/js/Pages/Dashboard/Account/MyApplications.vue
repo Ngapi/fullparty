@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { AccountApplication } from "@/Types/ActivityCore";
 import { computed, ref } from "vue";
 import { router, usePage } from "@inertiajs/vue3";
 import { route } from "ziggy-js";
@@ -7,40 +8,6 @@ import { useToast } from "@nuxt/ui/composables";
 import PageHeader from "@/components/PageHeader.vue";
 import { localizedValue } from "@/utils/localizedValue";
 import { getActivityStatusMeta } from "@/utils/activityStatusMeta";
-
-type LocalizedText = Record<string, string | null | undefined> | null | undefined;
-
-type AccountApplication = {
-	id: number
-	status: string
-	submitted_at: string | null
-	reviewed_at: string | null
-	review_reason: string | null
-	notes: string | null
-	can_edit: boolean
-	can_cancel: boolean
-	group: {
-		name: string | null
-		slug: string | null
-	}
-	activity: {
-		id: number | null
-		title: string | null
-		description: string | null
-		status: string | null
-		starts_at: string | null
-		duration_hours: number | null
-		is_public: boolean
-		secret_key: string | null
-		type_name: LocalizedText
-	}
-	character: {
-		name: string | null
-		world: string | null
-		datacenter: string | null
-		avatar_url: string | null
-	}
-}
 
 const props = defineProps<{
 	activeApplications: AccountApplication[]

@@ -1,44 +1,11 @@
 <script setup lang="ts">
+import type { ActivityApplicationRecord, ApplicationQuestion, GuestCharacterSearchResult, GuestWorldOption } from "@/Types/ActivityApplications";
 import { computed, ref } from "vue";
 import { router, useForm } from "@inertiajs/vue3";
 import { route } from "ziggy-js";
 import { useI18n } from "vue-i18n";
 import { useToast } from "@nuxt/ui/composables";
 import ApplicationQuestionField from "@/components/Groups/Activities/ApplicationQuestionField.vue";
-
-type QuestionOption = {
-	key: string
-	label: Record<string, string | null | undefined>
-	meta?: {
-		icon_url?: string | null
-		role?: string | null
-		shorthand?: string | null
-	} | null
-}
-
-type ApplicationQuestion = {
-	key: string
-	label: Record<string, string | null | undefined>
-	type: string
-	source: string | null
-	required?: boolean
-	help_text?: Record<string, string | null | undefined> | null
-	options: QuestionOption[]
-}
-
-type GuestWorldOption = {
-	label: string
-	value: string
-}
-
-type GuestCharacterSearchResult = {
-	lodestone_id: string
-	name: string
-	world: string
-	datacenter: string | null
-	avatar_url: string | null
-	profile_url: string | null
-}
 
 const props = defineProps<{
 	groupSlug: string
@@ -52,21 +19,7 @@ const props = defineProps<{
 		world: string | null
 	}>
 	questions: ApplicationQuestion[]
-	application: {
-		id: number
-		selected_character_id: number | null
-		status: string
-		notes: string | null
-		submitted_at: string | null
-		applicant_character?: {
-			lodestone_id: string
-			name: string
-			world: string
-			datacenter: string
-			avatar_url: string | null
-		} | null
-		answers: Record<string, unknown>
-	} | null
+	application: ActivityApplicationRecord | null
 	canApply: boolean
 	canApplyAsGuest: boolean
 	canEditApplication: boolean

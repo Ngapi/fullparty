@@ -2,7 +2,7 @@
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 import ActivityUpcomingListItem from "@/components/Groups/Activities/ActivityUpcomingListItem.vue";
-import type { ActivityIndexItem } from "@/components/Groups/Activities/types";
+import type { ActivityIndexItem } from "@/Types/ActivityCore";
 import { isArchivedActivityStatus } from "@/utils/activityLifecycle";
 import { getActivityStatusDotClass } from "@/utils/activityStatusMeta";
 

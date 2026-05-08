@@ -1,27 +1,13 @@
 <script setup lang="ts">
+import type { ActivityTypeSchemaField, ActivityTypeSchemaOption } from "@/Types/AdminActivityTypes";
 import ActivityTypeSectionCard from "@/components/Admin/ActivityTypes/ActivityTypeSectionCard.vue";
 import LocalizedTextFields from "@/components/Admin/ActivityTypes/LocalizedTextFields.vue";
 import { slugify } from "@/utils/slugify";
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 
-type SchemaOption = {
-	value: string
-	label: Record<string, string>
-}
-
-type SchemaField = {
-	key: string
-	type: string
-	source?: string | null
-	required?: boolean
-	label: Record<string, string>
-	help_text?: Record<string, string>
-	options?: SchemaOption[]
-}
-
 const props = defineProps<{
-	modelValue: SchemaField[]
+	modelValue: ActivityTypeSchemaField[]
 	locales: string[]
 	title: string
 	description: string
@@ -31,7 +17,7 @@ const props = defineProps<{
 }>();
 
 const emit = defineEmits<{
-	'update:modelValue': [value: SchemaField[]]
+	'update:modelValue': [value: ActivityTypeSchemaField[]]
 }>();
 
 const { t } = useI18n();
@@ -48,7 +34,7 @@ const optionSourceOptions = computed(() => props.supportedOptionSources.map((sou
 
 const createLocalizedRecord = () => Object.fromEntries(props.locales.map((locale) => [locale, '']));
 
-const createField = (): SchemaField => ({
+const createField = (): ActivityTypeSchemaField => ({
 	key: '',
 	type: 'text',
 	source: props.fieldKind === 'slot' ? 'character_classes' : null,
@@ -58,7 +44,7 @@ const createField = (): SchemaField => ({
 	options: [],
 });
 
-const createOption = (): SchemaOption => ({
+const createOption = (): ActivityTypeSchemaOption => ({
 	value: '',
 	label: createLocalizedRecord(),
 });
@@ -67,7 +53,7 @@ const addField = () => {
 	emit('update:modelValue', [...props.modelValue, createField()]);
 };
 
-const updateField = (index: number, updates: Partial<SchemaField>) => {
+const updateField = (index: number, updates: Partial<ActivityTypeSchemaField>) => {
 	emit('update:modelValue', props.modelValue.map((field, fieldIndex) => (
 		fieldIndex === index ? { ...field, ...updates } : field
 	)));
@@ -85,7 +71,7 @@ const addOption = (index: number) => {
 	});
 };
 
-const updateOption = (fieldIndex: number, optionIndex: number, updates: Partial<SchemaOption>) => {
+const updateOption = (fieldIndex: number, optionIndex: number, updates: Partial<ActivityTypeSchemaOption>) => {
 	const field = props.modelValue[fieldIndex];
 	const nextOptions = (field.options ?? []).map((option, currentOptionIndex) => (
 		currentOptionIndex === optionIndex ? { ...option, ...updates } : option

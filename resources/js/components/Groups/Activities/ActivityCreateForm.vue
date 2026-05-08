@@ -1,8 +1,9 @@
 <script setup lang="ts">
+import type { ActivityTypeOption, OrganizerCharacterOption } from "@/Types/ActivityCore";
 import { computed, toRef, watch } from "vue";
 import { route } from "ziggy-js";
 import { useI18n } from "vue-i18n";
-import { useActivityFormFields, type ActivityTypeOption, type OrganizerCharacterOption } from "@/components/Groups/Activities/useActivityFormFields";
+import { useActivityFormFields } from "@/components/Groups/Activities/useActivityFormFields";
 
 const props = defineProps<{
 	groupSlug: string

@@ -1,40 +1,10 @@
 <script setup lang="ts">
+import type { AuditLogRowRecord } from "@/Types/Audit";
 import { computed, ref } from "vue";
 import { useI18n } from "vue-i18n";
 
-type AuditLogRow = {
-	id: number
-	action: string
-	severity: string
-	scope?: {
-		type: string | null
-		id: number | null
-		label: string | null
-	}
-	actor: {
-		id: number | null
-		name: string
-		avatar_url: string | null
-		is_system: boolean
-	}
-	subject: {
-		type: string | null
-		id: number | null
-		name: string
-		avatar_url: string | null
-		is_system: boolean
-	}
-	changes: Array<{
-		label: string
-		old: string
-		new: string
-	}>
-	details: Array<string>
-	created_at: string
-}
-
 const props = withDefaults(defineProps<{
-	row: AuditLogRow
+	row: AuditLogRowRecord
 	showScope?: boolean
 }>(), {
 	showScope: false,

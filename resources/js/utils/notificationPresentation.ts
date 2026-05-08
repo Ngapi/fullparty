@@ -1,24 +1,6 @@
-export type NotificationRecord = {
-	id: string
-	type: string | null
-	category: string | null
-	is_mandatory: boolean
-	aggregate_count: number
-	aggregate_key: string | null
-	title_key: string | null
-	body_key: string | null
-	message_params: Record<string, unknown> | null
-	payload: Record<string, unknown> | null
-	action_url: string | null
-	open_url: string
-	created_at: string | null
-	read_at: string | null
-	is_unread: boolean
-}
+import type { NotificationDisplayMeta, NotificationRecord, NotificationTranslator } from "@/Types/Notifications"
 
-type Translator = (key: string, params?: Record<string, unknown>) => string
-
-const TYPE_META: Record<string, { icon: string, iconColor: string }> = {
+const TYPE_META: Record<string, NotificationDisplayMeta> = {
 	'user.settings.notifications_updated': {
 		icon: 'i-lucide-bell-ring',
 		iconColor: 'text-brand-500',
@@ -73,7 +55,7 @@ const TYPE_META: Record<string, { icon: string, iconColor: string }> = {
 	},
 }
 
-const CATEGORY_META: Record<string, { icon: string, iconColor: string }> = {
+const CATEGORY_META: Record<string, NotificationDisplayMeta> = {
 	applications: {
 		icon: 'i-lucide-file-text',
 		iconColor: 'text-blue-500',
@@ -100,7 +82,7 @@ const CATEGORY_META: Record<string, { icon: string, iconColor: string }> = {
 	},
 }
 
-const formatLabelKeyList = (keys: unknown, t: Translator) => {
+const formatLabelKeyList = (keys: unknown, t: NotificationTranslator) => {
 	if (!Array.isArray(keys)) {
 		return ''
 	}
@@ -126,7 +108,7 @@ export const resolveNotificationMeta = (notification: NotificationRecord) => {
 	}
 }
 
-export const resolveNotificationTitle = (notification: NotificationRecord, t: Translator) => {
+export const resolveNotificationTitle = (notification: NotificationRecord, t: NotificationTranslator) => {
 	if (!notification.title_key) {
 		return t('notifications.ui.fallback_title')
 	}
@@ -136,7 +118,7 @@ export const resolveNotificationTitle = (notification: NotificationRecord, t: Tr
 	return t(notification.title_key, params)
 }
 
-export const resolveNotificationDescription = (notification: NotificationRecord, t: Translator) => {
+export const resolveNotificationDescription = (notification: NotificationRecord, t: NotificationTranslator) => {
 	if (!notification.body_key) {
 		return null
 	}
@@ -152,7 +134,7 @@ export const resolveNotificationDescription = (notification: NotificationRecord,
 	return t(notification.body_key, params)
 }
 
-export const formatNotificationTime = (value: string | null, locale: string, t: Translator) => {
+export const formatNotificationTime = (value: string | null, locale: string, t: NotificationTranslator) => {
 	if (!value) {
 		return t('notifications.ui.just_now')
 	}

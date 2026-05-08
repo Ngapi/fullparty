@@ -1,25 +1,16 @@
 <script setup lang="ts">
+import type { ApplicationQuestionOption } from "@/Types/ActivityApplications";
 import { computed, ref } from "vue";
 import { useI18n } from "vue-i18n";
 import { usePage } from "@inertiajs/vue3";
 import { localizedValue } from "@/utils/localizedValue";
-
-type ClassOption = {
-	key: string
-	label: Record<string, string | null | undefined>
-	meta?: {
-		icon_url?: string | null
-		role?: string | null
-		shorthand?: string | null
-	} | null
-}
 
 const props = defineProps<{
 	label: string
 	description?: string
 	required?: boolean
 	error?: string
-	options: ClassOption[]
+	options: ApplicationQuestionOption[]
 	modelValue: unknown
 	multiple?: boolean
 	disabled?: boolean

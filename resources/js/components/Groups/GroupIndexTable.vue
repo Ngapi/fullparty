@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { GroupIndexRecord } from "@/Types/Groups";
 import { router } from "@inertiajs/vue3";
 import { route } from "ziggy-js";
 import { computed, ref, watch } from "vue";
@@ -7,7 +8,7 @@ import { useI18n } from "vue-i18n";
 const props = withDefaults(defineProps<{
 	title: string
 	subtitle: string
-	groups: Array<any>
+	groups: GroupIndexRecord[]
 	paginated?: boolean
 	pageSize?: number
 	serverSidePagination?: boolean
@@ -65,7 +66,7 @@ const roleBadge = (role: string | null | undefined) => {
 	}[role] ?? null;
 };
 
-const groupVisibilityIcon = (group: any) => {
+const groupVisibilityIcon = (group: GroupIndexRecord) => {
 	return group.is_public ? 'i-lucide-globe' : 'i-lucide-lock';
 };
 
@@ -109,7 +110,7 @@ const onPageChange = (nextPage: number) => {
 	page.value = nextPage;
 };
 
-const goToDashboard = (group: any) => {
+const goToDashboard = (group: GroupIndexRecord) => {
 	router.visit(route('groups.dashboard', group.slug));
 };
 
@@ -122,7 +123,7 @@ watch(() => props.currentPage, (value) => {
 const sectionCount = computed(() => resolvedTotal.value);
 const emptyState = computed(() => t('groups.index.table.empty'));
 
-const statItems = (group: any) => ([
+const statItems = (group: GroupIndexRecord) => ([
 	{
 		icon: 'i-lucide-users',
 		value: group.stats.member_count,

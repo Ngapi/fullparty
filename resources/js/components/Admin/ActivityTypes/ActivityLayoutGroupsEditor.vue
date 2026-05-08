@@ -1,30 +1,25 @@
 <script setup lang="ts">
+import type { ActivityTypeLayoutGroup } from "@/Types/AdminActivityTypes";
 import ActivityTypeSectionCard from "@/components/Admin/ActivityTypes/ActivityTypeSectionCard.vue";
 import LocalizedTextFields from "@/components/Admin/ActivityTypes/LocalizedTextFields.vue";
 import { slugify } from "@/utils/slugify";
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 
-type LayoutGroup = {
-	key: string
-	label: Record<string, string>
-	size: number
-}
-
 const props = defineProps<{
-	modelValue: LayoutGroup[]
+	modelValue: ActivityTypeLayoutGroup[]
 	locales: string[]
 }>();
 
 const emit = defineEmits<{
-	'update:modelValue': [value: LayoutGroup[]]
+	'update:modelValue': [value: ActivityTypeLayoutGroup[]]
 }>();
 
 const { t } = useI18n();
 
 const totalSlots = computed(() => props.modelValue.reduce((total, group) => total + Number(group.size || 0), 0));
 
-const createGroup = (): LayoutGroup => ({
+const createGroup = (): ActivityTypeLayoutGroup => ({
 	key: '',
 	label: Object.fromEntries(props.locales.map((locale) => [locale, ''])),
 	size: 8,
@@ -34,7 +29,7 @@ const addGroup = () => {
 	emit('update:modelValue', [...props.modelValue, createGroup()]);
 };
 
-const updateGroup = (index: number, updates: Partial<LayoutGroup>) => {
+const updateGroup = (index: number, updates: Partial<ActivityTypeLayoutGroup>) => {
 	emit('update:modelValue', props.modelValue.map((group, groupIndex) => (
 		groupIndex === index ? { ...group, ...updates } : group
 	)));

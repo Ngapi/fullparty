@@ -1,21 +1,13 @@
 <script setup lang="ts">
+import type { ActivityCalendarDay, ActivityIndexItem } from "@/Types/ActivityCore";
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 import { usePage } from "@inertiajs/vue3";
 import { localizedValue } from "@/utils/localizedValue";
-import type { ActivityIndexItem } from "@/components/Groups/Activities/types";
 import { getActivityStatusBorderClass } from "@/utils/activityStatusMeta";
 
-type CalendarDay = {
-	key: string
-	date: Date
-	isCurrentMonth: boolean
-	isToday: boolean
-	activities: ActivityIndexItem[]
-};
-
 const props = defineProps<{
-	day: CalendarDay
+	day: ActivityCalendarDay
 	isSelected?: boolean
 }>();
 

@@ -1,5 +1,5 @@
-import type { ActivitySlot } from "@/components/Groups/Activities/rosterTypes";
-import type { QueueApplication } from "@/components/Groups/Activities/queueTypes";
+import type { QueueApplication } from "@/Types/ActivityQueue";
+import type { ActivitySlot } from "@/Types/ActivityRoster";
 
 export const QUEUE_APPLICATION_DRAG_MIME = 'application/x-fullparty-queue-application';
 export const ROSTER_SLOT_DRAG_MIME = 'application/x-fullparty-roster-slot';

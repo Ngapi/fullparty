@@ -3,7 +3,7 @@ import ActivityRosterSummaryPanel from "@/components/Groups/Activities/ActivityR
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 import { getActivityStatusMeta } from "@/utils/activityStatusMeta";
-import type { ActivitySlot } from "@/components/Groups/Activities/rosterTypes";
+import type { ActivitySlot } from "@/Types/ActivityRoster";
 
 const props = defineProps<{
 	title: string

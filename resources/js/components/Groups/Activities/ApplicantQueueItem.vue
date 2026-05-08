@@ -4,7 +4,8 @@ import { useI18n } from "vue-i18n";
 import { usePage } from "@inertiajs/vue3";
 import { localizedValue } from "@/utils/localizedValue";
 import { setQueueApplicationDragData } from "@/components/Groups/Activities/rosterDragData";
-import type { LocalizedText, QueueApplication } from "@/components/Groups/Activities/queueTypes";
+import type { LocalizedText } from "@/Types/Common";
+import type { QueueApplication } from "@/Types/ActivityQueue";
 
 const props = defineProps<{
 	application: QueueApplication

@@ -1,11 +1,4 @@
-export type ActivityStatus = 'draft' | 'planned' | 'scheduled' | 'assigned' | 'upcoming' | 'ongoing' | 'complete' | 'cancelled';
-
-type ActivityStatusMeta = {
-	color: string
-	icon: string
-	borderClass: string
-	dotClass: string
-};
+import type { ActivityStatus, ActivityStatusMeta } from "@/Types/ActivityCore"
 
 const STATUS_META: Record<ActivityStatus, ActivityStatusMeta> = {
 	draft: {
@@ -56,14 +49,14 @@ const STATUS_META: Record<ActivityStatus, ActivityStatusMeta> = {
 		borderClass: 'border-t-error',
 		dotClass: 'bg-error',
 	},
-};
+}
 
 const FALLBACK_META: ActivityStatusMeta = {
 	color: 'neutral',
 	icon: 'i-lucide-calendar-range',
 	borderClass: 'border-t-default',
 	dotClass: 'bg-default',
-};
+}
 
 export const getActivityStatusMeta = (status: string): ActivityStatusMeta => (
 	STATUS_META[status as ActivityStatus] ?? FALLBACK_META

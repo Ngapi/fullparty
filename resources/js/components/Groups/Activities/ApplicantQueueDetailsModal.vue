@@ -8,7 +8,8 @@ import { route } from "ziggy-js";
 import { localizedValue } from "@/utils/localizedValue";
 import ActivityCharacterFflogsProgress from "@/components/Groups/Activities/ActivityCharacterFflogsProgress.vue";
 import ApplicantUserStats from "@/components/Groups/Activities/ApplicantUserStats.vue";
-import type { LocalizedText, QueueApplication } from "@/components/Groups/Activities/queueTypes";
+import type { LocalizedText } from "@/Types/Common";
+import type { QueueApplication } from "@/Types/ActivityQueue";
 
 const props = defineProps<{
 	groupSlug: string

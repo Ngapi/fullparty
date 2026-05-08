@@ -1,51 +1,10 @@
 <script setup lang="ts">
+import type { MemberNote, MemberNotePayload } from "@/Types/Groups";
 import { computed, ref, watch } from "vue";
 import { useForm } from "@inertiajs/vue3";
 import { route } from "ziggy-js";
 import { useToast } from "@nuxt/ui/composables";
 import { useI18n } from "vue-i18n";
-
-type NoteAuthor = {
-	id: number
-	name: string
-	avatar_url: string | null
-} | null;
-
-type NoteSourceGroup = {
-	id: number | null
-	name: string | null
-	slug: string | null
-} | null;
-
-type MemberNote = {
-	id: number
-	severity: 'info' | 'warning' | 'critical'
-	body: string
-	is_shared_with_groups: boolean
-	created_at: string | null
-	permissions: {
-		can_edit_body: boolean
-		can_delete: boolean
-		can_add_addendum: boolean
-	}
-	author: NoteAuthor
-	addenda: Array<{
-		id: number
-		body: string
-		created_at: string | null
-		author: NoteAuthor
-	}>
-	source_group: NoteSourceGroup
-};
-
-type NotePayload = {
-	can_view: boolean
-	can_add: boolean
-	current_group_count: number
-	shared_count: number
-	current_group: MemberNote[]
-	shared: MemberNote[]
-};
 
 const props = defineProps<{
 	groupSlug: string
@@ -53,7 +12,7 @@ const props = defineProps<{
 		id: number
 		name: string
 		avatar_url: string | null
-		notes: NotePayload
+		notes: MemberNotePayload
 	} | null
 }>();
 

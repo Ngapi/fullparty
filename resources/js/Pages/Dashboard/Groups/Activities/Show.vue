@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import axios from "axios";
+import type { ActivityDetails, ActivityManagementPatch, SlotDesignation } from "@/Types/ActivityManagement";
+import type { ManualAssignmentCharacter, QueueApplication } from "@/Types/ActivityQueue";
 import { computed, onBeforeUnmount, onMounted, ref } from "vue";
 import { useI18n } from "vue-i18n";
 import { router, usePage } from "@inertiajs/vue3";
@@ -13,125 +15,6 @@ import ApplicantQueue from "@/components/Groups/Activities/ApplicantQueue.vue";
 import AssignApplicantToSlotModal from "@/components/Groups/Activities/AssignApplicantToSlotModal.vue";
 import ManualAssignCharacterToSlotModal from "@/components/Groups/Activities/ManualAssignCharacterToSlotModal.vue";
 import CompleteActivityModal from "@/components/Groups/Activities/CompleteActivityModal.vue";
-import type { ManualAssignmentCharacter, QueueApplication, QueueFilterField } from "@/components/Groups/Activities/queueTypes";
-import type { ActivitySlot } from "@/components/Groups/Activities/rosterTypes";
-
-type LocalizedText = Record<string, string | null | undefined> | null | undefined;
-
-type ActivityDetails = {
-	id: number
-	activity_type: {
-		id: number | null
-		slug: string | null
-		draft_name: LocalizedText
-	}
-	activity_type_version_id: number
-	fflogs_zone_id: number | null
-	title: string | null
-	description: string | null
-	notes: string | null
-	status: string
-	starts_at: string | null
-	duration_hours: number | null
-	target_prog_point_key: string | null
-	furthest_progress_key: string | null
-	furthest_progress_percent: number | null
-	is_public: boolean
-	needs_application: boolean
-	secret_key: string | null
-	progress_entry_mode: string | null
-	progress_link_url: string | null
-	progress_notes: string | null
-	completed_at: string | null
-	organized_by: {
-		id: number
-		name: string
-		avatar_url: string | null
-	} | null
-	organized_by_character: {
-		id: number
-		user_id: number
-		name: string
-		avatar_url: string | null
-	} | null
-	slot_count: number
-	bench_slot_count: number
-	application_count: number
-	pending_application_count: number
-	progress_milestone_count: number
-	can_use_fflogs_completion: boolean
-	prog_points: Array<{
-		key: string
-		label: LocalizedText
-	}>
-	roster_summary_presets: Array<{
-		key: string
-		label: LocalizedText
-		description: LocalizedText
-		requirements: Array<{
-			source: string
-			source_id: number
-			comparison: 'at_least' | 'exactly' | 'at_most'
-			target_count: number
-			scope_type: 'all_slots' | 'slot_group' | 'slot_group_set'
-			scope_group_keys: string[]
-			scope_groups: Array<{
-				key: string
-				label: LocalizedText
-			}>
-			item: {
-				id: number
-				label: LocalizedText
-				meta: {
-					role?: string | null
-					shorthand?: string | null
-					icon_url?: string | null
-					flaticon_url?: string | null
-					black_icon_url?: string | null
-					transparent_icon_url?: string | null
-					sprite_url?: string | null
-				} | null
-			}
-		}>
-	}>
-	slot_field_definitions: QueueFilterField[]
-	slots: ActivitySlot[]
-	missing_assignments: Array<{
-		id: number
-		slot_id: number | null
-		character: {
-			id: number
-			name: string
-			avatar_url: string | null
-			world: string | null
-			datacenter: string | null
-		} | null
-		slot_label: LocalizedText
-		group_label: LocalizedText
-		marked_missing_at: string | null
-	}>
-	progress_milestones: Array<{
-		id: number
-		milestone_key: string
-		milestone_label: LocalizedText
-		sort_order: number
-		kills: number
-		best_progress_percent: number | null
-		source: string | null
-		notes: string | null
-	}>
-}
-
-type ActivityManagementPatch = {
-	updated_slots?: ActivitySlot[]
-	pending_application_count?: number
-	queue_application_sync_ids?: number[]
-	queue_application_remove_ids?: number[]
-	upsert_missing_assignments?: ActivityDetails['missing_assignments']
-	remove_missing_assignment_ids?: number[]
-}
-
-type SlotDesignation = 'host' | 'raid_leader'
 
 const props = defineProps<{
 	group: {

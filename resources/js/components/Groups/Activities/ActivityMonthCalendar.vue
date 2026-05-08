@@ -2,7 +2,7 @@
 import { computed, ref } from "vue";
 import { useI18n } from "vue-i18n";
 import ActivityCalendarDayCell from "@/components/Groups/Activities/ActivityCalendarDayCell.vue";
-import type { ActivityIndexItem } from "@/components/Groups/Activities/types";
+import type { ActivityIndexItem } from "@/Types/ActivityCore";
 
 const props = defineProps<{
 	activities: ActivityIndexItem[]

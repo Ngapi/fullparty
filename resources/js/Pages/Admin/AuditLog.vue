@@ -1,11 +1,12 @@
 <script setup lang="ts">
+import type { AuditLogRowRecord } from "@/Types/Audit";
 import AuditLogRow from "@/components/Audit/AuditLogRow.vue";
 import PageHeader from "@/components/PageHeader.vue";
 import { computed, onBeforeUnmount, onMounted, ref, useTemplateRef, watch } from "vue";
 import { useI18n } from "vue-i18n";
 
 const props = defineProps<{
-	auditLogs: Array<any>
+	auditLogs: AuditLogRowRecord[]
 	filters: {
 		actions: Array<{ value: string, label: string }>
 		severities: Array<{ value: string, label: string }>
@@ -15,39 +16,6 @@ const props = defineProps<{
 }>();
 
 const { t } = useI18n();
-
-type AuditLogRow = {
-	id: number
-	action: string
-	severity: string
-	scope: {
-		type: string | null
-		id: number | null
-		label: string | null
-	}
-	actor: {
-		id: number | null
-		name: string
-		avatar_url: string | null
-		is_system: boolean
-	}
-	subject: {
-		type: string | null
-		id: number | null
-		name: string
-		avatar_url: string | null
-		is_system: boolean
-	}
-	title: string
-	changes: Array<{
-		label: string
-		old: string
-		new: string
-	}>
-	details: Array<string>
-	search_text: string
-	created_at: string
-}
 
 const actionOptions = computed(() => [
 	{ label: t('audit_log.filters.any_action'), value: '__all__' },

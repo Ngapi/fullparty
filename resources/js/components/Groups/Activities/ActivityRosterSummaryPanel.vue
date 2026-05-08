@@ -1,60 +1,13 @@
 <script setup lang="ts">
-import type { ActivitySlot, LocalizedText } from "@/components/Groups/Activities/rosterTypes";
+import type { LocalizedText } from "@/Types/Common";
+import type { ActivityRosterSummaryPreset, ActivityRosterSummaryRequirementRow, ActivitySlot } from "@/Types/ActivityRoster";
 import { localizedValue } from "@/utils/localizedValue";
 import { computed, ref, watch } from "vue";
 import { usePage } from "@inertiajs/vue3";
 import { useI18n } from "vue-i18n";
 
-type RosterSummaryPreset = {
-	key: string
-	label: LocalizedText
-	description: LocalizedText
-	requirements: Array<{
-		source: string
-		source_id: number
-		comparison: 'at_least' | 'exactly' | 'at_most'
-		target_count: number
-		scope_type: 'all_slots' | 'slot_group' | 'slot_group_set'
-		scope_group_keys: string[]
-		scope_groups: Array<{
-			key: string
-			label: LocalizedText
-		}>
-		item: {
-			id: number
-			label: LocalizedText
-			meta: {
-				role?: string | null
-				shorthand?: string | null
-				icon_url?: string | null
-				flaticon_url?: string | null
-				black_icon_url?: string | null
-				transparent_icon_url?: string | null
-				sprite_url?: string | null
-			} | null
-		}
-	}>
-}
-
-type RequirementRow = {
-	key: string
-	scopeKey: string
-	itemLabel: string
-	itemIconUrl: string | null
-	currentCount: number
-	targetCount: number
-	comparisonLabel: string
-	comparisonShortLabel: string
-	scopeLabel: string
-	state: {
-		color: "success" | "error" | "warning"
-		toneClass: string
-		badgeVariant: "solid" | "soft"
-	}
-}
-
 const props = defineProps<{
-	presets: RosterSummaryPreset[]
+	presets: ActivityRosterSummaryPreset[]
 	slots: ActivitySlot[]
 }>();
 
@@ -137,7 +90,7 @@ const groupedRequirementRows = computed(() => {
 	const groups = new Map<string, {
 		key: string
 		label: string
-		requirements: RequirementRow[]
+		requirements: ActivityRosterSummaryRequirementRow[]
 	}>();
 
 	for (const requirement of requirementRows.value) {
@@ -169,7 +122,7 @@ watch(() => props.presets, (presets) => {
 	}
 }, { immediate: true, deep: true });
 
-function formatScopeLabel(requirement: RosterSummaryPreset["requirements"][number]) {
+function formatScopeLabel(requirement: ActivityRosterSummaryPreset["requirements"][number]) {
 	if (requirement.scope_type === "all_slots") {
 		return t("groups.activities.management.overview.roster_summary.scope_all");
 	}
@@ -192,7 +145,7 @@ function formatScopeLabel(requirement: RosterSummaryPreset["requirements"][numbe
 }
 
 function resolveRequirementState(
-	comparison: RosterSummaryPreset["requirements"][number]["comparison"],
+	comparison: ActivityRosterSummaryPreset["requirements"][number]["comparison"],
 	currentCount: number,
 	targetCount: number,
 ) {
@@ -218,7 +171,7 @@ function resolveRequirementState(
 }
 
 function formatComparisonShortLabel(
-	comparison: RosterSummaryPreset["requirements"][number]["comparison"],
+	comparison: ActivityRosterSummaryPreset["requirements"][number]["comparison"],
 ) {
 	if (comparison === "at_least") {
 		return ">=";

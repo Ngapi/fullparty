@@ -1,56 +1,27 @@
 <script setup lang="ts">
+import type {
+	ActivityTypeLayoutGroup,
+	ActivityTypeRosterSummaryPreset,
+	ActivityTypeRosterSummaryReference,
+	ActivityTypeRosterSummaryRequirement,
+	ActivityTypeRosterSummarySourceOption,
+} from "@/Types/AdminActivityTypes";
+import type { LocalizedStringRecord } from "@/Types/Common";
 import ActivityTypeSectionCard from "@/components/Admin/ActivityTypes/ActivityTypeSectionCard.vue";
 import LocalizedTextFields from "@/components/Admin/ActivityTypes/LocalizedTextFields.vue";
 import { slugify } from "@/utils/slugify";
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 
-type LocalizedRecord = Record<string, string>
-
-type RosterSummaryRequirement = {
-	source: string
-	source_id: number | null
-	comparison: string
-	target_count: number
-	scope_type: string
-	scope_group_keys: string[]
-}
-
-type RosterSummaryPreset = {
-	key: string
-	label: LocalizedRecord
-	description?: LocalizedRecord
-	requirements: RosterSummaryRequirement[]
-}
-
-type SourceOption = {
-	value: number
-	label: string
-	meta?: {
-		role?: string | null
-		shorthand?: string | null
-	}
-}
-
-type LayoutGroup = {
-	key: string
-	label?: LocalizedRecord
-}
-
 const props = defineProps<{
-	modelValue: RosterSummaryPreset[]
+	modelValue: ActivityTypeRosterSummaryPreset[]
 	locales: string[]
-	layoutGroups: LayoutGroup[]
-	summaryReference: {
-		supportedSources: string[]
-		supportedComparisons: string[]
-		supportedScopeTypes: string[]
-		sourceOptions: Record<string, SourceOption[]>
-	}
+	layoutGroups: ActivityTypeLayoutGroup[]
+	summaryReference: ActivityTypeRosterSummaryReference
 }>();
 
 const emit = defineEmits<{
-	'update:modelValue': [value: RosterSummaryPreset[]]
+	'update:modelValue': [value: ActivityTypeRosterSummaryPreset[]]
 }>();
 
 const { t } = useI18n();
@@ -75,16 +46,16 @@ const layoutGroupOptions = computed(() => props.layoutGroups.map((group) => ({
 		value: group.key,
 	})));
 
-const createLocalizedRecord = (): LocalizedRecord => Object.fromEntries(props.locales.map((locale) => [locale, ""]));
+const createLocalizedRecord = (): LocalizedStringRecord => Object.fromEntries(props.locales.map((locale) => [locale, ""]));
 
 const firstSource = computed(() => props.summaryReference.supportedSources[0] ?? "phantom_jobs");
 const firstComparison = computed(() => props.summaryReference.supportedComparisons[0] ?? "at_least");
 const defaultScopeType = computed(() => props.summaryReference.supportedScopeTypes[0] ?? "all_slots");
 
-const optionsForSource = (source: string): SourceOption[] => props.summaryReference.sourceOptions[source] ?? [];
+const optionsForSource = (source: string): ActivityTypeRosterSummarySourceOption[] => props.summaryReference.sourceOptions[source] ?? [];
 const firstLayoutGroupKey = computed(() => layoutGroupOptions.value[0]?.value ?? null);
 
-const resolveLayoutGroupLabel = (group: LayoutGroup): string => {
+const resolveLayoutGroupLabel = (group: ActivityTypeLayoutGroup): string => {
 	for (const locale of props.locales) {
 		const localizedLabel = group.label?.[locale];
 
@@ -96,7 +67,7 @@ const resolveLayoutGroupLabel = (group: LayoutGroup): string => {
 	return group.key;
 };
 
-const createRequirement = (source = firstSource.value): RosterSummaryRequirement => ({
+const createRequirement = (source = firstSource.value): ActivityTypeRosterSummaryRequirement => ({
 	source,
 	source_id: optionsForSource(source)[0]?.value ?? null,
 	comparison: firstComparison.value,
@@ -105,14 +76,14 @@ const createRequirement = (source = firstSource.value): RosterSummaryRequirement
 	scope_group_keys: [],
 });
 
-const createPreset = (): RosterSummaryPreset => ({
+const createPreset = (): ActivityTypeRosterSummaryPreset => ({
 	key: "",
 	label: createLocalizedRecord(),
 	description: createLocalizedRecord(),
 	requirements: [createRequirement()],
 });
 
-const updateValue = (value: RosterSummaryPreset[]) => {
+const updateValue = (value: ActivityTypeRosterSummaryPreset[]) => {
 	emit("update:modelValue", value);
 };
 
@@ -120,7 +91,7 @@ const addPreset = () => {
 	updateValue([...props.modelValue, createPreset()]);
 };
 
-const updatePreset = (index: number, updates: Partial<RosterSummaryPreset>) => {
+const updatePreset = (index: number, updates: Partial<ActivityTypeRosterSummaryPreset>) => {
 	updateValue(props.modelValue.map((preset, presetIndex) => (
 		presetIndex === index ? { ...preset, ...updates } : preset
 	)));
@@ -130,7 +101,7 @@ const removePreset = (index: number) => {
 	updateValue(props.modelValue.filter((_, presetIndex) => presetIndex !== index));
 };
 
-const updatePresetLabel = (index: number, label: LocalizedRecord) => {
+const updatePresetLabel = (index: number, label: LocalizedStringRecord) => {
 	const preset = props.modelValue[index];
 	const primaryLocale = props.locales[0] ?? "en";
 	const previousPrimaryLabel = preset?.label?.[primaryLocale] ?? "";
@@ -154,7 +125,7 @@ const addRequirement = (presetIndex: number) => {
 	});
 };
 
-const updateRequirement = (presetIndex: number, requirementIndex: number, updates: Partial<RosterSummaryRequirement>) => {
+const updateRequirement = (presetIndex: number, requirementIndex: number, updates: Partial<ActivityTypeRosterSummaryRequirement>) => {
 	const preset = props.modelValue[presetIndex];
 	const nextRequirements = (preset.requirements ?? []).map((requirement, currentIndex) => (
 		currentIndex === requirementIndex ? { ...requirement, ...updates } : requirement

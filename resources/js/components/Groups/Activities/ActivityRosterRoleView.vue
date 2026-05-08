@@ -2,8 +2,8 @@
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 import ActivityRosterSlotCard from "@/components/Groups/Activities/ActivityRosterSlotCard.vue";
-import type { QueueApplication } from "@/components/Groups/Activities/queueTypes";
-import type { ActivitySlot } from "@/components/Groups/Activities/rosterTypes";
+import type { QueueApplication } from "@/Types/ActivityQueue";
+import type { ActivitySlot } from "@/Types/ActivityRoster";
 
 const props = defineProps<{
 	slots: ActivitySlot[]

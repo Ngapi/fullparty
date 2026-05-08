@@ -10,12 +10,12 @@ import ApplicantQueueItem from "@/components/Groups/Activities/ApplicantQueueIte
 import ApplicantQueueDetailsModal from "@/components/Groups/Activities/ApplicantQueueDetailsModal.vue";
 import { getRosterSlotDragData, isRosterSlotDrag } from "@/components/Groups/Activities/rosterDragData";
 import GroupMemberNotesModal from "@/components/Groups/GroupMemberNotesModal.vue";
+import type { LocalizedText } from "@/Types/Common";
 import type {
-	LocalizedText,
 	QueueApplication,
 	QueueFilterField,
 	QueueFilterMilestone,
-} from "@/components/Groups/Activities/queueTypes";
+} from "@/Types/ActivityQueue";
 
 const props = defineProps<{
 	groupSlug: string

@@ -1,32 +1,18 @@
 <script setup lang="ts">
+import type { ActivityTypeProgressMilestone, ActivityTypeProgressSchema } from "@/Types/AdminActivityTypes";
 import ActivityTypeSectionCard from "@/components/Admin/ActivityTypes/ActivityTypeSectionCard.vue";
 import LocalizedTextFields from "@/components/Admin/ActivityTypes/LocalizedTextFields.vue";
 import { slugify } from "@/utils/slugify";
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 
-type ProgressMilestone = {
-	key: string
-	label: Record<string, string>
-	order: number
-	fflogs_matcher: {
-		type: 'encounter' | 'phase'
-		encounter_id: number | null
-		phase_id: number | null
-	}
-}
-
-type ProgressSchema = {
-	milestones: ProgressMilestone[]
-}
-
 const props = defineProps<{
-	modelValue: ProgressSchema
+	modelValue: ActivityTypeProgressSchema
 	locales: string[]
 }>();
 
 const emit = defineEmits<{
-	'update:modelValue': [value: ProgressSchema]
+	'update:modelValue': [value: ActivityTypeProgressSchema]
 }>();
 
 const { t } = useI18n();
@@ -45,7 +31,7 @@ const matcherTypeOptions = computed(() => [
 
 const createLocalizedRecord = () => Object.fromEntries(props.locales.map((locale) => [locale, '']));
 
-const createMilestone = (order: number): ProgressMilestone => ({
+const createMilestone = (order: number): ActivityTypeProgressMilestone => ({
 	key: '',
 	label: createLocalizedRecord(),
 	order,
@@ -56,7 +42,7 @@ const createMilestone = (order: number): ProgressMilestone => ({
 	},
 });
 
-const updateMilestones = (nextMilestones: ProgressMilestone[]) => {
+const updateMilestones = (nextMilestones: ActivityTypeProgressMilestone[]) => {
 	emit('update:modelValue', {
 		milestones: nextMilestones.map((milestone, index) => ({
 			...milestone,
@@ -72,7 +58,7 @@ const addMilestone = () => {
 	]);
 };
 
-const updateMilestone = (index: number, updates: Partial<ProgressMilestone>) => {
+const updateMilestone = (index: number, updates: Partial<ActivityTypeProgressMilestone>) => {
 	updateMilestones(milestones.value.map((milestone, milestoneIndex) => (
 		milestoneIndex === index ? { ...milestone, ...updates } : milestone
 	)));

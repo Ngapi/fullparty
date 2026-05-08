@@ -4,7 +4,7 @@ import { useI18n } from "vue-i18n";
 import { router, usePage } from "@inertiajs/vue3";
 import { route } from "ziggy-js";
 import { localizedValue } from "@/utils/localizedValue";
-import type { ActivityIndexItem } from "@/components/Groups/Activities/types";
+import type { ActivityIndexItem } from "@/Types/ActivityCore";
 import { getActivityStatusMeta } from "@/utils/activityStatusMeta";
 
 const props = defineProps<{

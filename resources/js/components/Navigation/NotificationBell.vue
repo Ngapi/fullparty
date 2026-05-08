@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { NotificationRecord } from '@/Types/Notifications'
 import axios from 'axios'
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { Link, router, usePage } from '@inertiajs/vue3'
@@ -9,7 +10,6 @@ import {
 	resolveNotificationDescription,
 	resolveNotificationMeta,
 	resolveNotificationTitle,
-	type NotificationRecord,
 } from '@/utils/notificationPresentation'
 
 declare global {

@@ -1,29 +1,10 @@
 <script setup lang="ts">
+import type { ApplicationQuestion } from "@/Types/ActivityApplications";
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 import { usePage } from "@inertiajs/vue3";
 import { localizedValue } from "@/utils/localizedValue";
 import ApplicationClassSelector from "@/components/Groups/Activities/ApplicationClassSelector.vue";
-
-type QuestionOption = {
-	key: string
-	label: Record<string, string | null | undefined>
-	meta?: {
-		icon_url?: string | null
-		role?: string | null
-		shorthand?: string | null
-	} | null
-}
-
-type ApplicationQuestion = {
-	key: string
-	label: Record<string, string | null | undefined>
-	type: string
-	source: string | null
-	required?: boolean
-	help_text?: Record<string, string | null | undefined> | null
-	options: QuestionOption[]
-}
 
 const props = defineProps<{
 	question: ApplicationQuestion

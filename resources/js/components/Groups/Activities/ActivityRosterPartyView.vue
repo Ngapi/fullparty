@@ -4,8 +4,9 @@ import { useI18n } from "vue-i18n";
 import { usePage } from "@inertiajs/vue3";
 import { localizedValue } from "@/utils/localizedValue";
 import ActivityRosterSlotCard from "@/components/Groups/Activities/ActivityRosterSlotCard.vue";
-import type { QueueApplication } from "@/components/Groups/Activities/queueTypes";
-import type { ActivitySlot, LocalizedText } from "@/components/Groups/Activities/rosterTypes";
+import type { LocalizedText } from "@/Types/Common";
+import type { QueueApplication } from "@/Types/ActivityQueue";
+import type { ActivitySlot } from "@/Types/ActivityRoster";
 
 const props = defineProps<{
 	slots: ActivitySlot[]

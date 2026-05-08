@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { NotificationPageData, NotificationRecord } from "@/Types/Notifications"
 import { computed, ref } from 'vue'
 import axios from 'axios'
 import { Link, router } from '@inertiajs/vue3'
@@ -11,19 +12,7 @@ import {
 	resolveNotificationDescription,
 	resolveNotificationMeta,
 	resolveNotificationTitle,
-	type NotificationRecord,
 } from '@/utils/notificationPresentation'
-
-type NotificationPageData = {
-	items: NotificationRecord[]
-	pagination: {
-		current_page: number
-		next_page: number | null
-		has_more_pages: boolean
-		per_page: number
-		total: number
-	}
-}
 
 const props = defineProps<{
 	notificationsPage: NotificationPageData

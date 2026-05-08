@@ -1,29 +1,9 @@
 <script setup lang="ts">
+import type { ActivityTypeOption, OrganizerCharacterOption } from "@/Types/ActivityCore";
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 import { localizedValue } from "@/utils/localizedValue";
 import { usePage } from "@inertiajs/vue3";
-
-type ActivityTypeOption = {
-	id: number
-	slug: string
-	draft_name: Record<string, string | null | undefined> | null | undefined
-	current_published_version_id: number | null
-	slot_count: number
-	prog_points: Array<{
-		key: string
-		label: Record<string, string | null | undefined> | null | undefined
-	}>
-}
-
-type OrganizerCharacterOption = {
-	id: number
-	user_id: number
-	name: string | null
-	user_name: string | null
-	avatar_url: string | null
-	world: string | null
-}
 
 const props = defineProps<{
 	form: {

@@ -1,4 +1,5 @@
-export type LocalizedText = Record<string, string | null | undefined> | null | undefined;
+import type { LocalizedText } from "@/Types/Common"
+import type { MemberNotePayload } from "@/Types/Groups"
 
 export type QueueApplicationAnswerDisplayItem = {
 	label: string
@@ -28,6 +29,17 @@ export type QueueApplicationUserStatItem = {
 	transparent_icon_url?: string | null
 }
 
+export type QueueApplicationUserStats = {
+	class: {
+		group: QueueApplicationUserStatItem[]
+		overall: QueueApplicationUserStatItem[]
+	}
+	phantom_job: {
+		group: QueueApplicationUserStatItem[]
+		overall: QueueApplicationUserStatItem[]
+	}
+}
+
 export type QueueApplication = {
 	id: number
 	is_guest: boolean
@@ -35,76 +47,7 @@ export type QueueApplication = {
 		id: number
 		name: string
 		avatar_url: string | null
-		notes: {
-			can_view: boolean
-			can_add: boolean
-			current_group_count: number
-			shared_count: number
-			current_group: Array<{
-				id: number
-				severity: 'info' | 'warning' | 'critical'
-				body: string
-				is_shared_with_groups: boolean
-				created_at: string | null
-				permissions: {
-					can_edit_body: boolean
-					can_delete: boolean
-					can_add_addendum: boolean
-				}
-				author: {
-					id: number
-					name: string
-					avatar_url: string | null
-				} | null
-				addenda: Array<{
-					id: number
-					body: string
-					created_at: string | null
-					author: {
-						id: number
-						name: string
-						avatar_url: string | null
-					} | null
-				}>
-				source_group: {
-					id: number | null
-					name: string | null
-					slug: string | null
-				} | null
-			}>
-			shared: Array<{
-				id: number
-				severity: 'info' | 'warning' | 'critical'
-				body: string
-				is_shared_with_groups: boolean
-				created_at: string | null
-				permissions: {
-					can_edit_body: boolean
-					can_delete: boolean
-					can_add_addendum: boolean
-				}
-				author: {
-					id: number
-					name: string
-					avatar_url: string | null
-				} | null
-				addenda: Array<{
-					id: number
-					body: string
-					created_at: string | null
-					author: {
-						id: number
-						name: string
-						avatar_url: string | null
-					} | null
-				}>
-				source_group: {
-					id: number | null
-					name: string | null
-					slug: string | null
-				} | null
-			}>
-		}
+		notes: MemberNotePayload
 	} | null
 	applicant_character: {
 		lodestone_id: string
@@ -128,16 +71,7 @@ export type QueueApplication = {
 	submitted_at: string | null
 	reviewed_at: string | null
 	review_reason: string | null
-	user_stats: {
-		class: {
-			group: QueueApplicationUserStatItem[]
-			overall: QueueApplicationUserStatItem[]
-		}
-		phantom_job: {
-			group: QueueApplicationUserStatItem[]
-			overall: QueueApplicationUserStatItem[]
-		}
-	} | null
+	user_stats: QueueApplicationUserStats | null
 	progress_milestones: Array<{
 		key: string
 		label: LocalizedText

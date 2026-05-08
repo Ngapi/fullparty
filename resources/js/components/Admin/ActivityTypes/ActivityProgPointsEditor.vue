@@ -1,22 +1,18 @@
 <script setup lang="ts">
+import type { ActivityTypeProgPoint } from "@/Types/AdminActivityTypes";
 import ActivityTypeSectionCard from "@/components/Admin/ActivityTypes/ActivityTypeSectionCard.vue";
 import LocalizedTextFields from "@/components/Admin/ActivityTypes/LocalizedTextFields.vue";
 import { slugify } from "@/utils/slugify";
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 
-type ProgPoint = {
-	key: string
-	label: Record<string, string>
-}
-
 const props = defineProps<{
-	modelValue: ProgPoint[]
+	modelValue: ActivityTypeProgPoint[]
 	locales: string[]
 }>();
 
 const emit = defineEmits<{
-	'update:modelValue': [value: ProgPoint[]]
+	'update:modelValue': [value: ActivityTypeProgPoint[]]
 }>();
 
 const { t } = useI18n();
@@ -25,12 +21,12 @@ const progPoints = computed(() => props.modelValue ?? []);
 
 const createLocalizedRecord = () => Object.fromEntries(props.locales.map((locale) => [locale, '']));
 
-const createProgPoint = (): ProgPoint => ({
+const createProgPoint = (): ActivityTypeProgPoint => ({
 	key: '',
 	label: createLocalizedRecord(),
 });
 
-const updateProgPoints = (nextProgPoints: ProgPoint[]) => {
+const updateProgPoints = (nextProgPoints: ActivityTypeProgPoint[]) => {
 	emit('update:modelValue', nextProgPoints);
 };
 
@@ -41,7 +37,7 @@ const addProgPoint = () => {
 	]);
 };
 
-const updateProgPoint = (index: number, updates: Partial<ProgPoint>) => {
+const updateProgPoint = (index: number, updates: Partial<ActivityTypeProgPoint>) => {
 	updateProgPoints(progPoints.value.map((progPoint, progPointIndex) => (
 		progPointIndex === index ? { ...progPoint, ...updates } : progPoint
 	)));

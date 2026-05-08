@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { ActivityApplicationRecord, ApplicationQuestion } from "@/Types/ActivityApplications";
 import { computed } from "vue";
 import { router, usePage } from "@inertiajs/vue3";
 import { route } from "ziggy-js";
@@ -6,19 +7,6 @@ import { useI18n } from "vue-i18n";
 import { useToast } from "@nuxt/ui/composables";
 import { localizedValue } from "@/utils/localizedValue";
 import { getActivityStatusMeta } from "@/utils/activityStatusMeta";
-
-type QuestionOption = {
-	key: string
-	label: Record<string, string | null | undefined>
-}
-
-type ApplicationQuestion = {
-	key: string
-	label: Record<string, string | null | undefined>
-	type: string
-	source: string | null
-	options: QuestionOption[]
-}
 
 const props = defineProps<{
 	group: {
@@ -53,22 +41,7 @@ const props = defineProps<{
 		} | null
 	}
 	applicationSchema: ApplicationQuestion[]
-	application: {
-		id: number
-		selected_character_id: number | null
-		status: string
-		notes: string | null
-		submitted_at: string | null
-		review_reason?: string | null
-		applicant_character?: {
-			lodestone_id: string
-			name: string
-			world: string
-			datacenter: string
-			avatar_url: string | null
-		} | null
-		answers: Record<string, unknown>
-	} | null
+	application: ActivityApplicationRecord | null
 	secretKey?: string
 	guestAccessToken?: string
 	confirmation: {

@@ -1,9 +1,5 @@
 <script setup lang="ts">
-type LegalSection = {
-	title: string
-	paragraphs?: string[]
-	bullets?: string[]
-}
+import type { LegalSection } from "@/Types/Legal"
 
 defineProps<{
 	title: string

@@ -1,18 +1,9 @@
 <script setup lang="ts">
+import type { PaginatedGroups } from "@/Types/Groups";
 import GroupIndexTable from "@/components/Groups/GroupIndexTable.vue";
 import { route } from "ziggy-js";
 import { computed, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
-
-type PaginatedGroups = {
-	data: Array<any>
-	meta: {
-		current_page: number
-		last_page: number
-		per_page: number
-		total: number
-	}
-}
 
 const emit = defineEmits<{
 	searchStarted: [value: boolean]
