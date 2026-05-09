@@ -21,7 +21,7 @@
     "pulse": "Pulse",
     "notice": {
       "title": "お知らせ",
-      "description": "FullParty は現在も開発中です。問題を見つけたりフィードバックを共有したい場合は、GitHub を確認するか Discord サーバーに参加してください。",
+      "description": "FullParty は現在も開発中です。問題を見つけたりフィードバックを共有したい場合は、Discord サーバーに参加してください。",
       "github": "GitHub",
       "discord": "Discord に参加",
       "dev_tag": "開発者"

@@ -25,10 +25,6 @@ const goToRegister = () => {
 const items = computed<DropdownMenuItem[][]>(() => [
 	[
 		{
-			label: t('navigation.topbar.menu.profile'),
-			icon: 'i-lucide-user',
-		},
-		{
 			label: t('navigation.topbar.menu.settings'),
 			icon: 'i-lucide-cog',
 			onSelect(){

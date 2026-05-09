@@ -10,14 +10,12 @@ const currentYear = computed(() => new Date().getFullYear());
 
 const siteLinks = computed(() => page.props.site_links ?? {
 	discord: null,
-	github: null,
 });
 
 const links = computed(() => [
 	{ label: t('navigation.footer.cookies'), href: route('legal.cookies') },
 	{ label: t('navigation.footer.privacy'), href: route('legal.privacy') },
-	{ label: t('navigation.footer.github'), href: siteLinks.value.github ?? '#' , external: true },
-	{ label: t('navigation.footer.discord'), href: siteLinks.value.discord ?? '#', external: true },
+	...(siteLinks.value.discord ? [{ label: t('navigation.footer.discord'), href: siteLinks.value.discord, external: true }] : []),
 ]);
 </script>
 

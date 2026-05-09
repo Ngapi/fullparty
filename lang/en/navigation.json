@@ -21,7 +21,7 @@
     "pulse": "Pulse",
     "notice": {
       "title": "Heads Up",
-      "description": "FullParty is still in active development. If you run into an issue or want to share feedback, check GitHub or join the Discord server.",
+      "description": "FullParty is still in active development. If you run into an issue or want to share feedback, join the Discord server.",
       "github": "GitHub",
       "discord": "Join Discord",
       "dev_tag": "Developer"
