@@ -99,6 +99,22 @@ const editApplication = (application: AccountApplication) => {
 	}));
 };
 
+const canOpenOverview = (application: AccountApplication) => (
+	Boolean(application.activity.id && application.group.slug)
+);
+
+const openOverview = (application: AccountApplication) => {
+	if (!application.activity.id || !application.group.slug) {
+		return;
+	}
+
+	router.get(route("groups.activities.overview", {
+		group: application.group.slug,
+		activity: application.activity.id,
+		secretKey: application.activity.secret_key || undefined,
+	}));
+};
+
 const confirmWithdrawal = (application: AccountApplication) => {
 	pendingWithdrawal.value = application;
 };
@@ -218,9 +234,18 @@ const withdrawApplication = () => {
 							</div>
 
 							<div
-								v-if="application.can_edit || application.can_cancel"
+								v-if="canOpenOverview(application) || application.can_edit || application.can_cancel"
 								class="flex flex-wrap items-center gap-2"
 							>
+								<UButton
+									v-if="canOpenOverview(application)"
+									type="button"
+									color="neutral"
+									variant="ghost"
+									icon="i-lucide-arrow-up-right"
+									:label="t('applications.view_run')"
+									@click="openOverview(application)"
+								/>
 								<UButton
 									v-if="application.can_edit"
 									type="button"
@@ -365,9 +390,18 @@ const withdrawApplication = () => {
 							</div>
 
 							<div
-								v-if="application.can_edit || application.can_cancel"
+								v-if="canOpenOverview(application) || application.can_edit || application.can_cancel"
 								class="flex flex-wrap items-center gap-2"
 							>
+								<UButton
+									v-if="canOpenOverview(application)"
+									type="button"
+									color="neutral"
+									variant="ghost"
+									icon="i-lucide-arrow-up-right"
+									:label="t('applications.view_run')"
+									@click="openOverview(application)"
+								/>
 								<UButton
 									v-if="application.can_edit"
 									type="button"

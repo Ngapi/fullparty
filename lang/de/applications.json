@@ -31,6 +31,7 @@
     "history_empty_description": "Sobald eine Bewerbung abgeschlossen, abgelehnt, zurueckgezogen oder archiviert wurde, erscheint sie hier."
   },
   "edit": "Bewerbung bearbeiten",
+  "view_run": "Run ansehen",
   "cancel": "Bewerbung abbrechen",
   "withdraw": {
     "title": "Bewerbung abbrechen",

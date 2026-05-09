@@ -5,8 +5,10 @@ import { useI18n } from "vue-i18n";
 const props = withDefaults(defineProps<{
 	role: string | null | undefined
 	fallbackRole?: 'member' | 'moderator'
+	compact?: boolean
 }>(), {
 	fallbackRole: 'member',
+	compact: false,
 });
 
 const { t } = useI18n();
@@ -38,9 +40,9 @@ const badge = computed(() => {
 
 <template>
 	<UBadge
-		size="lg"
+		:size="compact ? 'md' : 'lg'"
 		variant="subtle"
-		class="min-w-44 justify-center py-2"
+		:class="compact ? 'py-1.5' : 'min-w-44 justify-center py-2'"
 		:color="badge.color"
 		:icon="badge.icon"
 		:label="badge.label"

@@ -101,6 +101,30 @@ const applicationRouteParameters = computed(() => ({
 	secretKey: props.secretKey || undefined,
 }));
 
+const goBack = () => {
+	if (props.group.is_public) {
+		router.get(route("groups.show", props.group.slug));
+
+		return;
+	}
+
+	if (typeof window !== "undefined" && window.history.length > 1) {
+		window.history.back();
+
+		return;
+	}
+
+	if (props.permissions.can_manage) {
+		goToManagementPage();
+
+		return;
+	}
+
+	if (props.permissions.can_apply) {
+		goToApplicationPage();
+	}
+};
+
 const goToApplicationPage = () => {
 	router.get(route("groups.activities.application", applicationRouteParameters.value));
 };
@@ -115,7 +139,16 @@ const goToManagementPage = () => {
 
 <template>
 	<div class="w-full">
+		<UButton
+			:label="t('groups.activities.back')"
+			icon="i-lucide-arrow-left"
+			variant="ghost"
+			color="neutral"
+			@click.stop="goBack"
+		/>
+
 		<PageHeader
+			class="mt-4"
 			:title="activityTitle"
 			:subtitle="t('groups.activities.overview.subtitle', { group: group.name, type: activityTypeName })"
 		>

@@ -31,6 +31,7 @@
     "history_empty_description": "Once an application is completed, declined, withdrawn, or archived, it will move here."
   },
   "edit": "Edit Application",
+  "view_run": "View Run",
   "cancel": "Cancel Application",
   "withdraw": {
     "title": "Cancel Application",

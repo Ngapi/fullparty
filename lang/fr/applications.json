@@ -31,6 +31,7 @@
     "history_empty_description": "Une fois qu'une candidature est terminee, refusee, retiree ou archivee, elle apparaitra ici."
   },
   "edit": "Modifier la candidature",
+  "view_run": "Voir le run",
   "cancel": "Annuler la candidature",
   "withdraw": {
     "title": "Annuler la candidature",

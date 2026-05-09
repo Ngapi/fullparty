@@ -1,3 +1,5 @@
+import type { LocalizedText } from "@/Types/Common"
+
 export type MemberNoteSeverity = "info" | "warning" | "critical"
 
 export type NoteAuthor = {
@@ -63,6 +65,97 @@ export type GroupIndexRecord = {
 		upcoming_run_count: number
 		last_activity_at: string | null
 	}
+}
+
+export type GroupDashboardActivity = {
+	id: number
+	activity_type: {
+		id: number | null
+		slug: string | null
+		draft_name: LocalizedText
+	}
+	title: string | null
+	status: string
+	starts_at: string | null
+	duration_hours: number | null
+	is_public: boolean
+	needs_application: boolean
+	allow_guest_applications: boolean
+	organized_by: {
+		id: number
+		name: string
+		avatar_url: string | null
+	} | null
+	organized_by_character: {
+		id: number
+		user_id: number
+		name: string | null
+		avatar_url: string | null
+	} | null
+	slot_count: number
+	application_count: number
+	created_at: string | null
+	updated_at: string | null
+}
+
+export type GroupDashboardMemberPreview = {
+	id: number
+	name: string
+	avatar_url: string | null
+	role: string
+	joined_at: string | null
+}
+
+export type GroupDashboardGroup = {
+	id: number
+	name: string
+	description: string | null
+	profile_picture_url: string | null
+	discord_invite_url: string | null
+	datacenter: string
+	is_public: boolean
+	is_visible: boolean
+	slug: string
+	owner: {
+		id: number | null
+		name: string | null
+		avatar_url: string | null
+	}
+	current_user_role: string | null
+	permissions: {
+		can_manage_group: boolean
+		can_manage_members: boolean
+		can_manage_activities: boolean
+	}
+	stats: {
+		member_count: number
+		moderator_count: number
+		activity_count: number
+		draft_count: number
+		planned_count: number
+		scheduled_count: number
+		assigned_count: number
+		upcoming_count: number
+		ongoing_count: number
+		completed_count: number
+		cancelled_count: number
+		open_application_count: number
+		guest_friendly_count: number
+		public_activity_count: number
+		last_activity_at: string | null
+		latest_member_join_at: string | null
+	}
+	member_role_breakdown: {
+		owner: number
+		moderator: number
+		member: number
+	}
+	members_preview: GroupDashboardMemberPreview[]
+	activity_status_breakdown: Array<{
+		status: string
+		count: number
+	}>
+	recent_activities: GroupDashboardActivity[]
 }
 
 export type PaginatedGroups = {

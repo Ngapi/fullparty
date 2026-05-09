@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Activity;
 use App\Models\Group;
 use App\Models\GroupMembership;
-use App\Models\ScheduledRun;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -15,12 +15,43 @@ class GroupDashboardController extends Controller
         $group->load([
             'owner',
             'memberships.user',
-            'scheduledRuns.organizer',
+            'activities' => fn ($query) => $query
+                ->with([
+                    'organizer',
+                    'organizerCharacter',
+                    'activityType',
+                ])
+                ->withCount([
+                    'slots',
+                    'applications',
+                ])
+                ->latest('updated_at'),
         ]);
 
-        if (!$group->hasMember(auth()->id())) {
+        if (! $group->hasMember(auth()->id())) {
             abort(403);
         }
+
+        $activities = $group->activities
+            ->sortByDesc('updated_at')
+            ->values();
+        $statusCounts = collect(Activity::STATUSES)
+            ->mapWithKeys(fn (string $status) => [$status => $activities->where('status', $status)->count()]);
+        $memberRoleBreakdown = [
+            GroupMembership::ROLE_OWNER => $group->memberships
+                ->where('role', GroupMembership::ROLE_OWNER)
+                ->count(),
+            GroupMembership::ROLE_MODERATOR => $group->memberships
+                ->where('role', GroupMembership::ROLE_MODERATOR)
+                ->count(),
+            GroupMembership::ROLE_MEMBER => $group->memberships
+                ->where('role', GroupMembership::ROLE_MEMBER)
+                ->count(),
+        ];
+        $lastActivityAt = $activities->first()?->updated_at?->toIso8601String();
+        $latestMemberJoinAt = $group->memberships
+            ->sortByDesc('joined_at')
+            ->first()?->joined_at?->toIso8601String();
 
         return Inertia::render('Dashboard/Groups/Dashboard', [
             'group' => [
@@ -44,44 +75,89 @@ class GroupDashboardController extends Controller
                 'permissions' => [
                     'can_manage_group' => $group->isOwnedBy(auth()->id()),
                     'can_manage_members' => $group->hasModeratorAccess(auth()->id()),
-                    'can_manage_runs' => $group->hasModeratorAccess(auth()->id()),
+                    'can_manage_activities' => $group->hasModeratorAccess(auth()->id()),
                 ],
                 'stats' => [
                     'member_count' => $group->memberships->count(),
                     'moderator_count' => $group->memberships
                         ->where('role', GroupMembership::ROLE_MODERATOR)
                         ->count(),
-                    'run_count' => $group->scheduledRuns->count(),
-                    'completed_run_count' => $group->scheduledRuns
-                        ->where('status', ScheduledRun::STATUS_COMPLETE)
+                    'activity_count' => $activities->count(),
+                    'draft_count' => (int) $statusCounts->get(Activity::STATUS_DRAFT, 0),
+                    'planned_count' => (int) $statusCounts->get(Activity::STATUS_PLANNED, 0),
+                    'scheduled_count' => (int) $statusCounts->get(Activity::STATUS_SCHEDULED, 0),
+                    'assigned_count' => (int) $statusCounts->get(Activity::STATUS_ASSIGNED, 0),
+                    'upcoming_count' => (int) $statusCounts->get(Activity::STATUS_UPCOMING, 0),
+                    'ongoing_count' => (int) $statusCounts->get(Activity::STATUS_ONGOING, 0),
+                    'completed_count' => (int) $statusCounts->get(Activity::STATUS_COMPLETE, 0),
+                    'cancelled_count' => (int) $statusCounts->get(Activity::STATUS_CANCELLED, 0),
+                    'open_application_count' => $activities
+                        ->filter(fn (Activity $activity) => $activity->acceptsApplications())
                         ->count(),
+                    'guest_friendly_count' => $activities
+                        ->where('allow_guest_applications', true)
+                        ->count(),
+                    'public_activity_count' => $activities
+                        ->where('is_public', true)
+                        ->count(),
+                    'last_activity_at' => $lastActivityAt,
+                    'latest_member_join_at' => $latestMemberJoinAt,
+                ],
+                'member_role_breakdown' => [
+                    'owner' => $memberRoleBreakdown[GroupMembership::ROLE_OWNER],
+                    'moderator' => $memberRoleBreakdown[GroupMembership::ROLE_MODERATOR],
+                    'member' => $memberRoleBreakdown[GroupMembership::ROLE_MEMBER],
                 ],
                 'members_preview' => $group->memberships
                     ->sortBy(function (GroupMembership $membership) {
                         return array_search($membership->role, GroupMembership::ROLES, true);
                     })
-                    ->take(8)
+                    ->take(6)
                     ->values()
                     ->map(fn (GroupMembership $membership) => [
                         'id' => $membership->user->id,
                         'name' => $membership->user->name,
                         'avatar_url' => $membership->user->avatar_url,
                         'role' => $membership->role,
+                        'joined_at' => $membership->joined_at?->toIso8601String(),
                     ]),
-                'recent_runs' => $group->scheduledRuns
-                    ->sortByDesc('updated_at')
+                'activity_status_breakdown' => collect(Activity::STATUSES)
+                    ->map(fn (string $status) => [
+                        'status' => $status,
+                        'count' => (int) $statusCounts->get($status, 0),
+                    ])
+                    ->values(),
+                'recent_activities' => $activities
                     ->take(8)
-                    ->values()
-                    ->map(fn (ScheduledRun $scheduledRun) => [
-                        'id' => $scheduledRun->id,
-                        'status' => $scheduledRun->status,
-                        'organized_by' => $scheduledRun->organizer ? [
-                            'id' => $scheduledRun->organizer->id,
-                            'name' => $scheduledRun->organizer->name,
-                            'avatar_url' => $scheduledRun->organizer->avatar_url,
+                    ->map(fn (Activity $activity) => [
+                        'id' => $activity->id,
+                        'activity_type' => [
+                            'id' => $activity->activityType?->id,
+                            'slug' => $activity->activityType?->slug,
+                            'draft_name' => $activity->activityType?->draft_name,
+                        ],
+                        'title' => $activity->title,
+                        'status' => $activity->status,
+                        'starts_at' => $activity->starts_at?->toIso8601String(),
+                        'duration_hours' => $activity->duration_hours,
+                        'is_public' => $activity->is_public,
+                        'needs_application' => $activity->needs_application,
+                        'allow_guest_applications' => $activity->allow_guest_applications,
+                        'organized_by' => $activity->organizer ? [
+                            'id' => $activity->organizer->id,
+                            'name' => $activity->organizer->name,
+                            'avatar_url' => $activity->organizer->avatar_url,
                         ] : null,
-                        'created_at' => $scheduledRun->created_at,
-                        'updated_at' => $scheduledRun->updated_at,
+                        'organized_by_character' => $activity->organizerCharacter ? [
+                            'id' => $activity->organizerCharacter->id,
+                            'user_id' => $activity->organizerCharacter->user_id,
+                            'name' => $activity->organizerCharacter->name,
+                            'avatar_url' => $activity->organizerCharacter->avatar_url,
+                        ] : null,
+                        'slot_count' => (int) ($activity->slots_count ?? 0),
+                        'application_count' => (int) ($activity->applications_count ?? 0),
+                        'created_at' => $activity->created_at?->toIso8601String(),
+                        'updated_at' => $activity->updated_at?->toIso8601String(),
                     ]),
             ],
         ]);

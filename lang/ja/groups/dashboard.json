@@ -1,0 +1,86 @@
+{
+  "subtitle": "A live operator view for {datacenter} group health, runs, and member momentum.",
+  "actions": {
+    "view_runs": "View Runs",
+    "view_members": "View Members",
+    "open_settings": "Open Settings",
+    "open_discord": "Open Discord"
+  },
+  "labels": {
+    "just_now": "just now",
+    "not_available": "Not available",
+    "no_recent_activity": "No recent activity yet",
+    "no_member_joins": "No member joins recorded"
+  },
+  "hero": {
+    "public_group": "Public Group",
+    "private_group": "Private Group",
+    "visible_group": "Visible in Discovery",
+    "hidden_group": "Hidden from Discovery",
+    "no_description": "This group has not added a description yet. Use this space to clarify what you run, who it is for, and how people should approach joining.",
+    "owner": "Owner",
+    "last_activity": "Last Run Activity",
+    "latest_member": "Latest Member Join",
+    "reach": "Reach",
+    "public_runs": "{count} public runs",
+    "guest_friendly_runs": "{count} guest-friendly runs"
+  },
+  "stats": {
+    "members": "Members",
+    "members_hint": "{count} leadership seats",
+    "leadership": "Leadership",
+    "leadership_hint": "{count} owner seat",
+    "draft_and_planned": "Draft & Planned",
+    "draft_and_planned_hint": "{count} still in draft",
+    "active_runs": "Active Runs",
+    "active_runs_hint": "{count} scheduled or assigned",
+    "open_applications": "Open Applications",
+    "open_applications_hint": "{count} open to guests",
+    "completed_runs": "Completed Runs",
+    "completed_runs_hint": "{count} cancelled total"
+  },
+  "recent_runs": {
+    "title": "Recent Runs",
+    "subtitle": "The most recently touched runs, with enough context to jump straight into moderation.",
+    "accepting_applications": "Accepting Applications",
+    "public": "Public",
+    "private": "Invite Only",
+    "guest_welcome": "Guests Welcome",
+    "updated": "Updated {time}",
+    "open_board": "Open Board",
+    "empty_title": "No runs have been created yet.",
+    "empty_description": "Once this group starts scheduling runs, this surface becomes the fastest way to see what is moving, what needs attention, and what already shipped."
+  },
+  "pipeline": {
+    "title": "Run Pipeline",
+    "subtitle": "A distribution of everything the group is currently organizing or has already wrapped up.",
+    "total": "{count} total",
+    "active_management": "In Management",
+    "archived": "Archived",
+    "empty": "No run data is available yet."
+  },
+  "setup": {
+    "title": "Setup Health",
+    "subtitle": "Quick checks for the pieces that make the group feel established and easier to join.",
+    "score": "{configured}/{total} configured",
+    "coverage": "Coverage",
+    "configured": "Configured",
+    "missing": "Missing",
+    "join_mode": "Join Mode",
+    "join_mode_public": "Open Join",
+    "join_mode_private": "Invite Only",
+    "discovery": "Discovery",
+    "discovery_visible": "Discoverable",
+    "discovery_hidden": "Hidden",
+    "items": {
+      "description": "Group Description",
+      "profile_picture": "Profile Picture",
+      "discord": "Discord Invite"
+    }
+  },
+  "members": {
+    "title": "Member Snapshot",
+    "subtitle": "A quick read on who is around the table right now.",
+    "empty": "No members are available to preview yet."
+  }
+}
