@@ -75,7 +75,7 @@ export type PaginatedGroups = {
 	}
 }
 
-export type GroupMemberManagementGroup = {
+export type GroupMemberData = {
 	slug: string
 	name: string
 	current_user_role: string

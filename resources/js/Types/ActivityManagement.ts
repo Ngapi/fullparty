@@ -37,6 +37,49 @@ export type FflogsProgressResponse = {
 	total_kills: number
 } | null
 
+export type ActivityData = {
+	id: number
+	activity_type: {
+		id: number | null
+		slug: string | null
+		draft_name: LocalizedText
+	}
+	title: string | null
+	description: string | null
+	notes: string | null
+	status: string
+	starts_at: string | null
+	duration_hours: number | null
+	furthest_progress_key: string | null
+	furthest_progress_percent: number | null
+	is_public: boolean
+	needs_application: boolean
+	secret_key: string | null
+	completed_at: string | null
+	organized_by_character: {
+		id: number
+		user_id: number
+		name: string
+		avatar_url: string | null
+	} | null
+	slot_count: number
+	assigned_count: number
+	pending_application_count: number
+}
+
+export type ActivityManagementPageProps = {
+	group: {
+		id: number
+		name: string
+		slug: string
+		current_user_role: string | null
+		permissions: {
+			can_manage_activities: boolean
+		}
+	}
+	activity: ActivityData
+}
+
 export type ActivityDetails = {
 	id: number
 	activity_type: {

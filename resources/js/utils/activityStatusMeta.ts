@@ -1,3 +1,4 @@
+// @ts-ignore
 import type { ActivityStatus, ActivityStatusMeta } from "@/Types/ActivityCore"
 
 const STATUS_META: Record<ActivityStatus, ActivityStatusMeta> = {

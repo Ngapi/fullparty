@@ -4,19 +4,23 @@ namespace App\Http\Controllers;
 
 use App\Http\Controllers\Concerns\InteractsWithGroupActivityAttendees;
 use App\Models\Activity;
+use App\Models\ActivityApplication;
 use App\Models\ActivityType;
 use App\Models\ActivityTypeVersion;
 use App\Models\Character;
 use App\Models\Group;
 use App\Models\GroupMembership;
-use App\Services\Groups\ActivitySlotBench;
 use App\Services\Groups\ActivityCancellationService;
+use App\Services\Groups\ActivityCompletionService;
+use App\Services\Groups\ActivitySlotBench;
 use App\Services\Groups\GroupActivityAuditService;
 use App\Services\Notifications\AssignmentNotificationService;
 use App\Services\Notifications\GroupUpdateNotificationService;
 use Carbon\CarbonImmutable;
+use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use Inertia\Inertia;
@@ -29,6 +33,7 @@ class GroupActivityController extends Controller
     public function __construct(
         private readonly GroupActivityAuditService $activityAuditService,
         private readonly ActivityCancellationService $activityCancellationService,
+        private readonly ActivityCompletionService $activityCompletionService,
         private readonly GroupUpdateNotificationService $groupUpdateNotificationService,
     ) {}
 
@@ -37,7 +42,7 @@ class GroupActivityController extends Controller
         $this->ensureActivityBelongsToGroup($group, $activity);
         $group->loadMissing('memberships');
 
-        if (!$this->canAccessOverview($request, $group, $activity, $secretKey)) {
+        if (! $this->canAccessOverview($request, $group, $activity, $secretKey)) {
             abort(404);
         }
 
@@ -114,7 +119,7 @@ class GroupActivityController extends Controller
             'activities.progressMilestones',
         ]);
 
-        if (!$group->hasMember(auth()->id())) {
+        if (! $group->hasMember(auth()->id())) {
             abort(403);
         }
 
@@ -182,7 +187,7 @@ class GroupActivityController extends Controller
 
         $activityTypeVersion = $activityType->currentPublishedVersion;
 
-        if (!$activityType->is_active || !$activityTypeVersion) {
+        if (! $activityType->is_active || ! $activityTypeVersion) {
             abort(422, 'The selected activity type is not available.');
         }
 
@@ -210,6 +215,7 @@ class GroupActivityController extends Controller
             $this->materializeSlots($activity, $activityTypeVersion);
             $this->materializeProgressMilestones($activity, $activityTypeVersion);
             $this->activityAuditService->logActivityCreated($activity, auth()->user());
+
             return $activity;
         });
 
@@ -227,12 +233,18 @@ class GroupActivityController extends Controller
     {
         $this->authorize('manageDashboard', [$activity, $group]);
         $group->loadMissing('memberships');
+        $this->ensureActivityBelongsToGroup($group, $activity);
+        $activity->load([
+            'activityType',
+            'activityTypeVersion',
+            'organizerCharacter',
+            'progressMilestones',
+            'slots',
+        ]);
 
         return Inertia::render('Dashboard/Groups/Activities/Show', [
             'group' => $this->buildDashboardGroupPayload($group),
-            'activity' => [
-                'id' => $activity->id,
-            ],
+            'activity' => $this->serializeDashboardOverviewActivity($activity),
         ]);
     }
 
@@ -408,8 +420,7 @@ class GroupActivityController extends Controller
         Group $group,
         Activity $activity,
         AssignmentNotificationService $assignmentNotificationService,
-    ): RedirectResponse
-    {
+    ): RedirectResponse {
         $group->loadMissing('memberships');
         $this->authorizeModeratorAccess($group);
         $this->ensureActivityBelongsToGroup($group, $activity);
@@ -442,7 +453,7 @@ class GroupActivityController extends Controller
     }
 
     /**
-     * @return array<string, array<int, \Illuminate\Contracts\Validation\ValidationRule|string>>
+     * @return array<string, array<int, ValidationRule|string>>
      */
     private function rules(Group $group, bool $requireActivityType = true, bool $isUpdate = false): array
     {
@@ -499,13 +510,13 @@ class GroupActivityController extends Controller
     {
         $characterId = $validated['organized_by_character_id'] ?? null;
 
-        if (!$characterId) {
+        if (! $characterId) {
             return $validated;
         }
 
         $character = Character::query()->find($characterId);
 
-        if (!$character) {
+        if (! $character) {
             abort(422, 'The selected organizer character is invalid.');
         }
 
@@ -528,7 +539,7 @@ class GroupActivityController extends Controller
     {
         $targetProgPointKey = $validated['target_prog_point_key'] ?? null;
 
-        if (!$targetProgPointKey) {
+        if (! $targetProgPointKey) {
             return $validated;
         }
 
@@ -537,7 +548,7 @@ class GroupActivityController extends Controller
             ->filter()
             ->all();
 
-        if (!in_array($targetProgPointKey, $availableKeys, true)) {
+        if (! in_array($targetProgPointKey, $availableKeys, true)) {
             abort(422, 'The selected target prog point is invalid for this activity type.');
         }
 
@@ -552,7 +563,7 @@ class GroupActivityController extends Controller
     {
         $startsAt = $validated['starts_at'] ?? null;
 
-        if (!$startsAt) {
+        if (! $startsAt) {
             return $validated;
         }
 
@@ -629,9 +640,49 @@ class GroupActivityController extends Controller
         }
     }
 
+    /**
+     * @return array<string, mixed>
+     */
+    private function serializeDashboardOverviewActivity(Activity $activity): array
+    {
+        $mainSlots = $activity->slots->where('group_key', '!=', ActivitySlotBench::GROUP_KEY);
+
+        return [
+            'id' => $activity->id,
+            'activity_type' => [
+                'id' => $activity->activityType?->id,
+                'slug' => $activity->activityType?->slug,
+                'draft_name' => $activity->activityType?->draft_name,
+            ],
+            'title' => $activity->title,
+            'description' => $activity->description,
+            'notes' => $activity->notes,
+            'status' => $activity->status,
+            'starts_at' => $activity->starts_at?->toIso8601String(),
+            'duration_hours' => $activity->duration_hours,
+            'furthest_progress_key' => $activity->furthest_progress_key,
+            'furthest_progress_percent' => $activity->furthest_progress_percent,
+            'is_public' => $activity->is_public,
+            'needs_application' => $activity->needs_application,
+            'secret_key' => $activity->secret_key,
+            'completed_at' => $activity->completed_at?->toIso8601String(),
+            'organized_by_character' => $activity->organizerCharacter ? [
+                'id' => $activity->organizerCharacter->id,
+                'user_id' => $activity->organizerCharacter->user_id,
+                'name' => $activity->organizerCharacter->name,
+                'avatar_url' => $activity->organizerCharacter->avatar_url,
+            ] : null,
+            'slot_count' => $mainSlots->count(),
+            'assigned_count' => $mainSlots->whereNotNull('assigned_character_id')->count(),
+            'pending_application_count' => $activity->applications()
+                ->where('status', ActivityApplication::STATUS_PENDING)
+                ->count(),
+        ];
+    }
+
     private function authorizeModeratorAccess(Group $group): void
     {
-        if (!$group->hasModeratorAccess(auth()->id())) {
+        if (! $group->hasModeratorAccess(auth()->id())) {
             abort(403);
         }
     }
@@ -645,28 +696,28 @@ class GroupActivityController extends Controller
 
     private function ensureActivityCanBeCancelled(Activity $activity): void
     {
-        if (!$activity->canBeCancelled()) {
+        if (! $activity->canBeCancelled()) {
             abort(403);
         }
     }
 
     private function ensureActivityCanBeDeleted(Activity $activity): void
     {
-        if (!$activity->canBeDeleted()) {
+        if (! $activity->canBeDeleted()) {
             abort(403);
         }
     }
 
     private function ensureActivityCanBeMarkedAssigned(Activity $activity): void
     {
-        if (!$activity->canBeMarkedAssigned()) {
+        if (! $activity->canBeMarkedAssigned()) {
             abort(403);
         }
     }
 
     private function ensureActivityCanBeScheduled(Activity $activity): void
     {
-        if (!$activity->canBeScheduled()) {
+        if (! $activity->canBeScheduled()) {
             abort(403);
         }
     }
@@ -708,7 +759,7 @@ class GroupActivityController extends Controller
     }
 
     /**
-     * @return \Illuminate\Support\Collection<int, array<string, mixed>>
+     * @return Collection<int, array<string, mixed>>
      */
     private function organizerCharactersForUserIds(array $userIds)
     {
@@ -729,7 +780,7 @@ class GroupActivityController extends Controller
     }
 
     /**
-     * @return \Illuminate\Support\Collection<int, array<string, mixed>>
+     * @return Collection<int, array<string, mixed>>
      */
     private function availableActivityTypesForForm(bool $includeProgPoints = true)
     {
