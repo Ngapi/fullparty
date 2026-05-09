@@ -319,12 +319,43 @@
         "title": "Run Overview",
         "subtitle": "{group} shared this {type} run.",
         "description": "This is the attendee-facing overview for the run and its application flow.",
+        "open_application": "Apply Here",
         "go_to_management": "Go To Management",
         "summary_title": "Quick Summary",
         "summary_subtitle": "The key details before the application tools land here.",
         "applications_title": "Applications",
         "applications_ready": "Application submission will live from this page. For now, this direct link is the right access path.",
-        "applications_login": "You will need to log in before applying once the application flow is added here."
+        "applications_login": "You will need to log in before applying once the application flow is added here.",
+        "meta": {
+            "roster": "Roster",
+            "filled_slots": "{assigned} of {total} main slots filled",
+            "bench_slots": "{count} bench slots",
+            "pending_applications": "{count} pending applications",
+            "no_duration": "No duration set"
+        },
+        "details": {
+            "description": "Description",
+            "target_prog_point": "Target Prog Point",
+            "guest_applications": "Guest Applications",
+            "pending_applications": "Applications",
+            "no_description": "No description provided.",
+            "no_target_prog_point": "No target prog point selected"
+        },
+        "board": {
+            "title": "Roster Board",
+            "subtitle": "Parties are laid out side by side so members can scan the current lineup quickly.",
+            "party_label": "Party",
+            "party_count": "{count} parties",
+            "filled_count": "{count} filled",
+            "open_count": "{count} open",
+            "open_slot": "Open Slot",
+            "open_slot_hint": "Waiting for an assignment",
+            "assigned_member": "Assigned member",
+            "no_slot": "No slot in this row",
+            "bench_title": "Bench",
+            "bench_subtitle": "Overflow, standby, and reserve positions stay visible here.",
+            "bench_count": "{count} bench slots"
+        }
     },
     "application": {
         "title": "Application",
@@ -385,6 +416,8 @@
             "update": "Update Application",
             "login_required_title": "Login required",
             "login_required_description": "You need to log in before you can submit an application.",
+            "closed_title": "Applications closed",
+            "closed_description": "This run is no longer accepting applications because the roster has already been published or the run has ended.",
             "no_characters_title": "No characters available",
             "no_characters_description": "Add or verify a character on your account before applying.",
             "locked_title": "Candidature verrouillee",

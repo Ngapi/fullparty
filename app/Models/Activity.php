@@ -13,12 +13,19 @@ class Activity extends Model
     use HasFactory;
 
     public const STATUS_DRAFT = 'draft';
+
     public const STATUS_PLANNED = 'planned';
+
     public const STATUS_SCHEDULED = 'scheduled';
+
     public const STATUS_ASSIGNED = 'assigned';
+
     public const STATUS_UPCOMING = 'upcoming';
+
     public const STATUS_ONGOING = 'ongoing';
+
     public const STATUS_COMPLETE = 'complete';
+
     public const STATUS_CANCELLED = 'cancelled';
 
     public const STATUSES = [
@@ -35,6 +42,11 @@ class Activity extends Model
     public const ARCHIVED_STATUSES = [
         self::STATUS_COMPLETE,
         self::STATUS_CANCELLED,
+    ];
+
+    public const APPLICATION_OPEN_STATUSES = [
+        self::STATUS_PLANNED,
+        self::STATUS_SCHEDULED,
     ];
 
     public const ASSIGNABLE_STATUSES = [
@@ -153,9 +165,19 @@ class Activity extends Model
         return in_array($status, self::ARCHIVED_STATUSES, true);
     }
 
+    public function acceptsApplications(): bool
+    {
+        return self::isAcceptingApplicationsStatus($this->status);
+    }
+
+    public static function isAcceptingApplicationsStatus(?string $status): bool
+    {
+        return in_array($status, self::APPLICATION_OPEN_STATUSES, true);
+    }
+
     public function canBeCancelled(): bool
     {
-        return !$this->isArchived();
+        return ! $this->isArchived();
     }
 
     public function canBeDeleted(): bool

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Concerns;
 
 use App\Models\Activity;
 use App\Models\Group;
+use App\Services\Groups\ActivitySlotSerializer;
 use Illuminate\Http\Request;
 
 trait InteractsWithGroupActivityAttendees
@@ -59,8 +60,11 @@ trait InteractsWithGroupActivityAttendees
     /**
      * @return array<string, mixed>
      */
-    private function serializeAttendeeActivity(Activity $activity): array
-    {
+    private function serializeAttendeeActivity(
+        Activity $activity,
+        ?ActivitySlotSerializer $slotSerializer = null,
+        array $rosterSummaryPresets = [],
+    ): array {
         return [
             'id' => $activity->id,
             'activity_type' => [
@@ -76,6 +80,8 @@ trait InteractsWithGroupActivityAttendees
             'starts_at' => $activity->starts_at?->toIso8601String(),
             'duration_hours' => $activity->duration_hours,
             'target_prog_point_key' => $activity->target_prog_point_key,
+            'target_prog_point_label' => collect($activity->activityTypeVersion?->prog_points ?? [])
+                ->firstWhere('key', $activity->target_prog_point_key)['label'] ?? null,
             'needs_application' => $activity->needs_application,
             'allow_guest_applications' => $activity->allow_guest_applications,
             'slot_count' => (int) ($activity->slots_count ?? 0),
@@ -92,6 +98,10 @@ trait InteractsWithGroupActivityAttendees
                 'name' => $activity->organizerCharacter->name,
                 'avatar_url' => $activity->organizerCharacter->avatar_url,
             ] : null,
+            'roster_summary_presets' => $rosterSummaryPresets,
+            'slots' => $slotSerializer && $activity->relationLoaded('slots')
+                ? $activity->slots->map(fn ($slot) => $slotSerializer->serialize($slot))->values()->all()
+                : [],
         ];
     }
 

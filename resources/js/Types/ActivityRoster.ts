@@ -22,6 +22,19 @@ export type ActivitySlotFieldValue = {
 	} | null
 }
 
+export type ActivityApplicationFieldGroup = {
+	question_key: string
+	question_label: LocalizedText
+	source: string | null
+	items: Array<{
+		label: string
+		role?: string | null
+		icon_url?: string | null
+		flat_icon_url?: string | null
+		transparent_icon_url?: string | null
+	}>
+}
+
 export type ActivitySlot = {
 	id: number
 	group_key: string
@@ -42,11 +55,13 @@ export type ActivitySlot = {
 	state_token: string
 	assigned_character: {
 		id: number
+		user_id: number | null
 		name: string
 		avatar_url: string | null
 		world: string | null
 		datacenter: string | null
 	} | null
+	application_field_groups: ActivityApplicationFieldGroup[]
 	field_values: ActivitySlotFieldValue[]
 }
 
@@ -81,6 +96,23 @@ export type ActivityRosterSummaryPreset = {
 	label: LocalizedText
 	description: LocalizedText
 	requirements: ActivityRosterSummaryRequirement[]
+}
+
+export type ActivityRosterSummaryRequirementRow = {
+	key: string
+	scopeKey: string
+	itemLabel: string
+	itemIconUrl: string | null
+	currentCount: number
+	targetCount: number
+	comparisonLabel: string
+	comparisonShortLabel: string
+	scopeLabel: string
+	state: {
+		color: "success" | "error" | "warning"
+		toneClass: string
+		badgeVariant: "soft"
+	}
 }
 
 export type ActivityMissingAssignment = {

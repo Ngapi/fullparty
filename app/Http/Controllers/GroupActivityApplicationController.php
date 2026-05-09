@@ -77,7 +77,7 @@ class GroupActivityApplicationController extends Controller
 
         $application = $this->findGuestApplicationByAccessToken($activity, $accessToken);
 
-        if (!$this->applicationIsEditable($application)) {
+        if (! $this->applicationIsEditable($activity, $application)) {
             return redirect()->route('groups.activities.application.status', [
                 ...$this->activityAttendeeRouteParameters($group, $activity, $secretKey),
                 'accessToken' => $accessToken,
@@ -101,7 +101,7 @@ class GroupActivityApplicationController extends Controller
 
         $confirmation = $request->session()->get($this->confirmationSessionKey($activity->id));
 
-        if (!is_array($confirmation) || blank($confirmation['application_id'] ?? null)) {
+        if (! is_array($confirmation) || blank($confirmation['application_id'] ?? null)) {
             return redirect()->route('groups.activities.application', $this->activityAttendeeRouteParameters($group, $activity, $secretKey));
         }
 
@@ -116,7 +116,7 @@ class GroupActivityApplicationController extends Controller
             ->with('answers')
             ->find($confirmation['application_id']);
 
-        if (!$application instanceof ActivityApplication) {
+        if (! $application instanceof ActivityApplication) {
             return redirect()->route('groups.activities.application', $this->activityAttendeeRouteParameters($group, $activity, $secretKey));
         }
 
@@ -136,7 +136,7 @@ class GroupActivityApplicationController extends Controller
                 'mode' => ($confirmation['mode'] ?? 'submitted') === 'updated' ? 'updated' : 'submitted',
                 'can_edit' => $application->user_id !== null
                     && $application->user_id === $request->user()?->id
-                    && $this->applicationIsEditable($application),
+                    && $this->applicationIsEditable($activity, $application),
             ],
         ]);
     }
@@ -169,7 +169,7 @@ class GroupActivityApplicationController extends Controller
             'confirmation' => [
                 'view' => 'status',
                 'mode' => 'submitted',
-                'can_edit' => $this->applicationIsEditable($application),
+                'can_edit' => $this->applicationIsEditable($activity, $application),
             ],
         ]);
     }
@@ -179,7 +179,7 @@ class GroupActivityApplicationController extends Controller
         $group->loadMissing('memberships');
         $this->ensureApplicationPageAccessible($request, $group, $activity, $secretKey);
 
-        if (!$activity->allow_guest_applications) {
+        if (! $activity->allow_guest_applications) {
             abort(404);
         }
 
@@ -205,7 +205,7 @@ class GroupActivityApplicationController extends Controller
 
         $results = array_values(array_filter(
             $results,
-            fn ($result): bool => !in_array($result->lodestoneId, $verifiedLodestoneIds, true),
+            fn ($result): bool => ! in_array($result->lodestoneId, $verifiedLodestoneIds, true),
         ));
 
         return response()->json([
@@ -223,6 +223,7 @@ class GroupActivityApplicationController extends Controller
 
         $user = $request->user();
         $activity->loadMissing('activityTypeVersion');
+        $this->ensureActivityAcceptsApplications($activity);
 
         if ($user && $activity->applications()
             ->where('user_id', $user->id)
@@ -231,7 +232,7 @@ class GroupActivityApplicationController extends Controller
             abort(422, 'You have already submitted an application for this activity.');
         }
 
-        if (!$user && !$activity->allow_guest_applications) {
+        if (! $user && ! $activity->allow_guest_applications) {
             abort(403);
         }
 
@@ -275,7 +276,7 @@ class GroupActivityApplicationController extends Controller
             $user,
         );
 
-        if (!$user) {
+        if (! $user) {
             return redirect()->route('groups.activities.application.status', [
                 ...$this->activityAttendeeRouteParameters($group, $activity, $secretKey),
                 'accessToken' => $application->guest_access_token,
@@ -298,11 +299,12 @@ class GroupActivityApplicationController extends Controller
 
         $user = $request->user();
 
-        if (!$user) {
+        if (! $user) {
             abort(403);
         }
 
         $activity->loadMissing('activityTypeVersion');
+        $this->ensureActivityAcceptsApplications($activity);
 
         /** @var ActivityApplication|null $application */
         $application = $activity->applications()
@@ -311,11 +313,11 @@ class GroupActivityApplicationController extends Controller
             ->where('status', '!=', ActivityApplication::STATUS_WITHDRAWN)
             ->first();
 
-        if (!$application) {
+        if (! $application) {
             abort(404);
         }
 
-        if (!$this->applicationIsEditable($application)) {
+        if (! $this->applicationIsEditable($activity, $application)) {
             abort(403);
         }
 
@@ -372,9 +374,10 @@ class GroupActivityApplicationController extends Controller
         $this->ensureApplicationPageAccessible($request, $group, $activity, $secretKey, allowArchivedGuestAccess: true);
 
         $activity->loadMissing('activityTypeVersion');
+        $this->ensureActivityAcceptsApplications($activity);
         $application = $this->findGuestApplicationByAccessToken($activity, $accessToken);
 
-        if (!$this->applicationIsEditable($application)) {
+        if (! $this->applicationIsEditable($activity, $application)) {
             abort(403);
         }
 
@@ -428,22 +431,21 @@ class GroupActivityApplicationController extends Controller
         Activity $activity,
         ?string $secretKey,
         bool $allowArchivedGuestAccess = false,
-    ): void
-    {
+    ): void {
         $this->ensureActivityBelongsToGroup($group, $activity);
 
-        if (!$this->canAccessOverview($request, $group, $activity, $secretKey)) {
+        if (! $this->canAccessOverview($request, $group, $activity, $secretKey)) {
             abort(404);
         }
 
         // TODO: Add the non-application self-assignment/direct-join flow for activities that do not use applications.
-        if (!$activity->needs_application) {
+        if (! $activity->needs_application) {
             abort(404);
         }
 
         if (
             $activity->isArchived()
-            && !($allowArchivedGuestAccess && $activity->status === Activity::STATUS_CANCELLED)
+            && ! ($allowArchivedGuestAccess && $activity->status === Activity::STATUS_CANCELLED)
         ) {
             abort(404);
         }
@@ -457,6 +459,8 @@ class GroupActivityApplicationController extends Controller
         ?string $secretKey = null,
         ?string $guestAccessToken = null,
     ): Response {
+        $acceptsApplications = $activity->acceptsApplications();
+
         return Inertia::render('Groups/Activities/Application', [
             'group' => $this->serializePublicGroup($group),
             'activity' => $this->serializeAttendeeActivity($activity),
@@ -471,9 +475,9 @@ class GroupActivityApplicationController extends Controller
             'secretKey' => $secretKey,
             'guestAccessToken' => $guestAccessToken,
             'permissions' => [
-                'can_apply' => $guestAccessToken === null && $request->user() !== null,
-                'can_apply_as_guest' => ($request->user() === null && $activity->allow_guest_applications) || $guestAccessToken !== null,
-                'can_edit_application' => $application ? $this->applicationIsEditable($application) : true,
+                'can_apply' => $acceptsApplications && $guestAccessToken === null && $request->user() !== null,
+                'can_apply_as_guest' => $acceptsApplications && (($request->user() === null && $activity->allow_guest_applications) || $guestAccessToken !== null),
+                'can_edit_application' => $application ? $this->applicationIsEditable($activity, $application) : $acceptsApplications,
                 'can_manage' => $group->hasModeratorAccess($request->user()?->id),
                 'has_existing_application' => $application !== null,
             ],
@@ -552,7 +556,7 @@ class GroupActivityApplicationController extends Controller
      */
     private function serializeExistingApplication(?ActivityApplication $application): ?array
     {
-        if (!$application) {
+        if (! $application) {
             return null;
         }
 
@@ -618,7 +622,7 @@ class GroupActivityApplicationController extends Controller
         if ($characterId) {
             $selectedCharacter = Character::query()->find($characterId);
 
-            if (!$selectedCharacter || $selectedCharacter->user_id !== $userId) {
+            if (! $selectedCharacter || $selectedCharacter->user_id !== $userId) {
                 throw ValidationException::withMessages([
                     'selected_character_id' => 'The selected character is invalid for this application.',
                 ]);
@@ -629,7 +633,7 @@ class GroupActivityApplicationController extends Controller
             ? $this->characterApplicantSnapshot($selectedCharacter)
             : $this->guestApplicantSnapshot($validated['guest_applicant'] ?? []);
 
-        if (!$userId) {
+        if (! $userId) {
             $this->ensureGuestApplicantCanBeUsed($validated['applicant']);
         }
 
@@ -650,7 +654,7 @@ class GroupActivityApplicationController extends Controller
             $value = $answer['value'] ?? null;
 
             $isEmpty = match (true) {
-                is_array($value) => count(array_filter($value, fn ($entry) => !blank($entry))) === 0,
+                is_array($value) => count(array_filter($value, fn ($entry) => ! blank($entry))) === 0,
                 is_bool($value) => false,
                 default => blank($value),
             };
@@ -705,7 +709,7 @@ class GroupActivityApplicationController extends Controller
             ->lockForUpdate()
             ->first();
 
-        if (!$character) {
+        if (! $character) {
             return Character::query()->create([
                 'user_id' => null,
                 'is_primary' => false,
@@ -755,9 +759,18 @@ class GroupActivityApplicationController extends Controller
         return sprintf('activities.%d.application_confirmation', $activityId);
     }
 
-    private function applicationIsEditable(ActivityApplication $application): bool
+    private function applicationIsEditable(Activity $activity, ActivityApplication $application): bool
     {
-        return $application->status === ActivityApplication::STATUS_PENDING;
+        return $activity->acceptsApplications()
+            && $application->status !== ActivityApplication::STATUS_WITHDRAWN
+            && $application->status !== ActivityApplication::STATUS_CANCELLED;
+    }
+
+    private function ensureActivityAcceptsApplications(Activity $activity): void
+    {
+        if (! $activity->acceptsApplications()) {
+            abort(403);
+        }
     }
 
     /**

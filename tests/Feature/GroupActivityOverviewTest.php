@@ -1,0 +1,257 @@
+<?php
+
+use App\Models\Activity;
+use App\Models\ActivityApplication;
+use App\Models\ActivitySlotAssignment;
+use App\Models\ActivityType;
+use App\Models\ActivityTypeVersion;
+use App\Models\Character;
+use App\Models\CharacterClass;
+use App\Models\Group;
+use App\Models\PhantomJob;
+use App\Models\User;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Inertia\Testing\AssertableInertia as Assert;
+
+uses(RefreshDatabase::class);
+
+it('renders serialized roster slots on the attendee overview page', function () {
+    $owner = User::factory()->create();
+    $group = Group::factory()->public()->create([
+        'owner_id' => $owner->id,
+    ]);
+
+    Character::factory()->primary()->create([
+        'user_id' => $owner->id,
+    ]);
+
+    $type = ActivityType::factory()->create([
+        'created_by_user_id' => $owner->id,
+    ]);
+
+    $whiteMage = CharacterClass::create([
+        'name' => 'White Mage',
+        'shorthand' => 'WHM',
+        'role' => 'healer',
+        'icon_url' => 'https://example.com/icons/whm.png',
+    ]);
+    $samurai = CharacterClass::create([
+        'name' => 'Samurai',
+        'shorthand' => 'SAM',
+        'role' => 'melee dps',
+        'icon_url' => 'https://example.com/icons/sam.png',
+    ]);
+    $warrior = CharacterClass::create([
+        'name' => 'Warrior',
+        'shorthand' => 'WAR',
+        'role' => 'tank',
+        'icon_url' => 'https://example.com/icons/war.png',
+    ]);
+    $paladin = CharacterClass::create([
+        'name' => 'Paladin',
+        'shorthand' => 'PLD',
+        'role' => 'tank',
+        'icon_url' => 'https://example.com/icons/pld.png',
+    ]);
+    $phantomSamurai = PhantomJob::create([
+        'name' => 'Phantom Samurai',
+        'max_level' => 20,
+        'transparent_icon_url' => 'https://example.com/icons/phantom-sam.png',
+    ]);
+    $phantomBard = PhantomJob::create([
+        'name' => 'Phantom Bard',
+        'max_level' => 20,
+        'transparent_icon_url' => 'https://example.com/icons/phantom-brd.png',
+    ]);
+
+    $version = ActivityTypeVersion::factory()->create([
+        'activity_type_id' => $type->id,
+        'published_by_user_id' => $owner->id,
+        'layout_schema' => [
+            'groups' => [
+                [
+                    'key' => 'party-a',
+                    'label' => ['en' => 'Party A'],
+                    'size' => 2,
+                ],
+                [
+                    'key' => 'party-b',
+                    'label' => ['en' => 'Party B'],
+                    'size' => 2,
+                ],
+            ],
+        ],
+        'slot_schema' => [],
+        'application_schema' => [
+            [
+                'key' => 'character_classes',
+                'label' => ['en' => 'Jobs'],
+                'type' => 'multi_select',
+                'required' => true,
+                'source' => 'character_classes',
+            ],
+            [
+                'key' => 'phantom_jobs',
+                'label' => ['en' => 'Phantom Jobs'],
+                'type' => 'multi_select',
+                'required' => true,
+                'source' => 'phantom_jobs',
+            ],
+            [
+                'key' => 'experience',
+                'label' => ['en' => 'Experience'],
+                'type' => 'textarea',
+                'required' => true,
+            ],
+        ],
+        'roster_summary_presets' => [
+            [
+                'key' => 'recommended',
+                'label' => ['en' => 'Recommended Composition'],
+                'description' => ['en' => 'Balanced default composition.'],
+                'requirements' => [
+                    [
+                        'source' => 'static_options',
+                        'source_id' => 1,
+                        'comparison' => 'at_least',
+                        'target_count' => 1,
+                        'scope_type' => 'all_slots',
+                        'scope_group_keys' => [],
+                    ],
+                ],
+            ],
+        ],
+        'progress_schema' => ['milestones' => []],
+        'bench_size' => 1,
+        'prog_points' => [
+            [
+                'key' => 'enrage',
+                'label' => ['en' => 'Enrage'],
+            ],
+        ],
+    ]);
+
+    $type->update([
+        'current_published_version_id' => $version->id,
+    ]);
+
+    $activity = Activity::factory()->create([
+        'group_id' => $group->id,
+        'activity_type_id' => $type->id,
+        'activity_type_version_id' => $version->id,
+        'organized_by_user_id' => $owner->id,
+        'status' => Activity::STATUS_UPCOMING,
+        'needs_application' => true,
+        'allow_guest_applications' => true,
+        'target_prog_point_key' => 'enrage',
+        'is_public' => true,
+    ]);
+
+    $assignedCharacter = Character::factory()->create();
+    $benchApplicantUser = User::factory()->create();
+    $benchApplicantCharacter = Character::factory()->primary()->create([
+        'user_id' => $benchApplicantUser->id,
+    ]);
+    $benchApplicantCharacter->classes()->attach([
+        $whiteMage->id => ['level' => 100, 'is_preferred' => true],
+        $samurai->id => ['level' => 100, 'is_preferred' => false],
+        $warrior->id => ['level' => 100, 'is_preferred' => false],
+        $paladin->id => ['level' => 100, 'is_preferred' => false],
+    ]);
+    $benchApplicantCharacter->phantomJobs()->attach([
+        $phantomSamurai->id => ['current_level' => 20, 'is_preferred' => true],
+        $phantomBard->id => ['current_level' => 20, 'is_preferred' => false],
+    ]);
+
+    $slot = $activity->slots()->orderBy('sort_order')->firstOrFail();
+    $slot->update([
+        'assigned_character_id' => $assignedCharacter->id,
+        'assigned_by_user_id' => $owner->id,
+    ]);
+
+    ActivityApplication::factory()->create([
+        'activity_id' => $activity->id,
+    ]);
+
+    $benchApplication = ActivityApplication::factory()->create([
+        'activity_id' => $activity->id,
+        'user_id' => $benchApplicantUser->id,
+        'selected_character_id' => $benchApplicantCharacter->id,
+        'status' => ActivityApplication::STATUS_ON_BENCH,
+        'reviewed_by_user_id' => $owner->id,
+        'reviewed_at' => now(),
+    ]);
+    $benchApplication->answers()->delete();
+    $benchApplication->answers()->create([
+        'question_key' => 'character_classes',
+        'question_label' => ['en' => 'Jobs'],
+        'question_type' => 'multi_select',
+        'source' => 'character_classes',
+        'value' => [
+            (string) $whiteMage->id,
+            (string) $samurai->id,
+            (string) $warrior->id,
+            (string) $paladin->id,
+        ],
+    ]);
+    $benchApplication->answers()->create([
+        'question_key' => 'phantom_jobs',
+        'question_label' => ['en' => 'Phantom Jobs'],
+        'question_type' => 'multi_select',
+        'source' => 'phantom_jobs',
+        'value' => [
+            (string) $phantomSamurai->id,
+            (string) $phantomBard->id,
+        ],
+    ]);
+
+    $benchSlot = $activity->slots()->create([
+        'group_key' => 'bench',
+        'group_label' => ['en' => 'Bench'],
+        'slot_key' => 'bench-slot-1',
+        'slot_label' => ['en' => 'Bench 1'],
+        'position_in_group' => 1,
+        'sort_order' => 5,
+        'assigned_character_id' => $benchApplicantCharacter->id,
+        'assigned_by_user_id' => $owner->id,
+    ]);
+    ActivitySlotAssignment::create([
+        'activity_id' => $activity->id,
+        'group_id' => $group->id,
+        'activity_slot_id' => $benchSlot->id,
+        'character_id' => $benchApplicantCharacter->id,
+        'application_id' => $benchApplication->id,
+        'assignment_source' => ActivitySlotAssignment::SOURCE_APPLICATION,
+        'field_values_snapshot' => [],
+        'attendance_status' => ActivitySlotAssignment::STATUS_ASSIGNED,
+        'assigned_at' => now(),
+        'assigned_by_user_id' => $owner->id,
+    ]);
+
+    $response = $this->get(route('groups.activities.overview', [
+        'group' => $group->slug,
+        'activity' => $activity->id,
+    ]));
+
+    $response
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->component('Groups/Activities/Overview')
+            ->where('activity.slot_count', 5)
+            ->where('activity.assigned_slot_count', 2)
+            ->where('activity.pending_application_count', 1)
+            ->where('activity.target_prog_point_label.en', 'Enrage')
+            ->where('activity.roster_summary_presets.0.key', 'recommended')
+            ->has('activity.slots', 5)
+            ->where('activity.slots.0.group_key', 'party-a')
+            ->where('activity.slots.0.assigned_character.name', $assignedCharacter->name)
+            ->where('activity.slots.0.assigned_character.user_id', $assignedCharacter->user_id)
+            ->where('activity.slots.0.attendance_status', 'assigned')
+            ->where('activity.slots.4.group_key', 'bench')
+            ->where('activity.slots.4.assigned_character.name', $benchApplicantCharacter->name)
+            ->where('activity.slots.4.application_field_groups.0.items.0.label', 'White Mage')
+            ->where('activity.slots.4.application_field_groups.0.items.3.label', 'Paladin')
+            ->where('activity.slots.4.application_field_groups.1.items.0.label', 'Phantom Samurai')
+            ->where('activity.slots.4.application_field_groups.1.items.1.label', 'Phantom Bard')
+        );
+});

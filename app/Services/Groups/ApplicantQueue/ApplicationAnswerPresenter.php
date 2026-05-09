@@ -10,6 +10,14 @@ use Illuminate\Support\Collection;
 class ApplicationAnswerPresenter
 {
     /**
+     * @return array<int, array<string, mixed>>
+     */
+    public function presentDisplayItems(?string $source, mixed $value): array
+    {
+        return $this->resolveDisplayItems($source, $value)->values()->all();
+    }
+
+    /**
      * @return array<string, mixed>|null
      */
     public function present($answer, ?ActivityTypeVersion $activityTypeVersion): ?array
@@ -17,7 +25,7 @@ class ApplicationAnswerPresenter
         $questionDefinition = collect($activityTypeVersion?->application_schema ?? [])
             ->first(fn ($question) => ($question['key'] ?? null) === $answer->question_key);
 
-        if (!is_array($questionDefinition)) {
+        if (! is_array($questionDefinition)) {
             return null;
         }
 
@@ -33,7 +41,7 @@ class ApplicationAnswerPresenter
             'raw_value' => $answer->value,
             'display_values' => $displayValues->values()->all(),
             'role_values' => $this->resolveRoleValues($answer->source, $answer->value)->values()->all(),
-            'display_items' => $this->resolveDisplayItems($answer->source, $answer->value)->values()->all(),
+            'display_items' => $this->presentDisplayItems($answer->source, $answer->value),
         ];
     }
 
@@ -43,7 +51,7 @@ class ApplicationAnswerPresenter
      */
     private function resolveDisplayValues(?string $source, mixed $value, ?array $questionDefinition): Collection
     {
-        $values = is_array($value) ? collect($value)->values() : collect([$value])->filter(fn ($entry) => !blank($entry));
+        $values = is_array($value) ? collect($value)->values() : collect([$value])->filter(fn ($entry) => ! blank($entry));
 
         if ($values->isEmpty()) {
             return collect();
@@ -78,7 +86,7 @@ class ApplicationAnswerPresenter
                 ->map(function ($entry) use ($options) {
                     $option = $options->get((string) $entry);
 
-                    if (!is_array($option)) {
+                    if (! is_array($option)) {
                         return (string) $entry;
                     }
 
@@ -107,7 +115,7 @@ class ApplicationAnswerPresenter
             return collect();
         }
 
-        $values = is_array($value) ? collect($value)->values() : collect([$value])->filter(fn ($entry) => !blank($entry));
+        $values = is_array($value) ? collect($value)->values() : collect([$value])->filter(fn ($entry) => ! blank($entry));
 
         if ($values->isEmpty()) {
             return collect();
@@ -136,7 +144,7 @@ class ApplicationAnswerPresenter
      */
     private function resolveDisplayItems(?string $source, mixed $value): Collection
     {
-        $values = is_array($value) ? collect($value)->values() : collect([$value])->filter(fn ($entry) => !blank($entry));
+        $values = is_array($value) ? collect($value)->values() : collect([$value])->filter(fn ($entry) => ! blank($entry));
 
         if ($values->isEmpty()) {
             return collect();
@@ -153,7 +161,7 @@ class ApplicationAnswerPresenter
                     /** @var CharacterClass|null $class */
                     $class = $classes->get((int) $entry);
 
-                    if (!$class) {
+                    if (! $class) {
                         return null;
                     }
 
@@ -179,7 +187,7 @@ class ApplicationAnswerPresenter
                     /** @var PhantomJob|null $phantomJob */
                     $phantomJob = $phantomJobs->get((int) $entry);
 
-                    if (!$phantomJob) {
+                    if (! $phantomJob) {
                         return null;
                     }
 

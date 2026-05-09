@@ -20,6 +20,7 @@ const props = defineProps<{
 	}>
 	questions: ApplicationQuestion[]
 	application: ActivityApplicationRecord | null
+	acceptsApplications: boolean
 	canApply: boolean
 	canApplyAsGuest: boolean
 	canEditApplication: boolean
@@ -52,10 +53,11 @@ const form = useForm({
 });
 
 const selectedCharacter = computed(() => props.characters.find((character) => character.id === form.selected_character_id) || null);
-const guestModeEnabled = computed(() => !props.canApply && props.canApplyAsGuest);
-const applicationLocked = computed(() => props.application !== null && !props.canEditApplication);
-const showLoginRequiredAlert = computed(() => !props.canApply && !props.canApplyAsGuest);
-const showNoCharactersAlert = computed(() => props.canApply && props.characters.length === 0);
+const applicationsClosed = computed(() => !props.acceptsApplications);
+const guestModeEnabled = computed(() => props.acceptsApplications && !props.canApply && props.canApplyAsGuest);
+const applicationLocked = computed(() => props.acceptsApplications && props.application !== null && !props.canEditApplication);
+const showLoginRequiredAlert = computed(() => props.acceptsApplications && !props.canApply && !props.canApplyAsGuest);
+const showNoCharactersAlert = computed(() => props.acceptsApplications && props.canApply && props.characters.length === 0);
 const guestSearchName = ref(props.application?.applicant_character?.name ?? '');
 const guestSearchWorld = ref(props.application?.applicant_character?.world ?? '');
 const guestSearchResults = ref<GuestCharacterSearchResult[]>([]);
@@ -74,6 +76,10 @@ const guestSearchAttempted = ref(false);
 const guestSearchLoading = ref(false);
 const canSubmit = computed(() => {
 	if (applicationLocked.value) {
+		return false;
+	}
+
+	if (applicationsClosed.value) {
 		return false;
 	}
 
@@ -206,6 +212,15 @@ const submit = () => {
 		</template>
 
 		<form class="flex flex-col gap-8" @submit.prevent="submit">
+			<UAlert
+				v-if="applicationsClosed"
+				color="neutral"
+				variant="soft"
+				icon="i-lucide-clock-alert"
+				:title="t('groups.activities.application.form.closed_title')"
+				:description="t('groups.activities.application.form.closed_description')"
+			/>
+
 			<UAlert
 				v-if="showLoginRequiredAlert"
 				color="warning"

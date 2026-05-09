@@ -4,6 +4,8 @@ namespace App\Services\Groups;
 
 use App\Http\Controllers\Concerns\InteractsWithActivitySlotFieldDisplay;
 use App\Models\ActivitySlot;
+use App\Models\ActivitySlotAssignment;
+use App\Services\Groups\ApplicantQueue\ApplicationAnswerPresenter;
 
 class ActivitySlotSerializer
 {
@@ -12,6 +14,7 @@ class ActivitySlotSerializer
     public function __construct(
         private readonly ActivitySlotBench $slotBench,
         private readonly ActivitySlotStateTokenService $slotStateTokenService,
+        private readonly ApplicationAnswerPresenter $applicationAnswerPresenter,
     ) {}
 
     /**
@@ -41,11 +44,13 @@ class ActivitySlotSerializer
             'state_token' => $this->slotStateTokenService->generate($slot),
             'assigned_character' => $slot->assignedCharacter ? [
                 'id' => $slot->assignedCharacter->id,
+                'user_id' => $slot->assignedCharacter->user_id,
                 'name' => $slot->assignedCharacter->name,
                 'avatar_url' => $slot->assignedCharacter->avatar_url,
                 'world' => $slot->assignedCharacter->world,
                 'datacenter' => $slot->assignedCharacter->datacenter,
             ] : null,
+            'application_field_groups' => $this->serializeApplicationFieldGroups($slot, $attendanceAssignment),
             'field_values' => $slot->fieldValues->map(fn ($fieldValue) => [
                 'id' => $fieldValue->id,
                 'field_key' => $fieldValue->field_key,
@@ -57,5 +62,40 @@ class ActivitySlotSerializer
                 'display_meta' => $this->resolveSlotFieldDisplayMeta($fieldValue),
             ])->values(),
         ];
+    }
+
+    /**
+     * @return array<int, array<string, mixed>>
+     */
+    private function serializeApplicationFieldGroups(ActivitySlot $slot, ?ActivitySlotAssignment $attendanceAssignment): array
+    {
+        if (! $this->slotBench->isBench($slot) || ! $attendanceAssignment?->relationLoaded('application')) {
+            return [];
+        }
+
+        $application = $attendanceAssignment->application;
+
+        if (! $application || ! $application->relationLoaded('answers')) {
+            return [];
+        }
+
+        return $application->answers
+            ->map(function ($answer) {
+                $displayItems = $this->applicationAnswerPresenter->presentDisplayItems($answer->source, $answer->value);
+
+                if ($displayItems === []) {
+                    return null;
+                }
+
+                return [
+                    'question_key' => (string) $answer->question_key,
+                    'question_label' => is_array($answer->question_label) ? $answer->question_label : ['en' => (string) $answer->question_key],
+                    'source' => $answer->source,
+                    'items' => $displayItems,
+                ];
+            })
+            ->filter()
+            ->values()
+            ->all();
     }
 }

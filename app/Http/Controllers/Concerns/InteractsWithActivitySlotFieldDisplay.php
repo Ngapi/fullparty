@@ -8,6 +8,113 @@ use App\Models\PhantomJob;
 trait InteractsWithActivitySlotFieldDisplay
 {
     /**
+     * @return array<int, mixed>
+     */
+    private function normalizeSelectableValues(mixed $value): array
+    {
+        if (is_array($value)) {
+            return array_values(array_filter($value, function ($entry) {
+                if (is_array($entry)) {
+                    return filled($entry['id'] ?? null) || filled($entry['key'] ?? null);
+                }
+
+                return !blank($entry);
+            }));
+        }
+
+        return blank($value) ? [] : [$value];
+    }
+
+    /**
+     * @return array<int, array<string, mixed>>
+     */
+    private function resolveSelectionDisplayItems(?string $source, mixed $value): array
+    {
+        $values = $this->normalizeSelectableValues($value);
+
+        if ($values === []) {
+            return [];
+        }
+
+        if ($source === 'character_classes') {
+            $classIds = collect($values)
+                ->map(fn ($entry) => (int) (is_array($entry) ? ($entry['id'] ?? 0) : $entry))
+                ->filter(fn (int $id) => $id > 0)
+                ->values();
+
+            if ($classIds->isEmpty()) {
+                return [];
+            }
+
+            $classes = CharacterClass::query()
+                ->select(['id', 'name', 'shorthand', 'icon_url', 'flaticon_url', 'role'])
+                ->whereIn('id', $classIds->all())
+                ->get()
+                ->keyBy('id');
+
+            return $classIds
+                ->map(function (int $classId) use ($classes) {
+                    /** @var CharacterClass|null $class */
+                    $class = $classes->get($classId);
+
+                    if (!$class) {
+                        return null;
+                    }
+
+                    return [
+                        'label' => $class->name,
+                        'role' => $class->role,
+                        'icon_url' => $class->icon_url,
+                        'flaticon_url' => $class->flaticon_url,
+                    ];
+                })
+                ->filter()
+                ->values()
+                ->all();
+        }
+
+        if ($source === 'phantom_jobs') {
+            $phantomJobIds = collect($values)
+                ->map(fn ($entry) => (int) (is_array($entry) ? ($entry['id'] ?? 0) : $entry))
+                ->filter(fn (int $id) => $id > 0)
+                ->values();
+
+            if ($phantomJobIds->isEmpty()) {
+                return [];
+            }
+
+            $phantomJobs = PhantomJob::query()
+                ->select(['id', 'name', 'icon_url', 'black_icon_url', 'transparent_icon_url', 'sprite_url'])
+                ->whereIn('id', $phantomJobIds->all())
+                ->get()
+                ->keyBy('id');
+
+            return $phantomJobIds
+                ->map(function (int $phantomJobId) use ($phantomJobs) {
+                    /** @var PhantomJob|null $phantomJob */
+                    $phantomJob = $phantomJobs->get($phantomJobId);
+
+                    if (!$phantomJob) {
+                        return null;
+                    }
+
+                    return [
+                        'label' => $phantomJob->name,
+                        'icon_url' => $phantomJob->icon_url,
+                        'black_icon_url' => $phantomJob->black_icon_url,
+                        'transparent_icon_url' => $phantomJob->transparent_icon_url,
+                        'sprite_url' => $phantomJob->sprite_url,
+                    ];
+                })
+                ->filter()
+                ->values()
+                ->all();
+        }
+
+        return [];
+    }
+
+    /**
      * @return array<string, string|null>|string|null
      */
     private function resolveSlotFieldDisplayValue($fieldValue)
@@ -17,9 +124,17 @@ trait InteractsWithActivitySlotFieldDisplay
         }
 
         $meta = $this->resolveSlotFieldDisplayMeta($fieldValue);
+        $displayItems = $this->resolveSelectionDisplayItems($fieldValue->source, $fieldValue->value);
 
         if (filled($meta['name'] ?? null)) {
             return (string) $meta['name'];
+        }
+
+        if ($displayItems !== []) {
+            return implode(', ', array_values(array_filter(array_map(
+                fn (array $item) => filled($item['label'] ?? null) ? (string) $item['label'] : null,
+                $displayItems,
+            ))));
         }
 
         if (filled($meta['label'] ?? null)) {

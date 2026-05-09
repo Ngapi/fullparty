@@ -4,19 +4,24 @@ namespace App\Http\Controllers;
 
 use App\Http\Controllers\Concerns\InteractsWithGroupActivityAttendees;
 use App\Models\Activity;
+use App\Models\ActivityApplication;
 use App\Models\ActivityType;
 use App\Models\ActivityTypeVersion;
 use App\Models\Character;
 use App\Models\Group;
 use App\Models\GroupMembership;
-use App\Services\Groups\ActivitySlotBench;
 use App\Services\Groups\ActivityCancellationService;
+use App\Services\Groups\ActivityRosterSummaryPresetBuilder;
+use App\Services\Groups\ActivitySlotBench;
+use App\Services\Groups\ActivitySlotSerializer;
 use App\Services\Groups\GroupActivityAuditService;
 use App\Services\Notifications\AssignmentNotificationService;
 use App\Services\Notifications\GroupUpdateNotificationService;
 use Carbon\CarbonImmutable;
+use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use Inertia\Inertia;
@@ -32,20 +37,40 @@ class GroupActivityController extends Controller
         private readonly GroupUpdateNotificationService $groupUpdateNotificationService,
     ) {}
 
-    public function overview(Request $request, Group $group, Activity $activity, ?string $secretKey = null): Response
-    {
+    public function overview(
+        Request $request,
+        Group $group,
+        Activity $activity,
+        ActivitySlotSerializer $slotSerializer,
+        ActivityRosterSummaryPresetBuilder $rosterSummaryPresetBuilder,
+        ?string $secretKey = null,
+    ): Response {
         $this->ensureActivityBelongsToGroup($group, $activity);
         $group->loadMissing('memberships');
 
-        if (!$this->canAccessOverview($request, $group, $activity, $secretKey)) {
+        if (! $this->canAccessOverview($request, $group, $activity, $secretKey)) {
             abort(404);
         }
 
-        $activity->load($this->attendeeActivityRelations());
+        $activity->load(array_merge($this->attendeeActivityRelations(), [
+            'slots.assignedCharacter',
+            'slots.assignments.application.answers',
+            'slots.fieldValues',
+        ]));
+        $activity->loadCount([
+            'slots',
+            'slots as assigned_slot_count' => fn ($query) => $query->whereNotNull('assigned_character_id'),
+            'applications as pending_application_count' => fn ($query) => $query->where('status', ActivityApplication::STATUS_PENDING),
+        ]);
 
         return Inertia::render('Groups/Activities/Overview', [
             'group' => $this->serializePublicGroup($group),
-            'activity' => $this->serializeAttendeeActivity($activity),
+            'activity' => $this->serializeAttendeeActivity(
+                $activity,
+                $slotSerializer,
+                $rosterSummaryPresetBuilder->build($activity->activityTypeVersion),
+            ),
+            'secretKey' => $secretKey,
             'permissions' => [
                 'can_apply' => $request->user() !== null,
                 'can_manage' => $group->hasModeratorAccess($request->user()?->id),
@@ -114,7 +139,7 @@ class GroupActivityController extends Controller
             'activities.progressMilestones',
         ]);
 
-        if (!$group->hasMember(auth()->id())) {
+        if (! $group->hasMember(auth()->id())) {
             abort(403);
         }
 
@@ -182,7 +207,7 @@ class GroupActivityController extends Controller
 
         $activityTypeVersion = $activityType->currentPublishedVersion;
 
-        if (!$activityType->is_active || !$activityTypeVersion) {
+        if (! $activityType->is_active || ! $activityTypeVersion) {
             abort(422, 'The selected activity type is not available.');
         }
 
@@ -210,6 +235,7 @@ class GroupActivityController extends Controller
             $this->materializeSlots($activity, $activityTypeVersion);
             $this->materializeProgressMilestones($activity, $activityTypeVersion);
             $this->activityAuditService->logActivityCreated($activity, auth()->user());
+
             return $activity;
         });
 
@@ -408,8 +434,7 @@ class GroupActivityController extends Controller
         Group $group,
         Activity $activity,
         AssignmentNotificationService $assignmentNotificationService,
-    ): RedirectResponse
-    {
+    ): RedirectResponse {
         $group->loadMissing('memberships');
         $this->authorizeModeratorAccess($group);
         $this->ensureActivityBelongsToGroup($group, $activity);
@@ -442,7 +467,7 @@ class GroupActivityController extends Controller
     }
 
     /**
-     * @return array<string, array<int, \Illuminate\Contracts\Validation\ValidationRule|string>>
+     * @return array<string, array<int, ValidationRule|string>>
      */
     private function rules(Group $group, bool $requireActivityType = true, bool $isUpdate = false): array
     {
@@ -499,13 +524,13 @@ class GroupActivityController extends Controller
     {
         $characterId = $validated['organized_by_character_id'] ?? null;
 
-        if (!$characterId) {
+        if (! $characterId) {
             return $validated;
         }
 
         $character = Character::query()->find($characterId);
 
-        if (!$character) {
+        if (! $character) {
             abort(422, 'The selected organizer character is invalid.');
         }
 
@@ -528,7 +553,7 @@ class GroupActivityController extends Controller
     {
         $targetProgPointKey = $validated['target_prog_point_key'] ?? null;
 
-        if (!$targetProgPointKey) {
+        if (! $targetProgPointKey) {
             return $validated;
         }
 
@@ -537,7 +562,7 @@ class GroupActivityController extends Controller
             ->filter()
             ->all();
 
-        if (!in_array($targetProgPointKey, $availableKeys, true)) {
+        if (! in_array($targetProgPointKey, $availableKeys, true)) {
             abort(422, 'The selected target prog point is invalid for this activity type.');
         }
 
@@ -552,7 +577,7 @@ class GroupActivityController extends Controller
     {
         $startsAt = $validated['starts_at'] ?? null;
 
-        if (!$startsAt) {
+        if (! $startsAt) {
             return $validated;
         }
 
@@ -631,7 +656,7 @@ class GroupActivityController extends Controller
 
     private function authorizeModeratorAccess(Group $group): void
     {
-        if (!$group->hasModeratorAccess(auth()->id())) {
+        if (! $group->hasModeratorAccess(auth()->id())) {
             abort(403);
         }
     }
@@ -645,28 +670,28 @@ class GroupActivityController extends Controller
 
     private function ensureActivityCanBeCancelled(Activity $activity): void
     {
-        if (!$activity->canBeCancelled()) {
+        if (! $activity->canBeCancelled()) {
             abort(403);
         }
     }
 
     private function ensureActivityCanBeDeleted(Activity $activity): void
     {
-        if (!$activity->canBeDeleted()) {
+        if (! $activity->canBeDeleted()) {
             abort(403);
         }
     }
 
     private function ensureActivityCanBeMarkedAssigned(Activity $activity): void
     {
-        if (!$activity->canBeMarkedAssigned()) {
+        if (! $activity->canBeMarkedAssigned()) {
             abort(403);
         }
     }
 
     private function ensureActivityCanBeScheduled(Activity $activity): void
     {
-        if (!$activity->canBeScheduled()) {
+        if (! $activity->canBeScheduled()) {
             abort(403);
         }
     }
@@ -708,7 +733,7 @@ class GroupActivityController extends Controller
     }
 
     /**
-     * @return \Illuminate\Support\Collection<int, array<string, mixed>>
+     * @return Collection<int, array<string, mixed>>
      */
     private function organizerCharactersForUserIds(array $userIds)
     {
@@ -729,7 +754,7 @@ class GroupActivityController extends Controller
     }
 
     /**
-     * @return \Illuminate\Support\Collection<int, array<string, mixed>>
+     * @return Collection<int, array<string, mixed>>
      */
     private function availableActivityTypesForForm(bool $includeProgPoints = true)
     {

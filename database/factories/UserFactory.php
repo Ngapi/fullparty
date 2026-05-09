@@ -39,8 +39,8 @@ class UserFactory extends Factory
             'assignment_notifications' => true,
             'account_character_notifications' => true,
             'system_notice_notifications' => false,
-            'email_notifications' => false,
-            'discord_notifications' => false,
+            'email_notifications' => true,
+            'discord_notifications' => true,
             'remember_token' => Str::random(10),
         ];
     }

@@ -5,6 +5,7 @@ import { route } from "ziggy-js";
 import { useI18n } from "vue-i18n";
 import { localizedValue } from "@/utils/localizedValue";
 import { getActivityStatusMeta } from "@/utils/activityStatusMeta";
+import { canAcceptActivityApplications } from "@/utils/activityLifecycle";
 import ActivityApplicationForm from "@/components/Groups/Activities/ActivityApplicationForm.vue";
 
 const props = defineProps<{
@@ -113,6 +114,7 @@ const activityTypeName = computed(() => {
 
 const activityTitle = computed(() => props.activity.title || activityTypeName.value);
 const statusMeta = computed(() => getActivityStatusMeta(props.activity.status));
+const acceptsApplications = computed(() => canAcceptActivityApplications(props.activity.status));
 const dateLabel = computed(() => {
 	if (!props.activity.starts_at) {
 		return t('groups.activities.cards.no_time');
@@ -270,6 +272,7 @@ const goBack = () => {
 				:characters="characters"
 				:questions="applicationSchema"
 				:application="application"
+				:accepts-applications="acceptsApplications"
 				:can-apply="permissions.can_apply"
 				:can-apply-as-guest="permissions.can_apply_as_guest"
 				:can-edit-application="permissions.can_edit_application"

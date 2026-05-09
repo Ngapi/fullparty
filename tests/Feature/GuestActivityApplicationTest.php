@@ -1,5 +1,6 @@
 <?php
 
+use App\DTOs\LodestoneCharacterSearchResult;
 use App\Models\Activity;
 use App\Models\ActivityApplication;
 use App\Models\ActivityType;
@@ -295,7 +296,7 @@ it('returns guest search results through the reusable lodestone search service e
         ->once()
         ->with('Sara', 'Twintania')
         ->andReturn([
-            new \App\DTOs\LodestoneCharacterSearchResult(
+            new LodestoneCharacterSearchResult(
                 lodestoneId: '41337960',
                 name: 'Sara Kiki',
                 world: 'Twintania',
@@ -342,7 +343,7 @@ it('filters verified characters out of guest search results', function () {
         ->once()
         ->with('Sara', 'Twintania')
         ->andReturn([
-            new \App\DTOs\LodestoneCharacterSearchResult(
+            new LodestoneCharacterSearchResult(
                 lodestoneId: '41337960',
                 name: 'Sara Kiki',
                 world: 'Twintania',
@@ -387,10 +388,10 @@ it('shows the guest application status page from its access token', function () 
     ]);
 
     $response = $this->get(route('groups.activities.application.status', [
-            'group' => $activity->group->slug,
-            'activity' => $activity->id,
-            'accessToken' => $application->guest_access_token,
-        ]));
+        'group' => $activity->group->slug,
+        'activity' => $activity->id,
+        'accessToken' => $application->guest_access_token,
+    ]));
 
     $response
         ->assertOk()
@@ -426,7 +427,7 @@ it('shows the moderator decline reason on the guest status page', function () {
         ->assertInertia(fn (Assert $page) => $page
             ->component('Groups/Activities/ApplicationConfirmation')
             ->where('confirmation.view', 'status')
-            ->where('confirmation.can_edit', false)
+            ->where('confirmation.can_edit', true)
             ->where('application.status', ActivityApplication::STATUS_DECLINED)
             ->where('application.review_reason', 'Roster is already full for this run.'));
 });
@@ -515,6 +516,56 @@ it('allows guests to update their application from the access token route', func
         ->and($application->answers->sole()->value)->toBe('Reached clear.');
 });
 
+it('keeps scheduled activities editable for existing guest applications until the roster is published', function () {
+    $activity = createGuestApplicationActivity([
+        'status' => Activity::STATUS_SCHEDULED,
+    ]);
+
+    $application = ActivityApplication::factory()->guest()->approved($activity->group->owner)->create([
+        'activity_id' => $activity->id,
+    ]);
+
+    $editResponse = $this->get(route('groups.activities.application.edit-guest', [
+        'group' => $activity->group->slug,
+        'activity' => $activity->id,
+        'accessToken' => $application->guest_access_token,
+    ]));
+
+    $editResponse
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->component('Groups/Activities/Application')
+            ->where('permissions.can_apply', false)
+            ->where('permissions.can_apply_as_guest', true)
+            ->where('permissions.can_edit_application', true)
+        );
+
+    $updateResponse = $this->put(route('groups.activities.application.update-guest', [
+        'group' => $activity->group->slug,
+        'activity' => $activity->id,
+        'accessToken' => $application->guest_access_token,
+    ]), [
+        'guest_applicant' => [
+            'lodestone_id' => $application->applicant_lodestone_id,
+            'name' => $application->applicant_character_name,
+            'world' => $application->applicant_world,
+            'datacenter' => $application->applicant_datacenter,
+            'avatar_url' => $application->applicant_avatar_url,
+        ],
+        'answers' => [
+            'experience' => 'Updated before publish.',
+        ],
+    ]);
+
+    $updateResponse->assertRedirect(route('groups.activities.application.status', [
+        'group' => $activity->group->slug,
+        'activity' => $activity->id,
+        'accessToken' => $application->guest_access_token,
+    ]));
+
+    expect($application->fresh()->status)->toBe(ActivityApplication::STATUS_PENDING);
+});
+
 it('does not allow guests to submit applications for verified characters', function () {
     $activity = createGuestApplicationActivity();
 
@@ -546,12 +597,14 @@ it('does not allow guests to submit applications for verified characters', funct
     expect(ActivityApplication::query()->count())->toBe(0);
 });
 
-it('does not allow guests to edit applications once they are no longer pending', function () {
-    $activity = createGuestApplicationActivity();
+it('does not allow guests to edit applications once the roster is published', function () {
+    $activity = createGuestApplicationActivity([
+        'status' => Activity::STATUS_ASSIGNED,
+    ]);
 
     $application = ActivityApplication::factory()->guest()->create([
         'activity_id' => $activity->id,
-        'status' => ActivityApplication::STATUS_APPROVED,
+        'status' => ActivityApplication::STATUS_PENDING,
     ]);
 
     $editResponse = $this->get(route('groups.activities.application.edit-guest', [
@@ -586,8 +639,9 @@ it('does not allow guests to edit applications once they are no longer pending',
     $updateResponse->assertForbidden();
 });
 
-it('does not allow authenticated users to update applications once they are no longer pending', function () {
+it('does not allow authenticated users to update applications once the roster is published', function () {
     $activity = createGuestApplicationActivity([
+        'status' => Activity::STATUS_ASSIGNED,
         'allow_guest_applications' => false,
     ]);
     $user = User::factory()->create();
@@ -603,7 +657,7 @@ it('does not allow authenticated users to update applications once they are no l
         'applicant_character_name' => $character->name,
         'applicant_world' => $character->world,
         'applicant_datacenter' => $character->datacenter,
-        'status' => ActivityApplication::STATUS_APPROVED,
+        'status' => ActivityApplication::STATUS_PENDING,
     ]);
 
     $this->actingAs($user);
