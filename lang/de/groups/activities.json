@@ -33,6 +33,13 @@
         "day_count": "{count} items",
         "more": "+{count} more"
     },
+    "context_menu": {
+        "copy_discord_timestamp": "Discord-Zeitstempel kopieren",
+        "copy_discord_timestamp_success_title": "Discord-Zeitstempel kopiert",
+        "copy_discord_timestamp_success_description": "Die Startzeit des Runs kann nun in Discord eingefuegt werden.",
+        "copy_discord_timestamp_error_title": "Zeitstempel konnte nicht kopiert werden",
+        "copy_discord_timestamp_error_description": "Bitte versuche erneut, die Run-Zeit zu kopieren."
+    },
     "legend": {
         "title": "Status Legend"
     },

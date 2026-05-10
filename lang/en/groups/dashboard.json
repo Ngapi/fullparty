@@ -4,7 +4,10 @@
     "view_runs": "View Runs",
     "view_members": "View Members",
     "open_settings": "Open Settings",
-    "open_discord": "Open Discord"
+    "open_discord": "Open Discord",
+    "mute_notifications": "Mute Notifications",
+    "unmute_notifications": "Unmute Notifications",
+    "leave_group": "Leave Group"
   },
   "labels": {
     "just_now": "just now",
@@ -39,21 +42,30 @@
     "completed_runs": "Completed Runs",
     "completed_runs_hint": "{count} cancelled total"
   },
-  "recent_runs": {
-    "title": "Recent Runs",
-    "subtitle": "The most recently touched runs, with enough context to jump straight into moderation.",
+  "upcoming_runs": {
+    "title": "Upcoming Runs",
     "accepting_applications": "Accepting Applications",
     "public": "Public",
     "private": "Invite Only",
     "guest_welcome": "Guests Welcome",
-    "updated": "Updated {time}",
+    "starts": "Starts {time}",
+    "view_overview": "View Overview",
     "open_board": "Open Board",
-    "empty_title": "No runs have been created yet.",
-    "empty_description": "Once this group starts scheduling runs, this surface becomes the fastest way to see what is moving, what needs attention, and what already shipped."
+    "empty_title": "No upcoming runs are scheduled.",
+    "empty_description": "Once this group has future runs on the calendar, they will appear here in start-time order."
+  },
+  "history_runs": {
+    "title": "Run History",
+    "count": "{count} shown",
+    "public": "Public",
+    "private": "Invite Only",
+    "ran": "Ran {time}",
+    "view_overview": "View Overview",
+    "open_board": "Open Board",
+    "empty_title": "No completed runs yet."
   },
   "pipeline": {
     "title": "Run Pipeline",
-    "subtitle": "A distribution of everything the group is currently organizing or has already wrapped up.",
     "total": "{count} total",
     "active_management": "In Management",
     "archived": "Archived",

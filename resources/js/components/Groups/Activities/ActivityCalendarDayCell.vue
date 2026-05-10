@@ -3,12 +3,14 @@ import type { ActivityCalendarDay, ActivityIndexItem } from "@/Types/ActivityCor
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 import { usePage } from "@inertiajs/vue3";
+import ActivityDiscordTimestampContextMenu from "@/components/Groups/Activities/ActivityDiscordTimestampContextMenu.vue";
 import { localizedValue } from "@/utils/localizedValue";
 import { getActivityStatusBorderClass } from "@/utils/activityStatusMeta";
 
 const props = defineProps<{
 	day: ActivityCalendarDay
 	isSelected?: boolean
+	canManageActivities?: boolean
 }>();
 
 const emit = defineEmits<{
@@ -78,19 +80,24 @@ const selectDay = () => {
 		</div>
 
 		<div class="flex flex-1 flex-col gap-1.5">
-			<div
+			<ActivityDiscordTimestampContextMenu
 				v-for="activity in visibleActivities"
 				:key="activity.id"
-				class="rounded-sm border-t-2 bg-primary/15 px-2 py-1.5 text-xs"
-				:class="activityStatusBorderClass(activity)"
+				:starts-at="activity.starts_at"
+				:disabled="!canManageActivities"
 			>
-				<p class="font-medium text-toned">
-					{{ activityTime(activity) }}
-				</p>
-				<p class="mt-0.5 line-clamp-2 text-muted">
-					{{ activityLabel(activity) }}
-				</p>
-			</div>
+				<div
+					class="rounded-sm border-t-2 bg-primary/15 px-2 py-1.5 text-xs"
+					:class="activityStatusBorderClass(activity)"
+				>
+					<p class="font-medium text-toned">
+						{{ activityTime(activity) }}
+					</p>
+					<p class="mt-0.5 line-clamp-2 text-muted">
+						{{ activityLabel(activity) }}
+					</p>
+				</div>
+			</ActivityDiscordTimestampContextMenu>
 
 			<p v-if="hiddenCount > 0" class="mt-auto text-xs font-medium text-muted">
 				{{ t('groups.activities.calendar.more', { count: hiddenCount }) }}

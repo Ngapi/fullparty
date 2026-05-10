@@ -26,7 +26,7 @@ class GroupMembershipController extends Controller
     {
         $group->loadMissing('memberships');
 
-        if (!$group->is_public) {
+        if (! $group->is_public) {
             return redirect()->back()->withErrors([
                 'error' => 'group_not_public',
             ]);
@@ -67,9 +67,13 @@ class GroupMembershipController extends Controller
         return redirect()->route('groups.show', $group)->with('success', 'group_joined');
     }
 
-    public function leave(Group $group): RedirectResponse
+    public function leave(Request $request, Group $group): RedirectResponse
     {
         $group->loadMissing('memberships');
+
+        $validated = $request->validate([
+            'redirect_to' => ['nullable', Rule::in(['back', 'profile', 'groups'])],
+        ]);
 
         if ($group->isOwnedBy(auth()->id())) {
             return redirect()->back()->withErrors([
@@ -81,7 +85,7 @@ class GroupMembershipController extends Controller
             ->where('user_id', auth()->id())
             ->first();
 
-        if (!$membership) {
+        if (! $membership) {
             return redirect()->back()->withErrors([
                 'error' => 'group_membership_not_found',
             ]);
@@ -112,7 +116,23 @@ class GroupMembershipController extends Controller
             auth()->user(),
         );
 
-        return redirect()->route('groups.index')->with('success', 'group_left');
+        return $this->leaveRedirect($group, $validated['redirect_to'] ?? 'back')
+            ->with('success', 'group_left');
+    }
+
+    private function leaveRedirect(Group $group, string $target): RedirectResponse
+    {
+        if ($target === 'groups') {
+            return redirect()->route('groups.index');
+        }
+
+        if ($target === 'profile') {
+            return $group->is_visible
+                ? redirect()->route('groups.show', $group)
+                : redirect()->route('groups.index');
+        }
+
+        return redirect()->back();
     }
 
     public function update(Request $request, Group $group, User $user): RedirectResponse
@@ -287,7 +307,7 @@ class GroupMembershipController extends Controller
             ->where('user_id', $user->id)
             ->first();
 
-        if (!$ban) {
+        if (! $ban) {
             return redirect()->back()->withErrors([
                 'error' => 'group_ban_not_found',
             ]);
@@ -329,7 +349,7 @@ class GroupMembershipController extends Controller
             ->where('user_id', $validated['user_id'])
             ->first();
 
-        if (!$newOwnerMembership) {
+        if (! $newOwnerMembership) {
             return redirect()->back()->withErrors([
                 'error' => 'group_member_not_found',
             ]);
@@ -389,7 +409,7 @@ class GroupMembershipController extends Controller
 
     private function authorizeOwnerAccess(Group $group): void
     {
-        if (!$group->isOwnedBy(auth()->id())) {
+        if (! $group->isOwnedBy(auth()->id())) {
             abort(403);
         }
     }
@@ -402,21 +422,21 @@ class GroupMembershipController extends Controller
             return;
         }
 
-        if (!$group->hasModeratorAccess($actorId)) {
+        if (! $group->hasModeratorAccess($actorId)) {
             abort(403);
         }
 
         $targetMembership = $group->memberships
             ->firstWhere('user_id', $targetUserId);
 
-        if (!$targetMembership || $targetMembership->role !== GroupMembership::ROLE_MEMBER) {
+        if (! $targetMembership || $targetMembership->role !== GroupMembership::ROLE_MEMBER) {
             abort(403);
         }
     }
 
     private function authorizeBanManagerAccess(Group $group): void
     {
-        if (!$group->hasModeratorAccess(auth()->id())) {
+        if (! $group->hasModeratorAccess(auth()->id())) {
             abort(403);
         }
     }

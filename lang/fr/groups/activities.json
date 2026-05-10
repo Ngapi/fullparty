@@ -33,6 +33,13 @@
         "day_count": "{count} items",
         "more": "+{count} more"
     },
+    "context_menu": {
+        "copy_discord_timestamp": "Copier l'horodatage Discord",
+        "copy_discord_timestamp_success_title": "Horodatage Discord copie",
+        "copy_discord_timestamp_success_description": "L'heure de debut du run est prete a etre collee dans Discord.",
+        "copy_discord_timestamp_error_title": "Impossible de copier l'horodatage",
+        "copy_discord_timestamp_error_description": "Veuillez reessayer de copier l'heure du run."
+    },
     "legend": {
         "title": "Status Legend"
     },

@@ -33,6 +33,13 @@
         "day_count": "{count} items",
         "more": "+{count} more"
     },
+    "context_menu": {
+        "copy_discord_timestamp": "Discordタイムスタンプをコピー",
+        "copy_discord_timestamp_success_title": "Discordタイムスタンプをコピーしました",
+        "copy_discord_timestamp_success_description": "Runの開始時刻をDiscordに貼り付けられます。",
+        "copy_discord_timestamp_error_title": "タイムスタンプをコピーできません",
+        "copy_discord_timestamp_error_description": "Runの時刻をもう一度コピーしてください。"
+    },
     "legend": {
         "title": "Status Legend"
     },

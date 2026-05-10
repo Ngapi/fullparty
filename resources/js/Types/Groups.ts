@@ -79,6 +79,8 @@ export type GroupDashboardActivity = {
 	starts_at: string | null
 	duration_hours: number | null
 	is_public: boolean
+	secret_key: string | null
+	can_view_overview: boolean
 	needs_application: boolean
 	allow_guest_applications: boolean
 	organized_by: {
@@ -106,6 +108,86 @@ export type GroupDashboardMemberPreview = {
 	joined_at: string | null
 }
 
+export type GroupProfileStaffMember = {
+	id: number
+	name: string
+	avatar_url: string | null
+	role: string
+	joined_at: string | null
+}
+
+export type GroupProfileActivity = {
+	id: number
+	activity_type: {
+		id: number | null
+		slug: string | null
+		draft_name: LocalizedText
+	}
+	title: string | null
+	status: string
+	starts_at: string | null
+	duration_hours: number | null
+	needs_application: boolean
+	allow_guest_applications: boolean
+	organized_by: {
+		id: number
+		name: string
+		avatar_url: string | null
+	} | null
+	organized_by_character: {
+		id: number
+		user_id: number
+		name: string | null
+		avatar_url: string | null
+	} | null
+	slot_count: number
+	application_count: number
+	created_at: string | null
+	updated_at: string | null
+}
+
+export type GroupProfileGroup = {
+	id: number
+	name: string
+	description: string | null
+	profile_picture_url: string | null
+	discord_invite_url: string | null
+	datacenter: string
+	is_public: boolean
+	is_visible: boolean
+	slug: string
+	owner: {
+		id: number | null
+		name: string | null
+		avatar_url: string | null
+	}
+	current_user_role: string | null
+	follow: {
+		is_following: boolean
+		notifications_enabled: boolean
+	}
+	permissions: {
+		can_join: boolean
+		can_follow: boolean
+		can_unfollow: boolean
+		can_leave: boolean
+		can_toggle_notifications: boolean
+		can_access_dashboard: boolean
+	}
+	stats: {
+		member_count: number
+		moderator_count: number
+		activity_count: number
+		current_activity_count: number
+		completed_activity_count: number
+	}
+	staff_members: GroupProfileStaffMember[]
+	activities: {
+		current: GroupProfileActivity[]
+		recent: GroupProfileActivity[]
+	}
+}
+
 export type GroupDashboardGroup = {
 	id: number
 	name: string
@@ -122,10 +204,16 @@ export type GroupDashboardGroup = {
 		avatar_url: string | null
 	}
 	current_user_role: string | null
+	follow: {
+		is_following: boolean
+		notifications_enabled: boolean
+	}
 	permissions: {
 		can_manage_group: boolean
 		can_manage_members: boolean
 		can_manage_activities: boolean
+		can_leave: boolean
+		can_toggle_notifications: boolean
 	}
 	stats: {
 		member_count: number
@@ -155,7 +243,8 @@ export type GroupDashboardGroup = {
 		status: string
 		count: number
 	}>
-	recent_activities: GroupDashboardActivity[]
+	upcoming_activities: GroupDashboardActivity[]
+	history_activities: GroupDashboardActivity[]
 }
 
 export type PaginatedGroups = {

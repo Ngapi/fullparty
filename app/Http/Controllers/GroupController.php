@@ -2,18 +2,22 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Activity;
 use App\Models\Group;
 use App\Models\GroupMembership;
 use App\Models\ScheduledRun;
+use App\Models\User;
 use App\Services\AuditLogger;
 use App\Services\ManagedImageStorage;
 use App\Services\Notifications\GroupUpdateNotificationService;
 use App\Support\Audit\AuditScope;
 use App\Support\Audit\AuditSeverity;
+use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use Inertia\Inertia;
@@ -197,12 +201,16 @@ class GroupController extends Controller
         $group->load([
             'owner',
             'memberships.user',
-            'scheduledRuns.organizer',
+            'activities.organizer',
+            'activities.organizerCharacter',
+            'activities.activityType',
+            'activities.slots',
+            'activities.applications',
         ]);
 
         $currentUserId = auth()->id();
 
-        if (!$group->is_visible && !$group->hasMember($currentUserId)) {
+        if (! $group->is_visible && ! $group->hasMember($currentUserId)) {
             abort(404);
         }
 
@@ -213,7 +221,7 @@ class GroupController extends Controller
 
     public function destroy(Group $group): RedirectResponse
     {
-        if (!$group->isOwnedBy(auth()->id())) {
+        if (! $group->isOwnedBy(auth()->id())) {
             abort(403);
         }
 
@@ -244,7 +252,7 @@ class GroupController extends Controller
     }
 
     /**
-     * @return array<string, array<int, \Illuminate\Contracts\Validation\ValidationRule|string>>
+     * @return array<string, array<int, ValidationRule|string>>
      */
     private function storeRules(): array
     {
@@ -304,7 +312,7 @@ class GroupController extends Controller
     {
         $runActivity = $group->scheduledRuns->max('updated_at');
 
-        if (!$runActivity) {
+        if (! $runActivity) {
             return $group->updated_at;
         }
 
@@ -355,9 +363,20 @@ class GroupController extends Controller
         ];
     }
 
-    private function serializeGroupProfile(Group $group, int $currentUserId): array
+    private function serializeGroupProfile(Group $group, ?int $currentUserId): array
     {
-        [$currentRuns, $pastRuns] = $this->partitionVisibleRuns($group, $currentUserId);
+        $visibleActivities = $this->visibleProfileActivities($group, $currentUserId);
+        [$currentActivities, $recentActivities] = $this->partitionProfileActivities($visibleActivities);
+        $currentMembership = $currentUserId
+            ? $group->memberships->firstWhere('user_id', $currentUserId)
+            : null;
+        $currentFollow = $this->currentFollowForUser($group, $currentUserId);
+        $isMember = $currentMembership instanceof GroupMembership;
+        $isFollowing = $currentFollow instanceof User || $isMember;
+        $notificationsEnabled = $currentFollow instanceof User
+            ? (bool) $currentFollow->pivot->notifications_enabled
+            : $isMember;
+        $isBanned = $group->isBanned($currentUserId);
 
         return [
             'id' => $group->id,
@@ -374,97 +393,154 @@ class GroupController extends Controller
                 'name' => $group->owner?->name,
                 'avatar_url' => $group->owner?->avatar_url,
             ],
-            'current_user_role' => $group->memberships
-                ->firstWhere('user_id', $currentUserId)
-                ?->role,
+            'current_user_role' => $currentMembership?->role,
+            'follow' => [
+                'is_following' => $isFollowing,
+                'notifications_enabled' => $notificationsEnabled,
+            ],
             'permissions' => [
                 'can_join' => $group->is_public
-                    && !$group->hasMember($currentUserId)
-                    && !$group->isBanned($currentUserId),
-                'can_access_dashboard' => $group->hasMember($currentUserId),
+                    && ! $isMember
+                    && ! $isBanned,
+                'can_follow' => $group->is_public
+                    && ! $isMember
+                    && ! $isFollowing
+                    && ! $isBanned,
+                'can_unfollow' => $currentFollow instanceof User
+                    && ! $isMember,
+                'can_leave' => $isMember
+                    && ! $group->isOwnedBy($currentUserId),
+                'can_toggle_notifications' => $currentUserId !== null
+                    && $isFollowing,
+                'can_access_dashboard' => $isMember,
             ],
             'stats' => [
                 'member_count' => $group->memberships->count(),
                 'moderator_count' => $group->memberships
                     ->where('role', GroupMembership::ROLE_MODERATOR)
                     ->count(),
-                'run_count' => $group->scheduledRuns->count(),
-                'completed_run_count' => $group->scheduledRuns
-                    ->where('status', ScheduledRun::STATUS_COMPLETE)
+                'activity_count' => $visibleActivities->count(),
+                'current_activity_count' => $visibleActivities
+                    ->reject(fn (Activity $activity) => Activity::isArchivedStatus($activity->status))
+                    ->count(),
+                'completed_activity_count' => $visibleActivities
+                    ->where('status', Activity::STATUS_COMPLETE)
                     ->count(),
             ],
-            'members_preview' => $group->memberships
+            'staff_members' => $group->memberships
+                ->filter(fn (GroupMembership $membership) => in_array($membership->role, [
+                    GroupMembership::ROLE_OWNER,
+                    GroupMembership::ROLE_MODERATOR,
+                ], true))
                 ->sortBy(function (GroupMembership $membership) {
-                    return array_search($membership->role, GroupMembership::ROLES, true);
+                    return array_search($membership->role, GroupMembership::ROLES, true) ?: 0;
                 })
-                ->take(8)
                 ->values()
                 ->map(fn (GroupMembership $membership) => [
                     'id' => $membership->user->id,
                     'name' => $membership->user->name,
                     'avatar_url' => $membership->user->avatar_url,
                     'role' => $membership->role,
+                    'joined_at' => $membership->joined_at?->toIso8601String(),
                 ]),
-            'runs' => [
-                'current' => $currentRuns,
-                'past' => $pastRuns,
+            'activities' => [
+                'current' => $currentActivities,
+                'recent' => $recentActivities,
             ],
         ];
     }
 
-    /**
-     * @return array{0: array<int, array<string, mixed>>, 1: array<int, array<string, mixed>>}
-     */
-    private function partitionVisibleRuns(Group $group, int $currentUserId): array
+    private function currentFollowForUser(Group $group, ?int $currentUserId): ?User
     {
-        $canSeeInternalRuns = $group->hasMember($currentUserId);
-        $canSeeFutureRuns = $canSeeInternalRuns || $group->is_public;
+        if ($currentUserId === null) {
+            return null;
+        }
 
-        $currentRuns = $group->scheduledRuns
-            ->filter(function (ScheduledRun $scheduledRun) use ($canSeeFutureRuns, $canSeeInternalRuns) {
-                if (in_array($scheduledRun->status, ScheduledRun::PAST_STATUSES, true)) {
-                    return false;
-                }
-
-                if ($canSeeInternalRuns) {
-                    return true;
-                }
-
-                if (!$canSeeFutureRuns) {
-                    return false;
-                }
-
-                return in_array($scheduledRun->status, [
-                    ScheduledRun::STATUS_SCHEDULED,
-                    ScheduledRun::STATUS_UPCOMING,
-                    ScheduledRun::STATUS_ONGOING,
-                ], true);
-            })
-            ->values()
-            ->map(fn (ScheduledRun $scheduledRun) => $this->serializeScheduledRun($scheduledRun))
-            ->all();
-
-        $pastRuns = $group->scheduledRuns
-            ->filter(fn (ScheduledRun $scheduledRun) => in_array($scheduledRun->status, ScheduledRun::PAST_STATUSES, true))
-            ->values()
-            ->map(fn (ScheduledRun $scheduledRun) => $this->serializeScheduledRun($scheduledRun))
-            ->all();
-
-        return [$currentRuns, $pastRuns];
+        return $group->followers()
+            ->where('users.id', $currentUserId)
+            ->first();
     }
 
-    private function serializeScheduledRun(ScheduledRun $scheduledRun): array
+    private function visibleProfileActivities(Group $group, ?int $currentUserId): Collection
+    {
+        $canSeePublicActivities = $group->is_public || $group->hasMember($currentUserId);
+        $canSeeModeratorOnlyActivities = $group->hasModeratorAccess($currentUserId);
+
+        if (! $canSeePublicActivities) {
+            return collect();
+        }
+
+        return $group->activities
+            ->filter(function (Activity $activity) use ($canSeeModeratorOnlyActivities) {
+                if (Activity::isModeratorOnlyStatus($activity->status)) {
+                    return $canSeeModeratorOnlyActivities;
+                }
+
+                return $activity->is_public;
+            })
+            ->values();
+    }
+
+    private function partitionProfileActivities(Collection $activities): array
+    {
+        $currentActivities = $activities
+            ->reject(fn (Activity $activity) => Activity::isArchivedStatus($activity->status))
+            ->sort(function (Activity $left, Activity $right) {
+                $startsAtComparison = ($left->starts_at?->getTimestamp() ?? PHP_INT_MAX)
+                    <=> ($right->starts_at?->getTimestamp() ?? PHP_INT_MAX);
+
+                if ($startsAtComparison !== 0) {
+                    return $startsAtComparison;
+                }
+
+                return ($right->updated_at?->getTimestamp() ?? 0)
+                    <=> ($left->updated_at?->getTimestamp() ?? 0);
+            })
+            ->take(6)
+            ->values()
+            ->map(fn (Activity $activity) => $this->serializeProfileActivity($activity))
+            ->all();
+
+        $recentActivities = $activities
+            ->sortByDesc(fn (Activity $activity) => $activity->updated_at?->getTimestamp() ?? 0)
+            ->take(6)
+            ->values()
+            ->map(fn (Activity $activity) => $this->serializeProfileActivity($activity))
+            ->all();
+
+        return [$currentActivities, $recentActivities];
+    }
+
+    private function serializeProfileActivity(Activity $activity): array
     {
         return [
-            'id' => $scheduledRun->id,
-            'status' => $scheduledRun->status,
-            'organized_by' => $scheduledRun->organizer ? [
-                'id' => $scheduledRun->organizer->id,
-                'name' => $scheduledRun->organizer->name,
-                'avatar_url' => $scheduledRun->organizer->avatar_url,
+            'id' => $activity->id,
+            'activity_type' => [
+                'id' => $activity->activityType?->id,
+                'slug' => $activity->activityType?->slug,
+                'draft_name' => $activity->activityType?->draft_name,
+            ],
+            'title' => $activity->title,
+            'status' => $activity->status,
+            'starts_at' => $activity->starts_at?->toIso8601String(),
+            'duration_hours' => $activity->duration_hours,
+            'needs_application' => $activity->needs_application,
+            'allow_guest_applications' => $activity->allow_guest_applications,
+            'organized_by' => $activity->organizer ? [
+                'id' => $activity->organizer->id,
+                'name' => $activity->organizer->name,
+                'avatar_url' => $activity->organizer->avatar_url,
             ] : null,
-            'created_at' => $scheduledRun->created_at,
-            'updated_at' => $scheduledRun->updated_at,
+            'organized_by_character' => $activity->organizerCharacter ? [
+                'id' => $activity->organizerCharacter->id,
+                'user_id' => $activity->organizerCharacter->user_id,
+                'name' => $activity->organizerCharacter->name,
+                'avatar_url' => $activity->organizerCharacter->avatar_url,
+            ] : null,
+            'slot_count' => $activity->slots->count(),
+            'application_count' => $activity->applications->count(),
+            'created_at' => $activity->created_at?->toIso8601String(),
+            'updated_at' => $activity->updated_at?->toIso8601String(),
         ];
     }
 }

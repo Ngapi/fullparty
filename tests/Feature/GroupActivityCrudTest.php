@@ -1,16 +1,17 @@
 <?php
 
 use App\Models\Activity;
+use App\Models\ActivityApplication;
+use App\Models\ActivitySlotAssignment;
 use App\Models\ActivityType;
 use App\Models\ActivityTypeVersion;
 use App\Models\AuditLog;
 use App\Models\Character;
-use App\Models\ActivityApplication;
-use App\Models\ActivitySlotAssignment;
 use App\Models\Group;
 use App\Models\GroupMembership;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Inertia\Testing\AssertableInertia as Assert;
 
 uses(RefreshDatabase::class);
 
@@ -165,6 +166,56 @@ it('forbids non moderators from creating activities', function () {
 
     $response->assertForbidden();
     expect($group->activities()->count())->toBe(0);
+});
+
+it('hides draft and planned activities from non moderators on the dashboard runs page', function () {
+    $owner = User::factory()->create();
+    $member = User::factory()->create();
+    $group = Group::factory()->public()->create([
+        'owner_id' => $owner->id,
+    ]);
+    $group->memberships()->create([
+        'user_id' => $member->id,
+        'role' => GroupMembership::ROLE_MEMBER,
+        'joined_at' => now(),
+    ]);
+    $activityType = createCrudActivityType($owner);
+
+    $scheduledActivity = Activity::factory()->create([
+        'group_id' => $group->id,
+        'activity_type_id' => $activityType->id,
+        'activity_type_version_id' => $activityType->current_published_version_id,
+        'organized_by_user_id' => $owner->id,
+        'status' => Activity::STATUS_SCHEDULED,
+        'title' => 'Scheduled Run',
+        'is_public' => true,
+        'updated_at' => now()->subMinutes(10),
+    ]);
+
+    foreach ([Activity::STATUS_DRAFT, Activity::STATUS_PLANNED] as $status) {
+        Activity::factory()->create([
+            'group_id' => $group->id,
+            'activity_type_id' => $activityType->id,
+            'activity_type_version_id' => $activityType->current_published_version_id,
+            'organized_by_user_id' => $owner->id,
+            'status' => $status,
+            'is_public' => true,
+        ]);
+    }
+
+    $this->actingAs($member)
+        ->get(route('groups.dashboard.activities.index', $group))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->has('activities', 1)
+            ->where('activities.0.id', $scheduledActivity->id)
+            ->where('activities.0.status', Activity::STATUS_SCHEDULED));
+
+    $this->actingAs($owner)
+        ->get(route('groups.dashboard.activities.index', $group))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->has('activities', 3));
 });
 
 it('rejects organizer characters that do not belong to the organizer user', function () {
@@ -556,7 +607,7 @@ it('cancels active applications, clears live slots, and keeps guest status pages
 
     $statusResponse
         ->assertOk()
-        ->assertInertia(fn (\Inertia\Testing\AssertableInertia $page) => $page
+        ->assertInertia(fn (Assert $page) => $page
             ->component('Groups/Activities/ApplicationConfirmation')
             ->where('confirmation.view', 'status')
             ->where('confirmation.can_edit', false)

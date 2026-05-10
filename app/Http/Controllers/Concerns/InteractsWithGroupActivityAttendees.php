@@ -18,6 +18,10 @@ trait InteractsWithGroupActivityAttendees
 
     private function canAccessOverview(Request $request, Group $group, Activity $activity, ?string $secretKey): bool
     {
+        if (Activity::isModeratorOnlyStatus($activity->status)) {
+            return $group->hasModeratorAccess($request->user()?->id);
+        }
+
         if ($activity->is_public) {
             if ($group->is_public) {
                 return true;

@@ -9,6 +9,7 @@ use App\Models\Group;
 use App\Models\GroupMembership;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Inertia\Testing\AssertableInertia as Assert;
 
 uses(RefreshDatabase::class);
 
@@ -67,7 +68,7 @@ function createAccessControlActivity(array $groupOverrides = [], array $activity
         'activity_type_id' => $type->id,
         'activity_type_version_id' => $version->id,
         'organized_by_user_id' => $owner->id,
-        'status' => Activity::STATUS_PLANNED,
+        'status' => Activity::STATUS_SCHEDULED,
         'needs_application' => true,
         'allow_guest_applications' => true,
         'is_public' => true,
@@ -149,6 +150,144 @@ it('requires membership to view public activities that belong to private groups'
     ]));
 
     $response->assertNotFound();
+});
+
+it('only exposes draft and planned activity overviews to moderators', function (string $status) {
+    extract(createAccessControlActivity([], [
+        'status' => $status,
+        'is_public' => true,
+    ]));
+
+    $member = User::factory()->create();
+    $group->memberships()->create([
+        'user_id' => $member->id,
+        'role' => GroupMembership::ROLE_MEMBER,
+        'joined_at' => now(),
+    ]);
+
+    $guestResponse = $this->get(route('groups.activities.overview', [
+        'group' => $group->slug,
+        'activity' => $activity->id,
+    ]));
+
+    $memberResponse = $this
+        ->actingAs($member)
+        ->get(route('groups.activities.overview', [
+            'group' => $group->slug,
+            'activity' => $activity->id,
+        ]));
+
+    $ownerResponse = $this
+        ->actingAs($owner)
+        ->get(route('groups.activities.overview', [
+            'group' => $group->slug,
+            'activity' => $activity->id,
+        ]));
+
+    $guestResponse->assertNotFound();
+    $memberResponse->assertNotFound();
+    $ownerResponse->assertOk();
+})->with([
+    'draft' => [Activity::STATUS_DRAFT],
+    'planned' => [Activity::STATUS_PLANNED],
+]);
+
+it('keeps complete and cancelled public activity overviews visible', function (string $status) {
+    extract(createAccessControlActivity([], [
+        'status' => $status,
+        'is_public' => true,
+    ]));
+
+    $member = User::factory()->create();
+    $group->memberships()->create([
+        'user_id' => $member->id,
+        'role' => GroupMembership::ROLE_MEMBER,
+        'joined_at' => now(),
+    ]);
+
+    $this->get(route('groups.activities.overview', [
+        'group' => $group->slug,
+        'activity' => $activity->id,
+    ]))->assertOk();
+
+    $this->actingAs($member)
+        ->get(route('groups.activities.overview', [
+            'group' => $group->slug,
+            'activity' => $activity->id,
+        ]))->assertOk();
+})->with([
+    'complete' => [Activity::STATUS_COMPLETE],
+    'cancelled' => [Activity::STATUS_CANCELLED],
+]);
+
+it('keeps draft and planned activities off the group profile for non moderators', function () {
+    extract(createAccessControlActivity([], [
+        'status' => Activity::STATUS_SCHEDULED,
+        'is_public' => true,
+    ]));
+
+    foreach ([Activity::STATUS_DRAFT, Activity::STATUS_PLANNED] as $status) {
+        Activity::factory()->create([
+            'group_id' => $group->id,
+            'activity_type_id' => $activity->activity_type_id,
+            'activity_type_version_id' => $activity->activity_type_version_id,
+            'organized_by_user_id' => $owner->id,
+            'status' => $status,
+            'is_public' => true,
+        ]);
+    }
+
+    $member = User::factory()->create();
+    $group->memberships()->create([
+        'user_id' => $member->id,
+        'role' => GroupMembership::ROLE_MEMBER,
+        'joined_at' => now(),
+    ]);
+
+    $this->get(route('groups.show', $group))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->has('group.activities.current', 1)
+            ->where('group.activities.current.0.status', Activity::STATUS_SCHEDULED));
+
+    $this->actingAs($member)
+        ->get(route('groups.show', $group))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->has('group.activities.current', 1)
+            ->where('group.activities.current.0.status', Activity::STATUS_SCHEDULED));
+
+    $this->actingAs($owner)
+        ->get(route('groups.show', $group))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->has('group.activities.current', 3));
+});
+
+it('keeps complete and cancelled public activities on the group profile recent list', function () {
+    extract(createAccessControlActivity([], [
+        'status' => Activity::STATUS_COMPLETE,
+        'is_public' => true,
+        'updated_at' => now()->subHour(),
+    ]));
+
+    Activity::factory()->create([
+        'group_id' => $group->id,
+        'activity_type_id' => $activity->activity_type_id,
+        'activity_type_version_id' => $activity->activity_type_version_id,
+        'organized_by_user_id' => $owner->id,
+        'status' => Activity::STATUS_CANCELLED,
+        'is_public' => true,
+        'updated_at' => now(),
+    ]);
+
+    $this->get(route('groups.show', $group))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->has('group.activities.current', 0)
+            ->has('group.activities.recent', 2)
+            ->where('group.activities.recent.0.status', Activity::STATUS_CANCELLED)
+            ->where('group.activities.recent.1.status', Activity::STATUS_COMPLETE));
 });
 
 it('requires the correct secret key to access private activity overview pages', function () {

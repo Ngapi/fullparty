@@ -79,6 +79,7 @@ it('renders the group dashboard with activity-driven overview data', function ()
         'title' => 'Planning Night',
         'allow_guest_applications' => true,
         'is_public' => true,
+        'starts_at' => now()->addDays(3),
         'updated_at' => now()->subHours(2),
     ]);
 
@@ -91,7 +92,22 @@ it('renders the group dashboard with activity-driven overview data', function ()
         'title' => 'Roster Locked',
         'allow_guest_applications' => false,
         'is_public' => false,
+        'starts_at' => now()->addDay(),
         'updated_at' => now()->subHour(),
+    ]);
+
+    $scheduledActivity = Activity::factory()->create([
+        'group_id' => $group->id,
+        'activity_type_id' => $type->id,
+        'activity_type_version_id' => $version->id,
+        'organized_by_user_id' => $owner->id,
+        'status' => Activity::STATUS_SCHEDULED,
+        'title' => 'Soon Pull',
+        'needs_application' => false,
+        'allow_guest_applications' => false,
+        'is_public' => true,
+        'starts_at' => now()->addHours(2),
+        'updated_at' => now()->subDays(3),
     ]);
 
     $completeActivity = Activity::factory()->complete()->create([
@@ -102,7 +118,22 @@ it('renders the group dashboard with activity-driven overview data', function ()
         'title' => 'Cleanup Clear',
         'allow_guest_applications' => false,
         'is_public' => true,
-        'updated_at' => now()->subDays(2),
+        'starts_at' => now()->subDay(),
+        'completed_at' => now()->subHour(),
+        'updated_at' => now()->subMinutes(20),
+    ]);
+
+    $cancelledActivity = Activity::factory()->create([
+        'group_id' => $group->id,
+        'activity_type_id' => $type->id,
+        'activity_type_version_id' => $version->id,
+        'organized_by_user_id' => $owner->id,
+        'status' => Activity::STATUS_CANCELLED,
+        'title' => 'Cancelled Night',
+        'allow_guest_applications' => false,
+        'is_public' => true,
+        'starts_at' => now()->subDays(2),
+        'updated_at' => now()->subHours(4),
     ]);
 
     ActivityApplication::factory()->create([
@@ -120,23 +151,72 @@ it('renders the group dashboard with activity-driven overview data', function ()
         ->assertInertia(fn (Assert $page) => $page
             ->component('Dashboard/Groups/Dashboard')
             ->where('group.name', $group->name)
-            ->where('group.stats.activity_count', 3)
+            ->where('group.stats.activity_count', 5)
             ->where('group.stats.planned_count', 1)
+            ->where('group.stats.scheduled_count', 1)
             ->where('group.stats.assigned_count', 1)
             ->where('group.stats.completed_count', 1)
-            ->where('group.stats.open_application_count', 1)
-            ->where('group.stats.public_activity_count', 2)
+            ->where('group.stats.cancelled_count', 1)
+            ->where('group.stats.open_application_count', 2)
+            ->where('group.stats.public_activity_count', 4)
+            ->where('group.follow.is_following', true)
+            ->where('group.follow.notifications_enabled', true)
+            ->where('group.permissions.can_leave', false)
+            ->where('group.permissions.can_toggle_notifications', true)
             ->where('group.member_role_breakdown.owner', 1)
             ->where('group.member_role_breakdown.moderator', 1)
             ->where('group.member_role_breakdown.member', 1)
             ->has('group.activity_status_breakdown', 8)
-            ->has('group.recent_activities', 3)
-            ->where('group.recent_activities.0.id', $assignedActivity->id)
-            ->where('group.recent_activities.0.title', 'Roster Locked')
-            ->where('group.recent_activities.1.id', $plannedActivity->id)
-            ->where('group.recent_activities.1.activity_type.slug', 'chaotic-alliance')
-            ->where('group.recent_activities.1.application_count', 1)
-            ->where('group.recent_activities.1.slot_count', 4)
-            ->where('group.recent_activities.2.id', $completeActivity->id)
+            ->has('group.upcoming_activities', 3)
+            ->where('group.upcoming_activities.0.id', $scheduledActivity->id)
+            ->where('group.upcoming_activities.0.title', 'Soon Pull')
+            ->where('group.upcoming_activities.0.can_view_overview', true)
+            ->where('group.upcoming_activities.0.secret_key', null)
+            ->where('group.upcoming_activities.1.id', $assignedActivity->id)
+            ->where('group.upcoming_activities.1.can_view_overview', true)
+            ->where('group.upcoming_activities.1.secret_key', $assignedActivity->secret_key)
+            ->where('group.upcoming_activities.2.id', $plannedActivity->id)
+            ->where('group.upcoming_activities.2.can_view_overview', true)
+            ->where('group.upcoming_activities.2.activity_type.slug', 'chaotic-alliance')
+            ->where('group.upcoming_activities.2.application_count', 1)
+            ->where('group.upcoming_activities.2.slot_count', 4)
+            ->has('group.history_activities', 2)
+            ->where('group.history_activities.0.id', $completeActivity->id)
+            ->where('group.history_activities.0.can_view_overview', true)
+            ->where('group.history_activities.1.id', $cancelledActivity->id)
+            ->where('group.history_activities.1.can_view_overview', true)
+        );
+
+    $group->followers()->syncWithoutDetaching([
+        $member->id => ['notifications_enabled' => false],
+    ]);
+
+    $this->actingAs($member)
+        ->get(route('groups.dashboard', $group))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('group.stats.activity_count', 4)
+            ->where('group.stats.planned_count', 0)
+            ->where('group.stats.scheduled_count', 1)
+            ->where('group.stats.assigned_count', 1)
+            ->where('group.stats.completed_count', 1)
+            ->where('group.stats.cancelled_count', 1)
+            ->where('group.stats.open_application_count', 1)
+            ->where('group.follow.is_following', true)
+            ->where('group.follow.notifications_enabled', false)
+            ->where('group.permissions.can_leave', true)
+            ->where('group.permissions.can_toggle_notifications', true)
+            ->has('group.upcoming_activities', 2)
+            ->where('group.upcoming_activities.0.id', $scheduledActivity->id)
+            ->where('group.upcoming_activities.0.can_view_overview', true)
+            ->where('group.upcoming_activities.0.secret_key', null)
+            ->where('group.upcoming_activities.1.id', $assignedActivity->id)
+            ->where('group.upcoming_activities.1.can_view_overview', false)
+            ->where('group.upcoming_activities.1.secret_key', null)
+            ->has('group.history_activities', 2)
+            ->where('group.history_activities.0.id', $completeActivity->id)
+            ->where('group.history_activities.0.can_view_overview', true)
+            ->where('group.history_activities.1.id', $cancelledActivity->id)
+            ->where('group.history_activities.1.can_view_overview', true)
         );
 });

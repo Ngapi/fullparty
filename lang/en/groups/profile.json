@@ -1,0 +1,62 @@
+{
+  "hero": {
+    "profile_image_alt": "{group} profile image",
+    "no_description": "This group has not added a public description yet."
+  },
+  "badges": {
+    "public": "Public group",
+    "private": "Invite only"
+  },
+  "actions": {
+    "back": "Back",
+    "join": "Join Group",
+    "sign_in_to_join": "Sign In To Join",
+    "follow": "Follow For Notifications",
+    "sign_in_to_follow": "Sign In To Follow",
+    "unfollow": "Unfollow",
+    "leave": "Leave Group",
+    "mute_notifications": "Mute Notifications",
+    "unmute_notifications": "Unmute Notifications",
+    "open_dashboard": "Open Dashboard",
+    "open_discord": "Open Discord"
+  },
+  "snapshot": {
+    "members": "Members",
+    "active_runs": "Active Runs",
+    "staff": "Staff"
+  },
+  "activity": {
+    "current_title": "Group Activity",
+    "current_subtitle": "Public runs this group is preparing, recruiting for, or running now.",
+    "recent_title": "Recent Updates",
+    "recent_subtitle": "The latest public movement from this group.",
+    "count": "{count} shown",
+    "applications": "Applications",
+    "guests": "Guests welcome",
+    "updated": "Updated {time}",
+    "unknown_update": "Update time unavailable",
+    "just_now": "just now",
+    "empty_current_title": "No public runs are active right now",
+    "empty_current_description": "When this group schedules public runs, they will show up here with organizer and roster context.",
+    "empty_recent": "No public activity updates are available yet."
+  },
+  "staff": {
+    "title": "Staff Members",
+    "subtitle": "The people responsible for keeping the group organized.",
+    "unknown": "Unknown staff member",
+    "joined_unknown": "Join date unavailable",
+    "empty": "No staff members are available to show."
+  },
+  "access": {
+    "title": "Group Access",
+    "subtitle": "How people can find and join this group.",
+    "public_title": "Open to join",
+    "public_description": "Anyone with a FullParty account can join this group.",
+    "private_title": "Invite based",
+    "private_description": "New members need an invite from the group staff.",
+    "visible_title": "Discoverable",
+    "visible_description": "This group can appear in public discovery and search.",
+    "hidden_title": "Not discoverable",
+    "hidden_description": "This group does not appear in public discovery."
+  }
+}

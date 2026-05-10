@@ -83,6 +83,7 @@ const upcomingCount = computed(() => {
 				class="w-full xl:w-2/3"
 				:activities="activities"
 				:selected-date-key="selectedDateKey"
+				:can-manage-activities="group.permissions.can_manage_activities"
 				@update-selected-date-key="selectedDateKey = $event"
 			/>
 		</div>

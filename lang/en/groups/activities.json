@@ -34,6 +34,13 @@
         "day_count": "{count} items",
         "more": "+{count} more"
     },
+    "context_menu": {
+        "copy_discord_timestamp": "Copy Discord Timestamp",
+        "copy_discord_timestamp_success_title": "Discord timestamp copied",
+        "copy_discord_timestamp_success_description": "The run start time is ready to paste in Discord.",
+        "copy_discord_timestamp_error_title": "Unable to copy timestamp",
+        "copy_discord_timestamp_error_description": "Please try copying the run time again."
+    },
     "legend": {
         "title": "Status Legend"
     },

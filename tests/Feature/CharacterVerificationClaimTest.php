@@ -8,8 +8,8 @@ use App\Models\ActivityTypeVersion;
 use App\Models\Character;
 use App\Models\Group;
 use App\Models\NotificationEvent;
-use App\Models\UserNotification;
 use App\Models\User;
+use App\Models\UserNotification;
 use App\Services\FFLogs\ForkedTowerBloodProgressFetcher;
 use App\Services\Lodestone\LodestoneScraper;
 use App\Support\Notifications\NotificationCategory;
@@ -50,7 +50,7 @@ function createCharacterClaimActivity(): Activity
         'activity_type_id' => $type->id,
         'activity_type_version_id' => $version->id,
         'organized_by_user_id' => $owner->id,
-        'status' => Activity::STATUS_PLANNED,
+        'status' => Activity::STATUS_SCHEDULED,
         'needs_application' => true,
         'allow_guest_applications' => true,
         'is_public' => true,

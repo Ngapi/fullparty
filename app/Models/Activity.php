@@ -44,6 +44,11 @@ class Activity extends Model
         self::STATUS_CANCELLED,
     ];
 
+    public const MODERATOR_ONLY_STATUSES = [
+        self::STATUS_DRAFT,
+        self::STATUS_PLANNED,
+    ];
+
     public const APPLICATION_OPEN_STATUSES = [
         self::STATUS_PLANNED,
         self::STATUS_SCHEDULED,
@@ -163,6 +168,11 @@ class Activity extends Model
     public static function isArchivedStatus(?string $status): bool
     {
         return in_array($status, self::ARCHIVED_STATUSES, true);
+    }
+
+    public static function isModeratorOnlyStatus(?string $status): bool
+    {
+        return in_array($status, self::MODERATOR_ONLY_STATUSES, true);
     }
 
     public function acceptsApplications(): bool

@@ -7,6 +7,7 @@ import type { ActivityIndexItem } from "@/Types/ActivityCore";
 const props = defineProps<{
 	activities: ActivityIndexItem[]
 	selectedDateKey?: string | null
+	canManageActivities?: boolean
 }>();
 
 const emit = defineEmits<{
@@ -160,6 +161,7 @@ const selectDay = (dayKey: string) => {
 					:key="day.key"
 					:day="day"
 					:is-selected="selectedDateKey === day.key"
+					:can-manage-activities="canManageActivities"
 					@select="selectDay"
 				/>
 			</div>

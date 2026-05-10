@@ -1,0 +1,6 @@
+{
+  "toasts": {
+    "muted": "Group notifications muted.",
+    "unmuted": "Group notifications enabled."
+  }
+}

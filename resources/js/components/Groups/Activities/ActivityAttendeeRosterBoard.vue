@@ -67,7 +67,8 @@ const openMainSlotCount = computed(() => (
 ));
 
 const boardGridStyle = computed(() => ({
-	gridTemplateColumns: `repeat(${Math.max(mainSlotGroups.value.length, 1)}, minmax(13rem, 1fr))`,
+	gridTemplateColumns: `repeat(${Math.max(mainSlotGroups.value.length, 1)}, minmax(13rem, 24rem))`,
+	minWidth: `calc(${Math.max(mainSlotGroups.value.length, 1)} * 13rem + ${Math.max(mainSlotGroups.value.length - 1, 0)} * 0.25rem)`,
 }));
 </script>
 
@@ -99,8 +100,8 @@ const boardGridStyle = computed(() => ({
 		</div>
 
 		<div v-if="mainSlotGroups.length > 0" class="overflow-x-auto px-4 py-4">
-			<div class="min-w-max w-full">
-				<div class="grid gap-1" :style="boardGridStyle">
+			<div class="w-full">
+				<div class="grid justify-evenly gap-1" :style="boardGridStyle">
 					<div
 						v-for="group in mainSlotGroups"
 						:key="`${group.key}-header`"

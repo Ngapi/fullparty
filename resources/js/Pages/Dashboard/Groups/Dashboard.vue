@@ -9,6 +9,7 @@ import PageHeader from "@/components/PageHeader.vue";
 import { localizedValue } from "@/utils/localizedValue";
 import { getActivityStatusMeta } from "@/utils/activityStatusMeta";
 import { canAcceptActivityApplications } from "@/utils/activityLifecycle";
+import { useGroupNotificationToast } from "@/composables/useGroupNotificationToast";
 
 const props = defineProps<{
 	group: GroupDashboardGroup
@@ -16,6 +17,7 @@ const props = defineProps<{
 
 const { t, locale } = useI18n();
 const page = usePage();
+const { showGroupNotificationsToast } = useGroupNotificationToast();
 
 const fallbackLocale = computed(() => String(page.props.locale?.fallback ?? "en"));
 const leadershipCount = computed(() => props.group.member_role_breakdown.owner + props.group.member_role_breakdown.moderator);
@@ -153,6 +155,45 @@ const goToActivityBoard = (activityId: number) => {
 		group: props.group.slug,
 		activity: activityId,
 	}));
+};
+
+const goToActivityOverview = (activity: GroupDashboardActivity) => {
+	if (!activity.can_view_overview) {
+		return;
+	}
+
+	router.get(route("groups.activities.overview", {
+		group: props.group.slug,
+		activity: activity.id,
+		secretKey: activity.is_public ? undefined : activity.secret_key || undefined,
+	}));
+};
+
+const setGroupNotifications = (enabled: boolean) => {
+	if (!props.group.permissions.can_toggle_notifications) {
+		return;
+	}
+
+	router.patch(route("groups.follow-notifications.update", props.group.slug), {
+		enabled,
+	}, {
+		preserveScroll: true,
+		onSuccess: () => {
+			showGroupNotificationsToast(enabled);
+		},
+	});
+};
+
+const leaveGroup = () => {
+	if (!props.group.permissions.can_leave) {
+		return;
+	}
+
+	router.post(route("groups.leave", props.group.slug), {
+		redirect_to: props.group.is_visible ? "profile" : "groups",
+	}, {
+		preserveScroll: true,
+	});
 };
 
 const openDiscordInvite = () => {
@@ -322,6 +363,24 @@ const resolveActivityOrganizer = (activity: GroupDashboardActivity) => (
 											:label="t('groups.dashboard.actions.open_discord')"
 											@click="openDiscordInvite"
 										/>
+										<UButton
+											v-if="group.permissions.can_toggle_notifications"
+											color="neutral"
+											variant="ghost"
+											:icon="group.follow.notifications_enabled ? 'i-lucide-bell-off' : 'i-lucide-bell'"
+											:label="group.follow.notifications_enabled
+												? t('groups.dashboard.actions.mute_notifications')
+												: t('groups.dashboard.actions.unmute_notifications')"
+											@click="setGroupNotifications(!group.follow.notifications_enabled)"
+										/>
+										<UButton
+											v-if="group.permissions.can_leave"
+											color="error"
+											variant="ghost"
+											icon="i-lucide-log-out"
+											:label="t('groups.dashboard.actions.leave_group')"
+											@click="leaveGroup"
+										/>
 									</div>
 								</div>
 							</div>
@@ -410,120 +469,218 @@ const resolveActivityOrganizer = (activity: GroupDashboardActivity) => (
 			</section>
 
 			<div class="grid gap-6 xl:grid-cols-[1.35fr_0.65fr]">
-				<UCard class="overflow-hidden border-default">
-					<div class="flex items-start justify-between gap-4 border-b border-default px-5 py-4">
-						<div>
-							<p class="font-semibold text-md text-toned">{{ t("groups.dashboard.recent_runs.title") }}</p>
-							<p class="mt-1 text-sm text-muted">{{ t("groups.dashboard.recent_runs.subtitle") }}</p>
+				<div class="flex flex-col gap-6">
+					<UCard class="overflow-hidden border-default">
+						<div class="flex items-center justify-between gap-4 border-b border-default px-5 py-4">
+							<p class="font-semibold text-md text-toned">{{ t("groups.dashboard.upcoming_runs.title") }}</p>
+
+							<UButton
+								color="neutral"
+								variant="ghost"
+								icon="i-lucide-arrow-right"
+								:label="t('groups.dashboard.actions.view_runs')"
+								@click="goToActivitiesPage"
+							/>
 						</div>
 
-						<UButton
-							color="neutral"
-							variant="ghost"
-							icon="i-lucide-arrow-right"
-							:label="t('groups.dashboard.actions.view_runs')"
-							@click="goToActivitiesPage"
-						/>
-					</div>
-
-					<div v-if="group.recent_activities.length > 0" class="divide-y divide-default">
-						<div
-							v-for="activity in group.recent_activities"
-							:key="activity.id"
-							class="grid gap-4 px-5 py-4 lg:grid-cols-[minmax(0,1fr)_220px]"
-						>
-							<div class="min-w-0">
-								<div class="flex flex-wrap items-center gap-2">
-									<p class="truncate font-semibold text-toned">{{ resolveActivityTitle(activity) }}</p>
-									<UBadge
-										:label="t(`groups.activities.statuses.${activity.status}`)"
-										:color="getActivityStatusMeta(activity.status).color"
-										:icon="getActivityStatusMeta(activity.status).icon"
-										variant="subtle"
-									/>
-									<UBadge
-										v-if="activity.needs_application && canAcceptActivityApplications(activity.status)"
-										:label="t('groups.dashboard.recent_runs.accepting_applications')"
-										color="primary"
-										variant="soft"
-									/>
-								</div>
-
-								<p class="mt-2 text-sm text-muted">
-									{{ resolveActivityTypeName(activity) }}
-								</p>
-
-								<div class="mt-3 flex flex-wrap items-center gap-3 text-sm text-muted">
-									<div class="flex items-center gap-2">
-										<UIcon name="i-lucide-user-round" class="text-base" />
-										<span>{{ resolveActivityOrganizer(activity) }}</span>
+						<div v-if="group.upcoming_activities.length > 0" class="divide-y divide-default">
+							<div
+								v-for="activity in group.upcoming_activities"
+								:key="activity.id"
+								class="grid gap-4 px-5 py-4 lg:grid-cols-[minmax(0,1fr)_220px]"
+							>
+								<div class="min-w-0">
+									<div class="flex flex-wrap items-center gap-2">
+										<p class="truncate font-semibold text-toned">{{ resolveActivityTitle(activity) }}</p>
+										<UBadge
+											:label="t(`groups.activities.statuses.${activity.status}`)"
+											:color="getActivityStatusMeta(activity.status).color"
+											:icon="getActivityStatusMeta(activity.status).icon"
+											variant="subtle"
+										/>
+										<UBadge
+											v-if="activity.needs_application && canAcceptActivityApplications(activity.status)"
+											:label="t('groups.dashboard.upcoming_runs.accepting_applications')"
+											color="primary"
+											variant="soft"
+										/>
 									</div>
-									<div class="flex items-center gap-2">
-										<UIcon name="i-lucide-calendar-clock" class="text-base" />
-										<span>{{ formatDateTime(activity.starts_at, t("groups.activities.cards.no_time")) }}</span>
-									</div>
-									<div class="flex items-center gap-2">
-										<UIcon name="i-lucide-users-round" class="text-base" />
-										<span>{{ t("groups.activities.cards.slots", { count: activity.slot_count }) }}</span>
-									</div>
-									<div class="flex items-center gap-2">
-										<UIcon name="i-lucide-file-text" class="text-base" />
-										<span>{{ t("groups.activities.cards.applications", { count: activity.application_count }) }}</span>
+
+									<p class="mt-2 text-sm text-muted">
+										{{ resolveActivityTypeName(activity) }}
+									</p>
+
+									<div class="mt-3 flex flex-wrap items-center gap-3 text-sm text-muted">
+										<div class="flex items-center gap-2">
+											<UIcon name="i-lucide-user-round" class="text-base" />
+											<span>{{ resolveActivityOrganizer(activity) }}</span>
+										</div>
+										<div class="flex items-center gap-2">
+											<UIcon name="i-lucide-calendar-clock" class="text-base" />
+											<span>{{ formatDateTime(activity.starts_at, t("groups.activities.cards.no_time")) }}</span>
+										</div>
+										<div class="flex items-center gap-2">
+											<UIcon name="i-lucide-users-round" class="text-base" />
+											<span>{{ t("groups.activities.cards.slots", { count: activity.slot_count }) }}</span>
+										</div>
+										<div class="flex items-center gap-2">
+											<UIcon name="i-lucide-file-text" class="text-base" />
+											<span>{{ t("groups.activities.cards.applications", { count: activity.application_count }) }}</span>
+										</div>
 									</div>
 								</div>
-							</div>
 
-							<div class="flex flex-col items-start justify-between gap-3 lg:items-end">
-								<div class="flex flex-wrap gap-2 lg:justify-end">
-									<UBadge
-										:label="activity.is_public
-											? t('groups.dashboard.recent_runs.public')
-											: t('groups.dashboard.recent_runs.private')"
+								<div class="flex flex-col items-start justify-between gap-3 lg:items-end">
+									<div class="flex flex-wrap gap-2 lg:justify-end">
+										<UBadge
+											:label="activity.is_public
+												? t('groups.dashboard.upcoming_runs.public')
+												: t('groups.dashboard.upcoming_runs.private')"
+											color="neutral"
+											variant="subtle"
+										/>
+										<UBadge
+											v-if="activity.allow_guest_applications"
+											:label="t('groups.dashboard.upcoming_runs.guest_welcome')"
+											color="success"
+											variant="subtle"
+										/>
+									</div>
+
+									<div class="text-sm text-muted lg:text-right">
+										<p>{{ t("groups.dashboard.upcoming_runs.starts", {
+											time: formatRelativeTime(activity.starts_at, t("groups.dashboard.labels.not_available")),
+										}) }}</p>
+										<p class="mt-1">{{ formatDateTime(activity.starts_at, t("groups.dashboard.labels.not_available")) }}</p>
+									</div>
+
+									<UButton
+										v-if="activity.can_view_overview"
 										color="neutral"
-										variant="subtle"
+										variant="outline"
+										icon="i-lucide-eye"
+										:label="t('groups.dashboard.upcoming_runs.view_overview')"
+										@click="goToActivityOverview(activity)"
 									/>
-									<UBadge
-										v-if="activity.allow_guest_applications"
-										:label="t('groups.dashboard.recent_runs.guest_welcome')"
-										color="success"
-										variant="subtle"
+
+									<UButton
+										v-if="group.permissions.can_manage_activities"
+										color="neutral"
+										variant="outline"
+										icon="i-lucide-arrow-up-right"
+										:label="t('groups.dashboard.upcoming_runs.open_board')"
+										@click="goToActivityBoard(activity.id)"
 									/>
 								</div>
-
-								<div class="text-sm text-muted lg:text-right">
-									<p>{{ t("groups.dashboard.recent_runs.updated", {
-										time: formatRelativeTime(activity.updated_at, t("groups.dashboard.labels.not_available")),
-									}) }}</p>
-									<p class="mt-1">{{ formatDateTime(activity.updated_at, t("groups.dashboard.labels.not_available")) }}</p>
-								</div>
-
-								<UButton
-									v-if="group.permissions.can_manage_activities"
-									color="neutral"
-									variant="outline"
-									icon="i-lucide-arrow-up-right"
-									:label="t('groups.dashboard.recent_runs.open_board')"
-									@click="goToActivityBoard(activity.id)"
-								/>
 							</div>
 						</div>
-					</div>
 
-					<div v-else class="flex flex-col items-center justify-center gap-3 px-6 py-12 text-center">
-						<div class="flex h-14 w-14 items-center justify-center border border-default bg-muted/15">
-							<UIcon name="i-lucide-calendar-range" class="text-2xl text-muted" />
+						<div v-else class="flex flex-col items-center justify-center gap-3 px-6 py-12 text-center">
+							<div class="flex h-14 w-14 items-center justify-center border border-default bg-muted/15">
+								<UIcon name="i-lucide-calendar-range" class="text-2xl text-muted" />
+							</div>
+							<p class="font-semibold text-toned">{{ t("groups.dashboard.upcoming_runs.empty_title") }}</p>
+							<p class="max-w-md text-sm text-muted">{{ t("groups.dashboard.upcoming_runs.empty_description") }}</p>
 						</div>
-						<p class="font-semibold text-toned">{{ t("groups.dashboard.recent_runs.empty_title") }}</p>
-						<p class="max-w-md text-sm text-muted">{{ t("groups.dashboard.recent_runs.empty_description") }}</p>
-					</div>
-				</UCard>
+					</UCard>
+
+					<UCard class="overflow-hidden border-default">
+						<div class="flex items-center justify-between gap-4 border-b border-default px-5 py-4">
+							<p class="font-semibold text-md text-toned">{{ t("groups.dashboard.history_runs.title") }}</p>
+
+							<UBadge
+								color="neutral"
+								variant="subtle"
+								:label="t('groups.dashboard.history_runs.count', { count: group.history_activities.length })"
+							/>
+						</div>
+
+						<div v-if="group.history_activities.length > 0" class="divide-y divide-default">
+							<div
+								v-for="activity in group.history_activities"
+								:key="activity.id"
+								class="grid gap-4 px-5 py-4 lg:grid-cols-[minmax(0,1fr)_220px]"
+							>
+								<div class="min-w-0">
+									<div class="flex flex-wrap items-center gap-2">
+										<p class="truncate font-semibold text-toned">{{ resolveActivityTitle(activity) }}</p>
+										<UBadge
+											:label="t(`groups.activities.statuses.${activity.status}`)"
+											:color="getActivityStatusMeta(activity.status).color"
+											:icon="getActivityStatusMeta(activity.status).icon"
+											variant="subtle"
+										/>
+									</div>
+
+									<p class="mt-2 text-sm text-muted">
+										{{ resolveActivityTypeName(activity) }}
+									</p>
+
+									<div class="mt-3 flex flex-wrap items-center gap-3 text-sm text-muted">
+										<div class="flex items-center gap-2">
+											<UIcon name="i-lucide-user-round" class="text-base" />
+											<span>{{ resolveActivityOrganizer(activity) }}</span>
+										</div>
+										<div class="flex items-center gap-2">
+											<UIcon name="i-lucide-calendar-check" class="text-base" />
+											<span>{{ formatDateTime(activity.starts_at, t("groups.activities.cards.no_time")) }}</span>
+										</div>
+									</div>
+								</div>
+
+								<div class="flex flex-col items-start justify-between gap-3 lg:items-end">
+									<div class="flex flex-wrap gap-2 lg:justify-end">
+										<UBadge
+											:label="activity.is_public
+												? t('groups.dashboard.history_runs.public')
+												: t('groups.dashboard.history_runs.private')"
+											color="neutral"
+											variant="subtle"
+										/>
+									</div>
+
+									<div class="text-sm text-muted lg:text-right">
+										<p>{{ t("groups.dashboard.history_runs.ran", {
+											time: formatRelativeTime(activity.starts_at, t("groups.dashboard.labels.not_available")),
+										}) }}</p>
+										<p class="mt-1">{{ formatDateTime(activity.starts_at, t("groups.dashboard.labels.not_available")) }}</p>
+									</div>
+
+									<UButton
+										v-if="activity.can_view_overview"
+										color="neutral"
+										variant="outline"
+										icon="i-lucide-eye"
+										:label="t('groups.dashboard.history_runs.view_overview')"
+										@click="goToActivityOverview(activity)"
+									/>
+
+									<UButton
+										v-if="group.permissions.can_manage_activities"
+										color="neutral"
+										variant="outline"
+										icon="i-lucide-arrow-up-right"
+										:label="t('groups.dashboard.history_runs.open_board')"
+										@click="goToActivityBoard(activity.id)"
+									/>
+								</div>
+							</div>
+						</div>
+
+						<div v-else class="flex flex-col items-center justify-center gap-3 px-6 py-10 text-center">
+							<div class="flex h-12 w-12 items-center justify-center border border-default bg-muted/15">
+								<UIcon name="i-lucide-history" class="text-xl text-muted" />
+							</div>
+							<p class="font-semibold text-toned">{{ t("groups.dashboard.history_runs.empty_title") }}</p>
+						</div>
+					</UCard>
+				</div>
 
 				<div class="flex flex-col gap-6">
 					<UCard class="border-default">
 						<div class="flex items-start justify-between gap-4">
 							<div>
 								<p class="font-semibold text-md text-toned">{{ t("groups.dashboard.pipeline.title") }}</p>
-								<p class="mt-1 text-sm text-muted">{{ t("groups.dashboard.pipeline.subtitle") }}</p>
 							</div>
 
 							<UBadge

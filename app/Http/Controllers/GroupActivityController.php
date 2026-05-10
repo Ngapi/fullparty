@@ -146,7 +146,9 @@ class GroupActivityController extends Controller
         $canManageActivities = $group->hasModeratorAccess(auth()->id());
         $visibleActivities = $canManageActivities
             ? $group->activities
-            : $group->activities->where('is_public', true);
+            : $group->activities
+                ->where('is_public', true)
+                ->reject(fn (Activity $activity) => Activity::isModeratorOnlyStatus($activity->status));
 
         return Inertia::render('Dashboard/Groups/Activities/Index', [
             'group' => $this->buildDashboardGroupPayload($group, $canManageActivities),
