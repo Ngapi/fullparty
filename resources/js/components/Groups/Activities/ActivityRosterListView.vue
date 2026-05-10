@@ -4,7 +4,7 @@ import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 import { usePage } from "@inertiajs/vue3";
 import { localizedValue } from "@/utils/localizedValue";
-import { getQueueApplicationDragData, isQueueApplicationDrag } from "@/components/Groups/Activities/rosterDragData";
+import { getQueueApplicationDragData, isQueueApplicationDrag, setRosterSlotDragData } from "@/components/Groups/Activities/rosterDragData";
 import type { LocalizedText } from "@/Types/Common";
 import type { QueueApplication } from "@/Types/ActivityQueue";
 import type { ActivitySlot } from "@/Types/ActivityRoster";
@@ -53,6 +53,7 @@ const handleDragStart = (event: DragEvent, slot: ActivitySlot) => {
 	}
 
 	event.dataTransfer?.setData('text/plain', String(slot.id));
+	setRosterSlotDragData(event, slot);
 	if (event.dataTransfer) {
 		event.dataTransfer.effectAllowed = 'move';
 	}

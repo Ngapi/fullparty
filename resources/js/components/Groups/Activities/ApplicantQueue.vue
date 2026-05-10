@@ -302,7 +302,9 @@ const handleDrop = async (event: DragEvent) => {
 			group: props.groupSlug,
 			activity: props.activityId,
 			slot: droppedSlot.id,
-		}));
+		}), {
+			expected_slot_state_token: droppedSlot.state_token,
+		});
 
 		window.dispatchEvent(new CustomEvent('fullparty:activity-slot-returned-to-queue', {
 			detail: {
