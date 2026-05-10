@@ -1,11 +1,15 @@
 <script setup lang="ts">
+import axios from "axios";
 import { computed, ref } from "vue";
+import { route } from "ziggy-js";
+import { useToast } from "@nuxt/ui/composables";
 import { useI18n } from "vue-i18n";
+import ActivitySlotCompositionCustomModal from "@/components/Groups/Activities/ActivitySlotCompositionCustomModal.vue";
 import ActivityRosterPartyView from "@/components/Groups/Activities/ActivityRosterPartyView.vue";
 import ActivityRosterRoleView from "@/components/Groups/Activities/ActivityRosterRoleView.vue";
 import ActivityRosterListView from "@/components/Groups/Activities/ActivityRosterListView.vue";
 import type { QueueApplication } from "@/Types/ActivityQueue";
-import type { ActivitySlot } from "@/Types/ActivityRoster";
+import type { ActivityCompositionClassOption, ActivitySlot, ActivitySlotCompositionHintInput } from "@/Types/ActivityRoster";
 
 const props = defineProps<{
 	view: 'party' | 'role' | 'list'
@@ -15,6 +19,9 @@ const props = defineProps<{
 	canReturnToQueue?: boolean
 	canMarkMissing?: boolean
 	canCheckIn?: boolean
+	groupSlug: string
+	activityId: number
+	compositionClassOptions: ActivityCompositionClassOption[]
 }>();
 
 const emit = defineEmits<{
@@ -29,13 +36,23 @@ const emit = defineEmits<{
 	markSlotHost: [slotId: number]
 	markSlotRaidLeader: [slotId: number]
 	checkInGroup: [groupKey: string]
+	slotsUpdated: [slots: ActivitySlot[]]
 }>();
 
 const { t } = useI18n();
+const toast = useToast();
 const draggedSlotId = ref<number | null>(null);
 const dropTargetSlotId = ref<number | null>(null);
+const isCompositionHintPending = ref(false);
+const compositionHintModalOpen = ref(false);
+const compositionHintSlotId = ref<number | null>(null);
 const firstAvailableBenchSlotId = computed(() => (
 	props.slots.find((slot) => slot.is_bench && slot.assigned_character_id === null)?.id ?? null
+));
+const compositionHintSlot = computed(() => (
+	compositionHintSlotId.value === null
+		? null
+		: props.slots.find((slot) => slot.id === compositionHintSlotId.value) ?? null
 ));
 
 const currentViewComponent = computed(() => {
@@ -49,6 +66,15 @@ const currentViewComponent = computed(() => {
 
 	return ActivityRosterPartyView;
 });
+
+const currentViewProps = computed(() => (
+	props.view === 'party'
+		? {
+			groupSlug: props.groupSlug,
+			activityId: props.activityId,
+		}
+		: {}
+));
 
 const handleDragStart = (slotId: number) => {
 	draggedSlotId.value = slotId;
@@ -87,6 +113,49 @@ const handleDropSlot = (targetSlotId: number) => {
 
 	handleDragEnd();
 };
+
+const openCompositionHintModal = (slot: ActivitySlot) => {
+	compositionHintSlotId.value = slot.id;
+	compositionHintModalOpen.value = true;
+};
+
+const replaceSlotCompositionHints = async (payload: { slotId: number, compositionHints: ActivitySlotCompositionHintInput[] }) => {
+	if (isCompositionHintPending.value) {
+		return;
+	}
+
+	isCompositionHintPending.value = true;
+
+	try {
+		const response = await axios.post(route("groups.dashboard.activities.slot-composition-hints.update", {
+			group: props.groupSlug,
+			activity: props.activityId,
+			slot: payload.slotId,
+		}), {
+			composition_hints: payload.compositionHints,
+		});
+
+		const updatedSlots = Array.isArray(response.data?.slots)
+			? response.data.slots as ActivitySlot[]
+			: [];
+
+		if (updatedSlots.length > 0) {
+			emit("slotsUpdated", updatedSlots);
+		}
+
+		compositionHintModalOpen.value = false;
+		compositionHintSlotId.value = null;
+	} catch {
+		toast.add({
+			title: t("general.error"),
+			description: t("groups.activities.management.roster.composition_hint_update_failed"),
+			color: "error",
+			icon: "i-lucide-octagon-alert",
+		});
+	} finally {
+		isCompositionHintPending.value = false;
+	}
+};
 </script>
 
 <template>
@@ -101,12 +170,13 @@ const handleDropSlot = (targetSlotId: number) => {
 			:slots="slots"
 			:dragged-slot-id="draggedSlotId"
 			:drop-target-slot-id="dropTargetSlotId"
-			:is-swap-pending="isSwapPending"
+			:is-swap-pending="isSwapPending || isCompositionHintPending"
 			:pending-swap-slot-ids="pendingSwapSlotIds"
 			:can-return-to-queue="canReturnToQueue"
 			:can-move-to-bench="firstAvailableBenchSlotId !== null"
 			:can-mark-missing="canMarkMissing"
 			:can-check-in="canCheckIn"
+			v-bind="currentViewProps"
 			@drag-start="handleDragStart"
 			@drag-end="handleDragEnd"
 			@drag-enter="handleDragEnter"
@@ -122,6 +192,9 @@ const handleDropSlot = (targetSlotId: number) => {
 			@mark-slot-host="emit('markSlotHost', $event)"
 			@mark-slot-raid-leader="emit('markSlotRaidLeader', $event)"
 			@check-in-group="emit('checkInGroup', $event)"
+			@slots-updated="emit('slotsUpdated', $event)"
+			@replace-composition-hints="replaceSlotCompositionHints"
+			@customize-composition-hints="openCompositionHintModal"
 		/>
 
 		<div
@@ -130,5 +203,13 @@ const handleDropSlot = (targetSlotId: number) => {
 		>
 			{{ t('groups.activities.management.roster.empty') }}
 		</div>
+
+		<ActivitySlotCompositionCustomModal
+			v-model:open="compositionHintModalOpen"
+			:slot="compositionHintSlot"
+			:class-options="compositionClassOptions"
+			:is-submitting="isCompositionHintPending"
+			@save="replaceSlotCompositionHints"
+		/>
 	</section>
 </template>

@@ -5,6 +5,7 @@ namespace Database\Factories;
 use App\Models\ActivityType;
 use App\Models\ActivityTypeVersion;
 use App\Models\User;
+use App\Support\ActivityCompositionPresets;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Str;
 
@@ -36,6 +37,8 @@ class ActivityTypeFactory extends Factory
                         'key' => 'party-a',
                         'label' => ['en' => 'Party A'],
                         'size' => 8,
+                        'composition_hint_key' => 'tthhdddd',
+                        'composition_hints' => ActivityCompositionPresets::compositionHintsForKey('tthhdddd'),
                     ],
                 ],
             ],

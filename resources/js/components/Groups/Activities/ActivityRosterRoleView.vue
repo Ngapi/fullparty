@@ -3,7 +3,8 @@ import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 import ActivityRosterSlotCard from "@/components/Groups/Activities/ActivityRosterSlotCard.vue";
 import type { QueueApplication } from "@/Types/ActivityQueue";
-import type { ActivitySlot } from "@/Types/ActivityRoster";
+import type { ActivitySlot, ActivitySlotCompositionHintInput } from "@/Types/ActivityRoster";
+import { primaryCompositionHintRole } from "@/utils/activityCompositionHints";
 
 const props = defineProps<{
 	slots: ActivitySlot[]
@@ -32,11 +33,19 @@ const emit = defineEmits<{
 	markSlotLate: [slotId: number]
 	markSlotHost: [slotId: number]
 	markSlotRaidLeader: [slotId: number]
+	replaceCompositionHints: [payload: { slotId: number, compositionHints: ActivitySlotCompositionHintInput[] }]
+	customizeCompositionHints: [slot: ActivitySlot]
 }>();
 
 const { t } = useI18n();
 
 const inferRoleKey = (slot: ActivitySlot) => {
+	const hintedRole = primaryCompositionHintRole(slot);
+
+	if (hintedRole) {
+		return hintedRole;
+	}
+
 	const normalized = `${slot.slot_key} ${JSON.stringify(slot.slot_label ?? {})}`.toLowerCase();
 
 	if (normalized.includes('tank')) {
@@ -173,6 +182,8 @@ const roleGroups = computed(() => {
 					@mark-slot-late="emit('markSlotLate', $event)"
 					@mark-slot-host="emit('markSlotHost', $event)"
 					@mark-slot-raid-leader="emit('markSlotRaidLeader', $event)"
+					@replace-composition-hints="emit('replaceCompositionHints', $event)"
+					@customize-composition-hints="emit('customizeCompositionHints', $event)"
 				/>
 			</div>
 		</section>

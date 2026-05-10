@@ -1,7 +1,7 @@
 import type { LocalizedText } from "@/Types/Common"
 import type { ActivityProgressPoint } from "@/Types/ActivityCore"
 import type { QueueFilterField } from "@/Types/ActivityQueue"
-import type { ActivityMissingAssignment, ActivityRosterSummaryPreset, ActivitySlot } from "@/Types/ActivityRoster"
+import type { ActivityCompositionClassOption, ActivityMissingAssignment, ActivityRosterSummaryPreset, ActivitySlot, ActivitySlotCompositionHint } from "@/Types/ActivityRoster"
 
 export type ActivityProgressMilestone = {
 	id: number
@@ -90,6 +90,7 @@ export type ActivityDetails = {
 	prog_points: ActivityProgressPoint[]
 	roster_summary_presets: ActivityRosterSummaryPreset[]
 	slot_field_definitions: QueueFilterField[]
+	composition_class_options: ActivityCompositionClassOption[]
 	slots: ActivitySlot[]
 	missing_assignments: ActivityMissingAssignment[]
 	progress_milestones: ActivityManagementProgressMilestone[]
@@ -97,6 +98,10 @@ export type ActivityDetails = {
 
 export type ActivityManagementPatch = {
 	updated_slots?: ActivitySlot[]
+	updated_slot_composition_hints?: Array<{
+		slot_id: number
+		composition_hints: ActivitySlotCompositionHint[]
+	}>
 	pending_application_count?: number
 	queue_application_sync_ids?: number[]
 	queue_application_remove_ids?: number[]

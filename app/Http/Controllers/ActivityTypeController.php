@@ -9,6 +9,7 @@ use App\Models\CharacterClass;
 use App\Models\PhantomJob;
 use App\Services\AuditLogger;
 use App\Services\ManagedImageStorage;
+use App\Support\ActivityCompositionPresets;
 use App\Support\Audit\AuditScope;
 use App\Support\Audit\AuditSeverity;
 use Illuminate\Contracts\Validation\ValidationRule;
@@ -344,6 +345,11 @@ class ActivityTypeController extends Controller
             }
 
             $this->assertLocalizedValue($group['label'] ?? null, "draft_layout_schema.groups.$index.label");
+            $this->validateCompositionHints(
+                $group['composition_hints'] ?? null,
+                (int) $group['size'],
+                "draft_layout_schema.groups.$index.composition_hints",
+            );
         }
 
         $this->validateSchemaFields($slotSchema, 'draft_slot_schema');
@@ -361,6 +367,94 @@ class ActivityTypeController extends Controller
         $this->validateProgPoints($progPoints, 'draft_prog_points');
         $this->validateTags($tags, 'tags');
         $this->validateDiscoveryMetadata($difficulty, $defaultMinItemLevel);
+    }
+
+    private function validateCompositionHints(mixed $hints, int $groupSize, string $attribute): void
+    {
+        if ($hints === null) {
+            return;
+        }
+
+        if (! is_array($hints)) {
+            throw ValidationException::withMessages([
+                $attribute => 'Composition hints must be an array.',
+            ]);
+        }
+
+        $positions = [];
+
+        foreach ($hints as $index => $hint) {
+            if (! is_array($hint)) {
+                throw ValidationException::withMessages([
+                    "$attribute.$index" => 'Each composition hint must be an object.',
+                ]);
+            }
+
+            $position = $hint['position'] ?? null;
+
+            if (! is_numeric($position) || (int) $position < 1 || (int) $position > $groupSize) {
+                throw ValidationException::withMessages([
+                    "$attribute.$index.position" => 'Composition hint positions must point to an existing slot.',
+                ]);
+            }
+
+            $position = (int) $position;
+
+            if (in_array($position, $positions, true)) {
+                throw ValidationException::withMessages([
+                    "$attribute.$index.position" => 'Each slot position can only have one composition hint object.',
+                ]);
+            }
+
+            $positions[] = $position;
+
+            if (! isset($hint['accepts']) || ! is_array($hint['accepts']) || $hint['accepts'] === []) {
+                throw ValidationException::withMessages([
+                    "$attribute.$index.accepts" => 'Each composition hint requires at least one accepted role or class.',
+                ]);
+            }
+
+            $acceptKeys = [];
+
+            foreach ($hint['accepts'] as $acceptIndex => $accept) {
+                if (! is_array($accept)) {
+                    throw ValidationException::withMessages([
+                        "$attribute.$index.accepts.$acceptIndex" => 'Each accepted composition value must be an object.',
+                    ]);
+                }
+
+                $type = (string) ($accept['type'] ?? '');
+                $key = (string) ($accept['key'] ?? '');
+
+                if (! in_array($type, ['role', 'class'], true)) {
+                    throw ValidationException::withMessages([
+                        "$attribute.$index.accepts.$acceptIndex.type" => 'Composition hint types must be role or class.',
+                    ]);
+                }
+
+                if (blank($key) || mb_strlen($key) > 50) {
+                    throw ValidationException::withMessages([
+                        "$attribute.$index.accepts.$acceptIndex.key" => 'Composition hint keys are required and must stay short.',
+                    ]);
+                }
+
+                if ($type === 'role' && ! in_array($key, ActivityCompositionPresets::validRoleKeys(), true)) {
+                    throw ValidationException::withMessages([
+                        "$attribute.$index.accepts.$acceptIndex.key" => 'Unsupported composition role key.',
+                    ]);
+                }
+
+                $acceptKey = "{$type}:{$key}";
+
+                if (in_array($acceptKey, $acceptKeys, true)) {
+                    throw ValidationException::withMessages([
+                        "$attribute.$index.accepts.$acceptIndex.key" => 'Accepted composition values must be unique per slot.',
+                    ]);
+                }
+
+                $acceptKeys[] = $acceptKey;
+            }
+        }
     }
 
     private function validateDiscoveryMetadata(mixed $difficulty, mixed $defaultMinItemLevel): void
@@ -837,7 +931,7 @@ class ActivityTypeController extends Controller
     }
 
     /**
-     * @return array<string, array<int, string>>
+     * @return array<string, mixed>
      */
     private function schemaReference(): array
     {
@@ -871,6 +965,8 @@ class ActivityTypeController extends Controller
                 'slot_group_set',
             ],
             'activityDifficulties' => ActivityType::DIFFICULTIES,
+            'layoutPresets' => ActivityCompositionPresets::layoutPresets(),
+            'compositionPresets' => ActivityCompositionPresets::compositionPresets(),
             'rosterSummarySourceOptions' => [
                 'character_classes' => CharacterClass::query()
                     ->orderBy('role')

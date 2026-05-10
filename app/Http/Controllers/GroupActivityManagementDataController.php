@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Activity;
 use App\Models\ActivityApplication;
 use App\Models\ActivitySlotAssignment;
+use App\Models\CharacterClass;
 use App\Models\Group;
 use App\Services\Groups\ActivityBenchSlotBackfillService;
 use App\Services\Groups\ActivityCompletionService;
@@ -37,6 +38,7 @@ class GroupActivityManagementDataController extends Controller
             'activityTypeVersion',
             'slots.assignedCharacter',
             'slots.assignments',
+            'slots.compositionHints.characterClass',
             'slots.fieldValues',
             'progressMilestones',
             'applications',
@@ -46,7 +48,7 @@ class GroupActivityManagementDataController extends Controller
 
         $benchSlotBackfillService->ensureBenchSlots($activity);
         $attendanceService->ensureActiveAssignments($activity);
-        $activity->load(['slots.assignments', 'slotAssignments.character', 'slotAssignments.slot']);
+        $activity->load(['slots.assignments', 'slots.compositionHints.characterClass', 'slotAssignments.character', 'slotAssignments.slot']);
 
         $mainSlots = $activity->slots->filter(fn ($slot) => ! $slotBench->isBench($slot))->values();
         $benchSlots = $activity->slots->filter(fn ($slot) => $slotBench->isBench($slot))->values();
@@ -117,6 +119,20 @@ class GroupActivityManagementDataController extends Controller
                 'roster_summary_presets' => $rosterSummaryPresetBuilder->build($activity->activityTypeVersion),
                 'can_use_fflogs_completion' => $completionService->supportsFflogsCompletion($activity->activityTypeVersion),
                 'slot_field_definitions' => $fieldDefinitionBuilder->build($activity->activityTypeVersion),
+                'composition_class_options' => CharacterClass::query()
+                    ->orderBy('role')
+                    ->orderBy('name')
+                    ->get()
+                    ->map(fn (CharacterClass $characterClass) => [
+                        'id' => $characterClass->id,
+                        'name' => $characterClass->name,
+                        'shorthand' => $characterClass->shorthand,
+                        'role' => $characterClass->role,
+                        'icon_url' => $characterClass->icon_url,
+                        'flaticon_url' => $characterClass->flaticon_url,
+                    ])
+                    ->values()
+                    ->all(),
                 'slots' => $activity->slots->map(fn ($slot) => $slotSerializer->serialize($slot))->values(),
                 'missing_assignments' => $activity->slotAssignments
                     ->where('attendance_status', ActivitySlotAssignment::STATUS_MISSING)

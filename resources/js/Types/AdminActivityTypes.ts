@@ -9,6 +9,32 @@ export type ActivityTypeLayoutGroup = {
 	key: string
 	label: LocalizedStringRecord
 	size: number
+	composition_hint_key?: string | null
+	composition_hints?: ActivityTypeCompositionHint[]
+}
+
+export type ActivityTypeCompositionAccept = {
+	type: "role" | "class"
+	key: string
+}
+
+export type ActivityTypeCompositionHint = {
+	position: number
+	accepts: ActivityTypeCompositionAccept[]
+}
+
+export type ActivityTypeLayoutPreset = {
+	key: string
+	party_count: number
+	party_size: number
+	total_slots: number
+}
+
+export type ActivityTypeCompositionPreset = {
+	key: string
+	party_size: number
+	shorthand: string
+	composition_hints: ActivityTypeCompositionHint[]
 }
 
 export type ActivityTypeRosterSummaryRequirement = {

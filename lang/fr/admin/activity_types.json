@@ -84,7 +84,31 @@
     "group_size": "Group Size",
     "group_label": "Localized Group Label",
     "group_label_help": "This label will be shown in the activity UI.",
-    "group_label_placeholder": "Party 1"
+    "group_label_placeholder": "Party 1",
+    "layout_preset": "Party Layout",
+    "layout_preset_help": "Choose the generated party structure. Slots are still created the same way behind the scenes.",
+    "composition_preset": "Default Composition Hint",
+    "composition_preset_help": "Choose the advisory per-slot hint copied onto each generated party.",
+    "party_label": "Party",
+    "slots_per_party": "{count} slots",
+    "presets": {
+      "light_party_4": "4-Man",
+      "full_party_8": "8-Man",
+      "alliance_24": "24-Man",
+      "large_scale_48": "48-Man"
+    },
+    "composition_presets": {
+      "thdd": "THDD",
+      "tddd": "TDDD",
+      "hddd": "HDDD",
+      "dddd": "DDDD",
+      "tthhdddd": "TTHHDDDD",
+      "tthddddd": "TTHDDDDD",
+      "thdddddd": "THDDDDDD",
+      "hhdddddd": "HHDDDDDD",
+      "ttdddddd": "TTDDDDDD",
+      "ttttdddd": "TTTTDDDD"
+    }
   },
   "slot_fields": {
     "title": "Slot Fields",

@@ -42,6 +42,22 @@ class ActivitySlotSerializer
             'attendance_status' => $attendanceAssignment?->attendance_status ?? ($slot->assigned_character_id ? 'assigned' : null),
             'checked_in_at' => $attendanceAssignment?->checked_in_at?->toIso8601String(),
             'state_token' => $this->slotStateTokenService->generate($slot),
+            'composition_hints' => $slot->compositionHints->map(fn ($hint) => [
+                'id' => $hint->id,
+                'type' => $hint->hint_type,
+                'key' => $hint->hint_key,
+                'role_key' => $hint->role_key,
+                'character_class_id' => $hint->character_class_id,
+                'sort_order' => $hint->sort_order,
+                'character_class' => $hint->characterClass ? [
+                    'id' => $hint->characterClass->id,
+                    'name' => $hint->characterClass->name,
+                    'shorthand' => $hint->characterClass->shorthand,
+                    'role' => $hint->characterClass->role,
+                    'icon_url' => $hint->characterClass->icon_url,
+                    'flaticon_url' => $hint->characterClass->flaticon_url,
+                ] : null,
+            ])->values(),
             'assigned_character' => $slot->assignedCharacter ? [
                 'id' => $slot->assignedCharacter->id,
                 'user_id' => $slot->assignedCharacter->user_id,

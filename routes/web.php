@@ -24,7 +24,9 @@ use App\Http\Controllers\GroupActivityRosterExportController;
 use App\Http\Controllers\GroupActivitySlotAssignmentContextController;
 use App\Http\Controllers\GroupActivitySlotAssignmentController;
 use App\Http\Controllers\GroupActivitySlotCheckInController;
+use App\Http\Controllers\GroupActivitySlotCompositionHintController;
 use App\Http\Controllers\GroupActivitySlotDesignationController;
+use App\Http\Controllers\GroupActivitySlotGroupCompositionPresetController;
 use App\Http\Controllers\GroupActivitySlotMissingController;
 use App\Http\Controllers\GroupActivitySlotSwapController;
 use App\Http\Controllers\GroupActivitySlotUnassignmentController;
@@ -323,6 +325,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
         // Designation and attendance.
         Route::post('/activities/{activity}/slots/{slot}/designation', [GroupActivitySlotDesignationController::class, 'store'])->name('groups.dashboard.activities.slot-designations.store');
+        Route::post('/activities/{activity}/slots/{slot}/composition-hints', [GroupActivitySlotCompositionHintController::class, 'update'])->name('groups.dashboard.activities.slot-composition-hints.update');
+        Route::post('/activities/{activity}/slot-groups/composition-preset', [GroupActivitySlotGroupCompositionPresetController::class, 'store'])->name('groups.dashboard.activities.slot-group-composition-presets.store');
+        Route::post('/activities/{activity}/slot-groups/composition-preset/apply-to-all', [GroupActivitySlotGroupCompositionPresetController::class, 'applyToAll'])->name('groups.dashboard.activities.slot-group-composition-presets.apply-to-all');
         Route::post('/activities/{activity}/slots/{slot}/check-in', [GroupActivitySlotCheckInController::class, 'store'])->name('groups.dashboard.activities.slot-checkins.store');
         Route::post('/activities/{activity}/slots/{slot}/mark-late', [GroupActivitySlotCheckInController::class, 'storeLate'])->name('groups.dashboard.activities.slot-checkins.late');
         Route::post('/activities/{activity}/slots/{slot}/undo-check-in', [GroupActivitySlotCheckInController::class, 'undo'])->name('groups.dashboard.activities.slot-checkins.undo');

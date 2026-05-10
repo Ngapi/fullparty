@@ -4,6 +4,7 @@ namespace Database\Factories;
 
 use App\Models\Activity;
 use App\Models\ActivitySlot;
+use App\Models\ActivitySlotCompositionHint;
 use App\Models\ActivitySlotFieldValue;
 use App\Models\ActivityType;
 use App\Models\ActivityTypeVersion;
@@ -208,6 +209,9 @@ class ActivityFactory extends Factory
             $groupKey = (string) ($groupDefinition['key'] ?? 'group');
             $groupLabel = is_array($groupDefinition['label'] ?? null) ? $groupDefinition['label'] : ['en' => $groupKey];
             $size = max(1, (int) ($groupDefinition['size'] ?? 1));
+            $compositionHintsByPosition = collect($groupDefinition['composition_hints'] ?? [])
+                ->filter(fn ($hint): bool => is_array($hint))
+                ->keyBy(fn (array $hint): int => (int) ($hint['position'] ?? 0));
 
             for ($position = 1; $position <= $size; $position++) {
                 $slot = $activity->slots()->create([
@@ -231,9 +235,49 @@ class ActivityFactory extends Factory
                     ]);
                 }
 
+                foreach ($compositionHintsByPosition->get($position)['accepts'] ?? [] as $hintIndex => $accept) {
+                    if (! is_array($accept)) {
+                        continue;
+                    }
+
+                    $type = (string) ($accept['type'] ?? '');
+                    $key = (string) ($accept['key'] ?? '');
+
+                    if ($key === '' || ! in_array($type, [ActivitySlotCompositionHint::TYPE_ROLE, ActivitySlotCompositionHint::TYPE_CLASS], true)) {
+                        continue;
+                    }
+
+                    $characterClass = $type === ActivitySlotCompositionHint::TYPE_CLASS
+                        ? CharacterClass::query()->where('shorthand', $key)->first()
+                        : null;
+
+                    $slot->compositionHints()->create([
+                        'hint_type' => $type,
+                        'hint_key' => $key,
+                        'role_key' => $type === ActivitySlotCompositionHint::TYPE_ROLE
+                            ? $key
+                            : $this->roleKeyForClass($characterClass),
+                        'character_class_id' => $characterClass?->id,
+                        'sort_order' => $hintIndex + 1,
+                    ]);
+                }
+
                 $sortOrder++;
             }
         }
+    }
+
+    private function roleKeyForClass(?CharacterClass $characterClass): ?string
+    {
+        if (! $characterClass) {
+            return null;
+        }
+
+        return match (strtolower($characterClass->role)) {
+            'tank' => 'tank',
+            'healer' => 'healer',
+            default => 'dps',
+        };
     }
 
     private function materializeProgressMilestones(Activity $activity): void

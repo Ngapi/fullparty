@@ -1,4 +1,9 @@
 <script setup lang="ts">
+import type {
+	ActivityTypeCompositionPreset,
+	ActivityTypeLayoutPreset,
+	ActivityTypeRosterSummarySourceOption,
+} from "@/Types/AdminActivityTypes";
 import ActivityTypeBuilderForm from "@/components/Admin/ActivityTypes/ActivityTypeBuilderForm.vue";
 import PageHeader from "@/components/PageHeader.vue";
 import { router, useForm } from "@inertiajs/vue3";
@@ -12,7 +17,9 @@ defineProps<{
 		rosterSummaryComparisonModes: string[]
 		rosterSummaryScopeTypes: string[]
 		activityDifficulties: string[]
-		rosterSummarySourceOptions: Record<string, Array<{ value: number, label: string }>>
+		layoutPresets: ActivityTypeLayoutPreset[]
+		compositionPresets: ActivityTypeCompositionPreset[]
+		rosterSummarySourceOptions: Record<string, ActivityTypeRosterSummarySourceOption[]>
 	}
 	existingTags: string[]
 }>();
@@ -35,14 +42,16 @@ const form = useForm({
 	draft_layout_schema: {
 		groups: [
 			{
-				key: 'party-1',
+				key: 'party-a',
 				label: {
-					en: 'Party 1',
+					en: 'Party A',
 					de: '',
 					fr: '',
 					ja: '',
 				},
 				size: 8,
+				composition_hint_key: null,
+				composition_hints: [],
 			},
 		],
 	},

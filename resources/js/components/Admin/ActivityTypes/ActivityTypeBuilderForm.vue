@@ -1,4 +1,9 @@
 <script setup lang="ts">
+import type {
+	ActivityTypeCompositionPreset,
+	ActivityTypeLayoutPreset,
+	ActivityTypeRosterSummarySourceOption,
+} from "@/Types/AdminActivityTypes";
 import ActivityProgressMilestonesEditor from "@/components/Admin/ActivityTypes/ActivityProgressMilestonesEditor.vue";
 import ActivityProgPointsEditor from "@/components/Admin/ActivityTypes/ActivityProgPointsEditor.vue";
 import ActivityLayoutGroupsEditor from "@/components/Admin/ActivityTypes/ActivityLayoutGroupsEditor.vue";
@@ -21,7 +26,9 @@ const props = defineProps<{
 		rosterSummaryComparisonModes: string[]
 		rosterSummaryScopeTypes: string[]
 		activityDifficulties: string[]
-		rosterSummarySourceOptions: Record<string, Array<{ value: number, label: string }>>
+		layoutPresets: ActivityTypeLayoutPreset[]
+		compositionPresets: ActivityTypeCompositionPreset[]
+		rosterSummarySourceOptions: Record<string, ActivityTypeRosterSummarySourceOption[]>
 	}
 	existingTags: string[]
 	submitLabel: string
@@ -327,6 +334,8 @@ const addCreatedTag = (rawTag: string) => {
 				<ActivityLayoutGroupsEditor
 					v-model="form.draft_layout_schema.groups"
 					:locales="locales"
+					:layout-presets="schemaReference.layoutPresets"
+					:composition-presets="schemaReference.compositionPresets"
 				/>
 
 				<ActivitySchemaFieldsEditor

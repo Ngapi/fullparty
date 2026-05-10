@@ -35,6 +35,21 @@ function createCrudActivityType(User $creator): ActivityType
                     'key' => 'party-a',
                     'label' => ['en' => 'Party A'],
                     'size' => 2,
+                    'composition_hint_key' => 'two-slot-test',
+                    'composition_hints' => [
+                        [
+                            'position' => 1,
+                            'accepts' => [
+                                ['type' => 'role', 'key' => 'tank'],
+                            ],
+                        ],
+                        [
+                            'position' => 2,
+                            'accepts' => [
+                                ['type' => 'role', 'key' => 'healer'],
+                            ],
+                        ],
+                    ],
                 ],
             ],
         ],
@@ -143,6 +158,8 @@ it('allows moderators to create private application activities with guest applic
     expect($activity->slots()->count())->toBe(3);
     expect($activity->slots()->where('group_key', 'bench')->count())->toBe(1);
     expect($activity->slots()->where('group_key', '!=', 'bench')->count())->toBe(2);
+    expect($activity->slots()->where('group_key', '!=', 'bench')->withCount('compositionHints')->get()->pluck('composition_hints_count')->all())
+        ->toBe([1, 1]);
     expect($activity->progressMilestones()->count())->toBe(2);
 
     $auditLog = AuditLog::query()->where('action', 'group.activity.created')->sole();

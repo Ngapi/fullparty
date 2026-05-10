@@ -1,4 +1,9 @@
 <script setup lang="ts">
+import type {
+	ActivityTypeCompositionPreset,
+	ActivityTypeLayoutPreset,
+	ActivityTypeRosterSummarySourceOption,
+} from "@/Types/AdminActivityTypes";
 import ActivityTypeBuilderForm from "@/components/Admin/ActivityTypes/ActivityTypeBuilderForm.vue";
 import PageHeader from "@/components/PageHeader.vue";
 import { router, useForm } from "@inertiajs/vue3";
@@ -13,7 +18,9 @@ const props = defineProps<{
 		rosterSummaryComparisonModes: string[]
 		rosterSummaryScopeTypes: string[]
 		activityDifficulties: string[]
-		rosterSummarySourceOptions: Record<string, Array<{ value: number, label: string }>>
+		layoutPresets: ActivityTypeLayoutPreset[]
+		compositionPresets: ActivityTypeCompositionPreset[]
+		rosterSummarySourceOptions: Record<string, ActivityTypeRosterSummarySourceOption[]>
 	}
 	existingTags: string[]
 }>();

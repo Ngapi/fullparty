@@ -35,6 +35,37 @@ export type ActivityApplicationFieldGroup = {
 	}>
 }
 
+export type ActivitySlotCompositionHint = {
+	id: number
+	type: "role" | "class"
+	key: string
+	role_key: "tank" | "healer" | "dps" | null
+	character_class_id: number | null
+	sort_order: number
+	character_class: {
+		id: number
+		name: string
+		shorthand: string
+		role: string
+		icon_url: string | null
+		flaticon_url: string | null
+	} | null
+}
+
+export type ActivitySlotCompositionHintInput = {
+	type: "role" | "class"
+	key: string
+}
+
+export type ActivityCompositionClassOption = {
+	id: number
+	name: string
+	shorthand: string
+	role: string
+	icon_url: string | null
+	flaticon_url: string | null
+}
+
 export type ActivitySlot = {
 	id: number
 	group_key: string
@@ -53,6 +84,7 @@ export type ActivitySlot = {
 	attendance_status: "assigned" | "checked_in" | "late" | null
 	checked_in_at: string | null
 	state_token: string
+	composition_hints: ActivitySlotCompositionHint[]
 	assigned_character: {
 		id: number
 		user_id: number | null

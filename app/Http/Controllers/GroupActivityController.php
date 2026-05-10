@@ -5,9 +5,12 @@ namespace App\Http\Controllers;
 use App\Http\Controllers\Concerns\InteractsWithGroupActivityAttendees;
 use App\Models\Activity;
 use App\Models\ActivityApplication;
+use App\Models\ActivitySlot;
+use App\Models\ActivitySlotCompositionHint;
 use App\Models\ActivityType;
 use App\Models\ActivityTypeVersion;
 use App\Models\Character;
+use App\Models\CharacterClass;
 use App\Models\Group;
 use App\Models\GroupMembership;
 use App\Services\Groups\ActivityCancellationService;
@@ -17,6 +20,7 @@ use App\Services\Groups\ActivitySlotSerializer;
 use App\Services\Groups\GroupActivityAuditService;
 use App\Services\Notifications\AssignmentNotificationService;
 use App\Services\Notifications\GroupUpdateNotificationService;
+use App\Support\ActivityCompositionPresets;
 use Carbon\CarbonImmutable;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Http\RedirectResponse;
@@ -55,6 +59,7 @@ class GroupActivityController extends Controller
         $activity->load(array_merge($this->attendeeActivityRelations(), [
             'slots.assignedCharacter',
             'slots.assignments.application.answers',
+            'slots.compositionHints.characterClass',
             'slots.fieldValues',
         ]));
         $activity->loadCount([
@@ -643,6 +648,7 @@ class GroupActivityController extends Controller
             $groupKey = (string) ($groupDefinition['key'] ?? 'group');
             $groupLabel = is_array($groupDefinition['label'] ?? null) ? $groupDefinition['label'] : ['en' => $groupKey];
             $size = max(1, (int) ($groupDefinition['size'] ?? 1));
+            $compositionHints = $this->compositionHintsByPosition($groupDefinition);
 
             for ($position = 1; $position <= $size; $position++) {
                 $slot = $activity->slots()->create([
@@ -664,6 +670,8 @@ class GroupActivityController extends Controller
                     ]);
                 }
 
+                $this->materializeCompositionHints($slot, $compositionHints->get($position, []));
+
                 $sortOrder++;
             }
         }
@@ -680,6 +688,88 @@ class GroupActivityController extends Controller
 
             $sortOrder++;
         }
+    }
+
+    /**
+     * @param  array<string, mixed>  $groupDefinition
+     * @return Collection<int, array<int, array<string, mixed>>>
+     */
+    private function compositionHintsByPosition(array $groupDefinition): Collection
+    {
+        return collect($groupDefinition['composition_hints'] ?? [])
+            ->filter(fn ($hint): bool => is_array($hint))
+            ->mapWithKeys(function (array $hint): array {
+                $position = (int) ($hint['position'] ?? 0);
+
+                if ($position < 1) {
+                    return [];
+                }
+
+                return [$position => is_array($hint['accepts'] ?? null) ? $hint['accepts'] : []];
+            });
+    }
+
+    /**
+     * @param  array<int, array<string, mixed>>  $accepts
+     */
+    private function materializeCompositionHints(ActivitySlot $slot, array $accepts): void
+    {
+        foreach (array_values($accepts) as $index => $accept) {
+            if (! is_array($accept)) {
+                continue;
+            }
+
+            $type = (string) ($accept['type'] ?? '');
+            $key = (string) ($accept['key'] ?? '');
+
+            if ($key === '' || ! in_array($type, [ActivitySlotCompositionHint::TYPE_ROLE, ActivitySlotCompositionHint::TYPE_CLASS], true)) {
+                continue;
+            }
+
+            $characterClass = $type === ActivitySlotCompositionHint::TYPE_CLASS
+                ? $this->resolveCharacterClassHint($key)
+                : null;
+
+            $slot->compositionHints()->create([
+                'hint_type' => $type,
+                'hint_key' => $key,
+                'role_key' => $type === ActivitySlotCompositionHint::TYPE_ROLE
+                    ? $key
+                    : $this->roleKeyForCharacterClassHint($characterClass),
+                'character_class_id' => $characterClass?->id,
+                'sort_order' => $index + 1,
+            ]);
+        }
+    }
+
+    private function resolveCharacterClassHint(string $key): ?CharacterClass
+    {
+        static $classesByShorthand = null;
+
+        $classesByShorthand ??= CharacterClass::query()
+            ->get(['id', 'name', 'shorthand', 'role'])
+            ->keyBy(fn (CharacterClass $characterClass): string => strtolower($characterClass->shorthand));
+
+        return $classesByShorthand->get(strtolower($key));
+    }
+
+    private function roleKeyForCharacterClassHint(?CharacterClass $characterClass): ?string
+    {
+        if (! $characterClass) {
+            return null;
+        }
+
+        $role = strtolower($characterClass->role);
+
+        if ($role === ActivityCompositionPresets::ROLE_TANK) {
+            return ActivityCompositionPresets::ROLE_TANK;
+        }
+
+        if ($role === ActivityCompositionPresets::ROLE_HEALER) {
+            return ActivityCompositionPresets::ROLE_HEALER;
+        }
+
+        return ActivityCompositionPresets::ROLE_DPS;
     }
 
     private function materializeProgressMilestones(Activity $activity, ActivityTypeVersion $activityTypeVersion): void

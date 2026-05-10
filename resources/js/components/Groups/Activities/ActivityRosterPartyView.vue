@@ -3,10 +3,12 @@ import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 import { usePage } from "@inertiajs/vue3";
 import { localizedValue } from "@/utils/localizedValue";
+import ActivityPartyCompositionApplyAllButton from "@/components/Groups/Activities/ActivityPartyCompositionApplyAllButton.vue";
+import ActivityPartyCompositionPresetSelect from "@/components/Groups/Activities/ActivityPartyCompositionPresetSelect.vue";
 import ActivityRosterSlotCard from "@/components/Groups/Activities/ActivityRosterSlotCard.vue";
 import type { LocalizedText } from "@/Types/Common";
 import type { QueueApplication } from "@/Types/ActivityQueue";
-import type { ActivitySlot } from "@/Types/ActivityRoster";
+import type { ActivitySlot, ActivitySlotCompositionHintInput } from "@/Types/ActivityRoster";
 
 const props = defineProps<{
 	slots: ActivitySlot[]
@@ -18,6 +20,8 @@ const props = defineProps<{
 	canMoveToBench?: boolean
 	canMarkMissing?: boolean
 	canCheckIn?: boolean
+	groupSlug: string
+	activityId: number
 }>();
 
 const emit = defineEmits<{
@@ -36,6 +40,9 @@ const emit = defineEmits<{
 	markSlotHost: [slotId: number]
 	markSlotRaidLeader: [slotId: number]
 	checkInGroup: [groupKey: string]
+	slotsUpdated: [slots: ActivitySlot[]]
+	replaceCompositionHints: [payload: { slotId: number, compositionHints: ActivitySlotCompositionHintInput[] }]
+	customizeCompositionHints: [slot: ActivitySlot]
 }>();
 
 const { t, locale } = useI18n();
@@ -70,6 +77,10 @@ const slotGroups = computed(() => {
 
 	return Array.from(groups.values());
 });
+
+const mainSlotGroups = computed(() => slotGroups.value.filter((group) => group.key !== "bench"));
+const firstMainSlotGroupKey = computed(() => mainSlotGroups.value[0]?.key ?? null);
+const hasMultipleMainSlotGroups = computed(() => mainSlotGroups.value.length > 1);
 </script>
 
 <template>
@@ -86,7 +97,7 @@ const slotGroups = computed(() => {
 							{{ group.label.charAt(0) }}
 						</div>
 
-						<div class="flex items-center gap-3">
+						<div class="flex flex-wrap items-center gap-3">
 							<h3 class="font-semibold text-lg text-toned">
 								{{ group.label }}
 							</h3>
@@ -95,6 +106,25 @@ const slotGroups = computed(() => {
 								color="neutral"
 								variant="outline"
 								:label="`${group.slots.filter((slot) => slot.assigned_character_id !== null).length}/${group.slots.length}`"
+							/>
+
+							<ActivityPartyCompositionPresetSelect
+								v-if="group.key !== 'bench'"
+								:group-slug="groupSlug"
+								:activity-id="activityId"
+								:group-key="group.key"
+								:slots="group.slots"
+								:disabled="isSwapPending || !canReturnToQueue"
+								@slots-updated="emit('slotsUpdated', $event)"
+							/>
+
+							<ActivityPartyCompositionApplyAllButton
+								v-if="group.key === firstMainSlotGroupKey && hasMultipleMainSlotGroups"
+								:group-slug="groupSlug"
+								:activity-id="activityId"
+								:source-group-key="group.key"
+								:disabled="isSwapPending || !canReturnToQueue"
+								@slots-updated="emit('slotsUpdated', $event)"
 							/>
 						</div>
 					</div>
@@ -138,6 +168,8 @@ const slotGroups = computed(() => {
 					@mark-slot-late="emit('markSlotLate', $event)"
 					@mark-slot-host="emit('markSlotHost', $event)"
 					@mark-slot-raid-leader="emit('markSlotRaidLeader', $event)"
+					@replace-composition-hints="emit('replaceCompositionHints', $event)"
+					@customize-composition-hints="emit('customizeCompositionHints', $event)"
 				/>
 			</div>
 		</section>

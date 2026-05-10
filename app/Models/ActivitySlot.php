@@ -12,6 +12,7 @@ class ActivitySlot extends Model
     use HasFactory;
 
     public const DESIGNATION_HOST = 'host';
+
     public const DESIGNATION_RAID_LEADER = 'raid_leader';
 
     public const DESIGNATION_COLUMN_MAP = [
@@ -64,6 +65,11 @@ class ActivitySlot extends Model
     public function fieldValues(): HasMany
     {
         return $this->hasMany(ActivitySlotFieldValue::class);
+    }
+
+    public function compositionHints(): HasMany
+    {
+        return $this->hasMany(ActivitySlotCompositionHint::class)->orderBy('sort_order')->orderBy('id');
     }
 
     public function assignments(): HasMany

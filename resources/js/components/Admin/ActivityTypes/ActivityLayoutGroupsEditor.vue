@@ -1,14 +1,19 @@
 <script setup lang="ts">
-import type { ActivityTypeLayoutGroup } from "@/Types/AdminActivityTypes";
+import type {
+	ActivityTypeCompositionHint,
+	ActivityTypeCompositionPreset,
+	ActivityTypeLayoutGroup,
+	ActivityTypeLayoutPreset,
+} from "@/Types/AdminActivityTypes";
 import ActivityTypeSectionCard from "@/components/Admin/ActivityTypes/ActivityTypeSectionCard.vue";
-import LocalizedTextFields from "@/components/Admin/ActivityTypes/LocalizedTextFields.vue";
-import { slugify } from "@/utils/slugify";
-import { computed } from "vue";
+import { computed, onMounted } from "vue";
 import { useI18n } from "vue-i18n";
 
 const props = defineProps<{
 	modelValue: ActivityTypeLayoutGroup[]
 	locales: string[]
+	layoutPresets: ActivityTypeLayoutPreset[]
+	compositionPresets: ActivityTypeCompositionPreset[]
 }>();
 
 const emit = defineEmits<{
@@ -19,41 +24,157 @@ const { t } = useI18n();
 
 const totalSlots = computed(() => props.modelValue.reduce((total, group) => total + Number(group.size || 0), 0));
 
-const createGroup = (): ActivityTypeLayoutGroup => ({
-	key: '',
-	label: Object.fromEntries(props.locales.map((locale) => [locale, ''])),
-	size: 8,
+const layoutOptions = computed(() => props.layoutPresets.map((preset) => ({
+	label: t(`admin.activity_types.layout.presets.${preset.key}`),
+	value: preset.key,
+})));
+
+const currentLayoutPreset = computed(() => props.layoutPresets.find((preset) => {
+	return props.modelValue.length === preset.party_count
+		&& props.modelValue.every((group) => Number(group.size) === preset.party_size);
+}));
+
+const compositionPresetsForLayout = computed(() => {
+	const partySize = currentLayoutPreset.value?.party_size ?? props.layoutPresets[0]?.party_size ?? 8;
+
+	return props.compositionPresets.filter((preset) => preset.party_size === partySize);
 });
 
-const addGroup = () => {
-	emit('update:modelValue', [...props.modelValue, createGroup()]);
+const compositionOptions = computed(() => compositionPresetsForLayout.value.map((preset) => ({
+	label: t(`admin.activity_types.layout.composition_presets.${preset.key}`),
+	value: preset.key,
+})));
+
+const currentCompositionPreset = computed(() => {
+	const presets = compositionPresetsForLayout.value;
+	const compositionKey = props.modelValue[0]?.composition_hint_key;
+
+	if (compositionKey && props.modelValue.every((group) => group.composition_hint_key === compositionKey)) {
+		const matchingPreset = presets.find((preset) => preset.key === compositionKey);
+
+		if (matchingPreset) {
+			return matchingPreset;
+		}
+	}
+
+	return presets.find((preset) => props.modelValue.every((group) => compositionHintsEqual(group.composition_hints, preset.composition_hints)));
+});
+
+const selectedLayoutKey = computed({
+	get: () => currentLayoutPreset.value?.key ?? props.layoutPresets[0]?.key ?? '',
+	set: (value: string) => applyLayoutPreset(value),
+});
+
+const selectedCompositionKey = computed({
+	get: () => currentCompositionPreset.value?.key ?? defaultCompositionKeyForCurrentLayout(),
+	set: (value: string) => applyCompositionPreset(value),
+});
+
+const defaultCompositionKeyForCurrentLayout = () => {
+	const layoutPreset = currentLayoutPreset.value ?? props.layoutPresets[0];
+	const firstMatchingPreset = props.compositionPresets.find((preset) => preset.party_size === layoutPreset?.party_size);
+
+	return firstMatchingPreset?.key ?? props.compositionPresets[0]?.key ?? '';
 };
 
-const updateGroup = (index: number, updates: Partial<ActivityTypeLayoutGroup>) => {
-	emit('update:modelValue', props.modelValue.map((group, groupIndex) => (
-		groupIndex === index ? { ...group, ...updates } : group
-	)));
+const applyLayoutPreset = (layoutKey: string) => {
+	const layoutPreset = props.layoutPresets.find((preset) => preset.key === layoutKey);
+
+	if (!layoutPreset) {
+		return;
+	}
+
+	const compositionPreset = props.compositionPresets.find((preset) => preset.party_size === layoutPreset.party_size)
+		?? props.compositionPresets[0];
+
+	emit('update:modelValue', createLayoutGroups(layoutPreset, compositionPreset));
 };
 
-const removeGroup = (index: number) => {
-	emit('update:modelValue', props.modelValue.filter((_, groupIndex) => groupIndex !== index));
+const applyCompositionPreset = (compositionKey: string) => {
+	const compositionPreset = compositionPresetsForLayout.value.find((preset) => preset.key === compositionKey);
+
+	if (!compositionPreset) {
+		return;
+	}
+
+	emit('update:modelValue', props.modelValue.map((group) => ({
+		...group,
+		composition_hint_key: compositionPreset.key,
+		composition_hints: cloneCompositionHints(compositionPreset.composition_hints),
+	})));
 };
 
-const updateGroupLabel = (index: number, label: Record<string, string>) => {
-	const currentGroup = props.modelValue[index];
-	const fallbackLocale = props.locales[0] ?? 'en';
-	const previousPrimaryLabel = currentGroup?.label?.[fallbackLocale] ?? '';
-	const nextPrimaryLabel = label?.[fallbackLocale] ?? '';
-	const previousGeneratedKey = slugify(previousPrimaryLabel);
-	const nextGeneratedKey = slugify(nextPrimaryLabel);
+const createLayoutGroups = (
+	layoutPreset: ActivityTypeLayoutPreset,
+	compositionPreset?: ActivityTypeCompositionPreset,
+): ActivityTypeLayoutGroup[] => {
+	return Array.from({ length: layoutPreset.party_count }, (_, index) => {
+		const label = partyLabel(index);
 
-	updateGroup(index, {
-		label,
-		key: !currentGroup?.key || currentGroup.key === previousGeneratedKey
-			? nextGeneratedKey
-			: currentGroup.key,
+		return {
+			key: `party-${String.fromCharCode(97 + index)}`,
+			label: Object.fromEntries(props.locales.map((locale) => [locale, label])),
+			size: layoutPreset.party_size,
+			composition_hint_key: compositionPreset?.key ?? null,
+			composition_hints: compositionPreset ? cloneCompositionHints(compositionPreset.composition_hints) : [],
+		};
 	});
 };
+
+const compositionHintsEqual = (
+	left: ActivityTypeCompositionHint[] | undefined,
+	right: ActivityTypeCompositionHint[],
+) => {
+	if (!left || left.length !== right.length) {
+		return false;
+	}
+
+	return JSON.stringify(normalizeCompositionHints(left)) === JSON.stringify(normalizeCompositionHints(right));
+};
+
+const normalizeCompositionHints = (hints: ActivityTypeCompositionHint[]) => hints
+	.map((hint) => ({
+		position: Number(hint.position),
+		accepts: [...(hint.accepts ?? [])]
+			.map((accept) => ({
+				type: accept.type,
+				key: accept.key,
+			}))
+			.sort((left, right) => `${left.type}:${left.key}`.localeCompare(`${right.type}:${right.key}`)),
+	}))
+	.sort((left, right) => left.position - right.position);
+
+const cloneCompositionHints = (hints: ActivityTypeCompositionHint[]) => hints.map((hint) => ({
+	position: hint.position,
+	accepts: hint.accepts.map((accept) => ({ ...accept })),
+}));
+
+const partyLabel = (index: number) => `${t('admin.activity_types.layout.party_label')} ${String.fromCharCode(65 + index)}`;
+
+const shorthandForGroup = (group: ActivityTypeLayoutGroup) => {
+	const preset = props.compositionPresets.find((compositionPreset) => compositionPreset.key === group.composition_hint_key);
+
+	if (preset) {
+		return preset.shorthand;
+	}
+
+	return [...(group.composition_hints ?? [])]
+		.sort((left, right) => left.position - right.position)
+		.map((hint) => hint.accepts[0]?.key?.slice(0, 1)?.toUpperCase() ?? '?')
+		.join('');
+};
+
+onMounted(() => {
+	if (!currentLayoutPreset.value) {
+		applyLayoutPreset(selectedLayoutKey.value);
+
+		return;
+	}
+
+	if (!currentCompositionPreset.value) {
+		applyCompositionPreset(defaultCompositionKeyForCurrentLayout());
+	}
+});
 </script>
 
 <template>
@@ -66,63 +187,51 @@ const updateGroupLabel = (index: number, label: Record<string, string>) => {
 			<UBadge color="neutral" variant="subtle" :label="t('admin.activity_types.layout.total_slots', { count: totalSlots })" />
 		</template>
 
-		<template #headerActions>
-			<UButton icon="i-lucide-plus" color="neutral" variant="soft" :label="t('admin.activity_types.layout.add_group')" @click="addGroup" />
-		</template>
-
-		<div class="flex flex-col gap-4">
-			<UCard
-				v-for="(group, index) in modelValue"
-				:key="`group-${index}`"
-				class="border border-default"
+		<div class="grid gap-4 md:grid-cols-2">
+			<UFormField
+				:label="t('admin.activity_types.layout.layout_preset')"
+				:description="t('admin.activity_types.layout.layout_preset_help')"
+				required
 			>
-				<div class="flex flex-col gap-4">
-					<div class="flex items-center justify-between">
-						<div>
-							<h3 class="font-semibold">{{ t('admin.activity_types.layout.group_title', { index: index + 1 }) }}</h3>
-							<p class="text-sm text-muted">{{ t('admin.activity_types.layout.group_hint') }}</p>
-						</div>
+				<USelect
+					v-model="selectedLayoutKey"
+					:items="layoutOptions"
+					value-key="value"
+					class="w-full"
+				/>
+			</UFormField>
 
-						<UButton
-							color="error"
-							variant="ghost"
-							icon="i-lucide-trash-2"
-							:label="t('general.remove')"
-							@click="removeGroup(index)"
-						/>
-					</div>
+			<UFormField
+				:label="t('admin.activity_types.layout.composition_preset')"
+				:description="t('admin.activity_types.layout.composition_preset_help')"
+				required
+			>
+				<USelect
+					v-model="selectedCompositionKey"
+					:items="compositionOptions"
+					value-key="value"
+					class="w-full"
+				/>
+			</UFormField>
+		</div>
 
-					<div class="grid gap-4 md:grid-cols-[minmax(0,1fr)_180px]">
-						<UFormField :label="t('admin.activity_types.layout.group_key')" required>
-							<UInput
-								:model-value="group.key"
-								class="w-full"
-								:placeholder="t('admin.activity_types.layout.group_key_placeholder')"
-								@update:model-value="(value) => updateGroup(index, { key: value })"
-							/>
-						</UFormField>
-
-						<UFormField :label="t('admin.activity_types.layout.group_size')" required>
-							<UInput
-								:model-value="String(group.size ?? 8)"
-								type="number"
-								min="1"
-								class="w-full"
-								@update:model-value="(value) => updateGroup(index, { size: Number(value) || 1 })"
-							/>
-						</UFormField>
-					</div>
-
-					<LocalizedTextFields
-						:model-value="group.label"
-						:locales="locales"
-						:label="t('admin.activity_types.layout.group_label')"
-						:description="t('admin.activity_types.layout.group_label_help')"
-						:placeholder-prefix="t('admin.activity_types.layout.group_label_placeholder')"
-						@update:model-value="(value) => updateGroupLabel(index, value)"
-					/>
+		<div class="border border-default">
+			<div
+				v-for="group in modelValue"
+				:key="group.key"
+				class="flex flex-col gap-2 border-b border-default p-3 last:border-b-0 md:flex-row md:items-center md:justify-between"
+			>
+				<div>
+					<p class="text-sm font-medium">{{ group.label?.en ?? group.key }}</p>
+					<p class="text-xs text-muted">
+						{{ group.key }} · {{ t('admin.activity_types.layout.slots_per_party', { count: group.size }) }}
+					</p>
 				</div>
-			</UCard>
+
+				<div class="flex items-center gap-2">
+					<UBadge color="neutral" variant="subtle" :label="shorthandForGroup(group)" />
+				</div>
+			</div>
 		</div>
 	</ActivityTypeSectionCard>
 </template>

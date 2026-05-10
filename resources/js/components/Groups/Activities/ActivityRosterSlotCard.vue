@@ -5,9 +5,12 @@ import { useI18n } from "vue-i18n";
 import { usePage } from "@inertiajs/vue3";
 import { localizedValue } from "@/utils/localizedValue";
 import { getQueueApplicationDragData, isQueueApplicationDrag, setRosterSlotDragData } from "@/components/Groups/Activities/rosterDragData";
+import ActivitySlotCompositionHintContextMenu from "@/components/Groups/Activities/ActivitySlotCompositionHintContextMenu.vue";
+import ActivitySlotCompositionHintBadge from "@/components/Groups/Activities/ActivitySlotCompositionHintBadge.vue";
 import type { LocalizedText } from "@/Types/Common";
 import type { QueueApplication } from "@/Types/ActivityQueue";
-import type { ActivitySlot } from "@/Types/ActivityRoster";
+import type { ActivitySlot, ActivitySlotCompositionHintInput } from "@/Types/ActivityRoster";
+import { emptyCompositionSlotToneClass } from "@/utils/activityCompositionHints";
 
 const props = defineProps<{
 	slot: ActivitySlot
@@ -36,6 +39,8 @@ const emit = defineEmits<{
 	markSlotLate: [slotId: number]
 	markSlotHost: [slotId: number]
 	markSlotRaidLeader: [slotId: number]
+	replaceCompositionHints: [payload: { slotId: number, compositionHints: ActivitySlotCompositionHintInput[] }]
+	customizeCompositionHints: [slot: ActivitySlot]
 }>();
 
 const { t, locale } = useI18n();
@@ -89,6 +94,9 @@ const designationMarker = computed(() => {
 
 	return null;
 });
+const emptyHintToneClass = computed(() => (
+	!props.slot.is_bench && !assignedCharacter.value ? emptyCompositionSlotToneClass(props.slot) : null
+));
 const roleToneClass = computed(() => {
 	if (props.slot.is_bench) {
 		return assignedCharacter.value
@@ -97,7 +105,7 @@ const roleToneClass = computed(() => {
 	}
 
 	if (!assignedCharacter.value) {
-		return 'border-dashed border-default bg-elevated hover:border-primary';
+		return emptyHintToneClass.value ?? 'border-dashed border-default bg-elevated hover:border-primary';
 	}
 
 	if (props.slot.is_raid_leader) {
@@ -139,13 +147,6 @@ const canShowContextMenu = computed(() => Boolean(props.slot.assigned_character_
 const isDraggedSource = computed(() => props.draggedSlotId === props.slot.id);
 const isDropTarget = computed(() => props.dropTargetSlotId === props.slot.id && props.draggedSlotId !== props.slot.id);
 const statusBadge = computed(() => {
-	if (!props.slot.assigned_character_id) {
-		return {
-			color: 'neutral' as const,
-			label: t('groups.activities.management.roster.open'),
-		};
-	}
-
 	if (props.slot.attendance_status === 'checked_in') {
 		return {
 			color: 'info' as const,
@@ -364,7 +365,7 @@ const handleClick = () => {
 	>
 		<div
 			ref="slotCardElement"
-			class="relative min-h-28 border px-4 py-4 transition duration-200 ease-out hover:shadow-lg"
+			class="relative min-h-24 border px-4 py-4 transition duration-200 ease-out hover:shadow-lg"
 			:class="[
 				roleToneClass,
 				canDrag ? 'cursor-grab hover:scale-[1.02]' : 'cursor-pointer',
@@ -440,9 +441,14 @@ const handleClick = () => {
 					</div>
 
 					<UBadge
+						v-if="assignedCharacter"
 						:color="statusBadge.color"
 						variant="subtle"
 						:label="statusBadge.label"
+					/>
+					<ActivitySlotCompositionHintBadge
+						v-else-if="!slot.is_bench"
+						:slot="slot"
 					/>
 				</div>
 
@@ -487,142 +493,147 @@ const handleClick = () => {
 					</div>
 				</div>
 
-				<div v-else class="mt-auto text-sm text-muted">
-					{{ t('groups.activities.management.roster.open') }}
-				</div>
 			</div>
 		</div>
 	</UContextMenu>
 
-	<div
+	<ActivitySlotCompositionHintContextMenu
 		v-else
-		ref="slotCardElement"
-		class="relative min-h-28 border px-4 py-4 transition duration-200 ease-out hover:shadow-lg"
-		:class="[
-			roleToneClass,
-			canDrag ? 'cursor-grab hover:scale-[1.02]' : 'cursor-pointer',
-			isDraggedSource ? 'scale-[0.98] opacity-35 saturate-75' : '',
-			isDropTarget ? 'border-white shadow-[0_0_0_2px_rgba(255,255,255,0.95),0_0_0_6px_rgba(255,255,255,0.22)]' : '',
-			props.isPendingSwap ? 'overflow-hidden' : '',
-		]"
-		:draggable="canDrag"
-		@dragstart="handleDragStart"
-		@dragend="handleDragEnd"
-		@dragenter.prevent="emit('dragEnter', slot.id)"
-		@dragleave.prevent="emit('dragLeave', slot.id)"
-		@dragover="handleDragOver"
-		@drop="handleDrop"
-		@click="handleClick"
+		:slot="slot"
+		:disabled="isSwapPending"
+		@replace-hints="emit('replaceCompositionHints', $event)"
+		@customize="emit('customizeCompositionHints', $event)"
 	>
 		<div
-			v-if="designationMarker"
-			class="pointer-events-none absolute z-20 flex h-8 w-8 items-center justify-center shadow-lg bg-transparent"
-			:class="designationMarker.wrapperClass"
-			:aria-label="designationMarker.label"
-			:title="designationMarker.label"
+			ref="slotCardElement"
+			class="relative min-h-24 border px-4 py-4 transition duration-200 ease-out hover:shadow-lg"
+			:class="[
+				roleToneClass,
+				canDrag ? 'cursor-grab hover:scale-[1.02]' : 'cursor-pointer',
+				isDraggedSource ? 'scale-[0.98] opacity-35 saturate-75' : '',
+				isDropTarget ? 'border-white shadow-[0_0_0_2px_rgba(255,255,255,0.95),0_0_0_6px_rgba(255,255,255,0.22)]' : '',
+				props.isPendingSwap ? 'overflow-hidden' : '',
+			]"
+			:draggable="canDrag"
+			@dragstart="handleDragStart"
+			@dragend="handleDragEnd"
+			@dragenter.prevent="emit('dragEnter', slot.id)"
+			@dragleave.prevent="emit('dragLeave', slot.id)"
+			@dragover="handleDragOver"
+			@drop="handleDrop"
+			@click="handleClick"
 		>
-			<UIcon
-				:name="designationMarker.icon"
-				class="h-8 w-8 -rotate-35"
-				:class="designationMarker.iconClass"
-			/>
-		</div>
-
-		<div
-			v-if="isPendingSwap"
-			class="absolute inset-0 z-10 flex flex-col gap-3 border border-white/10 bg-elevated/95 px-4 py-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] backdrop-blur-[1px]"
-		>
-			<div class="flex items-start justify-between gap-3">
-				<div class="flex flex-col gap-2">
-					<USkeleton class="h-4 w-20 bg-muted/70" />
-					<USkeleton class="h-5 w-28 bg-muted/70" />
-				</div>
-				<USkeleton class="h-5 w-16 bg-muted/70" />
-			</div>
-
-			<div class="flex items-start justify-between gap-3">
-				<div class="flex items-center gap-3">
-					<USkeleton class="h-10 w-10 rounded-full bg-muted/70" />
-					<div class="flex flex-col gap-2">
-						<USkeleton class="h-4 w-28 bg-muted/70" />
-						<USkeleton class="h-4 w-16 bg-muted/70" />
-					</div>
-				</div>
-
-				<div class="flex items-center gap-2">
-					<USkeleton class="h-10 w-10 rounded-sm bg-muted/70" />
-					<USkeleton class="h-10 w-10 rounded-sm bg-muted/70" />
-				</div>
-			</div>
-
-			<div class="mt-auto flex flex-col gap-2">
-				<USkeleton class="h-4 w-full bg-muted/70" />
-				<USkeleton class="h-4 w-3/4 self-end bg-muted/70" />
-			</div>
-		</div>
-
-		<div class="flex h-full flex-col gap-3">
-			<div class="flex items-start justify-between gap-3">
-				<div class="flex flex-col gap-1">
-					<p class="text-xs uppercase tracking-wide text-primary">
-						{{ slotLabel }}
-					</p>
-					<p v-if="!assignedCharacter" class="font-medium text-toned">
-						{{ t('groups.activities.management.roster.empty_slot') }}
-					</p>
-				</div>
-
-				<UBadge
-					:color="statusBadge.color"
-					variant="subtle"
-					:label="statusBadge.label"
+			<div
+				v-if="designationMarker"
+				class="pointer-events-none absolute z-20 flex h-8 w-8 items-center justify-center shadow-lg bg-transparent"
+				:class="designationMarker.wrapperClass"
+				:aria-label="designationMarker.label"
+				:title="designationMarker.label"
+			>
+				<UIcon
+					:name="designationMarker.icon"
+					class="h-8 w-8 -rotate-35"
+					:class="designationMarker.iconClass"
 				/>
 			</div>
 
-			<div v-if="assignedCharacter" class="space-y-3">
+			<div
+				v-if="isPendingSwap"
+				class="absolute inset-0 z-10 flex flex-col gap-3 border border-white/10 bg-elevated/95 px-4 py-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] backdrop-blur-[1px]"
+			>
 				<div class="flex items-start justify-between gap-3">
-					<UUser
-						:name="assignedCharacter.name"
-						:description="assignedCharacter.world || undefined"
-						:avatar="assignedCharacter.avatar_url ? { src: assignedCharacter.avatar_url, loading: 'lazy' } : undefined"
-						size="lg"
-					/>
+					<div class="flex flex-col gap-2">
+						<USkeleton class="h-4 w-20 bg-muted/70" />
+						<USkeleton class="h-5 w-28 bg-muted/70" />
+					</div>
+					<USkeleton class="h-5 w-16 bg-muted/70" />
+				</div>
 
-					<div class="flex items-center">
-						<img
-							v-if="classIconUrl"
-							:src="classIconUrl"
-							:alt="classDisplayValue || ''"
-							class="h-10 w-10 rounded-sm p-1 object-contain"
-						>
-						<img
-							v-if="phantomIconUrl"
-							:src="phantomIconUrl"
-							:alt="phantomDisplayValue || ''"
-							class="h-10 w-10 rounded-sm  p-1 object-contain"
-						>
+				<div class="flex items-start justify-between gap-3">
+					<div class="flex items-center gap-3">
+						<USkeleton class="h-10 w-10 rounded-full bg-muted/70" />
+						<div class="flex flex-col gap-2">
+							<USkeleton class="h-4 w-28 bg-muted/70" />
+							<USkeleton class="h-4 w-16 bg-muted/70" />
+						</div>
+					</div>
+
+					<div class="flex items-center gap-2">
+						<USkeleton class="h-10 w-10 rounded-sm bg-muted/70" />
+						<USkeleton class="h-10 w-10 rounded-sm bg-muted/70" />
 					</div>
 				</div>
 
-				<div v-if="visibleFieldEntries.length > 0" class="space-y-2">
-					<div
-						v-for="field in visibleFieldEntries"
-						:key="field.id"
-						class="flex items-start justify-between gap-3 text-sm"
-					>
-						<span class="text-muted">
-							{{ field.label }}
-						</span>
-						<span class="text-right font-medium text-toned">
-							{{ field.value }}
-						</span>
-					</div>
+				<div class="mt-auto flex flex-col gap-2">
+					<USkeleton class="h-4 w-full bg-muted/70" />
+					<USkeleton class="h-4 w-3/4 self-end bg-muted/70" />
 				</div>
 			</div>
 
-			<div v-else class="mt-auto text-sm text-muted">
-				{{ t('groups.activities.management.roster.open') }}
+			<div class="flex h-full flex-col gap-3">
+				<div class="flex items-start justify-between gap-3">
+					<div class="flex flex-col gap-1">
+						<p class="text-xs uppercase tracking-wide text-primary">
+							{{ slotLabel }}
+						</p>
+						<p v-if="!assignedCharacter" class="font-medium text-toned">
+							{{ t('groups.activities.management.roster.empty_slot') }}
+						</p>
+					</div>
+
+					<UBadge
+						v-if="assignedCharacter"
+						:color="statusBadge.color"
+						variant="subtle"
+						:label="statusBadge.label"
+					/>
+					<ActivitySlotCompositionHintBadge
+						v-else-if="!slot.is_bench"
+						:slot="slot"
+					/>
+				</div>
+
+				<div v-if="assignedCharacter" class="space-y-3">
+					<div class="flex items-start justify-between gap-3">
+						<UUser
+							:name="assignedCharacter.name"
+							:description="assignedCharacter.world || undefined"
+							:avatar="assignedCharacter.avatar_url ? { src: assignedCharacter.avatar_url, loading: 'lazy' } : undefined"
+							size="lg"
+						/>
+
+						<div class="flex items-center">
+							<img
+								v-if="classIconUrl"
+								:src="classIconUrl"
+								:alt="classDisplayValue || ''"
+								class="h-10 w-10 rounded-sm p-1 object-contain"
+							>
+							<img
+								v-if="phantomIconUrl"
+								:src="phantomIconUrl"
+								:alt="phantomDisplayValue || ''"
+								class="h-10 w-10 rounded-sm  p-1 object-contain"
+							>
+						</div>
+					</div>
+
+					<div v-if="visibleFieldEntries.length > 0" class="space-y-2">
+						<div
+							v-for="field in visibleFieldEntries"
+							:key="field.id"
+							class="flex items-start justify-between gap-3 text-sm"
+						>
+							<span class="text-muted">
+								{{ field.label }}
+							</span>
+							<span class="text-right font-medium text-toned">
+								{{ field.value }}
+							</span>
+						</div>
+					</div>
+				</div>
 			</div>
 		</div>
-	</div>
+	</ActivitySlotCompositionHintContextMenu>
 </template>

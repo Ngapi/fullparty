@@ -12,6 +12,7 @@ use App\Models\CharacterClass;
 use App\Models\Group;
 use App\Models\PhantomJob;
 use App\Models\User;
+use App\Support\ActivityCompositionPresets;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Event;
 
@@ -59,6 +60,16 @@ function createRosterAssignmentSetup(): array
                     'key' => 'party-a',
                     'label' => ['en' => 'Party A'],
                     'size' => 1,
+                    'composition_hint_key' => 'mixed-test',
+                    'composition_hints' => [
+                        [
+                            'position' => 1,
+                            'accepts' => [
+                                ['type' => 'role', 'key' => 'tank'],
+                                ['type' => 'class', 'key' => 'PLD'],
+                            ],
+                        ],
+                    ],
                 ],
             ],
         ],
@@ -205,10 +216,12 @@ it('assigns a pending application to a roster slot and creates an active assignm
 
     $response->assertOk();
 
-    $mainSlot->refresh()->load('fieldValues');
+    $mainSlot->refresh()->load('fieldValues', 'compositionHints.characterClass');
     $application->refresh();
 
     expect($mainSlot->assigned_character_id)->toBe($character->id);
+    expect($mainSlot->compositionHints)->toHaveCount(2)
+        ->and($mainSlot->compositionHints->pluck('hint_key')->all())->toBe(['tank', 'PLD']);
     expect($application->status)->toBe(ActivityApplication::STATUS_APPROVED);
     expect($application->reviewed_by_user_id)->toBe($owner->id);
 
@@ -240,6 +253,426 @@ it('assigns a pending application to a roster slot and creates an active assignm
     expect($auditLog->actor_user_id)->toBe($owner->id)
         ->and($auditLog->metadata['selected_character_name'])->toBe($character->name)
         ->and($auditLog->metadata['application_status'])->toBe(ActivityApplication::STATUS_APPROVED);
+});
+
+it('lets moderators swap a party composition preset without changing assignments', function () {
+    $owner = User::factory()->create();
+    $group = Group::factory()->public()->create([
+        'owner_id' => $owner->id,
+    ]);
+    Character::factory()->primary()->create([
+        'user_id' => $owner->id,
+    ]);
+
+    $activityType = ActivityType::factory()->create([
+        'created_by_user_id' => $owner->id,
+    ]);
+    $version = ActivityTypeVersion::factory()->create([
+        'activity_type_id' => $activityType->id,
+        'published_by_user_id' => $owner->id,
+        'layout_schema' => [
+            'groups' => [
+                [
+                    'key' => 'party-a',
+                    'label' => ['en' => 'Party A'],
+                    'size' => 4,
+                    'composition_hint_key' => 'thdd',
+                    'composition_hints' => ActivityCompositionPresets::compositionHintsForKey('thdd'),
+                ],
+            ],
+        ],
+        'slot_schema' => [],
+        'application_schema' => [],
+        'progress_schema' => ['milestones' => []],
+        'bench_size' => 0,
+        'prog_points' => [],
+    ]);
+    $activityType->update([
+        'current_published_version_id' => $version->id,
+    ]);
+
+    $activity = Activity::factory()->create([
+        'group_id' => $group->id,
+        'activity_type_id' => $activityType->id,
+        'activity_type_version_id' => $version->id,
+        'organized_by_user_id' => $owner->id,
+        'status' => Activity::STATUS_PLANNED,
+    ]);
+    $assignedCharacter = Character::factory()->primary()->create([
+        'user_id' => $owner->id,
+    ]);
+    $firstSlot = $activity->slots()->where('position_in_group', 1)->firstOrFail();
+    $firstSlot->update([
+        'assigned_character_id' => $assignedCharacter->id,
+        'assigned_by_user_id' => $owner->id,
+    ]);
+
+    Event::fake([ActivityManagementUpdated::class]);
+
+    $this->actingAs($owner)
+        ->postJson(route('groups.dashboard.activities.slot-group-composition-presets.store', [
+            'group' => $group->slug,
+            'activity' => $activity->id,
+        ]), [
+            'group_key' => 'party-a',
+            'composition_preset_key' => 'dddd',
+        ])
+        ->assertOk()
+        ->assertJsonCount(4, 'slots')
+        ->assertJsonPath('slots.0.assigned_character_id', $assignedCharacter->id);
+
+    Event::assertDispatched(ActivityManagementUpdated::class, fn (ActivityManagementUpdated $event): bool => (
+        ! isset($event->patch['updated_slots'])
+        && count($event->patch['updated_slot_composition_hints'] ?? []) === 4
+    ));
+
+    $slots = $activity->slots()
+        ->where('group_key', 'party-a')
+        ->with('compositionHints')
+        ->orderBy('position_in_group')
+        ->get();
+
+    expect($slots->pluck('compositionHints.0.role_key')->all())->toBe(['dps', 'dps', 'dps', 'dps'])
+        ->and($firstSlot->fresh()->assigned_character_id)->toBe($assignedCharacter->id);
+});
+
+it('lets moderators apply a party composition to other compatible parties without changing assignments', function () {
+    $owner = User::factory()->create();
+    $group = Group::factory()->public()->create([
+        'owner_id' => $owner->id,
+    ]);
+    Character::factory()->primary()->create([
+        'user_id' => $owner->id,
+    ]);
+    CharacterClass::create([
+        'name' => 'Paladin',
+        'shorthand' => 'PLD',
+        'role' => 'tank',
+    ]);
+
+    $activityType = ActivityType::factory()->create([
+        'created_by_user_id' => $owner->id,
+    ]);
+    $version = ActivityTypeVersion::factory()->create([
+        'activity_type_id' => $activityType->id,
+        'published_by_user_id' => $owner->id,
+        'layout_schema' => [
+            'groups' => [
+                [
+                    'key' => 'party-a',
+                    'label' => ['en' => 'Party A'],
+                    'size' => 4,
+                    'composition_hint_key' => 'custom-source',
+                    'composition_hints' => [
+                        [
+                            'position' => 1,
+                            'accepts' => [
+                                ['type' => 'role', 'key' => 'tank'],
+                                ['type' => 'class', 'key' => 'PLD'],
+                            ],
+                        ],
+                        [
+                            'position' => 2,
+                            'accepts' => [
+                                ['type' => 'role', 'key' => 'healer'],
+                            ],
+                        ],
+                        [
+                            'position' => 3,
+                            'accepts' => [
+                                ['type' => 'role', 'key' => 'dps'],
+                            ],
+                        ],
+                        [
+                            'position' => 4,
+                            'accepts' => [
+                                ['type' => 'role', 'key' => 'dps'],
+                            ],
+                        ],
+                    ],
+                ],
+                [
+                    'key' => 'party-b',
+                    'label' => ['en' => 'Party B'],
+                    'size' => 4,
+                    'composition_hint_key' => 'dddd',
+                    'composition_hints' => ActivityCompositionPresets::compositionHintsForKey('dddd'),
+                ],
+                [
+                    'key' => 'party-c',
+                    'label' => ['en' => 'Party C'],
+                    'size' => 4,
+                    'composition_hint_key' => 'tddd',
+                    'composition_hints' => ActivityCompositionPresets::compositionHintsForKey('tddd'),
+                ],
+                [
+                    'key' => 'party-d',
+                    'label' => ['en' => 'Party D'],
+                    'size' => 8,
+                    'composition_hint_key' => 'tthhdddd',
+                    'composition_hints' => ActivityCompositionPresets::compositionHintsForKey('tthhdddd'),
+                ],
+            ],
+        ],
+        'slot_schema' => [],
+        'application_schema' => [],
+        'progress_schema' => ['milestones' => []],
+        'bench_size' => 0,
+        'prog_points' => [],
+    ]);
+    $activityType->update([
+        'current_published_version_id' => $version->id,
+    ]);
+
+    $activity = Activity::factory()->create([
+        'group_id' => $group->id,
+        'activity_type_id' => $activityType->id,
+        'activity_type_version_id' => $version->id,
+        'organized_by_user_id' => $owner->id,
+        'status' => Activity::STATUS_PLANNED,
+    ]);
+    $assignedCharacter = Character::factory()->primary()->create([
+        'user_id' => $owner->id,
+    ]);
+    $assignedSlot = $activity->slots()
+        ->where('group_key', 'party-b')
+        ->where('position_in_group', 1)
+        ->firstOrFail();
+    $assignedSlot->update([
+        'assigned_character_id' => $assignedCharacter->id,
+        'assigned_by_user_id' => $owner->id,
+    ]);
+
+    Event::fake([ActivityManagementUpdated::class]);
+
+    $this->actingAs($owner)
+        ->postJson(route('groups.dashboard.activities.slot-group-composition-presets.apply-to-all', [
+            'group' => $group->slug,
+            'activity' => $activity->id,
+        ]), [
+            'source_group_key' => 'party-a',
+        ])
+        ->assertOk()
+        ->assertJsonCount(8, 'slots')
+        ->assertJsonPath('slots.0.assigned_character_id', $assignedCharacter->id);
+
+    Event::assertDispatched(ActivityManagementUpdated::class, fn (ActivityManagementUpdated $event): bool => (
+        ! isset($event->patch['updated_slots'])
+        && count($event->patch['updated_slot_composition_hints'] ?? []) === 8
+    ));
+
+    $sourceHintsByPosition = $activity->slots()
+        ->where('group_key', 'party-a')
+        ->with('compositionHints')
+        ->orderBy('position_in_group')
+        ->get()
+        ->mapWithKeys(fn ($slot): array => [
+            $slot->position_in_group => $slot->compositionHints
+                ->map(fn ($hint): array => $hint->only(['hint_type', 'hint_key', 'role_key', 'character_class_id', 'sort_order']))
+                ->values()
+                ->all(),
+        ]);
+
+    $activity->slots()
+        ->whereIn('group_key', ['party-b', 'party-c'])
+        ->with('compositionHints')
+        ->orderBy('group_key')
+        ->orderBy('position_in_group')
+        ->get()
+        ->each(function ($slot) use ($sourceHintsByPosition): void {
+            expect($slot->compositionHints
+                ->map(fn ($hint): array => $hint->only(['hint_type', 'hint_key', 'role_key', 'character_class_id', 'sort_order']))
+                ->values()
+                ->all())->toBe($sourceHintsByPosition->get($slot->position_in_group));
+        });
+
+    $fullPartyFirstSlot = $activity->slots()
+        ->where('group_key', 'party-d')
+        ->where('position_in_group', 1)
+        ->with('compositionHints')
+        ->firstOrFail();
+
+    expect($fullPartyFirstSlot->compositionHints->pluck('role_key')->all())->toBe(['tank'])
+        ->and($assignedSlot->fresh()->assigned_character_id)->toBe($assignedCharacter->id);
+});
+
+it('lets moderators customize empty slot composition hints without changing assignments', function () {
+    $owner = User::factory()->create();
+    $group = Group::factory()->public()->create([
+        'owner_id' => $owner->id,
+    ]);
+    Character::factory()->primary()->create([
+        'user_id' => $owner->id,
+    ]);
+    CharacterClass::create([
+        'name' => 'Paladin',
+        'shorthand' => 'PLD',
+        'role' => 'tank',
+    ]);
+    CharacterClass::create([
+        'name' => 'Samurai',
+        'shorthand' => 'SAM',
+        'role' => 'melee dps',
+    ]);
+
+    $activityType = ActivityType::factory()->create([
+        'created_by_user_id' => $owner->id,
+    ]);
+    $version = ActivityTypeVersion::factory()->create([
+        'activity_type_id' => $activityType->id,
+        'published_by_user_id' => $owner->id,
+        'layout_schema' => [
+            'groups' => [
+                [
+                    'key' => 'party-a',
+                    'label' => ['en' => 'Party A'],
+                    'size' => 4,
+                    'composition_hint_key' => 'thdd',
+                    'composition_hints' => ActivityCompositionPresets::compositionHintsForKey('thdd'),
+                ],
+            ],
+        ],
+        'slot_schema' => [],
+        'application_schema' => [],
+        'progress_schema' => ['milestones' => []],
+        'bench_size' => 0,
+        'prog_points' => [],
+    ]);
+    $activityType->update([
+        'current_published_version_id' => $version->id,
+    ]);
+
+    $activity = Activity::factory()->create([
+        'group_id' => $group->id,
+        'activity_type_id' => $activityType->id,
+        'activity_type_version_id' => $version->id,
+        'organized_by_user_id' => $owner->id,
+        'status' => Activity::STATUS_PLANNED,
+    ]);
+    $slot = $activity->slots()
+        ->where('group_key', 'party-a')
+        ->where('position_in_group', 1)
+        ->firstOrFail();
+
+    Event::fake([ActivityManagementUpdated::class]);
+
+    $this->actingAs($owner)
+        ->postJson(route('groups.dashboard.activities.slot-composition-hints.update', [
+            'group' => $group->slug,
+            'activity' => $activity->id,
+            'slot' => $slot->id,
+        ]), [
+            'composition_hints' => [
+                ['type' => 'role', 'key' => 'tank'],
+                ['type' => 'role', 'key' => 'healer'],
+            ],
+        ])
+        ->assertOk()
+        ->assertJsonCount(1, 'slots')
+        ->assertJsonPath('slots.0.composition_hints.0.key', 'tank')
+        ->assertJsonPath('slots.0.composition_hints.1.key', 'healer');
+
+    Event::assertDispatched(ActivityManagementUpdated::class, fn (ActivityManagementUpdated $event): bool => (
+        ! isset($event->patch['updated_slots'])
+        && count($event->patch['updated_slot_composition_hints'] ?? []) === 1
+    ));
+
+    $this->actingAs($owner)
+        ->postJson(route('groups.dashboard.activities.slot-composition-hints.update', [
+            'group' => $group->slug,
+            'activity' => $activity->id,
+            'slot' => $slot->id,
+        ]), [
+            'composition_hints' => [
+                ['type' => 'class', 'key' => 'PLD'],
+                ['type' => 'class', 'key' => 'SAM'],
+            ],
+        ])
+        ->assertOk()
+        ->assertJsonPath('slots.0.composition_hints.0.type', 'class')
+        ->assertJsonPath('slots.0.composition_hints.0.key', 'PLD')
+        ->assertJsonPath('slots.0.composition_hints.1.key', 'SAM');
+
+    $slot->refresh()->load('compositionHints.characterClass');
+
+    expect($slot->compositionHints->pluck('hint_type')->all())->toBe(['class', 'class'])
+        ->and($slot->compositionHints->pluck('hint_key')->all())->toBe(['PLD', 'SAM'])
+        ->and($slot->compositionHints->pluck('role_key')->all())->toBe(['tank', 'dps'])
+        ->and($slot->compositionHints->pluck('characterClass.shorthand')->all())->toBe(['PLD', 'SAM'])
+        ->and($slot->assigned_character_id)->toBeNull();
+});
+
+it('rejects composition hint changes on assigned slots', function () {
+    $owner = User::factory()->create();
+    $group = Group::factory()->public()->create([
+        'owner_id' => $owner->id,
+    ]);
+    Character::factory()->primary()->create([
+        'user_id' => $owner->id,
+    ]);
+
+    $activityType = ActivityType::factory()->create([
+        'created_by_user_id' => $owner->id,
+    ]);
+    $version = ActivityTypeVersion::factory()->create([
+        'activity_type_id' => $activityType->id,
+        'published_by_user_id' => $owner->id,
+        'layout_schema' => [
+            'groups' => [
+                [
+                    'key' => 'party-a',
+                    'label' => ['en' => 'Party A'],
+                    'size' => 4,
+                    'composition_hint_key' => 'thdd',
+                    'composition_hints' => ActivityCompositionPresets::compositionHintsForKey('thdd'),
+                ],
+            ],
+        ],
+        'slot_schema' => [],
+        'application_schema' => [],
+        'progress_schema' => ['milestones' => []],
+        'bench_size' => 0,
+        'prog_points' => [],
+    ]);
+    $activityType->update([
+        'current_published_version_id' => $version->id,
+    ]);
+
+    $activity = Activity::factory()->create([
+        'group_id' => $group->id,
+        'activity_type_id' => $activityType->id,
+        'activity_type_version_id' => $version->id,
+        'organized_by_user_id' => $owner->id,
+        'status' => Activity::STATUS_PLANNED,
+    ]);
+    $assignedCharacter = Character::factory()->primary()->create([
+        'user_id' => $owner->id,
+    ]);
+    $slot = $activity->slots()
+        ->where('group_key', 'party-a')
+        ->where('position_in_group', 1)
+        ->firstOrFail();
+    $slot->update([
+        'assigned_character_id' => $assignedCharacter->id,
+        'assigned_by_user_id' => $owner->id,
+    ]);
+
+    $this->actingAs($owner)
+        ->postJson(route('groups.dashboard.activities.slot-composition-hints.update', [
+            'group' => $group->slug,
+            'activity' => $activity->id,
+            'slot' => $slot->id,
+        ]), [
+            'composition_hints' => [
+                ['type' => 'role', 'key' => 'dps'],
+            ],
+        ])
+        ->assertUnprocessable();
+
+    $slot->refresh()->load('compositionHints');
+
+    expect($slot->compositionHints->pluck('role_key')->all())->toBe(['tank'])
+        ->and($slot->assigned_character_id)->toBe($assignedCharacter->id);
 });
 
 it('rejects stale slot assignment writes when another moderator changed the slot first', function () {

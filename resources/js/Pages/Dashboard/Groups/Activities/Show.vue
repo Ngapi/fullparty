@@ -399,6 +399,7 @@ const applyManagementPatch = (patch: ActivityManagementPatch) => {
 	}
 
 	const updatedSlotsById = new Map((patch.updated_slots ?? []).map((slot) => [slot.id, slot]));
+	const updatedCompositionHintsBySlotId = new Map((patch.updated_slot_composition_hints ?? []).map((slotHints) => [slotHints.slot_id, slotHints.composition_hints]));
 	const upsertMissingAssignmentsById = new Map((patch.upsert_missing_assignments ?? []).map((assignment) => [assignment.id, assignment]));
 	const removeMissingAssignmentIds = new Set(patch.remove_missing_assignment_ids ?? []);
 	const nextMissingAssignments = currentActivity.value.missing_assignments
@@ -414,8 +415,18 @@ const applyManagementPatch = (patch: ActivityManagementPatch) => {
 	activityData.value = {
 		...currentActivity.value,
 		pending_application_count: patch.pending_application_count ?? currentActivity.value.pending_application_count,
-		slots: updatedSlotsById.size > 0
-			? currentActivity.value.slots.map((slot) => updatedSlotsById.get(slot.id) ?? slot)
+		slots: updatedSlotsById.size > 0 || updatedCompositionHintsBySlotId.size > 0
+			? currentActivity.value.slots.map((slot) => {
+				const updatedSlot = updatedSlotsById.get(slot.id);
+
+				if (updatedSlot) {
+					return updatedSlot;
+				}
+
+				const compositionHints = updatedCompositionHintsBySlotId.get(slot.id);
+
+				return compositionHints ? { ...slot, composition_hints: compositionHints } : slot;
+			})
 			: currentActivity.value.slots,
 		missing_assignments: nextMissingAssignments,
 	};
@@ -1372,6 +1383,9 @@ onBeforeUnmount(() => {
 					v-if="currentActivity"
 					:view="rosterView"
 					:slots="currentActivity.slots"
+					:group-slug="group.slug"
+					:activity-id="activity.id"
+					:composition-class-options="currentActivity.composition_class_options"
 					:is-swap-pending="isSlotSwapPending || isSlotAssignmentPending"
 					:pending-swap-slot-ids="pendingSwapSlotIds"
 					:can-return-to-queue="!isActivityArchived"
@@ -1388,6 +1402,7 @@ onBeforeUnmount(() => {
 					@mark-slot-host="markSlotHost"
 					@mark-slot-raid-leader="markSlotRaidLeader"
 					@check-in-group="checkInGroup"
+					@slots-updated="applyManagementPatch({ updated_slots: $event })"
 				/>
 
 				<section

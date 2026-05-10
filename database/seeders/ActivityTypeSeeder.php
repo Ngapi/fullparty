@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use App\Models\ActivityType;
 use App\Models\PhantomJob;
 use App\Models\User;
+use App\Support\ActivityCompositionPresets;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 use RuntimeException;
@@ -483,13 +484,23 @@ class ActivityTypeSeeder extends Seeder
     /**
      * @return array<string, mixed>
      */
-    private function group(string $key, array|string $label, int $size): array
+    private function group(string $key, array|string $label, int $size, ?string $compositionHintKey = null): array
     {
-        return [
+        $compositionHintKey ??= match ($size) {
+            4 => 'thdd',
+            8 => 'tthhdddd',
+            default => null,
+        };
+
+        return array_filter([
             'key' => $key,
             'label' => $this->localized($label),
             'size' => $size,
-        ];
+            'composition_hint_key' => $compositionHintKey,
+            'composition_hints' => $compositionHintKey
+                ? ActivityCompositionPresets::compositionHintsForKey($compositionHintKey)
+                : null,
+        ], static fn ($value) => $value !== null);
     }
 
     /**
