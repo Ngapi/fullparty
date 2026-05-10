@@ -54,6 +54,8 @@
     "public_description": "Anyone with a FullParty account can join this group.",
     "private_title": "Invite based",
     "private_description": "New members need an invite from the group staff.",
+    "static_title": "Static roster",
+    "static_description": "This group does not use public joins or community invite links.",
     "visible_title": "Discoverable",
     "visible_description": "This group can appear in public discovery and search.",
     "hidden_title": "Not discoverable",

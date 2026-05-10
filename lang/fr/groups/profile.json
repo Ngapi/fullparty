@@ -54,6 +54,8 @@
     "public_description": "Toute personne avec un compte FullParty peut rejoindre ce groupe.",
     "private_title": "Sur invitation",
     "private_description": "Les nouveaux membres ont besoin d'une invitation du staff.",
+    "static_title": "Roster static",
+    "static_description": "Ce groupe n'utilise pas les inscriptions publiques ni les liens d'invitation communautaires.",
     "visible_title": "Découvrable",
     "visible_description": "Ce groupe peut apparaître dans la recherche et la découverte publiques.",
     "hidden_title": "Non découvrable",

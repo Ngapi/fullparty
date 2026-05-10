@@ -82,6 +82,14 @@
         "placeholder": "ftel",
         "help": "Lettres minuscules uniquement, 8 caractères maximum."
       },
+      "group_type": {
+        "label": "Type de groupe",
+        "placeholder": "Sélectionnez un type de groupe",
+        "options": {
+          "community": "Communauté",
+          "static": "Static"
+        }
+      },
       "description": {
         "placeholder": "Expliquez l'objectif de votre groupe et à qui il s'adresse."
       },

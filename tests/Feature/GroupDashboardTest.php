@@ -149,7 +149,7 @@ it('renders the group dashboard with activity-driven overview data', function ()
     $response
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
-            ->component('Dashboard/Groups/Dashboard')
+            ->component('Dashboard/Groups/CommunityDashboard')
             ->where('group.name', $group->name)
             ->where('group.stats.activity_count', 5)
             ->where('group.stats.planned_count', 1)
@@ -218,5 +218,22 @@ it('renders the group dashboard with activity-driven overview data', function ()
             ->where('group.history_activities.0.can_view_overview', true)
             ->where('group.history_activities.1.id', $cancelledActivity->id)
             ->where('group.history_activities.1.can_view_overview', true)
+        );
+});
+
+it('renders the static dashboard page for static groups', function () {
+    $owner = User::factory()->create();
+    $group = Group::factory()->create([
+        'owner_id' => $owner->id,
+        'group_type' => Group::TYPE_STATIC,
+    ]);
+
+    $this->actingAs($owner)
+        ->get(route('groups.dashboard', $group))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->component('Dashboard/Groups/StaticDashboard')
+            ->where('group.id', $group->id)
+            ->where('group.group_type', Group::TYPE_STATIC)
         );
 });

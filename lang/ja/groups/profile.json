@@ -54,6 +54,8 @@
     "public_description": "FullPartyアカウントがあれば誰でもこのグループに参加できます。",
     "private_title": "招待制",
     "private_description": "新しいメンバーはグループスタッフからの招待が必要です。",
+    "static_title": "固定ロスター",
+    "static_description": "このグループでは公開参加やコミュニティ招待リンクは使用しません。",
     "visible_title": "検索に表示",
     "visible_description": "このグループは公開ディスカバリーや検索に表示されます。",
     "hidden_title": "検索に非表示",

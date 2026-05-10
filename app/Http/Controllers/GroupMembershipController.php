@@ -26,6 +26,12 @@ class GroupMembershipController extends Controller
     {
         $group->loadMissing('memberships');
 
+        if (! $group->usesCommunityJoinFlow()) {
+            return redirect()->back()->withErrors([
+                'error' => 'group_join_unavailable',
+            ]);
+        }
+
         if (! $group->is_public) {
             return redirect()->back()->withErrors([
                 'error' => 'group_not_public',

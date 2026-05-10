@@ -29,6 +29,7 @@ class GroupFactory extends Factory
             'is_public' => fake()->boolean(70),
             'is_visible' => true,
             'slug' => strtolower(fake()->unique()->regexify('[a-z0-9]{8}')),
+            'group_type' => Group::TYPE_COMMUNITY,
         ];
     }
 
@@ -43,7 +44,7 @@ class GroupFactory extends Factory
                 ]
             );
 
-            if ($group->is_public) {
+            if ($group->is_public && $group->usesCommunityJoinFlow()) {
                 $group->ensureSystemInvite();
             }
 

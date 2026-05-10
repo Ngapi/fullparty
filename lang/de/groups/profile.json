@@ -54,6 +54,8 @@
     "public_description": "Jeder mit einem FullParty-Konto kann dieser Gruppe beitreten.",
     "private_title": "Einladungsbasiert",
     "private_description": "Neue Mitglieder benötigen eine Einladung vom Gruppenstaff.",
+    "static_title": "Static-Roster",
+    "static_description": "Diese Gruppe nutzt keine öffentlichen Beitritte oder Community-Einladungslinks.",
     "visible_title": "Auffindbar",
     "visible_description": "Diese Gruppe kann in öffentlicher Suche und Discovery erscheinen.",
     "hidden_title": "Nicht auffindbar",

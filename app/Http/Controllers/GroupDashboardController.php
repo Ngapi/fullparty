@@ -85,7 +85,7 @@ class GroupDashboardController extends Controller
             ->sortByDesc('joined_at')
             ->first()?->joined_at?->toIso8601String();
 
-        return Inertia::render('Dashboard/Groups/Dashboard', [
+        return Inertia::render($this->dashboardComponent($group), [
             'group' => [
                 'id' => $group->id,
                 'name' => $group->name,
@@ -96,6 +96,7 @@ class GroupDashboardController extends Controller
                 'is_public' => $group->is_public,
                 'is_visible' => $group->is_visible,
                 'slug' => $group->slug,
+                'group_type' => $group->group_type,
                 'owner' => [
                     'id' => $group->owner?->id,
                     'name' => $group->owner?->name,
@@ -174,6 +175,13 @@ class GroupDashboardController extends Controller
                     ->map(fn (Activity $activity) => $this->serializeDashboardActivity($activity, $group, $canManageActivities)),
             ],
         ]);
+    }
+
+    private function dashboardComponent(Group $group): string
+    {
+        return $group->group_type === Group::TYPE_STATIC
+            ? 'Dashboard/Groups/StaticDashboard'
+            : 'Dashboard/Groups/CommunityDashboard';
     }
 
     private function activityHistoryTimestamp(Activity $activity): int

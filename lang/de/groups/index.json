@@ -82,6 +82,14 @@
         "placeholder": "ftel",
         "help": "Nur Kleinbuchstaben, maximal 8 Zeichen."
       },
+      "group_type": {
+        "label": "Gruppentyp",
+        "placeholder": "Gruppentyp auswählen",
+        "options": {
+          "community": "Community",
+          "static": "Static"
+        }
+      },
       "description": {
         "placeholder": "Beschreibe, worauf sich deine Gruppe konzentriert und für wen sie gedacht ist."
       },

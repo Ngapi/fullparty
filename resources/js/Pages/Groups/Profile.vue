@@ -34,6 +34,24 @@ const staffMembers = computed(() => props.group.staff_members.length > 0
 const currentActivities = computed(() => props.group.activities.current);
 const recentActivities = computed(() => props.group.activities.recent);
 const fallbackBackHref = computed(() => isAuthenticated.value ? route("groups.index") : "/");
+const accessTitle = computed(() => {
+	if (props.group.group_type === "static") {
+		return t("groups.profile.access.static_title");
+	}
+
+	return props.group.is_public
+		? t("groups.profile.access.public_title")
+		: t("groups.profile.access.private_title");
+});
+const accessDescription = computed(() => {
+	if (props.group.group_type === "static") {
+		return t("groups.profile.access.static_description");
+	}
+
+	return props.group.is_public
+		? t("groups.profile.access.public_description")
+		: t("groups.profile.access.private_description");
+});
 
 const goBack = () => {
 	if (typeof window !== "undefined" && window.history.length > 1) {
@@ -536,10 +554,10 @@ const memberJoinedLabel = (member: GroupProfileStaffMember) => (
 							/>
 							<div>
 								<p class="font-medium text-toned">
-									{{ group.is_public ? t("groups.profile.access.public_title") : t("groups.profile.access.private_title") }}
+									{{ accessTitle }}
 								</p>
 								<p class="mt-1 text-sm text-muted">
-									{{ group.is_public ? t("groups.profile.access.public_description") : t("groups.profile.access.private_description") }}
+									{{ accessDescription }}
 								</p>
 							</div>
 						</div>

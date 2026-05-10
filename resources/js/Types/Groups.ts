@@ -1,6 +1,7 @@
 import type { LocalizedText } from "@/Types/Common"
 
 export type MemberNoteSeverity = "info" | "warning" | "critical"
+export type GroupType = "community" | "static"
 
 export type NoteAuthor = {
 	id: number
@@ -58,6 +59,7 @@ export type GroupIndexRecord = {
 	name: string
 	description: string | null
 	profile_picture_url: string | null
+	group_type: GroupType
 	is_public: boolean
 	current_user_role: string | null
 	stats: {
@@ -156,6 +158,7 @@ export type GroupProfileGroup = {
 	is_public: boolean
 	is_visible: boolean
 	slug: string
+	group_type: GroupType
 	owner: {
 		id: number | null
 		name: string | null
@@ -198,6 +201,7 @@ export type GroupDashboardGroup = {
 	is_public: boolean
 	is_visible: boolean
 	slug: string
+	group_type: GroupType
 	owner: {
 		id: number | null
 		name: string | null

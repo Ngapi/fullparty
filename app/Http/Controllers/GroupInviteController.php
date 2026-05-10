@@ -31,6 +31,10 @@ class GroupInviteController extends Controller
 
         $group = $invite->group->loadMissing('memberships');
 
+        if (! $group->usesCommunityJoinFlow()) {
+            abort(404);
+        }
+
         return Inertia::render('Groups/Invite', [
             'invite' => [
                 'token' => $invite->token,
@@ -65,6 +69,12 @@ class GroupInviteController extends Controller
     {
         $group->loadMissing('memberships');
         $this->authorizeModeratorAccess($group);
+
+        if (! $group->usesCommunityJoinFlow()) {
+            return redirect()->back()->withErrors([
+                'error' => 'group_invites_unavailable',
+            ]);
+        }
 
         $validated = $request->validate([
             'max_uses' => ['nullable', 'integer', 'min:1'],
@@ -107,6 +117,14 @@ class GroupInviteController extends Controller
 
             $invite->load('group');
 
+            if (! $invite->group->usesCommunityJoinFlow()) {
+                return [
+                    'accepted' => false,
+                    'banned' => false,
+                    'group' => null,
+                ];
+            }
+
             if ($invite->group->isBanned(auth()->id())) {
                 return [
                     'accepted' => false,
@@ -115,7 +133,7 @@ class GroupInviteController extends Controller
                 ];
             }
 
-            if (!$this->canAcceptInvite($invite)) {
+            if (! $this->canAcceptInvite($invite)) {
                 return [
                     'accepted' => false,
                     'banned' => false,
@@ -153,7 +171,7 @@ class GroupInviteController extends Controller
             ];
         });
 
-        if (!$result['accepted']) {
+        if (! $result['accepted']) {
             if ($result['banned']) {
                 return redirect()->route('groups.invites.show', $token)->withErrors([
                     'error' => 'group_banned',
@@ -234,14 +252,18 @@ class GroupInviteController extends Controller
 
     private function authorizeModeratorAccess(Group $group): void
     {
-        if (!$group->hasModeratorAccess(auth()->id())) {
+        if (! $group->hasModeratorAccess(auth()->id())) {
             abort(403);
         }
     }
 
     private function canAcceptInvite(GroupInvite $invite): bool
     {
-        if ($invite->is_system && !$invite->group->is_public) {
+        if (! $invite->group->usesCommunityJoinFlow()) {
+            return false;
+        }
+
+        if ($invite->is_system && ! $invite->group->is_public) {
             return false;
         }
 

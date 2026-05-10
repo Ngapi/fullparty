@@ -45,6 +45,7 @@ class GroupSettingsController extends Controller
                 'is_public' => $group->is_public,
                 'is_visible' => $group->is_visible,
                 'slug' => $group->slug,
+                'group_type' => $group->group_type,
                 'owner' => [
                     'id' => $group->owner?->id,
                     'name' => $group->owner?->name,
@@ -56,7 +57,8 @@ class GroupSettingsController extends Controller
                 'permissions' => [
                     'can_manage_group' => $group->isOwnedBy(auth()->id()),
                     'can_manage_members' => $group->hasModeratorAccess(auth()->id()),
-                    'can_manage_invites' => $group->hasModeratorAccess(auth()->id()),
+                    'can_manage_invites' => $group->usesCommunityJoinFlow()
+                        && $group->hasModeratorAccess(auth()->id()),
                     'can_transfer_ownership' => $group->isOwnedBy(auth()->id()),
                 ],
                 'members' => $group->memberships
@@ -71,19 +73,21 @@ class GroupSettingsController extends Controller
                         'role' => $membership->role,
                         'joined_at' => $membership->joined_at,
                     ]),
-                'invites' => $group->invites
-                    ->sortByDesc('created_at')
-                    ->values()
-                    ->map(fn ($invite) => [
-                        'id' => $invite->id,
-                        'token' => $invite->token,
-                        'is_system' => $invite->is_system,
-                        'uses' => $invite->uses,
-                        'max_uses' => $invite->max_uses,
-                        'expires_at' => $invite->expires_at,
-                        'created_by' => $invite->creator?->name,
-                        'created_at' => $invite->created_at,
-                    ]),
+                'invites' => $group->usesCommunityJoinFlow()
+                    ? $group->invites
+                        ->sortByDesc('created_at')
+                        ->values()
+                        ->map(fn ($invite) => [
+                            'id' => $invite->id,
+                            'token' => $invite->token,
+                            'is_system' => $invite->is_system,
+                            'uses' => $invite->uses,
+                            'max_uses' => $invite->max_uses,
+                            'expires_at' => $invite->expires_at,
+                            'created_by' => $invite->creator?->name,
+                            'created_at' => $invite->created_at,
+                        ])
+                    : [],
             ],
         ]);
     }
@@ -132,7 +136,7 @@ class GroupSettingsController extends Controller
                 'is_visible' => $validated['is_visible'],
             ]);
 
-            if ($group->is_public) {
+            if ($group->is_public && $group->usesCommunityJoinFlow()) {
                 $group->ensureSystemInvite();
             } else {
                 $group->removeSystemInvite();
@@ -176,14 +180,14 @@ class GroupSettingsController extends Controller
 
     private function authorizeOwnerAccess(Group $group): void
     {
-        if (!$group->isOwnedBy(auth()->id())) {
+        if (! $group->isOwnedBy(auth()->id())) {
             abort(403);
         }
     }
 
     private function authorizeModeratorAccess(Group $group): void
     {
-        if (!$group->hasModeratorAccess(auth()->id())) {
+        if (! $group->hasModeratorAccess(auth()->id())) {
             abort(403);
         }
     }

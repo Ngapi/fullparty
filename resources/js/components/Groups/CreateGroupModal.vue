@@ -12,6 +12,16 @@ const self_open = ref(false);
 const step = ref(1);
 const max_steps = 3;
 const datacenterOptions = computed(() => page.props.lookups?.datacenters ?? []);
+const groupTypeOptions = computed(() => [
+	{
+		label: t('groups.index.create_modal.fields.group_type.options.community'),
+		value: 'community',
+	},
+	{
+		label: t('groups.index.create_modal.fields.group_type.options.static'),
+		value: 'static',
+	},
+]);
 
 const form = useForm({
 	name: '',
@@ -22,6 +32,7 @@ const form = useForm({
 	is_public: false,
 	is_visible: true,
 	slug: '',
+	group_type: 'community',
 });
 const profilePicturePreviewUrl = ref<string | null>(null);
 
@@ -39,6 +50,7 @@ const resetForm = () => {
 	form.clearErrors();
 	form.is_public = false;
 	form.is_visible = true;
+	form.group_type = 'community';
 	form.profile_picture = null;
 	profilePicturePreviewUrl.value = null;
 	step.value = 1;
@@ -69,7 +81,7 @@ const visibilitySummary = computed(() => {
 
 const canContinue = computed(() => {
 	if (step.value === 1) {
-		return !!form.name && !!form.slug && !!form.datacenter;
+		return !!form.name && !!form.slug && !!form.group_type && !!form.datacenter;
 	}
 
 	return true;
@@ -199,6 +211,21 @@ defineExpose({
 						<p>{{ t('groups.index.create_modal.slug_preview', { slug: normalizedSlugHint || t('groups.index.create_modal.slug_fallback') }) }}</p>
 						<p class="mt-1 font-medium text-toned">{{ t('groups.index.create_modal.slug_warning') }}</p>
 					</div>
+
+					<UFormField
+						:label="t('groups.index.create_modal.fields.group_type.label')"
+						:error="form.errors.group_type"
+						required
+					>
+						<USelect
+							v-model="form.group_type"
+							class="w-full"
+							:items="groupTypeOptions"
+							value-key="value"
+							:placeholder="t('groups.index.create_modal.fields.group_type.placeholder')"
+							:ui="{ base: 'rounded-none' }"
+						/>
+					</UFormField>
 
 					<UFormField
 						:label="t('general.description')"

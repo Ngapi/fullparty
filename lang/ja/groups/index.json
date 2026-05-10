@@ -82,6 +82,14 @@
         "placeholder": "ftel",
         "help": "小文字英字のみ、最大8文字。"
       },
+      "group_type": {
+        "label": "グループタイプ",
+        "placeholder": "グループタイプを選択",
+        "options": {
+          "community": "コミュニティ",
+          "static": "固定"
+        }
+      },
       "description": {
         "placeholder": "グループの目的や対象メンバーを説明してください。"
       },

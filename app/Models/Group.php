@@ -13,6 +13,15 @@ class Group extends Model
 {
     use HasFactory;
 
+    public const TYPE_COMMUNITY = 'community';
+
+    public const TYPE_STATIC = 'static';
+
+    public const TYPES = [
+        self::TYPE_COMMUNITY,
+        self::TYPE_STATIC,
+    ];
+
     protected $fillable = [
         'owner_id',
         'name',
@@ -23,6 +32,7 @@ class Group extends Model
         'is_public',
         'is_visible',
         'slug',
+        'group_type',
     ];
 
     protected $casts = [
@@ -138,8 +148,17 @@ class Group extends Model
             ->exists();
     }
 
+    public function usesCommunityJoinFlow(): bool
+    {
+        return $this->group_type === self::TYPE_COMMUNITY;
+    }
+
     public function ensureSystemInvite(): void
     {
+        if (! $this->usesCommunityJoinFlow()) {
+            return;
+        }
+
         $this->invites()->updateOrCreate(
             ['is_system' => true],
             [

@@ -82,6 +82,14 @@
         "placeholder": "ftel",
         "help": "Lowercase letters only, maximum 8 characters."
       },
+      "group_type": {
+        "label": "Group Type",
+        "placeholder": "Select a group type",
+        "options": {
+          "community": "Community",
+          "static": "Static"
+        }
+      },
       "description": {
         "placeholder": "Tell people what your group focuses on and who it is for."
       },

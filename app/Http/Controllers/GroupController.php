@@ -161,6 +161,7 @@ class GroupController extends Controller
                 'is_public' => $validated['is_public'],
                 'is_visible' => $validated['is_visible'],
                 'slug' => $validated['slug'],
+                'group_type' => $validated['group_type'],
             ]);
 
             $group->memberships()->create([
@@ -187,6 +188,7 @@ class GroupController extends Controller
             metadata: [
                 'name' => $group->name,
                 'slug' => $group->slug,
+                'group_type' => $group->group_type,
                 'datacenter' => $group->datacenter,
                 'is_public' => $group->is_public,
                 'is_visible' => $group->is_visible,
@@ -264,6 +266,7 @@ class GroupController extends Controller
             'datacenter' => ['required', 'string', Rule::in(config('datacenters.values', []))],
             'is_public' => ['required', 'boolean'],
             'is_visible' => ['required', 'boolean'],
+            'group_type' => ['required', 'string', Rule::in(Group::TYPES)],
             'slug' => [
                 'required',
                 'string',
@@ -287,6 +290,7 @@ class GroupController extends Controller
             'is_public' => $group->is_public,
             'is_visible' => $group->is_visible,
             'slug' => $group->slug,
+            'group_type' => $group->group_type,
             'current_user_role' => $group->memberships
                 ->firstWhere('user_id', $currentUserId)
                 ?->role,
@@ -388,6 +392,7 @@ class GroupController extends Controller
             'is_public' => $group->is_public,
             'is_visible' => $group->is_visible,
             'slug' => $group->slug,
+            'group_type' => $group->group_type,
             'owner' => [
                 'id' => $group->owner?->id,
                 'name' => $group->owner?->name,
@@ -400,6 +405,7 @@ class GroupController extends Controller
             ],
             'permissions' => [
                 'can_join' => $group->is_public
+                    && $group->usesCommunityJoinFlow()
                     && ! $isMember
                     && ! $isBanned,
                 'can_follow' => $group->is_public
