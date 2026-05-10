@@ -29,8 +29,8 @@ class ProductionAdminUserSeeder extends Seeder
                 'assignment_notifications' => true,
                 'account_character_notifications' => true,
                 'system_notice_notifications' => false,
-                'email_notifications' => true,
-                'discord_notifications' => true,
+                'email_notifications' => false,
+                'discord_notifications' => false,
             ],
         );
     }

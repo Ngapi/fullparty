@@ -45,6 +45,8 @@ const isCompleteModalOpen = ref(false);
 const isCompletingActivity = ref(false);
 const isScheduleConfirmOpen = ref(false);
 const isSchedulingActivity = ref(false);
+const isPublishRosterConfirmOpen = ref(false);
+const isPublishingRoster = ref(false);
 const isCancelConfirmOpen = ref(false);
 const isCancellingActivity = ref(false);
 const pendingMissingUndoIds = ref<number[]>([]);
@@ -302,13 +304,26 @@ const publishRoster = () => {
 		return;
 	}
 
+	isPublishRosterConfirmOpen.value = true;
+};
+
+const confirmPublishRoster = () => {
+	if (!currentActivity.value || isPublishingRoster.value) {
+		return;
+	}
+
+	isPublishingRoster.value = true;
 	router.post(route('groups.dashboard.activities.publish-roster', {
 		group: props.group.slug,
 		activity: props.activity.id,
 	}), {}, {
 		preserveScroll: true,
 		onSuccess: () => {
+			isPublishRosterConfirmOpen.value = false;
 			void fetchManagementData();
+		},
+		onFinish: () => {
+			isPublishingRoster.value = false;
 		},
 	});
 };
@@ -1568,6 +1583,40 @@ onBeforeUnmount(() => {
 						:label="t('groups.activities.management.schedule_activity_modal.confirm')"
 						:loading="isSchedulingActivity"
 						@click="confirmScheduleActivity"
+					/>
+				</div>
+			</template>
+		</UModal>
+
+		<UModal
+			v-model:open="isPublishRosterConfirmOpen"
+			:title="t('groups.activities.management.publish_roster_modal.title')"
+			:description="t('groups.activities.management.publish_roster_confirm')"
+		>
+			<template #body>
+				<UAlert
+					color="warning"
+					variant="subtle"
+					icon="i-lucide-triangle-alert"
+					:title="t('groups.activities.management.publish_roster_modal.warning_title')"
+					:description="t('groups.activities.management.publish_roster_modal.body')"
+				/>
+			</template>
+
+			<template #footer>
+				<div class="flex w-full items-center justify-end gap-3">
+					<UButton
+						color="neutral"
+						variant="ghost"
+						:label="t('general.cancel')"
+						@click="isPublishRosterConfirmOpen = false"
+					/>
+					<UButton
+						color="primary"
+						icon="i-lucide-send"
+						:label="t('groups.activities.management.publish_roster_modal.confirm')"
+						:loading="isPublishingRoster"
+						@click="confirmPublishRoster"
 					/>
 				</div>
 			</template>

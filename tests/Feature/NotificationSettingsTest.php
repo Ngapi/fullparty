@@ -10,7 +10,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 
 uses(RefreshDatabase::class);
 
-it('uses enabled defaults for notification categories and off site channels while optional system notices stay off', function () {
+it('uses enabled defaults for notification categories while optional system notices and off site channels stay off', function () {
     $user = User::query()->create([
         'name' => 'Settings Tester',
         'email' => 'settings@example.com',
@@ -23,8 +23,8 @@ it('uses enabled defaults for notification categories and off site channels whil
         ->and($user->assignment_notifications)->toBeTrue()
         ->and($user->account_character_notifications)->toBeTrue()
         ->and($user->system_notice_notifications)->toBeFalse()
-        ->and($user->email_notifications)->toBeTrue()
-        ->and($user->discord_notifications)->toBeTrue();
+        ->and($user->email_notifications)->toBeFalse()
+        ->and($user->discord_notifications)->toBeFalse();
 });
 
 it('updates the new notification category preferences and delivery channels', function () {

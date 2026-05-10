@@ -73,7 +73,21 @@ const goBack = () => {
 };
 
 const submit = () => {
-	form.put(route('groups.dashboard.activities.update', {
+	form.transform((data) => ({
+		organized_by_user_id: data.organized_by_user_id,
+		organized_by_character_id: data.organized_by_character_id,
+		title: data.title,
+		notes: data.notes,
+		starts_at: data.starts_at,
+		duration_hours: data.duration_hours,
+		datacenter: data.datacenter,
+		intensity: data.intensity,
+		min_item_level: data.min_item_level,
+		beginner_friendly: data.beginner_friendly,
+		run_style: data.run_style,
+		target_prog_point_key: data.target_prog_point_key,
+		allow_guest_applications: data.allow_guest_applications,
+	})).put(route('groups.dashboard.activities.update', {
 		group: props.group.slug,
 		activity: props.activity.id,
 	}), {

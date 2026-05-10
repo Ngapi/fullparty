@@ -26,8 +26,8 @@ return new class extends Migration
             $table->boolean('application_notifications')->default(true);
             $table->boolean('group_updates')->default(true);
             $table->boolean('assignment_updates')->default(true);
-            $table->boolean('email_notifications')->default(true);
-            $table->boolean('discord_notifications')->default(true);
+            $table->boolean('email_notifications')->default(false);
+            $table->boolean('discord_notifications')->default(false);
             $table->rememberToken();
             $table->timestamps();
         });
