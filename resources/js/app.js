@@ -15,11 +15,17 @@ const i18n = createI18n({
     messages,
 })
 
+const pages = import.meta.glob('./Pages/**/*.vue', { eager: true })
+
 createInertiaApp({
     title: title => `${title} FullParty`,
     resolve: name => {
-        const pages = import.meta.glob('./Pages/**/*.vue', { eager: true })
-        let page = pages[`./Pages/${name}.vue`];
+        const page = pages[`./Pages/${name}.vue`];
+
+        if (!page) {
+            throw new Error(`Inertia page not found: ${name}`)
+        }
+
         page.default.layout = page.default.layout || DefaultLayout;
         return page;
     },

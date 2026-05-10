@@ -6,43 +6,30 @@ import PageHeader from "@/components/PageHeader.vue";
 import { useI18n } from "vue-i18n";
 import ActivityCreateForm from "@/components/Groups/Activities/ActivityCreateForm.vue";
 import ActivityCreateSummaryCard from "@/components/Groups/Activities/ActivityCreateSummaryCard.vue";
+import type { ActivityMetadataOptions, ActivityTypeOption, OrganizerCharacterOption } from "@/Types/ActivityCore";
 
 const props = defineProps<{
 	group: {
 		id: number
 		name: string
 		slug: string
+		datacenter: string | null
 		current_user_role: string | null
 		permissions: {
 			can_manage_activities: boolean
 		}
 	}
-	activityTypes: Array<{
-		id: number
-		slug: string
-		draft_name: Record<string, string | null | undefined> | null | undefined
-		current_published_version_id: number | null
-		slot_count: number
-		prog_points: Array<{
-			key: string
-			label: Record<string, string | null | undefined> | null | undefined
-		}>
-	}>
-	organizerCharacters: Array<{
-		id: number
-		user_id: number
-		name: string | null
-		user_name: string | null
-		avatar_url: string | null
-		world: string | null
-	}>
+	activityTypes: ActivityTypeOption[]
+	organizerCharacters: OrganizerCharacterOption[]
+	activityOptions: ActivityMetadataOptions
 }>();
 
 const { t } = useI18n();
 const defaultOrganizerCharacter = props.organizerCharacters[0] ?? null;
+const defaultActivityType = props.activityTypes[0] ?? null;
 
 const form = useForm({
-	activity_type_id: props.activityTypes[0]?.id ?? null,
+	activity_type_id: defaultActivityType?.id ?? null,
 	organized_by_user_id: defaultOrganizerCharacter?.user_id ?? null,
 	organized_by_character_id: defaultOrganizerCharacter?.id ?? null,
 	status: 'planned',
@@ -50,6 +37,11 @@ const form = useForm({
 	notes: '',
 	starts_at: null as string | null,
 	duration_hours: 2,
+	datacenter: props.group.datacenter,
+	intensity: props.activityOptions.intensities[0] ?? 'casual',
+	min_item_level: defaultActivityType?.default_min_item_level ?? null,
+	beginner_friendly: false,
+	run_style: props.activityOptions.runStyles[0] ?? 'progression',
 	target_prog_point_key: null as string | null,
 	is_public: true,
 	needs_application: true,
@@ -94,6 +86,7 @@ const hasActivityTypes = computed(() => props.activityTypes.length > 0);
 				:group-slug="group.slug"
 				:activity-types="activityTypes"
 				:organizer-characters="organizerCharacters"
+				:activity-options="activityOptions"
 			/>
 			<ActivityCreateSummaryCard
 				:form="form"

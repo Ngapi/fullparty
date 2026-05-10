@@ -12,6 +12,30 @@
         "complete": "Complete",
         "cancelled": "Cancelled"
     },
+    "intensities": {
+        "casual": "Casual",
+        "midcore": "Midcore",
+        "hardcore": "Hardcore"
+    },
+    "run_styles": {
+        "progression": "Prog",
+        "clear": "Clear",
+        "reclear": "Reclear",
+        "farm": "Farm",
+        "marathon": "Marathon",
+        "speedrun": "Speedrun",
+        "practice": "Practice",
+        "blind": "Blind"
+    },
+    "difficulties": {
+        "normal": "Normal",
+        "extreme": "Extreme",
+        "unreal": "Unreal",
+        "savage": "Savage",
+        "ultimate": "Ultimate",
+        "chaotic": "Chaotic",
+        "criterion": "Criterion"
+    },
     "upcoming": {
         "title": "Upcoming Runs",
         "subtitle": "A detailed view of what's coming up next for the group.",
@@ -346,7 +370,8 @@
             "guest_applications": "Guest Applications",
             "pending_applications": "Applications",
             "no_description": "No description provided.",
-            "no_target_prog_point": "No target prog point selected"
+            "no_target_prog_point": "No target prog point selected",
+            "no_min_item_level": "No minimum"
         },
         "board": {
             "title": "Roster Board",
@@ -494,6 +519,10 @@
                 "title": "Schedule",
                 "subtitle": "Set the start time in FF14 Server Time and how long the activity will run."
             },
+            "run_details": {
+                "title": "Run Details",
+                "subtitle": "Tune the discovery metadata people use to find the right run."
+            },
             "access": {
                 "title": "Access",
                 "subtitle": "Decide who can see the activity and how people join it."
@@ -523,6 +552,28 @@
                 "preset": "{count} Hour",
                 "custom": "Custom",
                 "select_placeholder": "Select a duration"
+            },
+            "datacenter": {
+                "label": "Data Center",
+                "placeholder": "Select a data center"
+            },
+            "intensity": {
+                "label": "Run Intensity",
+                "placeholder": "Select an intensity"
+            },
+            "run_style": {
+                "label": "Run Style",
+                "placeholder": "Select a run style"
+            },
+            "min_item_level": {
+                "enabled_label": "Require Minimum Item Level",
+                "enabled_help": "Turn this off when item level should not matter for this run.",
+                "label": "Minimum Item Level",
+                "placeholder": "No minimum"
+            },
+            "beginner_friendly": {
+                "label": "Beginner Friendly",
+                "help": "Mark this run as welcoming to first timers or learners."
             },
             "prog_point": {
                 "label": "Target Prog Point",
@@ -576,6 +627,13 @@
             "visibility": "Visibility",
             "visibility_public": "Public",
             "visibility_private": "Private link only",
+            "datacenter": "Data Center",
+            "run_style": "Run Style",
+            "intensity": "Intensity",
+            "difficulty": "Difficulty",
+            "min_item_level": "Minimum ILVL",
+            "min_item_level_disabled": "No minimum",
+            "beginner_friendly": "Beginner Friendly",
             "assignment": "Signup Mode",
             "assignment_application": "Applications required",
             "assignment_self_assign": "Self assignment",
@@ -608,6 +666,9 @@
             },
             "access": {
                 "subtitle": "Update whether this run should accept guest applicants."
+            },
+            "run_details": {
+                "subtitle": "Update the metadata people use to understand and discover this run."
             }
         }
     }

@@ -34,6 +34,25 @@
     "description": "Localized Description",
     "description_help": "Short explanation shown to admins and eventually to group managers.",
     "description_placeholder": "Describe what this activity type is for",
+    "small_image": {
+      "label": "Small Image",
+      "placeholder": "Choose a portrait image",
+      "help": "Optional portrait card image. Recommended ratio is about 1:1.7. The preview shows letterboxing without cropping.",
+      "preview_label": "Portrait Preview",
+      "preview_alt": "Small activity type image preview"
+    },
+    "banner_image": {
+      "label": "Banner Image",
+      "placeholder": "Choose a banner image",
+      "help": "Optional wide banner image. Recommended ratio is about 3:1. The preview shows letterboxing without cropping.",
+      "preview_label": "Banner Preview",
+      "preview_alt": "Activity type banner image preview"
+    },
+    "difficulty": "Difficulty",
+    "difficulty_help": "The broad content difficulty used for run discovery and filtering.",
+    "default_min_item_level": "Default Minimum Item Level",
+    "default_min_item_level_help": "Optional default copied into new runs. Moderators can override or disable it per run.",
+    "default_min_item_level_placeholder": "710",
     "fflogs_zone_id": "FF Logs Zone ID",
     "fflogs_zone_id_help": "Optional zone identifier used when this activity type needs FF Logs-backed data lookups.",
     "fflogs_zone_id_placeholder": "54",
@@ -42,6 +61,15 @@
     "tags_placeholder": "Type a tag and press enter",
     "active": "Active",
     "active_help": "Inactive activity types stay in the admin history but should not be used for new activities."
+  },
+  "difficulties": {
+    "normal": "Normal",
+    "extreme": "Extreme",
+    "unreal": "Unreal",
+    "savage": "Savage",
+    "ultimate": "Ultimate",
+    "chaotic": "Chaotic",
+    "criterion": "Criterion"
   },
   "layout": {
     "title": "Layout",
@@ -205,6 +233,8 @@
     "roster_summary_presets": "Roster Presets",
     "progress_milestones": "Progress Milestones",
     "prog_points": "Prog Points",
+    "difficulty": "Difficulty",
+    "default_min_item_level": "Default ILVL",
     "fflogs_zone_id": "FF Logs Zone ID"
   }
 }

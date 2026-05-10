@@ -26,6 +26,10 @@ class ActivityTypeFactory extends Factory
             'slug' => Str::slug($name).'-'.fake()->unique()->numberBetween(10, 99),
             'draft_name' => ['en' => ucwords($name)],
             'draft_description' => ['en' => fake()->sentence()],
+            'draft_small_image_url' => null,
+            'draft_banner_image_url' => null,
+            'draft_difficulty' => ActivityType::DIFFICULTY_NORMAL,
+            'draft_default_min_item_level' => null,
             'draft_layout_schema' => [
                 'groups' => [
                     [
@@ -95,6 +99,10 @@ class ActivityTypeFactory extends Factory
                     'version' => 1,
                     'name' => $activityType->draft_name,
                     'description' => $activityType->draft_description,
+                    'small_image_url' => $activityType->draft_small_image_url,
+                    'banner_image_url' => $activityType->draft_banner_image_url,
+                    'difficulty' => $activityType->draft_difficulty,
+                    'default_min_item_level' => $activityType->draft_default_min_item_level,
                     'layout_schema' => $activityType->draft_layout_schema,
                     'slot_schema' => $activityType->draft_slot_schema,
                     'application_schema' => $activityType->draft_application_schema,

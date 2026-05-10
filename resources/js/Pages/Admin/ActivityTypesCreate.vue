@@ -11,6 +11,7 @@ defineProps<{
 		rosterSummarySources: string[]
 		rosterSummaryComparisonModes: string[]
 		rosterSummaryScopeTypes: string[]
+		activityDifficulties: string[]
 		rosterSummarySourceOptions: Record<string, Array<{ value: number, label: string }>>
 	}
 	existingTags: string[]
@@ -24,6 +25,12 @@ const form = useForm({
 	slug: '',
 	draft_name: createLocalizedRecord(),
 	draft_description: createLocalizedRecord(),
+	draft_small_image: null as File | null,
+	draft_banner_image: null as File | null,
+	draft_small_image_url: null as string | null,
+	draft_banner_image_url: null as string | null,
+	draft_difficulty: 'normal',
+	draft_default_min_item_level: null as number | null,
 	tags: [],
 	draft_layout_schema: {
 		groups: [
@@ -56,7 +63,9 @@ const goBack = () => {
 };
 
 const submit = () => {
-	form.post('/admin/activity-types');
+	form.post('/admin/activity-types', {
+		forceFormData: true,
+	});
 };
 </script>
 

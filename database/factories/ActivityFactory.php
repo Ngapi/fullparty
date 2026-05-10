@@ -3,8 +3,8 @@
 namespace Database\Factories;
 
 use App\Models\Activity;
+use App\Models\ActivitySlot;
 use App\Models\ActivitySlotFieldValue;
-use App\Models\ActivityProgressMilestone;
 use App\Models\ActivityType;
 use App\Models\ActivityTypeVersion;
 use App\Models\Character;
@@ -12,9 +12,7 @@ use App\Models\CharacterClass;
 use App\Models\Group;
 use App\Models\GroupMembership;
 use App\Models\PhantomJob;
-use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
-use Illuminate\Support\Collection;
 
 /**
  * @extends Factory<Activity>
@@ -44,6 +42,11 @@ class ActivityFactory extends Factory
             'notes' => fake()->boolean(35) ? fake()->paragraph() : null,
             'starts_at' => now()->addDays(fake()->numberBetween(1, 21)),
             'duration_hours' => fake()->randomElement([2, 3, 6]),
+            'datacenter' => null,
+            'intensity' => Activity::INTENSITY_CASUAL,
+            'min_item_level' => null,
+            'beginner_friendly' => false,
+            'run_style' => Activity::RUN_STYLE_PROGRESSION,
             'target_prog_point_key' => null,
             'is_public' => true,
             'needs_application' => true,
@@ -70,25 +73,29 @@ class ActivityFactory extends Factory
                 $version = $activity->activityTypeVersion;
                 $group = $activity->group;
 
-                if ($version && !$activity->activity_type_id) {
+                if ($version && ! $activity->activity_type_id) {
                     $activity->activity_type_id = $version->activity_type_id;
                 }
 
-                if (!$activity->organized_by_user_id && $group) {
+                if (! $activity->organized_by_user_id && $group) {
                     $activity->organized_by_user_id = $group->owner_id;
                 }
 
-                if ($activity->organized_by_user_id && !$activity->organized_by_character_id) {
+                if (! $activity->datacenter && $group) {
+                    $activity->datacenter = $group->datacenter;
+                }
+
+                if ($activity->organized_by_user_id && ! $activity->organized_by_character_id) {
                     $activity->organized_by_character_id = $this->resolveOrganizerCharacterId($activity->organized_by_user_id);
                 }
 
-                if (!$activity->target_prog_point_key && $version) {
+                if (! $activity->target_prog_point_key && $version) {
                     $activity->target_prog_point_key = $version->prog_points[0]['key'] ?? null;
                 }
 
                 if ($activity->is_public) {
                     $activity->secret_key = null;
-                } elseif (!$activity->secret_key) {
+                } elseif (! $activity->secret_key) {
                     $activity->secret_key = Activity::generateSecretKey();
                 }
 
@@ -145,7 +152,7 @@ class ActivityFactory extends Factory
             ->orderByDesc('is_primary')
             ->first();
 
-        if (!$character) {
+        if (! $character) {
             $character = Character::factory()
                 ->primary()
                 ->create(['user_id' => $userId]);
@@ -156,7 +163,7 @@ class ActivityFactory extends Factory
 
     private function ensureOrganizerMembership(Activity $activity): void
     {
-        if (!$activity->organized_by_user_id) {
+        if (! $activity->organized_by_user_id) {
             return;
         }
 
@@ -175,7 +182,7 @@ class ActivityFactory extends Factory
     {
         $type = $activity->activityTypeVersion?->activityType;
 
-        if (!$type instanceof ActivityType) {
+        if (! $type instanceof ActivityType) {
             return;
         }
 
@@ -356,7 +363,7 @@ class ActivityFactory extends Factory
      * @return array<string, mixed>|null
      */
     private function resolveSlotFieldValue(
-        \App\Models\ActivitySlot $slot,
+        ActivitySlot $slot,
         ActivitySlotFieldValue $fieldValue,
         Character $character,
         array $definition
@@ -364,7 +371,7 @@ class ActivityFactory extends Factory
         if ($fieldValue->source === 'character_classes') {
             $class = $this->pickAssignedClass($character);
 
-            if (!$class) {
+            if (! $class) {
                 return null;
             }
 
@@ -379,7 +386,7 @@ class ActivityFactory extends Factory
         if ($fieldValue->source === 'phantom_jobs') {
             $phantomJob = $this->pickAssignedPhantomJob($character);
 
-            if (!$phantomJob) {
+            if (! $phantomJob) {
                 return null;
             }
 
@@ -393,7 +400,7 @@ class ActivityFactory extends Factory
         if ($fieldValue->source === 'static_options') {
             $option = $this->resolveStaticOptionForSlot($slot, $fieldValue->field_key, $definition);
 
-            if (!$option) {
+            if (! $option) {
                 return null;
             }
 
@@ -450,7 +457,7 @@ class ActivityFactory extends Factory
      * @param  array<string, mixed>  $definition
      * @return array<string, mixed>|null
      */
-    private function resolveStaticOptionForSlot(\App\Models\ActivitySlot $slot, string $fieldKey, array $definition): ?array
+    private function resolveStaticOptionForSlot(ActivitySlot $slot, string $fieldKey, array $definition): ?array
     {
         $options = collect($definition['options'] ?? []);
 

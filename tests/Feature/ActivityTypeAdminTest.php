@@ -5,6 +5,8 @@ use App\Models\CharacterClass;
 use App\Models\PhantomJob;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 
 uses(RefreshDatabase::class);
 
@@ -24,6 +26,8 @@ function activityTypeAdminPayload(CharacterClass $characterClass, PhantomJob $ph
             'fr' => '',
             'ja' => '',
         ],
+        'draft_difficulty' => ActivityType::DIFFICULTY_SAVAGE,
+        'draft_default_min_item_level' => 710,
         'tags' => ['forked-tower'],
         'draft_layout_schema' => [
             'groups' => [
@@ -194,6 +198,15 @@ function activityTypeAdminPayload(CharacterClass $characterClass, PhantomJob $ph
     ];
 }
 
+function activityTypePublicStoragePath(?string $url): string
+{
+    $path = parse_url((string) $url, PHP_URL_PATH);
+
+    expect($path)->toBeString();
+
+    return substr((string) $path, strlen('/storage/'));
+}
+
 it('allows admins to save roster summary presets on activity type drafts', function () {
     $admin = User::factory()->create([
         'is_admin' => true,
@@ -234,6 +247,61 @@ it('allows admins to save roster summary presets on activity type drafts', funct
         ]);
 });
 
+it('stores activity type images and snapshots copies into published versions', function () {
+    Storage::fake('public');
+
+    $admin = User::factory()->create([
+        'is_admin' => true,
+    ]);
+
+    $characterClass = CharacterClass::create([
+        'name' => 'White Mage',
+        'shorthand' => 'WHM',
+        'role' => 'healer',
+    ]);
+
+    $phantomBard = PhantomJob::create([
+        'name' => 'Phantom Bard',
+        'max_level' => 20,
+    ]);
+
+    $phantomZerker = PhantomJob::create([
+        'name' => 'Phantom Zerker',
+        'max_level' => 20,
+    ]);
+
+    $payload = activityTypeAdminPayload($characterClass, $phantomBard, $phantomZerker);
+    $payload['draft_small_image'] = UploadedFile::fake()->image('small-card.png', 1000, 1700);
+    $payload['draft_banner_image'] = UploadedFile::fake()->image('banner.png', 1500, 500);
+
+    $this->actingAs($admin)
+        ->post(route('admin.activity-types.store'), $payload)
+        ->assertRedirect(route('admin.activity-types.index'));
+
+    $activityType = ActivityType::query()->where('slug', 'forked-tower')->sole();
+    $draftSmallImagePath = activityTypePublicStoragePath($activityType->draft_small_image_url);
+    $draftBannerImagePath = activityTypePublicStoragePath($activityType->draft_banner_image_url);
+
+    Storage::disk('public')->assertExists($draftSmallImagePath);
+    Storage::disk('public')->assertExists($draftBannerImagePath);
+
+    $this->actingAs($admin)
+        ->post(route('admin.activity-types.publish', $activityType))
+        ->assertRedirect();
+
+    $activityType->refresh()->load('currentPublishedVersion');
+    $publishedVersion = $activityType->currentPublishedVersion;
+
+    $publishedSmallImagePath = activityTypePublicStoragePath($publishedVersion?->small_image_url);
+    $publishedBannerImagePath = activityTypePublicStoragePath($publishedVersion?->banner_image_url);
+
+    expect($publishedSmallImagePath)->not->toBe($draftSmallImagePath)
+        ->and($publishedBannerImagePath)->not->toBe($draftBannerImagePath);
+
+    Storage::disk('public')->assertExists($publishedSmallImagePath);
+    Storage::disk('public')->assertExists($publishedBannerImagePath);
+});
+
 it('publishes roster summary presets into the activity type version snapshot', function () {
     $admin = User::factory()->create([
         'is_admin' => true,
@@ -262,6 +330,8 @@ it('publishes roster summary presets into the activity type version snapshot', f
         'slug' => $payload['slug'],
         'draft_name' => $payload['draft_name'],
         'draft_description' => $payload['draft_description'],
+        'draft_difficulty' => $payload['draft_difficulty'],
+        'draft_default_min_item_level' => $payload['draft_default_min_item_level'],
         'draft_layout_schema' => $payload['draft_layout_schema'],
         'draft_slot_schema' => $payload['draft_slot_schema'],
         'draft_application_schema' => $payload['draft_application_schema'],
@@ -280,7 +350,9 @@ it('publishes roster summary presets into the activity type version snapshot', f
     $publishedVersion = $activityType->currentPublishedVersion;
 
     expect($publishedVersion)->not->toBeNull()
-        ->and($publishedVersion?->roster_summary_presets)->toBe($activityType->draft_roster_summary_presets);
+        ->and($publishedVersion?->roster_summary_presets)->toBe($activityType->draft_roster_summary_presets)
+        ->and($publishedVersion?->difficulty)->toBe(ActivityType::DIFFICULTY_SAVAGE)
+        ->and($publishedVersion?->default_min_item_level)->toBe(710);
 });
 
 it('rejects roster summary requirements that target unknown layout groups', function () {

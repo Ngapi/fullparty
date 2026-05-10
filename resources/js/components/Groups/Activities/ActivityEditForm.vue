@@ -1,12 +1,14 @@
 <script setup lang="ts">
-import type { ActivityTypeOption, OrganizerCharacterOption } from "@/Types/ActivityCore";
-import { computed, toRef, watch } from "vue";
+import type { ActivityMetadataOptions, ActivityTypeOption, OrganizerCharacterOption } from "@/Types/ActivityCore";
+import { computed, ref, toRef, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { useActivityFormFields } from "@/components/Groups/Activities/useActivityFormFields";
+import { usePage } from "@inertiajs/vue3";
 
 const props = defineProps<{
 	activityTypes: ActivityTypeOption[]
 	organizerCharacters: OrganizerCharacterOption[]
+	activityOptions: ActivityMetadataOptions
 	submitLabel?: string
 	form: {
 		activity_type_id: number | null
@@ -17,6 +19,11 @@ const props = defineProps<{
 		notes: string
 		starts_at: string | null
 		duration_hours: number
+		datacenter: string | null
+		intensity: string
+		min_item_level: number | null
+		beginner_friendly: boolean
+		run_style: string
 		target_prog_point_key: string | null
 		needs_application: boolean
 		allow_guest_applications: boolean
@@ -30,6 +37,9 @@ const emit = defineEmits<{
 }>();
 
 const { t } = useI18n();
+const page = usePage();
+const datacenterOptions = computed(() => page.props.lookups?.datacenters ?? []);
+const minimumItemLevelTouched = ref(false);
 const {
 	organizerCharacterItems,
 	selectedOrganizerCharacter,
@@ -51,6 +61,31 @@ const {
 );
 
 const canSubmit = computed(() => Boolean(props.form.status));
+
+const intensityItems = computed(() => props.activityOptions.intensities.map((value) => ({
+	label: t(`groups.activities.intensities.${value}`),
+	value,
+})));
+
+const runStyleItems = computed(() => props.activityOptions.runStyles.map((value) => ({
+	label: t(`groups.activities.run_styles.${value}`),
+	value,
+})));
+
+const minimumItemLevelEnabled = computed({
+	get: () => props.form.min_item_level !== null && props.form.min_item_level !== undefined,
+	set: (enabled: boolean) => {
+		minimumItemLevelTouched.value = true;
+		props.form.min_item_level = enabled ? 1 : null;
+	},
+});
+
+const updateMinimumItemLevel = (value: unknown) => {
+	minimumItemLevelTouched.value = true;
+	props.form.min_item_level = value === '' || value === null
+		? null
+		: Math.min(9999, Math.max(1, Number(value) || 1));
+};
 
 const submit = () => {
 	emit('submit');
@@ -128,6 +163,7 @@ watch(() => props.form.needs_application, (needsApplication) => {
 						/>
 					</UFormField>
 				</div>
+
 			</section>
 
 			<div class="border-t border-default"></div>
@@ -208,6 +244,99 @@ watch(() => props.form.needs_application, (needsApplication) => {
 						/>
 					</div>
 				</UFormField>
+			</section>
+
+			<div class="border-t border-default"></div>
+
+			<section class="space-y-5">
+				<div class="space-y-1">
+					<p class="font-medium text-sm">{{ t('groups.activities.create.sections.run_details.title') }}</p>
+					<p class="text-sm text-muted">{{ t('groups.activities.edit.sections.run_details.subtitle') }}</p>
+				</div>
+
+				<div class="grid grid-cols-1 gap-5 xl:grid-cols-2">
+					<UFormField
+						:label="t('groups.activities.create.fields.datacenter.label')"
+						:error="form.errors.datacenter"
+						required
+					>
+						<USelect
+							v-model="form.datacenter"
+							size="lg"
+							class="w-full"
+							:items="datacenterOptions"
+							value-key="value"
+							:placeholder="t('groups.activities.create.fields.datacenter.placeholder')"
+						/>
+					</UFormField>
+
+					<UFormField
+						:label="t('groups.activities.create.fields.run_style.label')"
+						:error="form.errors.run_style"
+						required
+					>
+						<USelect
+							v-model="form.run_style"
+							size="lg"
+							class="w-full"
+							:items="runStyleItems"
+							value-key="value"
+							:placeholder="t('groups.activities.create.fields.run_style.placeholder')"
+						/>
+					</UFormField>
+
+					<UFormField
+						:label="t('groups.activities.create.fields.intensity.label')"
+						:error="form.errors.intensity"
+						required
+					>
+						<USelect
+							v-model="form.intensity"
+							size="lg"
+							class="w-full"
+							:items="intensityItems"
+							value-key="value"
+							:placeholder="t('groups.activities.create.fields.intensity.placeholder')"
+						/>
+					</UFormField>
+
+					<div class="flex flex-col gap-3 rounded-lg border border-default px-4 py-4">
+						<UFormField
+							:label="t('groups.activities.create.fields.min_item_level.enabled_label')"
+							:description="t('groups.activities.create.fields.min_item_level.enabled_help')"
+							orientation="horizontal"
+						>
+							<USwitch v-model="minimumItemLevelEnabled" />
+						</UFormField>
+
+						<UFormField
+							:label="t('groups.activities.create.fields.min_item_level.label')"
+							:error="form.errors.min_item_level"
+						>
+							<UInput
+								:model-value="form.min_item_level ?? ''"
+								type="number"
+								min="1"
+								max="9999"
+								size="lg"
+								class="w-full"
+								:disabled="!minimumItemLevelEnabled"
+								:placeholder="t('groups.activities.create.fields.min_item_level.placeholder')"
+								@update:model-value="updateMinimumItemLevel"
+							/>
+						</UFormField>
+					</div>
+
+					<UFormField
+						:label="t('groups.activities.create.fields.beginner_friendly.label')"
+						:description="t('groups.activities.create.fields.beginner_friendly.help')"
+						:error="form.errors.beginner_friendly"
+						orientation="horizontal"
+						class="rounded-lg border border-default px-4 py-4"
+					>
+						<USwitch v-model="form.beginner_friendly" />
+					</UFormField>
+				</div>
 			</section>
 
 			<div class="border-t border-default"></div>

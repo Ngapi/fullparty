@@ -89,6 +89,28 @@ const guestApplicationsLabel = computed(() => t(
 		: "groups.activities.create.summary.guest_applications_disabled"
 ));
 
+const difficultyLabel = computed(() => props.activity.difficulty
+	? t(`groups.activities.difficulties.${props.activity.difficulty}`)
+	: "—");
+
+const runStyleLabel = computed(() => props.activity.run_style
+	? t(`groups.activities.run_styles.${props.activity.run_style}`)
+	: "—");
+
+const intensityLabel = computed(() => props.activity.intensity
+	? t(`groups.activities.intensities.${props.activity.intensity}`)
+	: "—");
+
+const minimumItemLevelLabel = computed(() => props.activity.min_item_level
+	? String(props.activity.min_item_level)
+	: t("groups.activities.overview.details.no_min_item_level"));
+
+const beginnerFriendlyLabel = computed(() => t(
+	props.activity.beginner_friendly
+		? "general.yes"
+		: "general.no"
+));
+
 const organizerLabel = computed(() => (
 	props.activity.organized_by_character?.name
 	|| props.activity.organized_by?.name
@@ -180,6 +202,33 @@ const goToManagementPage = () => {
 		</PageHeader>
 
 		<div class="mt-6 flex flex-col gap-6">
+			<section
+				v-if="activity.banner_image_url || activity.small_image_url"
+				class="grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(160px,220px)]"
+			>
+				<div
+					v-if="activity.banner_image_url"
+					class="aspect-[3/1] overflow-hidden border border-default bg-muted/30"
+				>
+					<img
+						:src="activity.banner_image_url"
+						:alt="activityTitle"
+						class="h-full w-full object-cover object-center"
+					>
+				</div>
+
+				<div
+					v-if="activity.small_image_url"
+					class="aspect-[10/17] max-w-56 overflow-hidden border border-default bg-muted/30"
+				>
+					<img
+						:src="activity.small_image_url"
+						:alt="activityTitle"
+						class="h-full w-full object-cover object-center"
+					>
+				</div>
+			</section>
+
 			<section class="border border-default bg-muted/20 dark:bg-elevated/25">
 				<div class="grid gap-px md:grid-cols-2 xl:grid-cols-5">
 					<div class=" px-4 py-4">
@@ -237,6 +286,34 @@ const goToManagementPage = () => {
 						<p class="mt-1 text-sm text-muted">
 							{{ t("groups.activities.overview.meta.bench_slots", { count: benchSlots.length }) }}
 						</p>
+					</div>
+				</div>
+
+				<div class="grid gap-px border-t border-default md:grid-cols-2 xl:grid-cols-5">
+					<div class="bg-background px-4 py-4">
+						<p class="text-xs uppercase tracking-[0.22em] text-muted">{{ t("groups.activities.create.summary.datacenter") }}</p>
+						<p class="mt-2 font-semibold text-toned">{{ activity.datacenter || "—" }}</p>
+					</div>
+
+					<div class="bg-background px-4 py-4">
+						<p class="text-xs uppercase tracking-[0.22em] text-muted">{{ t("groups.activities.create.summary.difficulty") }}</p>
+						<p class="mt-2 font-semibold text-toned">{{ difficultyLabel }}</p>
+					</div>
+
+					<div class="bg-background px-4 py-4">
+						<p class="text-xs uppercase tracking-[0.22em] text-muted">{{ t("groups.activities.create.summary.run_style") }}</p>
+						<p class="mt-2 font-semibold text-toned">{{ runStyleLabel }}</p>
+					</div>
+
+					<div class="bg-background px-4 py-4">
+						<p class="text-xs uppercase tracking-[0.22em] text-muted">{{ t("groups.activities.create.summary.intensity") }}</p>
+						<p class="mt-2 font-semibold text-toned">{{ intensityLabel }}</p>
+					</div>
+
+					<div class="bg-background px-4 py-4">
+						<p class="text-xs uppercase tracking-[0.22em] text-muted">{{ t("groups.activities.create.summary.min_item_level") }}</p>
+						<p class="mt-2 font-semibold text-toned">{{ minimumItemLevelLabel }}</p>
+						<p class="mt-1 text-sm text-muted">{{ t("groups.activities.create.summary.beginner_friendly") }}: {{ beginnerFriendlyLabel }}</p>
 					</div>
 				</div>
 

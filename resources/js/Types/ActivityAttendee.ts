@@ -33,10 +33,18 @@ export type AttendeeActivity = {
 	activity_type_version_id: number
 	title: string | null
 	description: string | null
+	small_image_url: string | null
+	banner_image_url: string | null
 	notes: string | null
 	status: string
 	starts_at: string | null
 	duration_hours: number | null
+	datacenter: string | null
+	intensity: string | null
+	min_item_level: number | null
+	beginner_friendly: boolean
+	run_style: string | null
+	difficulty: string | null
 	target_prog_point_key: string | null
 	target_prog_point_label: LocalizedText | null
 	needs_application: boolean

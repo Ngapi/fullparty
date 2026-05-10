@@ -8,8 +8,10 @@ use App\Models\ActivityTypeVersion;
 use App\Models\CharacterClass;
 use App\Models\PhantomJob;
 use App\Services\AuditLogger;
+use App\Services\ManagedImageStorage;
 use App\Support\Audit\AuditScope;
 use App\Support\Audit\AuditSeverity;
+use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -20,8 +22,11 @@ use Inertia\Response;
 
 class ActivityTypeController extends Controller
 {
+    private const IMAGE_DIRECTORY = 'activity-types';
+
     public function __construct(
-        private readonly AuditLogger $auditLogger
+        private readonly AuditLogger $auditLogger,
+        private readonly ManagedImageStorage $managedImageStorage,
     ) {}
 
     public function index(): Response
@@ -66,12 +71,23 @@ class ActivityTypeController extends Controller
     {
         $this->authorizeAdminAccess();
 
+        $this->normalizeNullableDraftMetadata($request);
         $validated = $request->validate($this->rules());
         $this->validateDraftSchema($validated);
         $tagNames = $this->extractTagNames($validated);
+        $smallImageUrl = $this->managedImageStorage->uploadImageIfPresent(
+            file: $request->file('draft_small_image'),
+            directory: self::IMAGE_DIRECTORY,
+        );
+        $bannerImageUrl = $this->managedImageStorage->uploadImageIfPresent(
+            file: $request->file('draft_banner_image'),
+            directory: self::IMAGE_DIRECTORY,
+        );
 
         $activityType = ActivityType::create([
-            ...collect($validated)->except('tags')->all(),
+            ...collect($validated)->except('tags', 'draft_small_image', 'draft_banner_image')->all(),
+            'draft_small_image_url' => $smallImageUrl,
+            'draft_banner_image_url' => $bannerImageUrl,
             'created_by_user_id' => auth()->id(),
         ]);
         $this->syncTags($activityType, $tagNames);
@@ -100,11 +116,26 @@ class ActivityTypeController extends Controller
         $this->authorizeAdminAccess();
 
         $originalValues = $this->activityTypeSnapshot($activityType);
+        $this->normalizeNullableDraftMetadata($request);
         $validated = $request->validate($this->rules($activityType->id));
         $this->validateDraftSchema($validated);
         $tagNames = $this->extractTagNames($validated);
+        $smallImageUrl = $this->managedImageStorage->replaceUploadedImageIfPresent(
+            currentUrl: $activityType->draft_small_image_url,
+            file: $request->file('draft_small_image'),
+            directory: self::IMAGE_DIRECTORY,
+        );
+        $bannerImageUrl = $this->managedImageStorage->replaceUploadedImageIfPresent(
+            currentUrl: $activityType->draft_banner_image_url,
+            file: $request->file('draft_banner_image'),
+            directory: self::IMAGE_DIRECTORY,
+        );
 
-        $activityType->update(collect($validated)->except('tags')->all());
+        $activityType->update([
+            ...collect($validated)->except('tags', 'draft_small_image', 'draft_banner_image')->all(),
+            'draft_small_image_url' => $smallImageUrl,
+            'draft_banner_image_url' => $bannerImageUrl,
+        ]);
         $this->syncTags($activityType, $tagNames);
 
         $updatedValues = $this->activityTypeSnapshot($activityType->fresh()->load('tags:id,name'));
@@ -139,6 +170,10 @@ class ActivityTypeController extends Controller
         $draftPayload = [
             'draft_name' => $activityType->draft_name,
             'draft_description' => $activityType->draft_description,
+            'draft_small_image_url' => $activityType->draft_small_image_url,
+            'draft_banner_image_url' => $activityType->draft_banner_image_url,
+            'draft_difficulty' => $activityType->draft_difficulty,
+            'draft_default_min_item_level' => $activityType->draft_default_min_item_level,
             'draft_layout_schema' => $activityType->draft_layout_schema,
             'draft_slot_schema' => $activityType->draft_slot_schema,
             'draft_application_schema' => $activityType->draft_application_schema,
@@ -158,6 +193,10 @@ class ActivityTypeController extends Controller
                 'version' => $nextVersion,
                 'name' => $activityType->draft_name,
                 'description' => $activityType->draft_description,
+                'small_image_url' => $this->managedImageStorage->copyManagedImage($activityType->draft_small_image_url, self::IMAGE_DIRECTORY),
+                'banner_image_url' => $this->managedImageStorage->copyManagedImage($activityType->draft_banner_image_url, self::IMAGE_DIRECTORY),
+                'difficulty' => $activityType->draft_difficulty ?? ActivityType::DIFFICULTY_NORMAL,
+                'default_min_item_level' => $activityType->draft_default_min_item_level,
                 'layout_schema' => $activityType->draft_layout_schema,
                 'slot_schema' => $activityType->draft_slot_schema,
                 'application_schema' => $activityType->draft_application_schema,
@@ -222,7 +261,7 @@ class ActivityTypeController extends Controller
     }
 
     /**
-     * @return array<string, array<int, \Illuminate\Contracts\Validation\ValidationRule|string>>
+     * @return array<string, array<int, ValidationRule|string>>
      */
     private function rules(?int $activityTypeId = null): array
     {
@@ -238,6 +277,10 @@ class ActivityTypeController extends Controller
             'draft_name.*' => ['required', 'string', 'max:255'],
             'draft_description' => ['nullable', 'array'],
             'draft_description.*' => ['nullable', 'string'],
+            'draft_small_image' => ['sometimes', 'nullable', 'image', 'max:5120'],
+            'draft_banner_image' => ['sometimes', 'nullable', 'image', 'max:5120'],
+            'draft_difficulty' => ['sometimes', 'string', Rule::in(ActivityType::DIFFICULTIES)],
+            'draft_default_min_item_level' => ['sometimes', 'nullable', 'integer', 'min:1', 'max:9999'],
             'tags' => ['nullable', 'array'],
             'tags.*' => ['string', 'max:50'],
             'draft_layout_schema' => ['required', 'array'],
@@ -266,21 +309,23 @@ class ActivityTypeController extends Controller
         $benchSize = $validated['draft_bench_size'] ?? 0;
         $progPoints = $validated['draft_prog_points'] ?? null;
         $tags = $validated['tags'] ?? null;
+        $difficulty = $validated['draft_difficulty'] ?? ActivityType::DIFFICULTY_NORMAL;
+        $defaultMinItemLevel = $validated['draft_default_min_item_level'] ?? null;
 
-        if (!is_array($name) || !array_key_exists('en', $name) || blank($name['en'])) {
+        if (! is_array($name) || ! array_key_exists('en', $name) || blank($name['en'])) {
             throw ValidationException::withMessages([
                 'draft_name.en' => 'An English activity type name is required.',
             ]);
         }
 
-        if (!is_array($layoutSchema) || !isset($layoutSchema['groups']) || !is_array($layoutSchema['groups']) || $layoutSchema['groups'] === []) {
+        if (! is_array($layoutSchema) || ! isset($layoutSchema['groups']) || ! is_array($layoutSchema['groups']) || $layoutSchema['groups'] === []) {
             throw ValidationException::withMessages([
                 'draft_layout_schema.groups' => 'At least one slot group is required.',
             ]);
         }
 
         foreach ($layoutSchema['groups'] as $index => $group) {
-            if (!is_array($group)) {
+            if (! is_array($group)) {
                 throw ValidationException::withMessages([
                     "draft_layout_schema.groups.$index" => 'Each slot group must be an object.',
                 ]);
@@ -292,7 +337,7 @@ class ActivityTypeController extends Controller
                 ]);
             }
 
-            if (!is_numeric($group['size']) || (int) $group['size'] < 1) {
+            if (! is_numeric($group['size']) || (int) $group['size'] < 1) {
                 throw ValidationException::withMessages([
                     "draft_layout_schema.groups.$index.size" => 'Each slot group size must be at least 1.',
                 ]);
@@ -315,11 +360,40 @@ class ActivityTypeController extends Controller
         $this->validateBenchSize($benchSize, 'draft_bench_size');
         $this->validateProgPoints($progPoints, 'draft_prog_points');
         $this->validateTags($tags, 'tags');
+        $this->validateDiscoveryMetadata($difficulty, $defaultMinItemLevel);
+    }
+
+    private function validateDiscoveryMetadata(mixed $difficulty, mixed $defaultMinItemLevel): void
+    {
+        if (! in_array($difficulty, ActivityType::DIFFICULTIES, true)) {
+            throw ValidationException::withMessages([
+                'draft_difficulty' => 'Unsupported activity difficulty.',
+            ]);
+        }
+
+        if (is_null($defaultMinItemLevel)) {
+            return;
+        }
+
+        if (! is_numeric($defaultMinItemLevel) || (int) $defaultMinItemLevel < 1 || (int) $defaultMinItemLevel > 9999) {
+            throw ValidationException::withMessages([
+                'draft_default_min_item_level' => 'Default minimum item level must be a valid positive number.',
+            ]);
+        }
+    }
+
+    private function normalizeNullableDraftMetadata(Request $request): void
+    {
+        if ($request->input('draft_default_min_item_level') === '') {
+            $request->merge([
+                'draft_default_min_item_level' => null,
+            ]);
+        }
     }
 
     private function validateBenchSize(mixed $benchSize, string $attribute): void
     {
-        if (!is_numeric($benchSize) || (int) $benchSize < 0) {
+        if (! is_numeric($benchSize) || (int) $benchSize < 0) {
             throw ValidationException::withMessages([
                 $attribute => 'Bench size must be a valid non-negative number.',
             ]);
@@ -332,7 +406,7 @@ class ActivityTypeController extends Controller
             return;
         }
 
-        if (!is_array($tags)) {
+        if (! is_array($tags)) {
             throw ValidationException::withMessages([
                 $attribute => 'Tags must be an array.',
             ]);
@@ -392,14 +466,14 @@ class ActivityTypeController extends Controller
             return;
         }
 
-        if (!is_array($progPoints)) {
+        if (! is_array($progPoints)) {
             throw ValidationException::withMessages([
                 $attribute => 'Prog points must be an array.',
             ]);
         }
 
         foreach ($progPoints as $index => $progPoint) {
-            if (!is_array($progPoint)) {
+            if (! is_array($progPoint)) {
                 throw ValidationException::withMessages([
                     "$attribute.$index" => 'Each prog point must be an object.',
                 ]);
@@ -417,7 +491,7 @@ class ActivityTypeController extends Controller
 
     private function validateProgressSchema(mixed $progressSchema, string $attribute): void
     {
-        if (!is_array($progressSchema)) {
+        if (! is_array($progressSchema)) {
             throw ValidationException::withMessages([
                 $attribute => 'Progress schema must be an object.',
             ]);
@@ -425,14 +499,14 @@ class ActivityTypeController extends Controller
 
         $milestones = $progressSchema['milestones'] ?? null;
 
-        if (!is_array($milestones)) {
+        if (! is_array($milestones)) {
             throw ValidationException::withMessages([
                 "$attribute.milestones" => 'Progress milestones must be an array.',
             ]);
         }
 
         foreach ($milestones as $index => $milestone) {
-            if (!is_array($milestone)) {
+            if (! is_array($milestone)) {
                 throw ValidationException::withMessages([
                     "$attribute.milestones.$index" => 'Each milestone must be an object.',
                 ]);
@@ -444,7 +518,7 @@ class ActivityTypeController extends Controller
                 ]);
             }
 
-            if (!is_numeric($milestone['order'] ?? null) || (int) $milestone['order'] < 1) {
+            if (! is_numeric($milestone['order'] ?? null) || (int) $milestone['order'] < 1) {
                 throw ValidationException::withMessages([
                     "$attribute.milestones.$index.order" => 'Each milestone requires a valid order.',
                 ]);
@@ -452,7 +526,7 @@ class ActivityTypeController extends Controller
 
             $matcher = $milestone['fflogs_matcher'] ?? null;
 
-            if (!is_array($matcher)) {
+            if (! is_array($matcher)) {
                 throw ValidationException::withMessages([
                     "$attribute.milestones.$index.fflogs_matcher" => 'Each milestone requires an FF Logs matcher.',
                 ]);
@@ -460,19 +534,19 @@ class ActivityTypeController extends Controller
 
             $matcherType = $matcher['type'] ?? null;
 
-            if (!in_array($matcherType, ['encounter', 'phase'], true)) {
+            if (! in_array($matcherType, ['encounter', 'phase'], true)) {
                 throw ValidationException::withMessages([
                     "$attribute.milestones.$index.fflogs_matcher.type" => 'Unsupported FF Logs matcher type.',
                 ]);
             }
 
-            if (!is_numeric($matcher['encounter_id'] ?? null) || (int) $matcher['encounter_id'] < 1) {
+            if (! is_numeric($matcher['encounter_id'] ?? null) || (int) $matcher['encounter_id'] < 1) {
                 throw ValidationException::withMessages([
                     "$attribute.milestones.$index.fflogs_matcher.encounter_id" => 'Each milestone requires a valid FF Logs encounter ID.',
                 ]);
             }
 
-            if ($matcherType === 'phase' && (!is_numeric($matcher['phase_id'] ?? null) || (int) $matcher['phase_id'] < 1)) {
+            if ($matcherType === 'phase' && (! is_numeric($matcher['phase_id'] ?? null) || (int) $matcher['phase_id'] < 1)) {
                 throw ValidationException::withMessages([
                     "$attribute.milestones.$index.fflogs_matcher.phase_id" => 'Phase milestones require a valid FF Logs phase ID.',
                 ]);
@@ -491,7 +565,7 @@ class ActivityTypeController extends Controller
             return;
         }
 
-        if (!is_array($presets)) {
+        if (! is_array($presets)) {
             throw ValidationException::withMessages([
                 $attribute => 'Roster summary presets must be an array.',
             ]);
@@ -500,7 +574,7 @@ class ActivityTypeController extends Controller
         $seenPresetKeys = [];
 
         foreach ($presets as $presetIndex => $preset) {
-            if (!is_array($preset)) {
+            if (! is_array($preset)) {
                 throw ValidationException::withMessages([
                     "$attribute.$presetIndex" => 'Each roster summary preset must be an object.',
                 ]);
@@ -530,7 +604,7 @@ class ActivityTypeController extends Controller
 
             $requirements = $preset['requirements'] ?? null;
 
-            if (!is_array($requirements) || $requirements === []) {
+            if (! is_array($requirements) || $requirements === []) {
                 throw ValidationException::withMessages([
                     "$attribute.$presetIndex.requirements" => 'Each roster summary preset requires at least one requirement.',
                 ]);
@@ -539,7 +613,7 @@ class ActivityTypeController extends Controller
             $seenRequirementKeys = [];
 
             foreach ($requirements as $requirementIndex => $requirement) {
-                if (!is_array($requirement)) {
+                if (! is_array($requirement)) {
                     throw ValidationException::withMessages([
                         "$attribute.$presetIndex.requirements.$requirementIndex" => 'Each roster summary requirement must be an object.',
                     ]);
@@ -552,13 +626,13 @@ class ActivityTypeController extends Controller
                 $scopeType = $requirement['scope_type'] ?? null;
                 $scopeGroupKeys = $requirement['scope_group_keys'] ?? [];
 
-                if (!in_array($source, ['character_classes', 'phantom_jobs'], true)) {
+                if (! in_array($source, ['character_classes', 'phantom_jobs'], true)) {
                     throw ValidationException::withMessages([
                         "$attribute.$presetIndex.requirements.$requirementIndex.source" => 'Unsupported roster summary requirement source.',
                     ]);
                 }
 
-                if (!is_numeric($sourceId) || (int) $sourceId < 1) {
+                if (! is_numeric($sourceId) || (int) $sourceId < 1) {
                     throw ValidationException::withMessages([
                         "$attribute.$presetIndex.requirements.$requirementIndex.source_id" => 'Each roster summary requirement requires a valid source option.',
                     ]);
@@ -570,31 +644,31 @@ class ActivityTypeController extends Controller
                     default => false,
                 };
 
-                if (!$sourceExists) {
+                if (! $sourceExists) {
                     throw ValidationException::withMessages([
                         "$attribute.$presetIndex.requirements.$requirementIndex.source_id" => 'The selected roster summary source option does not exist.',
                     ]);
                 }
 
-                if (!in_array($comparison, ['at_least', 'exactly', 'at_most'], true)) {
+                if (! in_array($comparison, ['at_least', 'exactly', 'at_most'], true)) {
                     throw ValidationException::withMessages([
                         "$attribute.$presetIndex.requirements.$requirementIndex.comparison" => 'Unsupported roster summary comparison mode.',
                     ]);
                 }
 
-                if (!is_numeric($targetCount) || (int) $targetCount < 1) {
+                if (! is_numeric($targetCount) || (int) $targetCount < 1) {
                     throw ValidationException::withMessages([
                         "$attribute.$presetIndex.requirements.$requirementIndex.target_count" => 'Each roster summary requirement needs a target count of at least 1.',
                     ]);
                 }
 
-                if (!in_array($scopeType, ['all_slots', 'slot_group', 'slot_group_set'], true)) {
+                if (! in_array($scopeType, ['all_slots', 'slot_group', 'slot_group_set'], true)) {
                     throw ValidationException::withMessages([
                         "$attribute.$presetIndex.requirements.$requirementIndex.scope_type" => 'Unsupported roster summary scope type.',
                     ]);
                 }
 
-                if (!is_array($scopeGroupKeys)) {
+                if (! is_array($scopeGroupKeys)) {
                     throw ValidationException::withMessages([
                         "$attribute.$presetIndex.requirements.$requirementIndex.scope_group_keys" => 'Roster summary scope group keys must be an array.',
                     ]);
@@ -673,14 +747,14 @@ class ActivityTypeController extends Controller
 
     private function validateSchemaFields(mixed $fields, string $attribute): void
     {
-        if (!is_array($fields)) {
+        if (! is_array($fields)) {
             throw ValidationException::withMessages([
                 $attribute => 'Schema fields must be an array.',
             ]);
         }
 
         foreach ($fields as $index => $field) {
-            if (!is_array($field)) {
+            if (! is_array($field)) {
                 throw ValidationException::withMessages([
                     "$attribute.$index" => 'Each schema field must be an object.',
                 ]);
@@ -692,7 +766,7 @@ class ActivityTypeController extends Controller
                 ]);
             }
 
-            if (!in_array($field['type'] ?? null, [
+            if (! in_array($field['type'] ?? null, [
                 'text',
                 'textarea',
                 'number',
@@ -713,14 +787,14 @@ class ActivityTypeController extends Controller
             }
 
             if (($field['source'] ?? null) === 'static_options') {
-                if (!isset($field['options']) || !is_array($field['options']) || $field['options'] === []) {
+                if (! isset($field['options']) || ! is_array($field['options']) || $field['options'] === []) {
                     throw ValidationException::withMessages([
                         "$attribute.$index.options" => 'Static option fields require at least one option.',
                     ]);
                 }
 
                 foreach ($field['options'] as $optionIndex => $option) {
-                    if (!is_array($option) || blank($option['value'] ?? null)) {
+                    if (! is_array($option) || blank($option['value'] ?? null)) {
                         throw ValidationException::withMessages([
                             "$attribute.$index.options.$optionIndex" => 'Each static option requires a value.',
                         ]);
@@ -734,20 +808,20 @@ class ActivityTypeController extends Controller
 
     private function assertLocalizedValue(mixed $value, string $attribute, bool $requireEnglish = true): void
     {
-        if (!is_array($value) || $value === []) {
+        if (! is_array($value) || $value === []) {
             throw ValidationException::withMessages([
                 $attribute => 'This field must be a localized object.',
             ]);
         }
 
-        if ($requireEnglish && (!array_key_exists('en', $value) || blank($value['en']))) {
+        if ($requireEnglish && (! array_key_exists('en', $value) || blank($value['en']))) {
             throw ValidationException::withMessages([
                 "$attribute.en" => 'An English translation is required.',
             ]);
         }
 
         foreach ($value as $locale => $translation) {
-            if (!is_string($locale) || (!is_string($translation) && !is_null($translation))) {
+            if (! is_string($locale) || (! is_string($translation) && ! is_null($translation))) {
                 throw ValidationException::withMessages([
                     $attribute => 'Localized values must be keyed by locale and contain strings.',
                 ]);
@@ -757,7 +831,7 @@ class ActivityTypeController extends Controller
 
     private function authorizeAdminAccess(): void
     {
-        if (!auth()->user()?->is_admin) {
+        if (! auth()->user()?->is_admin) {
             abort(403);
         }
     }
@@ -796,6 +870,7 @@ class ActivityTypeController extends Controller
                 'slot_group',
                 'slot_group_set',
             ],
+            'activityDifficulties' => ActivityType::DIFFICULTIES,
             'rosterSummarySourceOptions' => [
                 'character_classes' => CharacterClass::query()
                     ->orderBy('role')
@@ -839,6 +914,10 @@ class ActivityTypeController extends Controller
             'is_active' => $activityType->is_active,
             'draft_name' => $activityType->draft_name,
             'draft_description' => $activityType->draft_description,
+            'draft_small_image_url' => $activityType->draft_small_image_url,
+            'draft_banner_image_url' => $activityType->draft_banner_image_url,
+            'draft_difficulty' => $activityType->draft_difficulty,
+            'draft_default_min_item_level' => $activityType->draft_default_min_item_level,
             'tags' => $activityType->tags->pluck('name')->values()->all(),
             'draft_layout_schema' => $activityType->draft_layout_schema,
             'draft_slot_schema' => $activityType->draft_slot_schema,
@@ -852,6 +931,10 @@ class ActivityTypeController extends Controller
             'current_published_version' => $currentVersion ? [
                 'id' => $currentVersion->id,
                 'version' => $currentVersion->version,
+                'small_image_url' => $currentVersion->small_image_url,
+                'banner_image_url' => $currentVersion->banner_image_url,
+                'difficulty' => $currentVersion->difficulty,
+                'default_min_item_level' => $currentVersion->default_min_item_level,
                 'bench_size' => $currentVersion->bench_size,
                 'fflogs_zone_id' => $currentVersion->fflogs_zone_id,
                 'roster_summary_presets' => $currentVersion->roster_summary_presets ?? [],
@@ -880,6 +963,10 @@ class ActivityTypeController extends Controller
             'slug' => $activityType->slug,
             'draft_name' => $activityType->draft_name,
             'draft_description' => $activityType->draft_description,
+            'draft_small_image_url' => $activityType->draft_small_image_url,
+            'draft_banner_image_url' => $activityType->draft_banner_image_url,
+            'draft_difficulty' => $activityType->draft_difficulty,
+            'draft_default_min_item_level' => $activityType->draft_default_min_item_level,
             'tags' => $activityType->tags->pluck('name')->values()->all(),
             'draft_layout_schema' => $activityType->draft_layout_schema,
             'draft_slot_schema' => $activityType->draft_slot_schema,

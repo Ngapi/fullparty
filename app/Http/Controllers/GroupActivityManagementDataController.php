@@ -4,12 +4,13 @@ namespace App\Http\Controllers;
 
 use App\Models\Activity;
 use App\Models\ActivityApplication;
+use App\Models\ActivitySlotAssignment;
 use App\Models\Group;
-use App\Services\Groups\ActivitySlotBench;
 use App\Services\Groups\ActivityBenchSlotBackfillService;
 use App\Services\Groups\ActivityCompletionService;
 use App\Services\Groups\ActivityRosterSummaryPresetBuilder;
 use App\Services\Groups\ActivitySlotAttendanceService;
+use App\Services\Groups\ActivitySlotBench;
 use App\Services\Groups\ActivitySlotFieldDefinitionBuilder;
 use App\Services\Groups\ActivitySlotSerializer;
 use Illuminate\Http\JsonResponse;
@@ -26,8 +27,7 @@ class GroupActivityManagementDataController extends Controller
         ActivitySlotFieldDefinitionBuilder $fieldDefinitionBuilder,
         ActivityRosterSummaryPresetBuilder $rosterSummaryPresetBuilder,
         ActivitySlotBench $slotBench,
-    ): JsonResponse
-    {
+    ): JsonResponse {
         $this->authorize('manageDashboard', [$activity, $group]);
 
         $activity->load([
@@ -48,7 +48,7 @@ class GroupActivityManagementDataController extends Controller
         $attendanceService->ensureActiveAssignments($activity);
         $activity->load(['slots.assignments', 'slotAssignments.character', 'slotAssignments.slot']);
 
-        $mainSlots = $activity->slots->filter(fn ($slot) => !$slotBench->isBench($slot))->values();
+        $mainSlots = $activity->slots->filter(fn ($slot) => ! $slotBench->isBench($slot))->values();
         $benchSlots = $activity->slots->filter(fn ($slot) => $slotBench->isBench($slot))->values();
 
         return response()->json([
@@ -61,12 +61,20 @@ class GroupActivityManagementDataController extends Controller
                 ],
                 'activity_type_version_id' => $activity->activity_type_version_id,
                 'fflogs_zone_id' => $activity->activityTypeVersion?->fflogs_zone_id,
+                'difficulty' => $activity->activityTypeVersion?->difficulty,
                 'title' => $activity->title,
                 'description' => $activity->description,
+                'small_image_url' => $activity->activityTypeVersion?->small_image_url,
+                'banner_image_url' => $activity->activityTypeVersion?->banner_image_url,
                 'notes' => $activity->notes,
                 'status' => $activity->status,
                 'starts_at' => $activity->starts_at?->toIso8601String(),
                 'duration_hours' => $activity->duration_hours,
+                'datacenter' => $activity->datacenter,
+                'intensity' => $activity->intensity,
+                'min_item_level' => $activity->min_item_level,
+                'beginner_friendly' => $activity->beginner_friendly,
+                'run_style' => $activity->run_style,
                 'target_prog_point_key' => $activity->target_prog_point_key,
                 'furthest_progress_key' => $activity->furthest_progress_key,
                 'furthest_progress_percent' => $activity->furthest_progress_percent,
@@ -111,7 +119,7 @@ class GroupActivityManagementDataController extends Controller
                 'slot_field_definitions' => $fieldDefinitionBuilder->build($activity->activityTypeVersion),
                 'slots' => $activity->slots->map(fn ($slot) => $slotSerializer->serialize($slot))->values(),
                 'missing_assignments' => $activity->slotAssignments
-                    ->where('attendance_status', \App\Models\ActivitySlotAssignment::STATUS_MISSING)
+                    ->where('attendance_status', ActivitySlotAssignment::STATUS_MISSING)
                     ->sortByDesc('marked_missing_at')
                     ->values()
                     ->map(fn ($assignment) => [

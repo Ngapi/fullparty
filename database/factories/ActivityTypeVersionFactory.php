@@ -24,6 +24,10 @@ class ActivityTypeVersionFactory extends Factory
             'version' => 1,
             'name' => ['en' => fake()->words(2, true)],
             'description' => ['en' => fake()->sentence()],
+            'small_image_url' => null,
+            'banner_image_url' => null,
+            'difficulty' => ActivityType::DIFFICULTY_NORMAL,
+            'default_min_item_level' => null,
             'layout_schema' => [
                 'groups' => [
                     [

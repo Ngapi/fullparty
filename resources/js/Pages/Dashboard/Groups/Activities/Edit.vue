@@ -5,12 +5,14 @@ import PageHeader from "@/components/PageHeader.vue";
 import { useI18n } from "vue-i18n";
 import ActivityEditForm from "@/components/Groups/Activities/ActivityEditForm.vue";
 import ActivityCreateSummaryCard from "@/components/Groups/Activities/ActivityCreateSummaryCard.vue";
+import type { ActivityMetadataOptions, ActivityTypeOption, OrganizerCharacterOption } from "@/Types/ActivityCore";
 
 const props = defineProps<{
 	group: {
 		id: number
 		name: string
 		slug: string
+		datacenter: string | null
 		current_user_role: string | null
 		permissions: {
 			can_manage_activities: boolean
@@ -26,30 +28,19 @@ const props = defineProps<{
 		notes: string | null
 		starts_at: string | null
 		duration_hours: number | null
+		datacenter: string | null
+		intensity: string
+		min_item_level: number | null
+		beginner_friendly: boolean
+		run_style: string
 		target_prog_point_key: string | null
 		is_public: boolean
 		needs_application: boolean
 		allow_guest_applications: boolean
 	}
-	activityTypes: Array<{
-		id: number
-		slug: string
-		draft_name: Record<string, string | null | undefined> | null | undefined
-		current_published_version_id: number | null
-		slot_count: number
-		prog_points: Array<{
-			key: string
-			label: Record<string, string | null | undefined> | null | undefined
-		}>
-	}>
-	organizerCharacters: Array<{
-		id: number
-		user_id: number
-		name: string | null
-		user_name: string | null
-		avatar_url: string | null
-		world: string | null
-	}>
+	activityTypes: ActivityTypeOption[]
+	organizerCharacters: OrganizerCharacterOption[]
+	activityOptions: ActivityMetadataOptions
 }>();
 
 const { t } = useI18n();
@@ -63,6 +54,11 @@ const form = useForm({
 	notes: props.activity.notes ?? '',
 	starts_at: props.activity.starts_at,
 	duration_hours: props.activity.duration_hours ?? 2,
+	datacenter: props.activity.datacenter ?? props.group.datacenter,
+	intensity: props.activity.intensity,
+	min_item_level: props.activity.min_item_level,
+	beginner_friendly: props.activity.beginner_friendly,
+	run_style: props.activity.run_style,
 	target_prog_point_key: props.activity.target_prog_point_key,
 	is_public: props.activity.is_public,
 	needs_application: props.activity.needs_application,
@@ -77,18 +73,7 @@ const goBack = () => {
 };
 
 const submit = () => {
-	form
-		.transform((data) => ({
-			organized_by_user_id: data.organized_by_user_id,
-			organized_by_character_id: data.organized_by_character_id,
-			title: data.title,
-			notes: data.notes,
-			starts_at: data.starts_at,
-			duration_hours: data.duration_hours,
-			target_prog_point_key: data.target_prog_point_key,
-			allow_guest_applications: data.allow_guest_applications,
-		}))
-		.put(route('groups.dashboard.activities.update', {
+	form.put(route('groups.dashboard.activities.update', {
 		group: props.group.slug,
 		activity: props.activity.id,
 	}), {
@@ -116,6 +101,7 @@ const submit = () => {
 				:form="form"
 				:activity-types="activityTypes"
 				:organizer-characters="organizerCharacters"
+				:activity-options="activityOptions"
 				:submit-label="t('groups.activities.edit.submit')"
 				@submit="submit"
 			/>

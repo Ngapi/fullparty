@@ -12,6 +12,7 @@ const props = defineProps<{
 		rosterSummarySources: string[]
 		rosterSummaryComparisonModes: string[]
 		rosterSummaryScopeTypes: string[]
+		activityDifficulties: string[]
 		rosterSummarySourceOptions: Record<string, Array<{ value: number, label: string }>>
 	}
 	existingTags: string[]
@@ -23,6 +24,12 @@ const form = useForm({
 	slug: props.activityType.slug,
 	draft_name: props.activityType.draft_name,
 	draft_description: props.activityType.draft_description ?? { en: '' },
+	draft_small_image: null as File | null,
+	draft_banner_image: null as File | null,
+	draft_small_image_url: props.activityType.draft_small_image_url,
+	draft_banner_image_url: props.activityType.draft_banner_image_url,
+	draft_difficulty: props.activityType.draft_difficulty ?? 'normal',
+	draft_default_min_item_level: props.activityType.draft_default_min_item_level ?? null,
 	tags: props.activityType.tags ?? [],
 	draft_layout_schema: props.activityType.draft_layout_schema,
 	draft_slot_schema: props.activityType.draft_slot_schema,
@@ -40,7 +47,14 @@ const goBack = () => {
 };
 
 const submit = () => {
-	form.put(`/admin/activity-types/${props.activityType.id}`);
+	form
+		.transform((data) => ({
+			...data,
+			_method: 'put',
+		}))
+		.post(`/admin/activity-types/${props.activityType.id}`, {
+			forceFormData: true,
+		});
 };
 
 const publish = () => {

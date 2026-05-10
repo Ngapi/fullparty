@@ -27,6 +27,8 @@ function createCrudActivityType(User $creator): ActivityType
         'published_by_user_id' => $creator->id,
         'name' => ['en' => 'Savage Prog'],
         'description' => ['en' => 'Eight-player progression run.'],
+        'difficulty' => ActivityType::DIFFICULTY_SAVAGE,
+        'default_min_item_level' => 710,
         'layout_schema' => [
             'groups' => [
                 [
@@ -104,6 +106,11 @@ it('allows moderators to create private application activities with guest applic
         'notes' => 'Bring food and pots.',
         'starts_at' => '2026-06-15T20:30',
         'duration_hours' => 3,
+        'datacenter' => 'Chaos',
+        'intensity' => Activity::INTENSITY_HARDCORE,
+        'min_item_level' => 720,
+        'beginner_friendly' => true,
+        'run_style' => Activity::RUN_STYLE_CLEAR,
         'target_prog_point_key' => 'enrage',
         'is_public' => false,
         'needs_application' => true,
@@ -122,6 +129,11 @@ it('allows moderators to create private application activities with guest applic
         ->and($activity->organized_by_character_id)->toBe($organizerCharacter->id)
         ->and($activity->title)->toBe('Tuesday Savage Prog')
         ->and($activity->starts_at?->format('Y-m-d H:i'))->toBe('2026-06-15 20:30')
+        ->and($activity->datacenter)->toBe('Chaos')
+        ->and($activity->intensity)->toBe(Activity::INTENSITY_HARDCORE)
+        ->and($activity->min_item_level)->toBe(720)
+        ->and($activity->beginner_friendly)->toBeTrue()
+        ->and($activity->run_style)->toBe(Activity::RUN_STYLE_CLEAR)
         ->and($activity->target_prog_point_key)->toBe('enrage')
         ->and($activity->is_public)->toBeFalse()
         ->and($activity->needs_application)->toBeTrue()
@@ -140,6 +152,35 @@ it('allows moderators to create private application activities with guest applic
         ->and($auditLog->subject_id)->toBe($activity->id)
         ->and($auditLog->metadata['activity_title'])->toBe('Tuesday Savage Prog')
         ->and($auditLog->metadata['needs_application'])->toBeTrue();
+});
+
+it('defaults activity discovery metadata from the group and activity type version', function () {
+    $owner = User::factory()->create();
+    $group = Group::factory()->public()->create([
+        'owner_id' => $owner->id,
+        'datacenter' => 'Light',
+    ]);
+    $activityType = createCrudActivityType($owner);
+
+    $this->actingAs($owner);
+
+    $this->post(route('groups.dashboard.activities.store', [
+        'group' => $group->slug,
+    ]), [
+        'activity_type_id' => $activityType->id,
+        'status' => Activity::STATUS_PLANNED,
+    ])->assertRedirect(route('groups.dashboard.activities.index', [
+        'group' => $group->slug,
+    ]));
+
+    /** @var Activity $activity */
+    $activity = $group->activities()->latest('id')->firstOrFail();
+
+    expect($activity->datacenter)->toBe('Light')
+        ->and($activity->intensity)->toBe(Activity::INTENSITY_CASUAL)
+        ->and($activity->min_item_level)->toBe(710)
+        ->and($activity->beginner_friendly)->toBeFalse()
+        ->and($activity->run_style)->toBe(Activity::RUN_STYLE_PROGRESSION);
 });
 
 it('forbids non moderators from creating activities', function () {
@@ -268,6 +309,11 @@ it('updates mutable activity fields while keeping private access intact', functi
         'organized_by_user_id' => $owner->id,
         'target_prog_point_key' => 'clear',
         'allow_guest_applications' => true,
+        'datacenter' => 'Light',
+        'intensity' => Activity::INTENSITY_CASUAL,
+        'min_item_level' => 710,
+        'beginner_friendly' => false,
+        'run_style' => Activity::RUN_STYLE_PROGRESSION,
     ]);
 
     $originalSecretKey = $activity->secret_key;
@@ -284,6 +330,11 @@ it('updates mutable activity fields while keeping private access intact', functi
         'notes' => 'Updated moderator notes.',
         'starts_at' => '2026-07-01T21:15',
         'duration_hours' => 4,
+        'datacenter' => 'Aether',
+        'intensity' => Activity::INTENSITY_MIDCORE,
+        'min_item_level' => null,
+        'beginner_friendly' => true,
+        'run_style' => Activity::RUN_STYLE_RECLEAR,
         'target_prog_point_key' => 'enrage',
         'allow_guest_applications' => false,
     ]);
@@ -301,6 +352,11 @@ it('updates mutable activity fields while keeping private access intact', functi
         ->and($activity->notes)->toBe('Updated moderator notes.')
         ->and($activity->starts_at?->format('Y-m-d H:i'))->toBe('2026-07-01 21:15')
         ->and($activity->duration_hours)->toBe(4)
+        ->and($activity->datacenter)->toBe('Aether')
+        ->and($activity->intensity)->toBe(Activity::INTENSITY_MIDCORE)
+        ->and($activity->min_item_level)->toBeNull()
+        ->and($activity->beginner_friendly)->toBeTrue()
+        ->and($activity->run_style)->toBe(Activity::RUN_STYLE_RECLEAR)
         ->and($activity->target_prog_point_key)->toBe('enrage')
         ->and($activity->allow_guest_applications)->toBeFalse()
         ->and($activity->secret_key)->toBe($originalSecretKey);
@@ -312,6 +368,8 @@ it('updates mutable activity fields while keeping private access intact', functi
         ->and($auditLog->subject_id)->toBe($activity->id)
         ->and($auditLog->metadata['changes']['organized_by_user_id']['old'])->toBe($owner->id)
         ->and($auditLog->metadata['changes']['organized_by_user_id']['new'])->toBe($moderator->id)
+        ->and($auditLog->metadata['changes']['datacenter']['new'])->toBe('Aether')
+        ->and($auditLog->metadata['changes']['min_item_level']['new'])->toBeNull()
         ->and($auditLog->metadata['changes']['allow_guest_applications']['new'])->toBeFalse();
 });
 

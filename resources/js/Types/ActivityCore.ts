@@ -2,6 +2,12 @@ import type { LocalizedText } from "@/Types/Common"
 
 export type ActivityStatus = "draft" | "planned" | "scheduled" | "assigned" | "upcoming" | "ongoing" | "complete" | "cancelled"
 
+export type ActivityIntensity = "casual" | "midcore" | "hardcore"
+
+export type ActivityRunStyle = "progression" | "clear" | "reclear" | "farm" | "marathon" | "speedrun" | "practice" | "blind"
+
+export type ActivityDifficulty = "normal" | "extreme" | "unreal" | "savage" | "ultimate" | "chaotic" | "criterion"
+
 export type ActivityStatusMeta = {
 	color: string
 	icon: string
@@ -24,12 +30,19 @@ export interface ActivityIndexItem {
 	activity_type_version_id: number
 	title: string | null
 	status: string
+	small_image_url: string | null
+	banner_image_url: string | null
 	starts_at: string | null
 	organized_by: {
 		id: number
 		name: string
 		avatar_url: string | null
 	} | null
+	datacenter: string | null
+	intensity: ActivityIntensity | string | null
+	min_item_level: number | null
+	beginner_friendly: boolean
+	run_style: ActivityRunStyle | string | null
 	slot_count: number
 	application_count: number
 	progress_milestone_count: number
@@ -42,8 +55,17 @@ export type ActivityTypeOption = {
 	slug: string
 	draft_name: LocalizedText
 	current_published_version_id: number | null
+	small_image_url: string | null
+	banner_image_url: string | null
+	difficulty: ActivityDifficulty | string | null
+	default_min_item_level: number | null
 	slot_count: number
 	prog_points: ActivityProgressPoint[]
+}
+
+export type ActivityMetadataOptions = {
+	intensities: string[]
+	runStyles: string[]
 }
 
 export type OrganizerCharacterOption = {
@@ -64,6 +86,11 @@ export type ActivityFormShape = {
 	notes: string
 	starts_at: string | null
 	duration_hours: number
+	datacenter: string | null
+	intensity: string
+	min_item_level: number | null
+	beginner_friendly: boolean
+	run_style: string
 	target_prog_point_key: string | null
 }
 

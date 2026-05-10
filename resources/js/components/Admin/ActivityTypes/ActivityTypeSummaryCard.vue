@@ -7,11 +7,15 @@ const props = defineProps<{
 	form: {
 		slug: string
 		draft_name: Record<string, string>
+		draft_small_image_url?: string | null
+		draft_banner_image_url?: string | null
 		draft_layout_schema: { groups?: Array<{ size?: number }> }
 		draft_slot_schema: Array<unknown>
 		draft_application_schema: Array<unknown>
 		draft_roster_summary_presets?: Array<unknown>
 		draft_progress_schema: { milestones?: Array<unknown> }
+		draft_difficulty?: string | null
+		draft_default_min_item_level?: number | null
 		draft_bench_size?: number | null
 		draft_prog_points?: Array<unknown>
 		draft_fflogs_zone_id?: number | null
@@ -21,6 +25,9 @@ const props = defineProps<{
 const { t, locale } = useI18n();
 
 const totalSlots = computed(() => (props.form.draft_layout_schema?.groups ?? []).reduce((total, group) => total + Number(group.size || 0), 0));
+const difficultyLabel = computed(() => props.form.draft_difficulty
+	? t(`admin.activity_types.difficulties.${props.form.draft_difficulty}`)
+	: '—');
 </script>
 
 <template>
@@ -33,6 +40,27 @@ const totalSlots = computed(() => (props.form.draft_layout_schema?.groups ?? [])
 		</template>
 
 		<div class="flex flex-col gap-4">
+			<div
+				v-if="form.draft_banner_image_url || form.draft_small_image_url"
+				class="grid gap-3"
+			>
+				<div v-if="form.draft_banner_image_url" class="aspect-[3/1] overflow-hidden rounded-sm border border-default bg-muted/30">
+					<img
+						:src="form.draft_banner_image_url"
+						:alt="t('admin.activity_types.general.banner_image.preview_alt')"
+						class="h-full w-full object-cover object-center"
+					>
+				</div>
+
+				<div v-if="form.draft_small_image_url" class="aspect-[10/17] w-full max-w-28 overflow-hidden rounded-sm border border-default bg-muted/30">
+					<img
+						:src="form.draft_small_image_url"
+						:alt="t('admin.activity_types.general.small_image.preview_alt')"
+						class="h-full w-full object-cover object-center"
+					>
+				</div>
+			</div>
+
 			<div class="rounded-lg bg-neutral-100 p-4 dark:bg-neutral-800">
 				<p class="text-sm text-muted">{{ t('admin.activity_types.summary.draft_name') }}</p>
 				<p class="mt-1 font-semibold text-highlighted">
@@ -77,6 +105,16 @@ const totalSlots = computed(() => (props.form.draft_layout_schema?.groups ?? [])
 				<div class="rounded-lg border border-default p-4">
 					<p class="text-xs uppercase tracking-wide text-muted">{{ t('admin.activity_types.summary.prog_points') }}</p>
 					<p class="mt-2 text-2xl font-semibold">{{ form.draft_prog_points?.length ?? 0 }}</p>
+				</div>
+
+				<div class="rounded-lg border border-default p-4">
+					<p class="text-xs uppercase tracking-wide text-muted">{{ t('admin.activity_types.summary.difficulty') }}</p>
+					<p class="mt-2 text-lg font-semibold">{{ difficultyLabel }}</p>
+				</div>
+
+				<div class="rounded-lg border border-default p-4">
+					<p class="text-xs uppercase tracking-wide text-muted">{{ t('admin.activity_types.summary.default_min_item_level') }}</p>
+					<p class="mt-2 text-2xl font-semibold">{{ form.draft_default_min_item_level ?? '—' }}</p>
 				</div>
 
 				<div class="rounded-lg border border-default p-4">

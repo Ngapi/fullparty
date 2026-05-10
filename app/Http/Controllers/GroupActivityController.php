@@ -87,6 +87,7 @@ class GroupActivityController extends Controller
             'group' => $this->buildDashboardGroupPayload($group),
             'activityTypes' => $this->availableActivityTypesForForm(),
             'organizerCharacters' => $this->organizerCharactersForUserIds($this->moderatorUserIds($group)),
+            'activityOptions' => $this->activityOptionsForForm(),
         ]);
     }
 
@@ -114,6 +115,11 @@ class GroupActivityController extends Controller
                 'notes' => $activity->notes,
                 'starts_at' => $activity->starts_at?->setTimezone('UTC')->format('Y-m-d\TH:i'),
                 'duration_hours' => $activity->duration_hours,
+                'datacenter' => $activity->datacenter,
+                'intensity' => $activity->intensity,
+                'min_item_level' => $activity->min_item_level,
+                'beginner_friendly' => $activity->beginner_friendly,
+                'run_style' => $activity->run_style,
                 'target_prog_point_key' => $activity->target_prog_point_key,
                 'is_public' => $activity->is_public,
                 'needs_application' => $activity->needs_application,
@@ -123,6 +129,7 @@ class GroupActivityController extends Controller
             ],
             'activityTypes' => $activityType ? collect([$activityType])->map(fn (ActivityType $type) => $this->serializeActivityTypeForForm($type))->values() : [],
             'organizerCharacters' => $this->organizerCharactersForUserIds($this->moderatorUserIds($group)),
+            'activityOptions' => $this->activityOptionsForForm(),
         ]);
     }
 
@@ -168,9 +175,16 @@ class GroupActivityController extends Controller
                     'status' => $activity->status,
                     'starts_at' => $activity->starts_at?->toIso8601String(),
                     'duration_hours' => $activity->duration_hours,
+                    'small_image_url' => $activity->activityTypeVersion?->small_image_url,
+                    'banner_image_url' => $activity->activityTypeVersion?->banner_image_url,
                     'target_prog_point_key' => $activity->target_prog_point_key,
                     'notes' => $activity->notes,
                     'furthest_progress_key' => $activity->furthest_progress_key,
+                    'datacenter' => $activity->datacenter,
+                    'intensity' => $activity->intensity,
+                    'min_item_level' => $activity->min_item_level,
+                    'beginner_friendly' => $activity->beginner_friendly,
+                    'run_style' => $activity->run_style,
                     'is_public' => $activity->is_public,
                     'needs_application' => $activity->needs_application,
                     'allow_guest_applications' => $activity->allow_guest_applications,
@@ -227,6 +241,13 @@ class GroupActivityController extends Controller
                 'notes' => $validated['notes'] ?? null,
                 'starts_at' => $validated['starts_at'] ?? null,
                 'duration_hours' => $validated['duration_hours'] ?? 2,
+                'datacenter' => $validated['datacenter'] ?? $group->datacenter,
+                'intensity' => $validated['intensity'] ?? Activity::INTENSITY_CASUAL,
+                'min_item_level' => array_key_exists('min_item_level', $validated)
+                    ? $validated['min_item_level']
+                    : $activityTypeVersion->default_min_item_level,
+                'beginner_friendly' => $validated['beginner_friendly'] ?? false,
+                'run_style' => $validated['run_style'] ?? Activity::RUN_STYLE_PROGRESSION,
                 'target_prog_point_key' => $validated['target_prog_point_key'] ?? null,
                 'is_public' => $validated['is_public'] ?? true,
                 'needs_application' => $validated['needs_application'] ?? true,
@@ -291,6 +312,11 @@ class GroupActivityController extends Controller
             'notes',
             'starts_at',
             'duration_hours',
+            'datacenter',
+            'intensity',
+            'min_item_level',
+            'beginner_friendly',
+            'run_style',
             'target_prog_point_key',
             'is_public',
             'needs_application',
@@ -307,6 +333,13 @@ class GroupActivityController extends Controller
             'notes' => $validated['notes'] ?? $activity->notes,
             'starts_at' => $validated['starts_at'] ?? $activity->starts_at,
             'duration_hours' => $validated['duration_hours'] ?? $activity->duration_hours,
+            'datacenter' => $validated['datacenter'] ?? $activity->datacenter,
+            'intensity' => $validated['intensity'] ?? $activity->intensity,
+            'min_item_level' => array_key_exists('min_item_level', $validated)
+                ? $validated['min_item_level']
+                : $activity->min_item_level,
+            'beginner_friendly' => $validated['beginner_friendly'] ?? $activity->beginner_friendly,
+            'run_style' => $validated['run_style'] ?? $activity->run_style,
             'target_prog_point_key' => array_key_exists('target_prog_point_key', $validated)
                 ? $validated['target_prog_point_key']
                 : $activity->target_prog_point_key,
@@ -328,6 +361,11 @@ class GroupActivityController extends Controller
             'notes',
             'starts_at',
             'duration_hours',
+            'datacenter',
+            'intensity',
+            'min_item_level',
+            'beginner_friendly',
+            'run_style',
             'target_prog_point_key',
             'is_public',
             'needs_application',
@@ -505,6 +543,11 @@ class GroupActivityController extends Controller
             'notes' => ['sometimes', 'nullable', 'string'],
             'starts_at' => ['sometimes', 'nullable', 'date_format:Y-m-d\TH:i'],
             'duration_hours' => ['sometimes', 'nullable', 'integer', 'min:1', 'max:24'],
+            'datacenter' => ['sometimes', 'string', Rule::in(config('datacenters.values', []))],
+            'intensity' => ['sometimes', 'string', Rule::in(Activity::INTENSITIES)],
+            'min_item_level' => ['sometimes', 'nullable', 'integer', 'min:1', 'max:9999'],
+            'beginner_friendly' => ['sometimes', 'boolean'],
+            'run_style' => ['sometimes', 'string', Rule::in(Activity::RUN_STYLES)],
             'target_prog_point_key' => ['sometimes', 'nullable', 'string', 'max:255'],
             'is_public' => $isUpdate ? ['prohibited'] : ['sometimes', 'boolean'],
             'needs_application' => $isUpdate ? ['prohibited'] : ['sometimes', 'boolean'],
@@ -709,6 +752,7 @@ class GroupActivityController extends Controller
             'id' => $group->id,
             'name' => $group->name,
             'slug' => $group->slug,
+            'datacenter' => $group->datacenter,
             'current_user_role' => $group->memberships
                 ->firstWhere('user_id', auth()->id())
                 ?->role,
@@ -780,11 +824,26 @@ class GroupActivityController extends Controller
             'slug' => $activityType->slug,
             'draft_name' => $activityType->draft_name,
             'current_published_version_id' => $activityType->current_published_version_id,
+            'small_image_url' => $activityType->currentPublishedVersion?->small_image_url,
+            'banner_image_url' => $activityType->currentPublishedVersion?->banner_image_url,
+            'difficulty' => $activityType->currentPublishedVersion?->difficulty,
+            'default_min_item_level' => $activityType->currentPublishedVersion?->default_min_item_level,
             'slot_count' => collect($activityType->currentPublishedVersion?->layout_schema['groups'] ?? [])
                 ->sum(fn (array $groupDefinition) => (int) ($groupDefinition['size'] ?? 0)),
             'prog_points' => $includeProgPoints
                 ? ($activityType->currentPublishedVersion?->prog_points ?? [])
                 : [],
+        ];
+    }
+
+    /**
+     * @return array<string, array<int, string>>
+     */
+    private function activityOptionsForForm(): array
+    {
+        return [
+            'intensities' => Activity::INTENSITIES,
+            'runStyles' => Activity::RUN_STYLES,
         ];
     }
 }

@@ -12,10 +12,38 @@ class ActivityType extends Model
 {
     use HasFactory;
 
+    public const DIFFICULTY_NORMAL = 'normal';
+
+    public const DIFFICULTY_EXTREME = 'extreme';
+
+    public const DIFFICULTY_UNREAL = 'unreal';
+
+    public const DIFFICULTY_SAVAGE = 'savage';
+
+    public const DIFFICULTY_ULTIMATE = 'ultimate';
+
+    public const DIFFICULTY_CHAOTIC = 'chaotic';
+
+    public const DIFFICULTY_CRITERION = 'criterion';
+
+    public const DIFFICULTIES = [
+        self::DIFFICULTY_NORMAL,
+        self::DIFFICULTY_EXTREME,
+        self::DIFFICULTY_UNREAL,
+        self::DIFFICULTY_SAVAGE,
+        self::DIFFICULTY_ULTIMATE,
+        self::DIFFICULTY_CHAOTIC,
+        self::DIFFICULTY_CRITERION,
+    ];
+
     protected $fillable = [
         'slug',
         'draft_name',
         'draft_description',
+        'draft_small_image_url',
+        'draft_banner_image_url',
+        'draft_difficulty',
+        'draft_default_min_item_level',
         'draft_layout_schema',
         'draft_slot_schema',
         'draft_application_schema',
@@ -32,6 +60,7 @@ class ActivityType extends Model
     protected $casts = [
         'draft_name' => 'array',
         'draft_description' => 'array',
+        'draft_default_min_item_level' => 'integer',
         'draft_layout_schema' => 'array',
         'draft_slot_schema' => 'array',
         'draft_application_schema' => 'array',

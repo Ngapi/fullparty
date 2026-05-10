@@ -17,7 +17,7 @@ const authLink = (href, icon, label) => ({
 
 const top = computed(() => [
 	authLink(route('dashboard'), 'i-lucide-house', t('navigation.sidebar.dashboard')),
-	authLink('/dashboard/runs', 'i-lucide-calendar-days', t('navigation.sidebar.runs')),
+	authLink(route('dashboard.runs.index'), 'i-lucide-calendar-days', t('navigation.sidebar.runs')),
 ])
 
 const account = computed(() => [

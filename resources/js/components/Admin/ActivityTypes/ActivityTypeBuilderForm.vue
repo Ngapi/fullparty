@@ -20,6 +20,7 @@ const props = defineProps<{
 		rosterSummarySources: string[]
 		rosterSummaryComparisonModes: string[]
 		rosterSummaryScopeTypes: string[]
+		activityDifficulties: string[]
 		rosterSummarySourceOptions: Record<string, Array<{ value: number, label: string }>>
 	}
 	existingTags: string[]
@@ -54,6 +55,12 @@ const topErrors = computed(() => Object.entries(props.form.errors ?? {}).slice(0
 const primaryLocale = computed(() => localeConfig.value?.fallback ?? locales.value[0] ?? 'en');
 const availableTags = ref([...props.existingTags]);
 const tagSearchTerm = ref('');
+const smallImagePreviewUrl = ref<string | null>(props.form.draft_small_image_url ?? null);
+const bannerImagePreviewUrl = ref<string | null>(props.form.draft_banner_image_url ?? null);
+const difficultyItems = computed(() => props.schemaReference.activityDifficulties.map((value) => ({
+	label: t(`admin.activity_types.difficulties.${value}`),
+	value,
+})));
 
 watch(() => props.existingTags, (tags) => {
 	availableTags.value = [...tags];
@@ -74,6 +81,21 @@ const updateDraftName = (value: Record<string, string>) => {
 
 const goBack = () => {
 	router.get(props.backHref);
+};
+
+const updateImage = (event: Event, field: 'draft_small_image' | 'draft_banner_image') => {
+	const target = event.target as HTMLInputElement;
+	const file = target.files?.[0] ?? null;
+
+	props.form[field] = file;
+
+	if (field === 'draft_small_image') {
+		smallImagePreviewUrl.value = file ? URL.createObjectURL(file) : (props.form.draft_small_image_url ?? null);
+
+		return;
+	}
+
+	bannerImagePreviewUrl.value = file ? URL.createObjectURL(file) : (props.form.draft_banner_image_url ?? null);
 };
 
 const addCreatedTag = (rawTag: string) => {
@@ -149,6 +171,104 @@ const addCreatedTag = (rawTag: string) => {
 							:placeholder-prefix="t('admin.activity_types.general.description_placeholder')"
 							multiline
 						/>
+
+						<div class="grid grid-cols-1 gap-5 xl:grid-cols-[minmax(0,220px)_minmax(0,1fr)]">
+							<UFormField
+								:label="t('admin.activity_types.general.small_image.label')"
+								:help="t('admin.activity_types.general.small_image.help')"
+								:error="form.errors.draft_small_image"
+							>
+								<div class="flex flex-col gap-3">
+									<label class="file-upload-field">
+										<UIcon name="i-lucide-upload" size="16" />
+										<span class="text-sm font-medium">
+											{{ form.draft_small_image?.name || t('admin.activity_types.general.small_image.placeholder') }}
+										</span>
+										<input
+											class="sr-only"
+											type="file"
+											accept="image/*"
+											@change="(event) => updateImage(event, 'draft_small_image')"
+										>
+									</label>
+
+									<div v-if="smallImagePreviewUrl" class="rounded-sm border border-muted p-3">
+										<p class="mb-2 text-xs uppercase tracking-wide text-muted">
+											{{ t('admin.activity_types.general.small_image.preview_label') }}
+										</p>
+										<div class="aspect-[10/17] w-full max-w-40 overflow-hidden rounded-sm border border-default bg-muted/30">
+											<img
+												:src="smallImagePreviewUrl"
+												:alt="t('admin.activity_types.general.small_image.preview_alt')"
+												class="h-full w-full object-cover object-center"
+											>
+										</div>
+									</div>
+								</div>
+							</UFormField>
+
+							<UFormField
+								:label="t('admin.activity_types.general.banner_image.label')"
+								:help="t('admin.activity_types.general.banner_image.help')"
+								:error="form.errors.draft_banner_image"
+							>
+								<div class="flex flex-col gap-3">
+									<label class="file-upload-field">
+										<UIcon name="i-lucide-upload" size="16" />
+										<span class="text-sm font-medium">
+											{{ form.draft_banner_image?.name || t('admin.activity_types.general.banner_image.placeholder') }}
+										</span>
+										<input
+											class="sr-only"
+											type="file"
+											accept="image/*"
+											@change="(event) => updateImage(event, 'draft_banner_image')"
+										>
+									</label>
+
+									<div v-if="bannerImagePreviewUrl" class="rounded-sm border border-muted p-3">
+										<p class="mb-2 text-xs uppercase tracking-wide text-muted">
+											{{ t('admin.activity_types.general.banner_image.preview_label') }}
+										</p>
+										<div class="aspect-[3/1] w-full overflow-hidden rounded-sm border border-default bg-muted/30">
+											<img
+												:src="bannerImagePreviewUrl"
+												:alt="t('admin.activity_types.general.banner_image.preview_alt')"
+												class="h-full w-full object-cover object-center"
+											>
+										</div>
+									</div>
+								</div>
+							</UFormField>
+						</div>
+
+						<div class="grid grid-cols-1 gap-5 xl:grid-cols-2">
+							<UFormField
+								:label="t('admin.activity_types.general.difficulty')"
+								:description="t('admin.activity_types.general.difficulty_help')"
+							>
+								<USelect
+									v-model="form.draft_difficulty"
+									class="w-full"
+									:items="difficultyItems"
+									value-key="value"
+								/>
+							</UFormField>
+
+							<UFormField
+								:label="t('admin.activity_types.general.default_min_item_level')"
+								:description="t('admin.activity_types.general.default_min_item_level_help')"
+							>
+								<UInput
+									v-model.number="form.draft_default_min_item_level"
+									class="w-full"
+									type="number"
+									min="1"
+									max="9999"
+									:placeholder="t('admin.activity_types.general.default_min_item_level_placeholder')"
+								/>
+							</UFormField>
+						</div>
 
 						<UFormField
 							:label="t('admin.activity_types.general.tags')"

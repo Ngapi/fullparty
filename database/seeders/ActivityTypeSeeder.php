@@ -7,6 +7,7 @@ use App\Models\PhantomJob;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
+use RuntimeException;
 
 class ActivityTypeSeeder extends Seeder
 {
@@ -26,6 +27,8 @@ class ActivityTypeSeeder extends Seeder
                 $activityType->fill([
                     'draft_name' => $activityTypeData['draft_name'],
                     'draft_description' => $activityTypeData['draft_description'],
+                    'draft_small_image_url' => $activityTypeData['draft_small_image_url'] ?? null,
+                    'draft_banner_image_url' => $activityTypeData['draft_banner_image_url'] ?? null,
                     'draft_layout_schema' => $activityTypeData['draft_layout_schema'],
                     'draft_slot_schema' => $activityTypeData['draft_slot_schema'],
                     'draft_application_schema' => $activityTypeData['draft_application_schema'],
@@ -48,6 +51,8 @@ class ActivityTypeSeeder extends Seeder
                     'version' => 1,
                     'name' => $activityTypeData['draft_name'],
                     'description' => $activityTypeData['draft_description'],
+                    'small_image_url' => $activityTypeData['draft_small_image_url'] ?? null,
+                    'banner_image_url' => $activityTypeData['draft_banner_image_url'] ?? null,
                     'layout_schema' => $activityTypeData['draft_layout_schema'],
                     'slot_schema' => $activityTypeData['draft_slot_schema'],
                     'application_schema' => $activityTypeData['draft_application_schema'],
@@ -87,6 +92,8 @@ class ActivityTypeSeeder extends Seeder
                     'fr' => 'Activite Forked Tower a grande echelle avec 6 groupes, affectation de classe et de job fantome par slot, et preferences de candidature multilingues.',
                     'ja' => '6PT構成、各枠にクラスとファントムジョブを設定でき、多言語の申請項目を持つ大規模なForked Tower向けアクティビティです。',
                 ]),
+                'draft_small_image_url' => $this->prereqImage('forked.jpg'),
+                'draft_banner_image_url' => $this->prereqImage('forked.jpg'),
                 'draft_bench_size' => 8,
                 'draft_fflogs_zone_id' => 69,
                 'draft_layout_schema' => [
@@ -309,6 +316,8 @@ class ActivityTypeSeeder extends Seeder
                     'fr' => 'Activite Chaotique a 24 joueurs avec affectation par groupe, classes et positions de raid.',
                     'ja' => '24人用のChaotic向けアクティビティ。PT単位の編成、ジョブ、レイドポジション設定に対応します。',
                 ]),
+                'draft_small_image_url' => $this->prereqImage('chaotic_small.png'),
+                'draft_banner_image_url' => $this->prereqImage('chaotic.webp'),
                 'draft_bench_size' => 8,
                 'draft_fflogs_zone_id' => 66,
                 'draft_layout_schema' => [
@@ -608,14 +617,25 @@ class ActivityTypeSeeder extends Seeder
         ];
     }
 
+    private function prereqImage(string $filename): string
+    {
+        $path = public_path('prereqimages/'.$filename);
+
+        if (! file_exists($path)) {
+            throw new RuntimeException(sprintf('Expected prerequisite image [%s] to exist before seeding activity types.', $filename));
+        }
+
+        return '/prereqimages/'.$filename;
+    }
+
     private function phantomJobId(string $name): int
     {
         $phantomJobId = PhantomJob::query()
             ->where('name', $name)
             ->value('id');
 
-        if (!is_numeric($phantomJobId)) {
-            throw new \RuntimeException(sprintf('Expected phantom job [%s] to exist before seeding activity types.', $name));
+        if (! is_numeric($phantomJobId)) {
+            throw new RuntimeException(sprintf('Expected phantom job [%s] to exist before seeding activity types.', $name));
         }
 
         return (int) $phantomJobId;

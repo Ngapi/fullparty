@@ -46,12 +46,20 @@ export type ActivityDetails = {
 	}
 	activity_type_version_id: number
 	fflogs_zone_id: number | null
+	difficulty: string | null
 	title: string | null
 	description: string | null
+	small_image_url: string | null
+	banner_image_url: string | null
 	notes: string | null
 	status: string
 	starts_at: string | null
 	duration_hours: number | null
+	datacenter: string | null
+	intensity: string | null
+	min_item_level: number | null
+	beginner_friendly: boolean
+	run_style: string | null
 	target_prog_point_key: string | null
 	furthest_progress_key: string | null
 	furthest_progress_percent: number | null

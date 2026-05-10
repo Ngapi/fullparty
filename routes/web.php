@@ -39,6 +39,7 @@ use App\Http\Controllers\GroupMembershipController;
 use App\Http\Controllers\GroupSettingsController;
 use App\Http\Controllers\LocaleController;
 use App\Http\Controllers\PhantomJobController;
+use App\Http\Controllers\RunDiscoveryController;
 use App\Http\Controllers\SettingsController;
 use App\Http\Controllers\SocialAccountController;
 use App\Http\Controllers\SystemNotificationController;
@@ -197,6 +198,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     */
 
     Route::get('/dashboard', [DashboardController::class, 'show'])->name('dashboard');
+    Route::get('/dashboard/runs', [RunDiscoveryController::class, 'index'])->name('dashboard.runs.index');
 
     /*
     |--------------------------------------------------------------------------

@@ -15,6 +15,11 @@ const props = defineProps<{
 		notes: string
 		starts_at: string | null
 		duration_hours: number
+		datacenter: string | null
+		intensity: string
+		min_item_level: number | null
+		beginner_friendly: boolean
+		run_style: string
 		target_prog_point_key: string | null
 		is_public: boolean
 		needs_application: boolean
@@ -43,6 +48,9 @@ const activityTypeName = computed(() => {
 });
 
 const displayTitle = computed(() => props.form.title.trim() || activityTypeName.value);
+const difficultyLabel = computed(() => selectedActivityType.value?.difficulty
+	? t(`groups.activities.difficulties.${selectedActivityType.value.difficulty}`)
+	: '—');
 
 const serverStartLabel = computed(() => {
 	if (!props.form.starts_at) {
@@ -101,6 +109,24 @@ const guestApplicationsLabel = computed(() => {
 			: 'groups.activities.create.summary.guest_applications_disabled'
 	);
 });
+
+const runStyleLabel = computed(() => props.form.run_style
+	? t(`groups.activities.run_styles.${props.form.run_style}`)
+	: '—');
+
+const intensityLabel = computed(() => props.form.intensity
+	? t(`groups.activities.intensities.${props.form.intensity}`)
+	: '—');
+
+const minimumItemLevelLabel = computed(() => props.form.min_item_level
+	? String(props.form.min_item_level)
+	: t('groups.activities.create.summary.min_item_level_disabled'));
+
+const beginnerFriendlyLabel = computed(() => t(
+	props.form.beginner_friendly
+		? 'general.yes'
+		: 'general.no'
+));
 </script>
 
 <template>
@@ -168,6 +194,34 @@ const guestApplicationsLabel = computed(() => {
 				<div class="rounded-sm border border-default bg-muted/10 px-4 py-4">
 					<p class="text-xs uppercase tracking-wide text-muted">{{ t('groups.activities.create.summary.visibility') }}</p>
 					<p class="mt-2 font-semibold text-toned">{{ visibilityLabel }}</p>
+				</div>
+			</div>
+			<div class="grid grid-cols-1 gap-3 xl:grid-cols-3">
+				<div class="rounded-sm border border-default bg-muted/10 px-4 py-4">
+					<p class="text-xs uppercase tracking-wide text-muted">{{ t('groups.activities.create.summary.datacenter') }}</p>
+					<p class="mt-2 font-semibold text-toned">{{ form.datacenter || '—' }}</p>
+				</div>
+				<div class="rounded-sm border border-default bg-muted/10 px-4 py-4">
+					<p class="text-xs uppercase tracking-wide text-muted">{{ t('groups.activities.create.summary.run_style') }}</p>
+					<p class="mt-2 font-semibold text-toned">{{ runStyleLabel }}</p>
+				</div>
+				<div class="rounded-sm border border-default bg-muted/10 px-4 py-4">
+					<p class="text-xs uppercase tracking-wide text-muted">{{ t('groups.activities.create.summary.intensity') }}</p>
+					<p class="mt-2 font-semibold text-toned">{{ intensityLabel }}</p>
+				</div>
+			</div>
+			<div class="grid grid-cols-1 gap-3 xl:grid-cols-3">
+				<div class="rounded-sm border border-default bg-muted/10 px-4 py-4">
+					<p class="text-xs uppercase tracking-wide text-muted">{{ t('groups.activities.create.summary.difficulty') }}</p>
+					<p class="mt-2 font-semibold text-toned">{{ difficultyLabel }}</p>
+				</div>
+				<div class="rounded-sm border border-default bg-muted/10 px-4 py-4">
+					<p class="text-xs uppercase tracking-wide text-muted">{{ t('groups.activities.create.summary.min_item_level') }}</p>
+					<p class="mt-2 font-semibold text-toned">{{ minimumItemLevelLabel }}</p>
+				</div>
+				<div class="rounded-sm border border-default bg-muted/10 px-4 py-4">
+					<p class="text-xs uppercase tracking-wide text-muted">{{ t('groups.activities.create.summary.beginner_friendly') }}</p>
+					<p class="mt-2 font-semibold text-toned">{{ beginnerFriendlyLabel }}</p>
 				</div>
 			</div>
 			<div class="w-full flex flex-row gap-3 ">

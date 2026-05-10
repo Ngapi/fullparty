@@ -15,6 +15,10 @@ class ActivityTypeVersion extends Model
         'version',
         'name',
         'description',
+        'small_image_url',
+        'banner_image_url',
+        'difficulty',
+        'default_min_item_level',
         'layout_schema',
         'slot_schema',
         'application_schema',
@@ -30,6 +34,7 @@ class ActivityTypeVersion extends Model
     protected $casts = [
         'name' => 'array',
         'description' => 'array',
+        'default_min_item_level' => 'integer',
         'layout_schema' => 'array',
         'slot_schema' => 'array',
         'application_schema' => 'array',

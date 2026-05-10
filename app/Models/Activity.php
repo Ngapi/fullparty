@@ -68,6 +68,45 @@ class Activity extends Model
         self::STATUS_ONGOING,
     ];
 
+    public const INTENSITY_CASUAL = 'casual';
+
+    public const INTENSITY_MIDCORE = 'midcore';
+
+    public const INTENSITY_HARDCORE = 'hardcore';
+
+    public const INTENSITIES = [
+        self::INTENSITY_CASUAL,
+        self::INTENSITY_MIDCORE,
+        self::INTENSITY_HARDCORE,
+    ];
+
+    public const RUN_STYLE_PROGRESSION = 'progression';
+
+    public const RUN_STYLE_CLEAR = 'clear';
+
+    public const RUN_STYLE_RECLEAR = 'reclear';
+
+    public const RUN_STYLE_FARM = 'farm';
+
+    public const RUN_STYLE_MARATHON = 'marathon';
+
+    public const RUN_STYLE_SPEEDRUN = 'speedrun';
+
+    public const RUN_STYLE_PRACTICE = 'practice';
+
+    public const RUN_STYLE_BLIND = 'blind';
+
+    public const RUN_STYLES = [
+        self::RUN_STYLE_PROGRESSION,
+        self::RUN_STYLE_CLEAR,
+        self::RUN_STYLE_RECLEAR,
+        self::RUN_STYLE_FARM,
+        self::RUN_STYLE_MARATHON,
+        self::RUN_STYLE_SPEEDRUN,
+        self::RUN_STYLE_PRACTICE,
+        self::RUN_STYLE_BLIND,
+    ];
+
     protected $fillable = [
         'group_id',
         'activity_type_id',
@@ -80,6 +119,11 @@ class Activity extends Model
         'notes',
         'starts_at',
         'duration_hours',
+        'datacenter',
+        'intensity',
+        'min_item_level',
+        'beginner_friendly',
+        'run_style',
         'target_prog_point_key',
         'is_public',
         'needs_application',
@@ -100,6 +144,8 @@ class Activity extends Model
     protected $casts = [
         'starts_at' => 'datetime',
         'duration_hours' => 'integer',
+        'min_item_level' => 'integer',
+        'beginner_friendly' => 'boolean',
         'is_public' => 'boolean',
         'needs_application' => 'boolean',
         'allow_guest_applications' => 'boolean',

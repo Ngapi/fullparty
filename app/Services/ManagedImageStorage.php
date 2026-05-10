@@ -48,7 +48,7 @@ class ManagedImageStorage
 
     public function uploadImageIfPresent(?UploadedFile $file, string $directory, bool $shouldProcess = false): ?string
     {
-        if (!$file) {
+        if (! $file) {
             return null;
         }
 
@@ -61,7 +61,7 @@ class ManagedImageStorage
 
     public function replaceUploadedImageIfPresent(?string $currentUrl, ?UploadedFile $file, string $directory, bool $shouldProcess = false): ?string
     {
-        if (!$file) {
+        if (! $file) {
             return $currentUrl;
         }
 
@@ -70,6 +70,26 @@ class ManagedImageStorage
         $this->deleteManagedImage($currentUrl, $directory);
 
         return $uploadedUrl;
+    }
+
+    public function copyManagedImage(?string $url, string $directory): ?string
+    {
+        if (blank($url)) {
+            return null;
+        }
+
+        $sourcePath = $this->storagePathFromUrl($url, $directory);
+
+        if (! $sourcePath || ! Storage::disk('public')->exists($sourcePath)) {
+            return $url;
+        }
+
+        $extension = pathinfo($sourcePath, PATHINFO_EXTENSION) ?: 'png';
+        $copyPath = trim($directory, '/').'/'.Str::uuid().'.'.strtolower($extension);
+
+        Storage::disk('public')->copy($sourcePath, $copyPath);
+
+        return Storage::disk('public')->url($copyPath);
     }
 
     public function deleteManagedImage(?string $url, string $directory): void
@@ -134,7 +154,7 @@ class ManagedImageStorage
 
     private function storeProcessedUploadedFile(UploadedFile $file, string $directory): string
     {
-        if (!function_exists('imagecreatefromstring')) {
+        if (! function_exists('imagecreatefromstring')) {
             throw ValidationException::withMessages([
                 'profile_picture' => 'Image processing is not available on this server.',
             ]);
@@ -150,7 +170,7 @@ class ManagedImageStorage
 
         $source = @imagecreatefromstring($binary);
 
-        if (!$source) {
+        if (! $source) {
             throw ValidationException::withMessages([
                 'profile_picture' => 'The uploaded file must be a valid image.',
             ]);
@@ -164,7 +184,7 @@ class ManagedImageStorage
 
         $canvas = imagecreatetruecolor(self::GROUP_IMAGE_SIZE, self::GROUP_IMAGE_SIZE);
 
-        if (!$canvas) {
+        if (! $canvas) {
             imagedestroy($source);
 
             throw ValidationException::withMessages([
@@ -193,7 +213,7 @@ class ManagedImageStorage
         $path = trim($directory, '/').'/'.Str::uuid().'.jpg';
         $temporaryFile = tempnam(sys_get_temp_dir(), 'group-image-');
 
-        if ($temporaryFile === false || !imagejpeg($canvas, $temporaryFile, self::GROUP_IMAGE_JPEG_QUALITY)) {
+        if ($temporaryFile === false || ! imagejpeg($canvas, $temporaryFile, self::GROUP_IMAGE_JPEG_QUALITY)) {
             imagedestroy($canvas);
 
             throw ValidationException::withMessages([
