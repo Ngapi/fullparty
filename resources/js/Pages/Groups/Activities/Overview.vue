@@ -202,33 +202,6 @@ const goToManagementPage = () => {
 		</PageHeader>
 
 		<div class="mt-6 flex flex-col gap-6">
-			<section
-				v-if="activity.banner_image_url || activity.small_image_url"
-				class="grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(160px,220px)]"
-			>
-				<div
-					v-if="activity.banner_image_url"
-					class="aspect-[3/1] overflow-hidden border border-default bg-muted/30"
-				>
-					<img
-						:src="activity.banner_image_url"
-						:alt="activityTitle"
-						class="h-full w-full object-cover object-center"
-					>
-				</div>
-
-				<div
-					v-if="activity.small_image_url"
-					class="aspect-[10/17] max-w-56 overflow-hidden border border-default bg-muted/30"
-				>
-					<img
-						:src="activity.small_image_url"
-						:alt="activityTitle"
-						class="h-full w-full object-cover object-center"
-					>
-				</div>
-			</section>
-
 			<section class="border border-default bg-muted/20 dark:bg-elevated/25">
 				<div class="grid gap-px md:grid-cols-2 xl:grid-cols-5">
 					<div class=" px-4 py-4">
