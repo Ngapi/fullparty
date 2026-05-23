@@ -4,7 +4,7 @@ import type { ActivityDetails, ActivityManagementPatch, SlotDesignation } from "
 import type { ManualAssignmentCharacter, QueueApplication } from "@/Types/ActivityQueue";
 import { computed, onBeforeUnmount, onMounted, ref } from "vue";
 import { useI18n } from "vue-i18n";
-import { router, usePage } from "@inertiajs/vue3";
+import { router, useForm, usePage } from "@inertiajs/vue3";
 import { localizedValue } from "@/utils/localizedValue";
 import { canCompleteActivity, canPublishActivityRoster, canScheduleActivity, isArchivedActivityStatus } from "@/utils/activityLifecycle";
 import { route } from "ziggy-js";
@@ -15,6 +15,8 @@ import ApplicantQueue from "@/components/Groups/Activities/ApplicantQueue.vue";
 import AssignApplicantToSlotModal from "@/components/Groups/Activities/AssignApplicantToSlotModal.vue";
 import ManualAssignCharacterToSlotModal from "@/components/Groups/Activities/ManualAssignCharacterToSlotModal.vue";
 import CompleteActivityModal from "@/components/Groups/Activities/CompleteActivityModal.vue";
+import ConfirmationModal from "@/components/Shared/Modals/ConfirmationModal.vue";
+import { activityTextLimits } from "@/utils/activityTextLimits";
 
 const props = defineProps<{
 	group: {
@@ -48,7 +50,6 @@ const isSchedulingActivity = ref(false);
 const isPublishRosterConfirmOpen = ref(false);
 const isPublishingRoster = ref(false);
 const isCancelConfirmOpen = ref(false);
-const isCancellingActivity = ref(false);
 const pendingMissingUndoIds = ref<number[]>([]);
 const completionErrors = ref<Record<string, string[]>>({});
 const assignmentModalApplication = ref<QueueApplication | null>(null);
@@ -62,6 +63,9 @@ const manualAssignmentInitialCharacterId = ref<number | null>(null);
 const manualAssignmentCharacters = ref<ManualAssignmentCharacter[]>([]);
 const activityData = ref<ActivityDetails | null>(null);
 const subscribedManagementChannelName = ref<string | null>(null);
+const cancelForm = useForm({
+	reason: '',
+});
 
 const currentActivity = computed(() => activityData.value);
 const activityTypeName = computed(() => {
@@ -116,6 +120,10 @@ const completedProgression = computed(() => {
 		milestones,
 	};
 });
+const cancellationAlertDescription = computed(() => (
+	currentActivity.value?.cancellation_reason
+		|| t('groups.activities.management.cancelled_alert.description')
+));
 const assignmentModalOpen = computed({
 	get: () => Boolean(assignmentModalApplication.value && assignmentModalSlot.value),
 	set: (value: boolean) => {
@@ -228,23 +236,27 @@ const confirmScheduleActivity = () => {
 };
 
 const confirmCancelActivity = () => {
-	if (!currentActivity.value || isCancellingActivity.value) {
+	if (!currentActivity.value || cancelForm.processing) {
 		return;
 	}
 
-	isCancellingActivity.value = true;
-	router.post(route('groups.dashboard.activities.cancel', {
-		group: props.group.slug,
-		activity: props.activity.id,
-	}), {}, {
-		preserveScroll: true,
-		onSuccess: () => {
-			isCancelConfirmOpen.value = false;
-			void fetchManagementData();
-		},
-		onFinish: () => {
-			isCancellingActivity.value = false;
-		},
+	return new Promise<boolean>((resolve) => {
+		cancelForm.post(route('groups.dashboard.activities.cancel', {
+			group: props.group.slug,
+			activity: props.activity.id,
+		}), {
+			preserveScroll: true,
+			onSuccess: () => {
+				isCancelConfirmOpen.value = false;
+				cancelForm.reset();
+				cancelForm.clearErrors();
+				void fetchManagementData();
+				resolve(true);
+			},
+			onError: () => {
+				resolve(false);
+			},
+		});
 	});
 };
 
@@ -1292,6 +1304,21 @@ onBeforeUnmount(() => {
 			@click.stop="goBack"
 		/>
 
+		<UAlert
+			v-if="currentActivity?.status === 'cancelled'"
+			class="mt-4"
+			color="error"
+			variant="soft"
+			icon="i-lucide-ban"
+			:title="t('groups.activities.management.cancelled_alert.title')"
+		>
+			<template #description>
+				<p class="whitespace-pre-wrap text-sm">
+					{{ cancellationAlertDescription }}
+				</p>
+			</template>
+		</UAlert>
+
 		<div class="mt-4">
 			<ActivityOverview
 				v-if="currentActivity"
@@ -1622,34 +1649,34 @@ onBeforeUnmount(() => {
 			</template>
 		</UModal>
 
-		<UModal
+		<ConfirmationModal
 			v-model:open="isCancelConfirmOpen"
 			:title="t('groups.activities.management.cancel_activity_modal.title')"
-			:description="t('groups.activities.management.cancel_activity_confirm')"
-		>
-			<template #body>
-				<p class="text-sm text-muted">
-					{{ t('groups.activities.management.cancel_activity_modal.body') }}
-				</p>
-			</template>
-
-			<template #footer>
-				<div class="flex w-full items-center justify-end gap-3">
-					<UButton
-						color="neutral"
-						variant="ghost"
-						:label="t('general.cancel')"
-						@click="isCancelConfirmOpen = false"
-					/>
-					<UButton
-						color="error"
-						icon="i-lucide-ban"
-						:label="t('groups.activities.management.cancel_activity_modal.confirm')"
-						:loading="isCancellingActivity"
-						@click="confirmCancelActivity"
-					/>
-				</div>
-			</template>
-		</UModal>
+			description=""
+			severity="error"
+			:warning-text="t('groups.activities.management.cancel_activity_modal.body')"
+			:confirm-label="t('groups.activities.management.cancel_activity_modal.confirm')"
+			:confirm-loading="cancelForm.processing"
+			confirm-icon="i-lucide-ban"
+			:input="{
+				label: t('groups.activities.management.cancel_activity_modal.reason_label'),
+				help: t('groups.activities.management.cancel_activity_modal.reason_description'),
+				placeholder: t('groups.activities.management.cancel_activity_modal.reason_placeholder'),
+				error: cancelForm.errors.reason,
+				initialValue: cancelForm.reason,
+				rows: 4,
+				maxlength: activityTextLimits.cancelReason,
+			}"
+			:on-confirm="({ inputValue }) => {
+				cancelForm.reason = inputValue;
+				return confirmCancelActivity();
+			}"
+			@close="(confirmed) => {
+				if (!confirmed) {
+					cancelForm.reset();
+					cancelForm.clearErrors();
+				}
+			}"
+		/>
 	</div>
 </template>

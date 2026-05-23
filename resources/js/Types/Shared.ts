@@ -7,6 +7,7 @@ export type ConfirmationModalInput = {
 	error?: string
 	initialValue?: string
 	rows?: number
+	maxlength?: number
 }
 
 export type ConfirmationModalConfirmContext = {

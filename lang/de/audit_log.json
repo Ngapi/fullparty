@@ -71,6 +71,7 @@
     "user": {
       "registered": "hat ein Konto registriert.",
       "logged_in": "hat sich angemeldet.",
+      "password_reset": "hat das Passwort zurückgesetzt.",
       "account": {
         "deleted": "hat das Konto gelöscht."
       },
@@ -80,6 +81,7 @@
       },
       "settings": {
         "username_updated": "hat die Benutzernamenseinstellungen aktualisiert.",
+        "password_updated": "hat die Passworteinstellungen aktualisiert.",
         "notifications_updated": "hat die Benachrichtigungseinstellungen aktualisiert.",
         "privacy_updated": "hat die Datenschutzeinstellungen aktualisiert."
       }
@@ -274,6 +276,7 @@
     "user": {
       "registered": "Benutzer registriert",
       "logged_in": "Benutzer angemeldet",
+      "password_reset": "Passwort zurückgesetzt",
       "account": {
         "deleted": "Benutzerkonto gelöscht"
       },
@@ -283,6 +286,7 @@
       },
       "settings": {
         "username_updated": "Benutzername aktualisiert",
+        "password_updated": "Passwort aktualisiert",
         "notifications_updated": "Benachrichtigungseinstellungen aktualisiert",
         "privacy_updated": "Datenschutzeinstellungen aktualisiert"
       }

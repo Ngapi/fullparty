@@ -4,10 +4,11 @@
   "account": {
     "title": "アカウント設定",
     "save": "変更を保存",
-    "primary_character": "メインキャラクター",
-    "primary_character_description": "FullParty が既定のメインとして扱う認証済みキャラクターを選択します。",
-    "primary_character_placeholder": "メインキャラクターを選択",
-    "save_primary_character": "メインキャラクターを保存"
+    "password": "パスワード",
+    "old_password": "現在のパスワード",
+    "new_password": "新しいパスワード",
+    "new_password_confirmation": "新しいパスワードの確認",
+    "update_password": "パスワードを更新"
   },
   "connect": "連携",
   "unlink": "連携解除",
@@ -63,6 +64,7 @@
   },
   "toasts": {
     "username_updated": "ユーザー名を更新しました",
+    "password_updated": "パスワードを更新しました",
     "notification_updated": "通知設定を更新しました",
     "privacy_updated": "プライバシー設定を更新しました",
     "social_account_unlinked": "連携アカウントを解除しました",

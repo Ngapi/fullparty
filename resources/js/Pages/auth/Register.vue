@@ -4,6 +4,7 @@ import AuthLayout from '@/Layouts/AuthLayout.vue'
 import LoginWithXIVAuth from "@/components/LoginWithXIVAuth.vue";
 import LoginWithGoogle from "@/components/LoginWithGoogle.vue";
 import LoginWithDiscord from "@/components/LoginWithDiscord.vue";
+import { route } from "ziggy-js";
 import {useI18n} from "vue-i18n";
 
 const { t } = useI18n();
@@ -64,7 +65,7 @@ defineOptions({
 		</div>
 
 		<div class="flex items-center justify-center flex-col space-y-2 w-full">
-			<p>{{ t('auth.existing_account') }} <Link href="/auth/login" class="text-brand">{{ t('auth.log_in_now') }}</Link></p>
+			<p>{{ t('auth.existing_account') }} <Link :href="route('login')" class="text-brand">{{ t('auth.log_in_now') }}</Link></p>
 		</div>
 	</div>
 </template>

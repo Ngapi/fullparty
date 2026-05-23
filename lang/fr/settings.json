@@ -4,10 +4,11 @@
   "account": {
     "title": "Paramètres du compte",
     "save": "Enregistrer les modifications",
-    "primary_character": "Personnage principal",
-    "primary_character_description": "Choisissez le personnage vérifié que FullParty doit considérer par défaut comme votre personnage principal.",
-    "primary_character_placeholder": "Sélectionnez un personnage principal",
-    "save_primary_character": "Enregistrer le personnage principal"
+    "password": "Mot de passe",
+    "old_password": "Ancien mot de passe",
+    "new_password": "Nouveau mot de passe",
+    "new_password_confirmation": "Confirmer le nouveau mot de passe",
+    "update_password": "Mettre à jour le mot de passe"
   },
   "connect": "Connecter",
   "unlink": "Dissocier",
@@ -63,6 +64,7 @@
   },
   "toasts": {
     "username_updated": "Nom d'utilisateur mis à jour avec succès",
+    "password_updated": "Mot de passe mis à jour avec succès",
     "notification_updated": "Préférences de notification mises à jour avec succès",
     "privacy_updated": "Paramètres de confidentialité mis à jour avec succès",
     "social_account_unlinked": "Compte connecté dissocié avec succès",

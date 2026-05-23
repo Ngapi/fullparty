@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref } from "vue";
+import { computed, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import type { ConfirmationModalInput, ConfirmationModalSeverity } from "@/Types/Shared";
 
@@ -46,6 +46,12 @@ const confirmColor = computed(() => ({
 }[props.severity]));
 
 const showInput = computed(() => Boolean(props.input));
+
+watch(() => props.open, (open) => {
+	if (open) {
+		inputValue.value = props.input?.initialValue ?? '';
+	}
+});
 
 const handleOpenChange = (open: boolean) => {
 	emit('update:open', open);
@@ -103,6 +109,7 @@ const handleConfirm = async () => {
 						class="w-full"
 						:rows="input?.rows ?? 4"
 						:placeholder="input?.placeholder"
+						:maxlength="input?.maxlength"
 					/>
 				</UFormField>
 

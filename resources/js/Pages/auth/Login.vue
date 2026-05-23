@@ -1,12 +1,17 @@
 <script setup lang="ts">
-import {useForm, Link, Head} from '@inertiajs/vue3'
+import { computed } from "vue";
+import {useForm, Link, Head, usePage} from '@inertiajs/vue3'
 import AuthLayout from '@/Layouts/AuthLayout.vue'
 import LoginWithXIVAuth from "@/components/LoginWithXIVAuth.vue";
 import LoginWithGoogle from "@/components/LoginWithGoogle.vue";
 import LoginWithDiscord from "@/components/LoginWithDiscord.vue";
 import {useI18n} from "vue-i18n";
+import { route } from "ziggy-js";
 
 const { t } = useI18n();
+const page = usePage();
+const successFlags = computed(() => (page.props.flash?.success ?? []) as string[]);
+const wasPasswordReset = computed(() => successFlags.value.includes('password_reset'));
 
 const form = useForm({
 	email: '',
@@ -26,6 +31,16 @@ defineOptions({
 <template>
 	<Head title="Login -" />
 	<div>
+		<UAlert
+			v-if="wasPasswordReset"
+			color="success"
+			variant="subtle"
+			icon="i-lucide-badge-check"
+			:title="t('auth.reset_password_page.complete_title')"
+			:description="t('auth.reset_password_page.complete_description')"
+			class="mb-4"
+		/>
+
 		<div class="mb-1 mx-auto">
 			<p class="italic text-center text-gray-600 dark:text-gray-300">{{ t('auth.express_options') }}</p>
 		</div>
@@ -58,8 +73,8 @@ defineOptions({
 		</div>
 
 		<div class="flex items-center justify-center flex-col space-y-2 w-full">
-			<Link href="/auth/password" class="text-brand">{{ t('auth.forgot_password') }}</Link>
-			<p>{{ t('auth.no_account') }} <Link href="/auth/register" class="text-brand">{{ t('auth.sign_up_now') }}</Link></p>
+			<Link :href="route('password.request')" class="text-brand">{{ t('auth.forgot_password') }}</Link>
+			<p>{{ t('auth.no_account') }} <Link :href="route('register')" class="text-brand">{{ t('auth.sign_up_now') }}</Link></p>
 		</div>
 	</div>
 </template>

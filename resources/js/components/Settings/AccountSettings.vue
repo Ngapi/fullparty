@@ -1,50 +1,37 @@
 <script setup lang="ts">
-import type { SettingsCharacter, SettingsUser } from "@/Types/Settings";
-import { router, useForm } from "@inertiajs/vue3";
-import { computed, ref } from "vue";
+import type { SettingsUser } from "@/Types/Settings";
+import { useForm } from "@inertiajs/vue3";
 import { route } from "ziggy-js";
 import { useI18n } from "vue-i18n";
 
 const props = defineProps<{
 	user: SettingsUser
-	characters: SettingsCharacter[]
 }>();
 
 const { t } = useI18n();
 const form = useForm({
 	username: props.user.name ?? '',
 });
-const isSavingPrimaryCharacter = ref(false);
-const selectedPrimaryCharacterId = ref<number | null>(
-	props.characters.find((character) => character.is_primary)?.id ?? null,
-);
-
-const primaryCharacterOptions = computed(() => props.characters.map((character) => ({
-	label: character.world ? `${character.name} · ${character.world}` : character.name,
-	value: character.id,
-})));
-
-const canSavePrimaryCharacter = computed(() => {
-	const currentPrimaryCharacterId = props.characters.find((character) => character.is_primary)?.id ?? null;
-
-	return selectedPrimaryCharacterId.value !== null && selectedPrimaryCharacterId.value !== currentPrimaryCharacterId;
+const passwordForm = useForm({
+	current_password: '',
+	password: '',
+	password_confirmation: '',
 });
 
 const submit = () => {
 	form.post(route('settings.username'));
 };
 
-const savePrimaryCharacter = () => {
-	if (selectedPrimaryCharacterId.value === null || isSavingPrimaryCharacter.value) {
-		return;
-	}
-
-	isSavingPrimaryCharacter.value = true;
-
-	router.post(route('characters.make-primary', selectedPrimaryCharacterId.value), {}, {
+const submitPasswordForm = () => {
+	passwordForm.post(route('settings.password'), {
 		preserveScroll: true,
+		onSuccess: () => {
+			passwordForm.reset();
+			passwordForm.clearErrors();
+		},
 		onFinish: () => {
-			isSavingPrimaryCharacter.value = false;
+			passwordForm.password = '';
+			passwordForm.password_confirmation = '';
 		},
 	});
 };
@@ -59,59 +46,95 @@ const savePrimaryCharacter = () => {
 			</div>
 		</template>
 
-		<form @submit.prevent="submit" class="w-full flex flex-col items-start gap-4">
-			<UFormField class="w-full" :label="t('general.username')">
-				<UInput
-					v-model="form.username"
-					:placeholder="t('general.username')"
-					size="xl"
-					class="w-full"
-				/>
-			</UFormField>
-
-			<UFormField class="w-full" :label="t('general.email')">
-				<UInput
-					:model-value="props.user.email"
-					:placeholder="t('general.email')"
-					size="xl"
-					class="w-full"
-					disabled
-				/>
-			</UFormField>
-
-			<UButton
-				type="submit"
-				:label="t('settings.account.save')"
-				size="lg"
-				color="neutral"
-				:loading="form.processing"
-			/>
-
-			<UFormField
-				class="w-full"
-				:label="t('settings.account.primary_character')"
-				:description="t('settings.account.primary_character_description')"
-			>
-				<div class="flex w-full flex-col gap-3 sm:flex-row sm:items-end">
-					<USelect
-						v-model="selectedPrimaryCharacterId"
+		<div class="w-full flex flex-col items-start gap-4">
+			<form @submit.prevent="submit" class="w-full flex flex-col items-start gap-4">
+				<UFormField class="w-full" :label="t('general.username')">
+					<UInput
+						v-model="form.username"
+						:placeholder="t('general.username')"
+						size="xl"
 						class="w-full"
-						value-key="value"
-						:items="primaryCharacterOptions"
-						:placeholder="t('settings.account.primary_character_placeholder')"
-						:disabled="primaryCharacterOptions.length === 0"
+						autocomplete="username"
 					/>
+				</UFormField>
+
+				<UFormField class="w-full" :label="t('general.email')">
+					<UInput
+						:model-value="props.user.email"
+						:placeholder="t('general.email')"
+						size="xl"
+						class="w-full"
+						disabled
+					/>
+				</UFormField>
+
+				<UButton
+					type="submit"
+					:label="t('settings.account.save')"
+					size="lg"
+					color="neutral"
+					:loading="form.processing"
+				/>
+			</form>
+
+			<div class="w-full border-t border-default pt-4">
+				<form class="flex w-full flex-col items-start gap-4" @submit.prevent="submitPasswordForm">
+					<UFormField
+						class="w-full"
+						:label="t('settings.account.old_password')"
+						:error="passwordForm.errors.current_password"
+					>
+						<UInput
+							v-model="passwordForm.current_password"
+							type="password"
+							size="xl"
+							class="w-full"
+							:placeholder="t('settings.account.old_password')"
+							autocomplete="current-password"
+						/>
+					</UFormField>
+
+					<div class="grid w-full grid-cols-1 gap-4 xl:grid-cols-2">
+						<UFormField
+							class="w-full"
+							:label="t('settings.account.new_password')"
+							:error="passwordForm.errors.password"
+						>
+							<UInput
+								v-model="passwordForm.password"
+								type="password"
+								size="xl"
+								class="w-full"
+								:placeholder="t('settings.account.new_password')"
+								autocomplete="new-password"
+							/>
+						</UFormField>
+
+						<UFormField
+							class="w-full"
+							:label="t('settings.account.new_password_confirmation')"
+							:error="passwordForm.errors.password_confirmation"
+						>
+							<UInput
+								v-model="passwordForm.password_confirmation"
+								type="password"
+								size="xl"
+								class="w-full"
+								:placeholder="t('settings.account.new_password_confirmation')"
+								autocomplete="new-password"
+							/>
+						</UFormField>
+					</div>
+
 					<UButton
-						type="button"
+						type="submit"
+						:label="t('settings.account.update_password')"
+						size="lg"
 						color="neutral"
-						variant="outline"
-						:label="t('settings.account.save_primary_character')"
-						:disabled="!canSavePrimaryCharacter"
-						:loading="isSavingPrimaryCharacter"
-						@click="savePrimaryCharacter"
+						:loading="passwordForm.processing"
 					/>
-				</div>
-			</UFormField>
-		</form>
+				</form>
+			</div>
+		</div>
 	</UCard>
 </template>

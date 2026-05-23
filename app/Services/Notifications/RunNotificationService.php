@@ -4,6 +4,7 @@ namespace App\Services\Notifications;
 
 use App\Models\Activity;
 use App\Models\ActivityApplication;
+use App\Models\NotificationEvent;
 use App\Models\User;
 use App\Support\Notifications\NotificationCategory;
 use App\Support\Notifications\NotificationChannel;
@@ -14,7 +15,9 @@ use Illuminate\Support\Collection;
 class RunNotificationService
 {
     private const STARTING_SOON_FLAG = 'run_notification_starting_soon_sent_at';
+
     private const STARTING_NOW_FLAG = 'run_notification_starting_now_sent_at';
+
     private const STARTING_SOON_MINUTES = 60;
 
     public function __construct(
@@ -24,8 +27,12 @@ class RunNotificationService
     /**
      * @param  Collection<int, ActivityApplication>|null  $applications
      */
-    public function notifyCancelled(Activity $activity, mixed $actor, ?Collection $applications = null): void
-    {
+    public function notifyCancelled(
+        Activity $activity,
+        mixed $actor,
+        ?Collection $applications = null,
+        ?string $reason = null,
+    ): void {
         $recipients = $applications instanceof Collection
             ? $this->recipientsFromApplications($applications)
             : $this->activeApplicantRecipients($activity);
@@ -35,8 +42,12 @@ class RunNotificationService
             recipients: $recipients,
             type: 'runs.cancelled',
             titleKey: 'notifications.runs.cancelled.title',
-            bodyKey: 'notifications.runs.cancelled.body',
+            bodyKey: filled($reason)
+                ? 'notifications.runs.cancelled.body_with_reason'
+                : 'notifications.runs.cancelled.body',
             actor: $actor,
+            messageParams: filled($reason) ? ['reason' => $reason] : [],
+            payload: filled($reason) ? ['reason' => $reason] : [],
         );
     }
 
@@ -141,7 +152,9 @@ class RunNotificationService
         string $titleKey,
         string $bodyKey,
         mixed $actor = null,
-    ): \App\Models\NotificationEvent {
+        array $messageParams = [],
+        array $payload = [],
+    ): NotificationEvent {
         $activity->loadMissing('group');
 
         return $this->notificationService->createEvent(
@@ -149,21 +162,21 @@ class RunNotificationService
             category: NotificationCategory::RUNS_AND_REMINDERS,
             titleKey: $titleKey,
             bodyKey: $bodyKey,
-            messageParams: [
+            messageParams: array_merge([
                 'activity' => $this->activityTitle($activity),
                 'group' => $activity->group?->name,
-            ],
+            ], $messageParams),
             actionUrl: route('account.applications'),
             actor: $actor instanceof User ? $actor : null,
             subject: $activity,
-            payload: [
+            payload: array_merge([
                 'activity_id' => $activity->id,
                 'group_id' => $activity->group?->id,
                 'group_slug' => $activity->group?->slug,
                 'activity_title' => $this->activityTitle($activity),
                 'status' => $activity->status,
                 'starts_at' => $activity->starts_at?->toIso8601String(),
-            ],
+            ], $payload),
         );
     }
 
@@ -177,6 +190,8 @@ class RunNotificationService
         string $titleKey,
         string $bodyKey,
         mixed $actor = null,
+        array $messageParams = [],
+        array $payload = [],
     ): void {
         if ($recipients->isEmpty()) {
             return;
@@ -188,6 +203,8 @@ class RunNotificationService
             titleKey: $titleKey,
             bodyKey: $bodyKey,
             actor: $actor,
+            messageParams: $messageParams,
+            payload: $payload,
         );
 
         $this->notificationService->sendInAppNotifications($event, $recipients);

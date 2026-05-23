@@ -140,6 +140,21 @@ Route::prefix('auth')->group(function () {
             return Inertia::render('auth/Register');
         })->name('register');
 
+        Route::get('/forgot-password', function () {
+            return Inertia::render('auth/ForgotPassword');
+        })->name('password.request');
+
+        Route::post('/forgot-password', [AuthController::class, 'sendPasswordResetLink'])->name('password.email');
+
+        Route::get('/reset-password/{token}', function (Request $request, string $token) {
+            return Inertia::render('auth/ResetPassword', [
+                'token' => $token,
+                'email' => $request->query('email'),
+            ]);
+        })->name('password.reset');
+
+        Route::post('/reset-password', [AuthController::class, 'resetPassword'])->name('password.update');
+
         Route::post('/register', [AuthController::class, 'register']);
         Route::post('/login', [AuthController::class, 'login']);
     });
@@ -357,6 +372,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::get('/settings', [SettingsController::class, 'index'])->name('settings');
     Route::post('/settings/username', [UserController::class, 'changeUsername'])->name('settings.username');
+    Route::post('/settings/password', [UserController::class, 'changePassword'])->name('settings.password');
     Route::post('/settings/notifications', [UserController::class, 'changeNotificationSettings'])->name('settings.notifications');
     Route::post('/settings/privacy', [UserController::class, 'changePrivacySettings'])->name('settings.privacy');
     Route::delete('/settings/account', [UserController::class, 'destroyAccount'])->name('settings.account.destroy');

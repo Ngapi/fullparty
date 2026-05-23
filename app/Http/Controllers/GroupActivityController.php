@@ -421,22 +421,40 @@ class GroupActivityController extends Controller
             ->with('success', 'activity_deleted');
     }
 
-    public function cancel(Group $group, Activity $activity): RedirectResponse
+    public function cancel(Request $request, Group $group, Activity $activity): RedirectResponse
     {
         $group->loadMissing('memberships');
         $this->authorizeModeratorAccess($group);
         $this->ensureActivityBelongsToGroup($group, $activity);
         $this->ensureActivityCanBeCancelled($activity);
+        $this->requestTextInputSanitizer->sanitize($request, [], ['reason']);
+
+        $validated = $request->validate([
+            'reason' => ['sometimes', 'nullable', 'string', 'max:'.ActivityApplication::REVIEW_REASON_MAX_LENGTH],
+        ]);
 
         $previousStatus = $activity->status;
-        $this->activityCancellationService->cancel($activity, auth()->user());
+        $reason = filled($validated['reason'] ?? null)
+            ? trim((string) $validated['reason'])
+            : null;
 
-        $this->activityAuditService->logActivityUpdated($activity, auth()->user(), [
+        $this->activityCancellationService->cancel($activity, auth()->user(), $reason);
+
+        $changes = [
             'status' => [
                 'old' => $previousStatus,
                 'new' => Activity::STATUS_CANCELLED,
             ],
-        ]);
+        ];
+
+        if ($reason !== null) {
+            $changes['review_reason'] = [
+                'old' => null,
+                'new' => $reason,
+            ];
+        }
+
+        $this->activityAuditService->logActivityUpdated($activity, auth()->user(), $changes);
 
         return redirect()
             ->route('groups.dashboard.activities.show', [

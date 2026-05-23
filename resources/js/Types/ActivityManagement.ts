@@ -53,6 +53,7 @@ export type ActivityDetails = {
 	banner_image_url: string | null
 	notes: string | null
 	status: string
+	cancellation_reason: string | null
 	starts_at: string | null
 	duration_hours: number | null
 	datacenter: string | null

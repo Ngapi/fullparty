@@ -71,6 +71,7 @@
     "user": {
       "registered": "registered an account.",
       "logged_in": "logged in.",
+      "password_reset": "reset their password.",
       "account": {
         "deleted": "deleted their account."
       },
@@ -80,6 +81,7 @@
       },
       "settings": {
         "username_updated": "updated account username settings.",
+        "password_updated": "updated account password settings.",
         "notifications_updated": "updated notification settings.",
         "privacy_updated": "updated privacy settings."
       }
@@ -291,6 +293,7 @@
     "user": {
       "registered": "User registered",
       "logged_in": "User logged in",
+      "password_reset": "Password reset",
       "account": {
         "deleted": "User account deleted"
       },
@@ -300,6 +303,7 @@
       },
       "settings": {
         "username_updated": "Username updated",
+        "password_updated": "Password updated",
         "notifications_updated": "Notification settings updated",
         "privacy_updated": "Privacy settings updated"
       }

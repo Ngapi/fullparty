@@ -23,9 +23,13 @@ class ActivityCancellationService
     /**
      * @return Collection<int, ActivityApplication>
      */
-    public function cancel(Activity $activity, mixed $actor): Collection
+    public function cancel(Activity $activity, mixed $actor, ?string $reason = null): Collection
     {
         $cancelledByUserId = is_int($actor) ? $actor : (int) $actor->id;
+        $cancellationReason = filled($reason) ? trim((string) $reason) : null;
+        $reviewReason = filled($reason)
+            ? trim((string) $reason)
+            : self::DEFAULT_REVIEW_REASON;
 
         $activity->loadMissing([
             'group',
@@ -35,7 +39,7 @@ class ActivityCancellationService
         ]);
 
         /** @var Collection<int, ActivityApplication> $cancelledApplications */
-        $cancelledApplications = DB::transaction(function () use ($activity, $cancelledByUserId) {
+        $cancelledApplications = DB::transaction(function () use ($activity, $cancelledByUserId, $reviewReason, $cancellationReason) {
             $cancelledAt = now();
 
             $applicationsToCancel = $activity->applications
@@ -46,12 +50,12 @@ class ActivityCancellationService
                 ], true))
                 ->values();
 
-            $applicationsToCancel->each(function (ActivityApplication $application) use ($cancelledByUserId, $cancelledAt): void {
+            $applicationsToCancel->each(function (ActivityApplication $application) use ($cancelledByUserId, $cancelledAt, $reviewReason): void {
                 $application->update([
                     'status' => ActivityApplication::STATUS_CANCELLED,
                     'reviewed_by_user_id' => $cancelledByUserId,
                     'reviewed_at' => $cancelledAt,
-                    'review_reason' => self::DEFAULT_REVIEW_REASON,
+                    'review_reason' => $reviewReason,
                 ]);
             });
 
@@ -80,6 +84,12 @@ class ActivityCancellationService
 
             $activity->update([
                 'status' => Activity::STATUS_CANCELLED,
+                'settings' => array_merge(
+                    $activity->settings ?? [],
+                    [
+                        Activity::SETTING_CANCELLATION_REASON => $cancellationReason,
+                    ],
+                ),
             ]);
 
             return $applicationsToCancel;
@@ -94,6 +104,7 @@ class ActivityCancellationService
             $activity->fresh(['group', 'applications.user', 'applications.selectedCharacter']),
             $actor,
             $cancelledApplications,
+            $cancellationReason,
         );
 
         return $cancelledApplications;

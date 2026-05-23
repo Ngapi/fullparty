@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\ChangePasswordRequest;
 use App\Models\User;
 use App\Services\AuditLogger;
 use App\Services\Notifications\NotificationService;
@@ -13,11 +14,14 @@ use App\Support\Notifications\NotificationCategory;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 
 class UserController extends Controller
 {
     private const ACCOUNT_SETTING_LABEL_KEYS = [
         'name' => 'general.username',
+        'password' => 'settings.account.password',
     ];
 
     private const NOTIFICATION_SETTING_LABEL_KEYS = [
@@ -188,6 +192,47 @@ class UserController extends Controller
         return redirect()
             ->route('settings')
             ->with('success', ['privacy_settings_updated']);
+    }
+
+    public function changePassword(ChangePasswordRequest $request): RedirectResponse
+    {
+        $user = $request->user();
+
+        $user->forceFill([
+            'password' => Hash::make($request->validated('password')),
+            'remember_token' => Str::random(60),
+        ])->save();
+
+        $this->auditLogger->log(
+            action: 'user.settings.password_updated',
+            severity: AuditSeverity::INFO,
+            scopeType: AuditScope::USER,
+            scopeId: $user->id,
+            message: 'audit_log.events.user.settings.password_updated',
+            actor: $user,
+            subject: $user,
+            metadata: [
+                'changed_fields' => ['password'],
+            ],
+        );
+
+        $this->notifyUserAboutSettingsChange(
+            user: $user->fresh(),
+            type: 'user.settings.password_updated',
+            titleKey: 'notifications.user.settings.password_updated.title',
+            bodyKey: 'notifications.user.settings.password_updated.body',
+            changes: [
+                'password' => [
+                    'old' => null,
+                    'new' => null,
+                ],
+            ],
+            fieldLabelKeys: self::ACCOUNT_SETTING_LABEL_KEYS,
+        );
+
+        return redirect()
+            ->route('settings')
+            ->with('success', ['password_updated']);
     }
 
     public function destroyAccount(Request $request): RedirectResponse

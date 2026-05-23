@@ -4,10 +4,11 @@
   "account": {
     "title": "Account Settings",
     "save": "Save Changes",
-    "primary_character": "Primary Character",
-    "primary_character_description": "Choose the default verified character FullParty should treat as your main one.",
-    "primary_character_placeholder": "Select a primary character",
-    "save_primary_character": "Save Primary Character"
+    "password": "Password",
+    "old_password": "Old Password",
+    "new_password": "New Password",
+    "new_password_confirmation": "Confirm New Password",
+    "update_password": "Update Password"
   },
   "connect": "Connect",
   "unlink": "Unlink",
@@ -63,6 +64,7 @@
   },
   "toasts": {
     "username_updated": "Username updated successfully",
+    "password_updated": "Password updated successfully",
     "notification_updated": "Notification preferences updated successfully",
     "privacy_updated": "Privacy settings updated successfully",
     "social_account_unlinked": "Connected account unlinked successfully",

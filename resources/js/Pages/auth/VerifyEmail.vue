@@ -28,11 +28,11 @@ defineOptions({
 <template>
 	<div class="w-full max-w-xl">
 		<div
-			class="rounded-xl border border-gray-200 bg-white/90 p-8 shadow-sm backdrop-blur dark:border-gray-800 dark:bg-gray-900/90"
+			class="border border-default bg-background px-8 py-8"
 		>
 			<div class="mb-6 flex items-start gap-4">
 				<div
-					class="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-brand-100 text-brand-700 dark:bg-brand-900/50 dark:text-brand-300"
+					class="flex h-14 w-14 shrink-0 items-center justify-center border border-default bg-muted/30 text-toned"
 				>
 					<UIcon name="i-lucide-mail" size="32"/>
 				</div>
@@ -49,13 +49,13 @@ defineOptions({
 
 			<div
 				v-if="wasResent"
-				class="mb-6 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800 dark:border-emerald-900/60 dark:bg-emerald-950/40 dark:text-emerald-300"
+				class="mb-6 border border-success/40 bg-success/10 px-4 py-3 text-sm text-success"
 			>
 				{{ t('auth.verify_email.resent_success') }}
 			</div>
 
 			<div class="space-y-4">
-				<div class="rounded-xl bg-gray-50 p-4 dark:bg-gray-800/60">
+				<div class="border border-default bg-muted/20 p-4">
 					<p class="text-sm text-gray-600 dark:text-gray-300">
 						{{ t('auth.verify_email.sent_to') }}
 					</p>
@@ -68,7 +68,7 @@ defineOptions({
 					{{ t('auth.verify_email.instructions') }}
 				</p>
 
-				<div class="rounded-xl border border-gray-200 p-4 dark:border-gray-800">
+				<div class="border border-default bg-muted/10 p-4">
 					<h2 class="text-sm font-semibold text-gray-900 dark:text-white">
 						{{ t('auth.verify_email.help_title') }}
 					</h2>
@@ -85,7 +85,7 @@ defineOptions({
 					type="button"
 					@click="resendVerificationEmail"
 					:disabled="resendForm.processing"
-					class="inline-flex w-full items-center justify-center rounded-md bg-brand-600 px-5 py-3 text-sm font-semibold text-white transition hover:bg-brand-700 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-brand-500 dark:hover:bg-brand-400"
+					class="inline-flex w-full items-center justify-center bg-brand px-5 py-3 text-sm font-semibold text-white transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
 				>
 					{{
 						resendForm.processing
@@ -98,9 +98,9 @@ defineOptions({
 					:href="route('logout')"
 					method="post"
 					as="button"
-					class="inline-flex w-full items-center justify-center rounded-md border border-gray-300 px-5 py-3 text-sm font-semibold text-gray-700 transition hover:bg-gray-50 dark:border-gray-700 dark:text-gray-200 dark:hover:bg-gray-800"
+					class="inline-flex w-full items-center justify-center border border-default px-5 py-3 text-sm font-semibold text-toned transition hover:bg-muted/20"
 				>
-					{{ t('auth.verify_email.logout_button') }}
+					{{ t('auth.back_to_login') }}
 				</Link>
 			</div>
 		</div>

@@ -116,6 +116,10 @@ const organizerLabel = computed(() => (
 	|| props.activity.organized_by?.name
 	|| t("groups.activities.cards.no_organizer")
 ));
+const cancellationAlertDescription = computed(() => (
+	props.activity.cancellation_reason
+		|| t("groups.activities.overview.cancelled_alert.description")
+));
 
 const applicationRouteParameters = computed(() => ({
 	group: props.group.slug,
@@ -168,6 +172,21 @@ const goToManagementPage = () => {
 			color="neutral"
 			@click.stop="goBack"
 		/>
+
+		<UAlert
+			v-if="activity.status === 'cancelled'"
+			class="mt-4"
+			color="error"
+			variant="soft"
+			icon="i-lucide-ban"
+			:title="t('groups.activities.overview.cancelled_alert.title')"
+		>
+			<template #description>
+				<p class="whitespace-pre-wrap text-sm">
+					{{ cancellationAlertDescription }}
+				</p>
+			</template>
+		</UAlert>
 
 		<PageHeader
 			class="mt-4"

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { SettingsCharacter, SettingsUser } from "@/Types/Settings";
+import type { SettingsUser } from "@/Types/Settings";
 import {useI18n} from "vue-i18n";
 import PageHeader from "@/components/PageHeader.vue";
 import AccountSettings from "@/components/Settings/AccountSettings.vue";
@@ -9,10 +9,6 @@ import PrivacySecurity from "@/components/Settings/PrivacySecurity.vue";
 import {usePage} from "@inertiajs/vue3";
 import {computed, watch} from "vue";
 import {useToast} from "@nuxt/ui/composables";
-
-defineProps<{
-	characters: SettingsCharacter[]
-}>();
 
 const { t } = useI18n();
 
@@ -57,10 +53,10 @@ watch(
 				icon: 'i-lucide-check'
 			})
 		}
-		if(success.includes('character_marked_primary')){
+		if(success.includes('password_updated')){
 			toast.add({
-				title: t('characters.toasts.title'),
-				description: t('characters.toasts.character_primary'),
+				title: t('settings.toasts.title'),
+				description: t('settings.toasts.password_updated'),
 				color: 'success',
 				icon: 'i-lucide-check'
 			})
@@ -93,7 +89,7 @@ watch(
 
 		<div class="w-full flex flex-col items-start mt-4 gap-8">
 			<div class="grid w-full grid-cols-1 gap-8 xl:grid-cols-2">
-				<AccountSettings :user="user" :characters="characters" />
+				<AccountSettings :user="user" />
 				<ConnectedAccounts :user="user" />
 			</div>
 			<Notifications :user="user" />

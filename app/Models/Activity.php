@@ -115,6 +115,8 @@ class Activity extends Model
 
     public const PROGRESS_NOTES_MAX_LENGTH = 5000;
 
+    public const SETTING_CANCELLATION_REASON = 'cancellation_reason';
+
     protected $fillable = [
         'group_id',
         'activity_type_id',
@@ -262,6 +264,35 @@ class Activity extends Model
     public function canBeCompleted(): bool
     {
         return in_array($this->status, self::COMPLETABLE_STATUSES, true);
+    }
+
+    public function cancellationReason(): ?string
+    {
+        $reason = ($this->settings ?? [])[self::SETTING_CANCELLATION_REASON] ?? null;
+
+        return filled($reason) ? (string) $reason : null;
+    }
+
+    public function resolvedCancellationReason(): ?string
+    {
+        $storedReason = $this->cancellationReason();
+
+        if ($storedReason !== null) {
+            return $storedReason;
+        }
+
+        $reason = $this->relationLoaded('applications')
+            ? $this->applications
+                ->where('status', ActivityApplication::STATUS_CANCELLED)
+                ->pluck('review_reason')
+                ->filter(fn ($value) => filled($value))
+                ->first()
+            : $this->applications()
+                ->where('status', ActivityApplication::STATUS_CANCELLED)
+                ->whereNotNull('review_reason')
+                ->value('review_reason');
+
+        return filled($reason) ? (string) $reason : null;
     }
 
     public static function generateSecretKey(): string

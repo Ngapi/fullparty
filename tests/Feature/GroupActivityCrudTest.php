@@ -721,11 +721,16 @@ it('cancels active applications, clears live slots, and keeps guest status pages
     ]);
 
     $this->actingAs($owner);
+    $sanitizer = app(TextInputSanitizer::class);
+    $rawReason = "  Run\u{200B} cancelled due to\r\nserver instability.  ";
+    $sanitizedReason = $sanitizer->sanitizeMultiline($rawReason);
 
     $response = $this->post(route('groups.dashboard.activities.cancel', [
         'group' => $group->slug,
         'activity' => $activity->id,
-    ]));
+    ]), [
+        'reason' => $rawReason,
+    ]);
 
     $response->assertRedirect(route('groups.dashboard.activities.show', [
         'group' => $group->slug,
@@ -742,13 +747,14 @@ it('cancels active applications, clears live slots, and keeps guest status pages
     $withdrawnApplication->refresh();
 
     expect($activity->status)->toBe(Activity::STATUS_CANCELLED);
+    expect($activity->cancellationReason())->toBe($sanitizedReason);
 
     expect($pendingApplication->status)->toBe(ActivityApplication::STATUS_CANCELLED)
-        ->and($pendingApplication->review_reason)->toBe('Run cancelled.')
+        ->and($pendingApplication->review_reason)->toBe($sanitizedReason)
         ->and($approvedApplication->status)->toBe(ActivityApplication::STATUS_CANCELLED)
-        ->and($approvedApplication->review_reason)->toBe('Run cancelled.')
+        ->and($approvedApplication->review_reason)->toBe($sanitizedReason)
         ->and($benchApplication->status)->toBe(ActivityApplication::STATUS_CANCELLED)
-        ->and($benchApplication->review_reason)->toBe('Run cancelled.')
+        ->and($benchApplication->review_reason)->toBe($sanitizedReason)
         ->and($declinedApplication->status)->toBe(ActivityApplication::STATUS_DECLINED)
         ->and($withdrawnApplication->status)->toBe(ActivityApplication::STATUS_WITHDRAWN);
 
@@ -764,6 +770,11 @@ it('cancels active applications, clears live slots, and keeps guest status pages
     expect(AuditLog::query()->where('action', 'group.activity.updated')->count())->toBe(1);
     expect(AuditLog::query()->where('action', 'group.activity.application.cancelled')->count())->toBe(3);
 
+    $activityAuditLog = AuditLog::query()->where('action', 'group.activity.updated')->sole();
+
+    expect($activityAuditLog->metadata['changes']['status']['new'])->toBe(Activity::STATUS_CANCELLED)
+        ->and($activityAuditLog->metadata['changes']['review_reason']['new'])->toBe($sanitizedReason);
+
     $statusResponse = $this->get(route('groups.activities.application.status', [
         'group' => $group->slug,
         'activity' => $activity->id,
@@ -777,7 +788,7 @@ it('cancels active applications, clears live slots, and keeps guest status pages
             ->where('confirmation.view', 'status')
             ->where('confirmation.can_edit', false)
             ->where('application.status', ActivityApplication::STATUS_CANCELLED)
-            ->where('application.review_reason', 'Run cancelled.'));
+            ->where('application.review_reason', $sanitizedReason));
 
     $editResponse = $this->get(route('groups.activities.application.edit-guest', [
         'group' => $group->slug,
@@ -790,4 +801,14 @@ it('cancels active applications, clears live slots, and keeps guest status pages
         'activity' => $activity->id,
         'accessToken' => $benchApplication->guest_access_token,
     ]));
+
+    $managementDataResponse = $this->getJson(route('groups.dashboard.activities.management-data', [
+        'group' => $group->slug,
+        'activity' => $activity->id,
+    ]));
+
+    $managementDataResponse
+        ->assertOk()
+        ->assertJsonPath('activity.status', Activity::STATUS_CANCELLED)
+        ->assertJsonPath('activity.cancellation_reason', $sanitizedReason);
 });

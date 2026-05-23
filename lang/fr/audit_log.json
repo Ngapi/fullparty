@@ -71,6 +71,7 @@
     "user": {
       "registered": "a enregistré un compte.",
       "logged_in": "s'est connecté.",
+      "password_reset": "a réinitialisé son mot de passe.",
       "account": {
         "deleted": "a supprimé son compte."
       },
@@ -80,6 +81,7 @@
       },
       "settings": {
         "username_updated": "a mis à jour les paramètres du nom d'utilisateur.",
+        "password_updated": "a mis à jour les paramètres du mot de passe.",
         "notifications_updated": "a mis à jour les paramètres de notification.",
         "privacy_updated": "a mis à jour les paramètres de confidentialité."
       }
@@ -274,6 +276,7 @@
     "user": {
       "registered": "Utilisateur inscrit",
       "logged_in": "Utilisateur connecté",
+      "password_reset": "Mot de passe réinitialisé",
       "account": {
         "deleted": "Compte utilisateur supprimé"
       },
@@ -283,6 +286,7 @@
       },
       "settings": {
         "username_updated": "Nom d'utilisateur mis à jour",
+        "password_updated": "Mot de passe mis à jour",
         "notifications_updated": "Paramètres de notification mis à jour",
         "privacy_updated": "Paramètres de confidentialité mis à jour"
       }

@@ -107,6 +107,9 @@
         "cancel_activity_modal": {
             "title": "ARE YOU SURE",
             "body": "Cancelling this run archives it immediately. Moderators will no longer be able to edit it, and applicants will no longer be able to apply.",
+            "reason_label": "Optional cancellation reason",
+            "reason_description": "If you add a reason here, cancelled applicants will be able to see it on their application page.",
+            "reason_placeholder": "Share any context applicants should know.",
             "confirm": "Yes, Cancel Run"
         },
         "messages": {
@@ -133,6 +136,10 @@
             "unknown_character": "Unknown character",
             "unknown_world": "Unknown world",
             "unknown_slot": "Roster slot"
+        },
+        "cancelled_alert": {
+            "title": "This run has been cancelled",
+            "description": "This run is archived and no longer accepting applications or moderator changes."
         },
         "manual_assignment": {
             "title": "Manual Assignment",
@@ -366,6 +373,10 @@
         "title": "Run Overview",
         "subtitle": "{group} shared this {type} run.",
         "description": "This is the attendee-facing overview for the run and its application flow.",
+        "cancelled_alert": {
+            "title": "This run has been cancelled",
+            "description": "This run is archived and no longer accepting applications."
+        },
         "open_application": "Apply Here",
         "go_to_management": "Go To Management",
         "summary_title": "Quick Summary",

@@ -42,6 +42,10 @@
         "title": "Account settings updated",
         "body": "Your account settings were updated. Changed settings: {settings}"
       },
+      "password_updated": {
+        "title": "Password updated",
+        "body": "Your account password was updated."
+      },
       "privacy_updated": {
         "title": "Privacy settings updated",
         "body": "Your privacy settings were updated. Changed settings: {settings}"
@@ -126,7 +130,8 @@
   "runs": {
     "cancelled": {
       "title": "Run cancelled",
-      "body": "{activity} was cancelled."
+      "body": "{activity} was cancelled.",
+      "body_with_reason": "{activity} was cancelled. Reason: {reason}"
     },
     "starting_soon": {
       "title": "Run starting soon",

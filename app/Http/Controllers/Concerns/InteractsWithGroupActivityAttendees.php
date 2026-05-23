@@ -83,6 +83,7 @@ trait InteractsWithGroupActivityAttendees
             'banner_image_url' => $activity->activityTypeVersion?->banner_image_url,
             'notes' => $activity->notes,
             'status' => $activity->status,
+            'cancellation_reason' => $activity->resolvedCancellationReason(),
             'starts_at' => $activity->starts_at?->toIso8601String(),
             'duration_hours' => $activity->duration_hours,
             'datacenter' => $activity->datacenter,

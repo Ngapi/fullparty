@@ -127,17 +127,22 @@ it('notifies signed in active applicants when a run is cancelled', function () {
         ->post(route('groups.dashboard.activities.cancel', [
             'group' => $group->slug,
             'activity' => $activity->id,
-        ]))
+        ]), [
+            'reason' => "  Storm\u{200B} outage\r\nin the data center. ",
+        ])
         ->assertRedirect(route('groups.dashboard.activities.show', [
             'group' => $group->slug,
             'activity' => $activity->id,
         ]));
 
     $event = NotificationEvent::query()->where('type', 'runs.cancelled')->sole();
+    $sanitizedReason = app(TextInputSanitizer::class)->sanitizeMultiline("  Storm\u{200B} outage\r\nin the data center. ");
 
     expect($event->category)->toBe(NotificationCategory::RUNS_AND_REMINDERS)
         ->and($event->action_url)->toBe(route('account.applications'))
-        ->and($event->message_params['activity'])->toBe('Late Night Prog');
+        ->and($event->body_key)->toBe('notifications.runs.cancelled.body_with_reason')
+        ->and($event->message_params['activity'])->toBe('Late Night Prog')
+        ->and($event->message_params['reason'])->toBe($sanitizedReason);
 
     $recipientIds = UserNotification::query()
         ->where('notification_event_id', $event->id)

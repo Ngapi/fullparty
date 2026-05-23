@@ -255,3 +255,95 @@ it('renders serialized roster slots on the attendee overview page', function () 
             ->where('activity.slots.4.application_field_groups.1.items.1.label', 'Phantom Bard')
         );
 });
+
+it('exposes the cancellation reason on the attendee overview payload', function () {
+    $owner = User::factory()->create();
+    $group = Group::factory()->public()->create([
+        'owner_id' => $owner->id,
+    ]);
+    $type = ActivityType::factory()->create([
+        'created_by_user_id' => $owner->id,
+    ]);
+    $version = ActivityTypeVersion::factory()->create([
+        'activity_type_id' => $type->id,
+        'published_by_user_id' => $owner->id,
+        'layout_schema' => ['groups' => []],
+        'slot_schema' => [],
+        'application_schema' => [],
+        'progress_schema' => ['milestones' => []],
+    ]);
+
+    $type->update([
+        'current_published_version_id' => $version->id,
+    ]);
+
+    $activity = Activity::factory()->create([
+        'group_id' => $group->id,
+        'activity_type_id' => $type->id,
+        'activity_type_version_id' => $version->id,
+        'organized_by_user_id' => $owner->id,
+        'status' => Activity::STATUS_CANCELLED,
+        'is_public' => true,
+        'settings' => [
+            Activity::SETTING_CANCELLATION_REASON => 'Raid lead is unavailable tonight.',
+        ],
+    ]);
+
+    $this->get(route('groups.activities.overview', [
+        'group' => $group->slug,
+        'activity' => $activity->id,
+    ]))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->component('Groups/Activities/Overview')
+            ->where('activity.status', Activity::STATUS_CANCELLED)
+            ->where('activity.cancellation_reason', 'Raid lead is unavailable tonight.'));
+});
+
+it('falls back to cancelled application review reasons on the attendee overview payload', function () {
+    $owner = User::factory()->create();
+    $group = Group::factory()->public()->create([
+        'owner_id' => $owner->id,
+    ]);
+    $type = ActivityType::factory()->create([
+        'created_by_user_id' => $owner->id,
+    ]);
+    $version = ActivityTypeVersion::factory()->create([
+        'activity_type_id' => $type->id,
+        'published_by_user_id' => $owner->id,
+        'layout_schema' => ['groups' => []],
+        'slot_schema' => [],
+        'application_schema' => [],
+        'progress_schema' => ['milestones' => []],
+    ]);
+
+    $type->update([
+        'current_published_version_id' => $version->id,
+    ]);
+
+    $activity = Activity::factory()->create([
+        'group_id' => $group->id,
+        'activity_type_id' => $type->id,
+        'activity_type_version_id' => $version->id,
+        'organized_by_user_id' => $owner->id,
+        'status' => Activity::STATUS_CANCELLED,
+        'is_public' => true,
+        'settings' => [],
+    ]);
+
+    ActivityApplication::factory()->create([
+        'activity_id' => $activity->id,
+        'status' => ActivityApplication::STATUS_CANCELLED,
+        'review_reason' => 'Static fell through for maintenance.',
+    ]);
+
+    $this->get(route('groups.activities.overview', [
+        'group' => $group->slug,
+        'activity' => $activity->id,
+    ]))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->component('Groups/Activities/Overview')
+            ->where('activity.status', Activity::STATUS_CANCELLED)
+            ->where('activity.cancellation_reason', 'Static fell through for maintenance.'));
+});

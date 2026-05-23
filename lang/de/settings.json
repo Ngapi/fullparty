@@ -4,10 +4,11 @@
   "account": {
     "title": "Kontoeinstellungen",
     "save": "Änderungen speichern",
-    "primary_character": "Hauptcharakter",
-    "primary_character_description": "Wähle den verifizierten Charakter aus, den FullParty standardmäßig als deinen Hauptcharakter behandeln soll.",
-    "primary_character_placeholder": "Hauptcharakter auswählen",
-    "save_primary_character": "Hauptcharakter speichern"
+    "password": "Passwort",
+    "old_password": "Altes Passwort",
+    "new_password": "Neues Passwort",
+    "new_password_confirmation": "Neues Passwort bestätigen",
+    "update_password": "Passwort aktualisieren"
   },
   "connect": "Verbinden",
   "unlink": "Trennen",
@@ -63,6 +64,7 @@
   },
   "toasts": {
     "username_updated": "Benutzername erfolgreich aktualisiert",
+    "password_updated": "Passwort erfolgreich aktualisiert",
     "notification_updated": "Benachrichtigungseinstellungen erfolgreich aktualisiert",
     "privacy_updated": "Datenschutzeinstellungen erfolgreich aktualisiert",
     "social_account_unlinked": "Verknüpftes Konto erfolgreich getrennt",
