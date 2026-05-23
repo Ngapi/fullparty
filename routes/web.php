@@ -21,6 +21,7 @@ use App\Http\Controllers\GroupActivityFflogsController;
 use App\Http\Controllers\GroupActivityManagementDataController;
 use App\Http\Controllers\GroupActivityManualSlotAssignmentOptionsController;
 use App\Http\Controllers\GroupActivityRosterExportController;
+use App\Http\Controllers\GroupActivitySelfAssignmentController;
 use App\Http\Controllers\GroupActivitySlotAssignmentContextController;
 use App\Http\Controllers\GroupActivitySlotAssignmentController;
 use App\Http\Controllers\GroupActivitySlotCheckInController;
@@ -237,6 +238,14 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::put('/groups/{group:slug}/activities/{activity}/application/{secretKey?}', [GroupActivityApplicationController::class, 'update'])
         ->where('secretKey', '[A-Za-z0-9]{40}')
         ->name('groups.activities.application.update');
+
+    Route::post('/groups/{group:slug}/activities/{activity}/slots/{slot}/self-assign/{secretKey?}', [GroupActivitySelfAssignmentController::class, 'store'])
+        ->where('secretKey', '[A-Za-z0-9]{40}')
+        ->name('groups.activities.self-assignments.store');
+
+    Route::delete('/groups/{group:slug}/activities/{activity}/slots/{slot}/self-assign/{secretKey?}', [GroupActivitySelfAssignmentController::class, 'destroy'])
+        ->where('secretKey', '[A-Za-z0-9]{40}')
+        ->name('groups.activities.self-assignments.destroy');
 
     /*
     |--------------------------------------------------------------------------

@@ -456,6 +456,34 @@
             "bench_title": "Bench",
             "bench_subtitle": "Overflow, standby, and reserve positions stay visible here.",
             "bench_count": "{count} bench slots"
+        },
+        "self_signup": {
+            "alerts": {
+                "assigned_title": "You are already signed up",
+                "assigned_description": "You are currently holding a slot in this run as {character}. Remove yourself from that slot before taking another one.",
+                "no_characters_title": "No verified characters available",
+                "no_characters_description": "Verify at least one character on your account before signing yourself up for a slot."
+            },
+            "actions": {
+                "claim": "Claim Slot",
+                "remove": "Remove Me",
+                "already_assigned": "Already Assigned",
+                "no_verified_characters": "No Verified Characters"
+            },
+            "messages": {
+                "assign_success": "You have been assigned to the selected slot.",
+                "assign_error": "Unable to assign you to this slot right now.",
+                "remove_success": "You have been removed from your slot.",
+                "remove_error": "Unable to remove you from this slot right now."
+            },
+            "modal": {
+                "title": "Assign Yourself",
+                "character": "Your Character",
+                "select_character": "Select one of your verified characters",
+                "select_character_warning": "Choose one of your verified characters to continue.",
+                "incompatible_fields": "The selected character does not have compatible options for this slot.",
+                "confirm": "Take Slot"
+            }
         }
     },
     "application": {

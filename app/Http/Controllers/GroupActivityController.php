@@ -16,6 +16,7 @@ use App\Models\GroupMembership;
 use App\Services\Groups\ActivityCancellationService;
 use App\Services\Groups\ActivityRosterSummaryPresetBuilder;
 use App\Services\Groups\ActivitySlotBench;
+use App\Services\Groups\ActivitySlotFieldDefinitionBuilder;
 use App\Services\Groups\ActivitySlotSerializer;
 use App\Services\Groups\GroupActivityAuditService;
 use App\Services\Notifications\AssignmentNotificationService;
@@ -49,6 +50,7 @@ class GroupActivityController extends Controller
         Activity $activity,
         ActivitySlotSerializer $slotSerializer,
         ActivityRosterSummaryPresetBuilder $rosterSummaryPresetBuilder,
+        ActivitySlotFieldDefinitionBuilder $fieldDefinitionBuilder,
         ?string $secretKey = null,
     ): Response {
         $this->ensureActivityBelongsToGroup($group, $activity);
@@ -70,7 +72,15 @@ class GroupActivityController extends Controller
             'applications as pending_application_count' => fn ($query) => $query->where('status', ActivityApplication::STATUS_PENDING),
         ]);
 
-        return Inertia::render('Groups/Activities/Overview', [
+        $permissions = [
+            'can_apply' => $request->user() !== null,
+            'can_manage' => $group->hasModeratorAccess($request->user()?->id),
+            'can_self_assign' => ! $activity->needs_application
+                && $request->user() !== null
+                && ! $activity->isArchived(),
+        ];
+
+        $props = [
             'group' => $this->serializePublicGroup($group),
             'activity' => $this->serializeAttendeeActivity(
                 $activity,
@@ -78,11 +88,22 @@ class GroupActivityController extends Controller
                 $rosterSummaryPresetBuilder->build($activity->activityTypeVersion),
             ),
             'secretKey' => $secretKey,
-            'permissions' => [
-                'can_apply' => $request->user() !== null,
-                'can_manage' => $group->hasModeratorAccess($request->user()?->id),
-            ],
-        ]);
+            'permissions' => $permissions,
+        ];
+
+        if (! $activity->needs_application) {
+            $props['slotFieldDefinitions'] = $fieldDefinitionBuilder->build($activity->activityTypeVersion);
+            $props['selfAssignmentCharacters'] = $request->user()
+                ? $this->selfAssignmentCharactersForUser($request->user()->id)
+                : [];
+        }
+
+        return Inertia::render(
+            $activity->needs_application
+                ? 'Groups/Activities/Overview'
+                : 'Groups/Activities/NonApplicationOverview',
+            $props,
+        );
     }
 
     public function create(Request $request, Group $group): Response
@@ -689,6 +710,48 @@ class GroupActivityController extends Controller
             ['title'],
             ['description', 'notes'],
         );
+    }
+
+    /**
+     * @return array<int, array<string, mixed>>
+     */
+    private function selfAssignmentCharactersForUser(int $userId): array
+    {
+        return Character::query()
+            ->with([
+                'user:id,name,avatar_url',
+                'classes:id,name,shorthand,role,icon_url,flaticon_url',
+                'phantomJobs:id,name,icon_url,transparent_icon_url,sprite_url',
+            ])
+            ->where('user_id', $userId)
+            ->whereNotNull('verified_at')
+            ->orderByDesc('is_primary')
+            ->orderBy('name')
+            ->get()
+            ->map(fn (Character $character) => [
+                'id' => $character->id,
+                'name' => $character->name,
+                'avatar_url' => $character->avatar_url,
+                'world' => $character->world,
+                'datacenter' => $character->datacenter,
+                'user' => $character->user ? [
+                    'id' => $character->user->id,
+                    'name' => $character->user->name,
+                    'avatar_url' => $character->user->avatar_url,
+                ] : null,
+                'character_class_ids' => $character->classes
+                    ->pluck('id')
+                    ->map(fn ($id) => (string) $id)
+                    ->values()
+                    ->all(),
+                'phantom_job_ids' => $character->phantomJobs
+                    ->pluck('id')
+                    ->map(fn ($id) => (string) $id)
+                    ->values()
+                    ->all(),
+            ])
+            ->values()
+            ->all();
     }
 
     private function materializeSlots(Activity $activity, ActivityTypeVersion $activityTypeVersion): void

@@ -94,6 +94,7 @@ const canOpenApplicationPage = computed(() => Boolean(
 	currentActivity.value?.needs_application
 	&& !isActivityArchived.value
 ));
+const hasApplicantQueue = computed(() => Boolean(currentActivity.value?.needs_application));
 const canEditActivity = computed(() => !currentActivity.value || !isActivityArchived.value);
 const canScheduleActivityAction = computed(() => Boolean(currentActivity.value && canScheduleActivity(currentActivity.value.status)));
 const canCompleteActivityAction = computed(() => Boolean(currentActivity.value && canCompleteActivity(currentActivity.value.status)));
@@ -1380,6 +1381,7 @@ onBeforeUnmount(() => {
 				:assigned-count="assignedCount"
 				:pending-application-count="pendingApplicationCount"
 				:needs-application="canOpenApplicationPage"
+				:has-applicant-queue="hasApplicantQueue"
 				:description="currentActivity.description"
 				:notes="currentActivity.notes"
 				:roster-summary-presets="currentActivity.roster_summary_presets"
@@ -1576,6 +1578,7 @@ onBeforeUnmount(() => {
 			</div>
 
 			<div
+				v-if="hasApplicantQueue"
 				class="sticky top-4 self-start overflow-hidden transition-all duration-300 ease-in-out"
 				:class="showApplicantQueue
 					? 'xl:w-96 xl:opacity-100'

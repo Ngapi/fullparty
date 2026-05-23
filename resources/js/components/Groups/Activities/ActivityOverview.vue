@@ -28,6 +28,7 @@ const props = defineProps<{
 	assignedCount: number
 	pendingApplicationCount: number
 	needsApplication: boolean
+	hasApplicantQueue: boolean
 	description: string | null
 	notes: string | null
 	rosterSummaryPresets: Array<{
@@ -267,7 +268,7 @@ const rosterViewOptions = computed(() => ([
 
 				<div class="hidden h-4 w-px bg-default md:block"></div>
 
-				<div class="inline-flex items-center gap-2">
+				<div v-if="hasApplicantQueue" class="inline-flex items-center gap-2">
 					<span class="text-muted">{{ t('groups.activities.management.overview.applicants') }}:</span>
 					<span class="font-medium text-toned">{{ pendingApplicantsLabel }}</span>
 				</div>
@@ -358,6 +359,7 @@ const rosterViewOptions = computed(() => ([
 					</div>
 
 					<UButton
+						v-if="hasApplicantQueue"
 						color="neutral"
 						variant="ghost"
 						size="sm"
