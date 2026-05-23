@@ -308,6 +308,22 @@ it('generates a fresh verification token for provisional characters during manua
         ->and($character->expires_at)->not->toBeNull();
 });
 
+it('returns a form validation error for invalid lodestone input during manual lookup', function () {
+    $user = User::factory()->create();
+
+    $this->actingAs($user);
+
+    $response = $this->from(route('account.characters'))->post(route('characters.exists'), [
+        'lodestone_id' => "12-=33l2 \n",
+    ]);
+
+    $response
+        ->assertRedirect(route('account.characters'))
+        ->assertSessionHasErrors([
+            'lodestone_id' => 'Enter a valid Lodestone ID or Lodestone character URL.',
+        ]);
+});
+
 it('does not auto claim guest applications when the user already has an application for the same activity', function () {
     $user = User::factory()->create();
     $verifiedCharacter = Character::factory()->primary()->create([

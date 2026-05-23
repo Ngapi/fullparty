@@ -8,10 +8,11 @@ use App\Exceptions\LodestoneParseException;
 use App\Http\Requests\StoreCharacterRequest;
 use App\Http\Requests\StoreXIVAuthCharacterRequest;
 use App\Http\Requests\UpdateCharacterRequest;
+use App\Models\ActivityApplication;
 use App\Models\Character;
 use App\Models\CharacterClass;
-use App\Models\ActivityApplication;
 use App\Models\PhantomJob;
+use App\Models\User;
 use App\Services\AuditLogger;
 use App\Services\Characters\CharacterProfileRefreshService;
 use App\Services\Lodestone\LodestoneInputNormalizer;
@@ -21,620 +22,637 @@ use App\Support\Audit\AuditScope;
 use App\Support\Audit\AuditSeverity;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Support\Collection;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Redirect;
 use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
-use Illuminate\Support\Facades\Redirect;
 
 class CharacterController extends Controller
 {
-	public function __construct(
-		private readonly AuditLogger $auditLogger,
-		private readonly CharacterProfileRefreshService $characterProfileRefreshService,
-		private readonly AccountCharacterNotificationService $accountCharacterNotificationService,
-	) {}
+    public function __construct(
+        private readonly AuditLogger $auditLogger,
+        private readonly CharacterProfileRefreshService $characterProfileRefreshService,
+        private readonly AccountCharacterNotificationService $accountCharacterNotificationService,
+    ) {}
 
-	private function generateVerificationToken(): string
-	{
-		return 'FP-' . strtoupper(Str::random(10));
-	}
- 
-	public function exists(Request $request): \Illuminate\Http\RedirectResponse
-	{
-		$validated = $request->validate([
-			'lodestone_id' => ['required', 'string'],
-		]);
-		
-		$scraper = app(LodestoneScraper::class);
-		$inputNormalizer = app(LodestoneInputNormalizer::class);
-		$lodestoneId = $inputNormalizer->extractLodestoneId($validated['lodestone_id']);
-		//If character exists and has been verified, tell the user the character is taken
-		$character = Character::where('lodestone_id', $lodestoneId)->first();
-		
-		if ($character && $character->isVerified()) {
-			return Redirect::back()->with('flash_data', [
-				'manual_character_lookup' => [
-					'taken' => true,
-				]
-			]);
-		}
-		// If the character exists but has not been verified, tell the user to claim it
-		if($character){
-			$this->renewVerificationTokenIfNeeded($character);
-			return Redirect::back()->with('flash_data', [
-				'manual_character_lookup' => [
-					'exists' => true,
-					'taken' => false,
-					'character' => [
-						'id' => $character->id,
-						'lodestone_id' => $character->lodestone_id,
-						'name' => $character->name,
-						'world' => $character->world,
-						'datacenter' => $character->datacenter,
-						'avatar' => $character->avatar_url,
-						'token' => $character->token,
-					],
-				],
-			]);
-		}
-		// If the character does not exist, scrape it and create it
-		try {
-			$data = $scraper->scrapeProfile($validated['lodestone_id']);
-			$token = $this->generateVerificationToken();
-			$character = Character::create([
-				'user_id' => auth()->id(),
-				'name' => $data->name,
-				'world' => $data->world,
-				'datacenter' => $data->dataCenter,
-				'lodestone_id' => $data->lodestoneId,
-				'avatar_url' => $data->avatarUrl,
-				'token' => $token,
-				'expires_at' => Carbon::now()->addDay(),
-			]);
-			
-			return Redirect::back()->with('flash_data', [
-				'manual_character_lookup' => [
-					'exists' => true,
-					'taken' => false,
-					'character' => [
-						'id' => $character->id,
-						'lodestone_id' => $character->lodestone_id,
-						'name' => $character->name,
-						'world' => $character->world,
-						'datacenter' => $character->datacenter,
-						'avatar' => $character->avatar_url,
-						'token' => $character->token,
-					],
-				],
-			]);
-		} catch (LodestoneInvalidInputException $e) {
-			return Redirect::back()->withErrors([
-				'error' => 'invalid_lodestone_id',
-			]);
-		} catch (LodestoneFetchException $e) {
-			return Redirect::back()->withErrors([
-				'error' => $e->getCode() === 404
-					? 'character_not_found'
-					: 'lodestone_error',
-			]);
-		} catch (LodestoneParseException $e) {
-			return Redirect::back()->withErrors([
-				'error' => 'parse_error',
-			]);
-		}
-	}
-	
-	public function verify(Request $request): \Illuminate\Http\RedirectResponse
-	{
-		$validated = $request->validate([
-			'token' => ['required', 'string'],
-			'character_id' => ['required', 'exists:characters,id'],
-		]);
-		$character = Character::find($validated['character_id']);
-		
-		if($character->isVerified()){
-			return Redirect::back()->with('flash_data', [
-				'character_verification' => [
-					'taken' => true,
-				]
-			]);
-		}
-		if(blank($character->token) || $character->isTokenExpired()){
-			return Redirect::back()->withErrors([
-				'error' => 'expired_token'
-			]);
-		}
-		
-		$scraper = app(LodestoneScraper::class);
-		// If the character does not exist, scrape it and create it
-		try {
-			$data = $scraper->scrapeProfile($character->lodestone_id, ignoreCache: true);
-			if(!$data->bio || !str_contains($data->bio, $character->token)){
-				return Redirect::back()->withErrors([
-					'error' => 'invalid_token'
-				]);
-			}
-			$this->finalizeCharacterVerification($character, auth()->user(), 'lodestone_token');
+    private function generateVerificationToken(): string
+    {
+        return 'FP-'.strtoupper(Str::random(10));
+    }
 
-			$this->auditLogger->log(
-				action: 'character.verified',
-				severity: AuditSeverity::INFO,
-				scopeType: AuditScope::CHARACTER,
-				scopeId: $character->id,
-				message: 'audit_log.events.character.verified',
-				actor: auth()->user(),
-				subject: $character,
-				metadata: [
-					'verification_method' => 'lodestone_token',
-					'lodestone_id' => $character->lodestone_id,
-					'is_primary' => $character->is_primary,
-				],
-			);
+    private function invalidLodestoneInputValidationException(): ValidationException
+    {
+        return ValidationException::withMessages([
+            'lodestone_id' => 'Enter a valid Lodestone ID or Lodestone character URL.',
+        ]);
+    }
 
-			$this->refreshVerifiedCharacterOnce($character);
+    public function exists(Request $request): RedirectResponse
+    {
+        $validated = $request->validate([
+            'lodestone_id' => ['required', 'string'],
+        ]);
+
+        $scraper = app(LodestoneScraper::class);
+        $inputNormalizer = app(LodestoneInputNormalizer::class);
+
+        try {
+            $lodestoneId = $inputNormalizer->extractLodestoneId($validated['lodestone_id']);
+        } catch (LodestoneInvalidInputException) {
+            throw $this->invalidLodestoneInputValidationException();
+        }
+
+        // If character exists and has been verified, tell the user the character is taken
+        $character = Character::where('lodestone_id', $lodestoneId)->first();
+
+        if ($character && $character->isVerified()) {
+            return Redirect::back()->with('flash_data', [
+                'manual_character_lookup' => [
+                    'taken' => true,
+                ],
+            ]);
+        }
+        // If the character exists but has not been verified, tell the user to claim it
+        if ($character) {
+            $this->renewVerificationTokenIfNeeded($character);
+
+            return Redirect::back()->with('flash_data', [
+                'manual_character_lookup' => [
+                    'exists' => true,
+                    'taken' => false,
+                    'character' => [
+                        'id' => $character->id,
+                        'lodestone_id' => $character->lodestone_id,
+                        'name' => $character->name,
+                        'world' => $character->world,
+                        'datacenter' => $character->datacenter,
+                        'avatar' => $character->avatar_url,
+                        'token' => $character->token,
+                    ],
+                ],
+            ]);
+        }
+        // If the character does not exist, scrape it and create it
+        try {
+            $data = $scraper->scrapeProfile($validated['lodestone_id']);
+            $token = $this->generateVerificationToken();
+            $character = Character::create([
+                'user_id' => auth()->id(),
+                'name' => $data->name,
+                'world' => $data->world,
+                'datacenter' => $data->dataCenter,
+                'lodestone_id' => $data->lodestoneId,
+                'avatar_url' => $data->avatarUrl,
+                'token' => $token,
+                'expires_at' => Carbon::now()->addDay(),
+            ]);
+
+            return Redirect::back()->with('flash_data', [
+                'manual_character_lookup' => [
+                    'exists' => true,
+                    'taken' => false,
+                    'character' => [
+                        'id' => $character->id,
+                        'lodestone_id' => $character->lodestone_id,
+                        'name' => $character->name,
+                        'world' => $character->world,
+                        'datacenter' => $character->datacenter,
+                        'avatar' => $character->avatar_url,
+                        'token' => $character->token,
+                    ],
+                ],
+            ]);
+        } catch (LodestoneInvalidInputException $e) {
+            throw $this->invalidLodestoneInputValidationException();
+        } catch (LodestoneFetchException $e) {
+            return Redirect::back()->withErrors([
+                'error' => $e->getCode() === 404
+                    ? 'character_not_found'
+                    : 'lodestone_error',
+            ]);
+        } catch (LodestoneParseException $e) {
+            return Redirect::back()->withErrors([
+                'error' => 'parse_error',
+            ]);
+        }
+    }
+
+    public function verify(Request $request): RedirectResponse
+    {
+        $validated = $request->validate([
+            'token' => ['required', 'string'],
+            'character_id' => ['required', 'exists:characters,id'],
+        ]);
+        $character = Character::find($validated['character_id']);
+
+        if ($character->isVerified()) {
+            return Redirect::back()->with('flash_data', [
+                'character_verification' => [
+                    'taken' => true,
+                ],
+            ]);
+        }
+        if (blank($character->token) || $character->isTokenExpired()) {
+            return Redirect::back()->withErrors([
+                'error' => 'expired_token',
+            ]);
+        }
+
+        $scraper = app(LodestoneScraper::class);
+        // If the character does not exist, scrape it and create it
+        try {
+            $data = $scraper->scrapeProfile($character->lodestone_id, ignoreCache: true);
+            if (! $data->bio || ! str_contains($data->bio, $character->token)) {
+                return Redirect::back()->withErrors([
+                    'error' => 'invalid_token',
+                ]);
+            }
+            $this->finalizeCharacterVerification($character, auth()->user(), 'lodestone_token');
+
+            $this->auditLogger->log(
+                action: 'character.verified',
+                severity: AuditSeverity::INFO,
+                scopeType: AuditScope::CHARACTER,
+                scopeId: $character->id,
+                message: 'audit_log.events.character.verified',
+                actor: auth()->user(),
+                subject: $character,
+                metadata: [
+                    'verification_method' => 'lodestone_token',
+                    'lodestone_id' => $character->lodestone_id,
+                    'is_primary' => $character->is_primary,
+                ],
+            );
+
+            $this->refreshVerifiedCharacterOnce($character);
 
             $this->accountCharacterNotificationService->notifyCharacterAdded($character->fresh(), 'lodestone_token', auth()->user());
-			
-			return Redirect::back()->with('flash_data', [
-				'character_verification' => [
-					'success' => true,
-				],
-			]);
-		} catch (LodestoneInvalidInputException $e) {
-			return Redirect::back()->withErrors([
-				'error' => 'invalid_lodestone_id',
-			]);
-		} catch (LodestoneFetchException $e) {
-			return Redirect::back()->withErrors([
-				'error' => $e->getCode() === 404
-					? 'character_not_found'
-					: 'lodestone_error',
-			]);
-		} catch (LodestoneParseException $e) {
-			return Redirect::back()->withErrors([
-				'error' => 'parse_error',
-			]);
-		}
-	}
-	
-	public function fetchXIVAuthCharacters(Request $request){
-		$xivauthSocial = $request->user()->socialAccounts()->where('provider', 'xivauth')->first();
-		if(!$xivauthSocial){
-			return Redirect::back()->withErrors([
-				'error' => 'xivauth_not_linked',
-			]);
-		}
-		try{
-			$token = XIVAuthController::getValidXivAuthAccessToken($xivauthSocial);
-		}catch (\Exception $exception){
-			return Redirect::back()->withErrors([
-				'error' => 'xivauth_token_invalid'
-			]);
-		}
-		//Get User Data
-		$response = Http::withHeaders([
-			'Accept' => 'application/json',
-			'Authorization' => 'Bearer ' . $token,
-		])->get('https://xivauth.net/api/v1/characters');
-		
-		$data = json_decode($response->getBody(), true);
-		return Redirect::back()->with('flash_data', [
-			'characters' => $data
-		]);
-	}
-	
-	public function importXIVAuthCharacter(StoreXIVAuthCharacterRequest $request){
-		$validated = $request->validated();
-		
-		$is_primary = false;
-		if (auth()->user()->characters()->count() === 0) {
-			$is_primary = true;
-		}
-		$character = Character::where('lodestone_id', $validated['lodestone_id'])->first();
-		// If character doesnt exist, create it
-		if(!$character){
-			$character = Character::create([
-				'user_id' => auth()->id(),
-				'name' => $validated['name'],
-				'world' => $validated['world'],
-				'datacenter' => $validated['datacenter'],
-				'lodestone_id' => $validated['lodestone_id'],
-				'avatar_url' => $validated['avatar_url'],
-				'add_method' => 'xivauth',
-				'is_primary' => $is_primary,
-				'verified_at' => Carbon::now(),
-			]);
-		}else{
-			$character->fill([
-				'name' => $validated['name'],
-				'world' => $validated['world'],
-				'datacenter' => $validated['datacenter'],
-				'avatar_url' => $validated['avatar_url'],
-				'add_method' => 'xivauth',
-			]);
-		}
 
-		$this->finalizeCharacterVerification($character, auth()->user(), 'xivauth', $is_primary);
-		$this->refreshVerifiedCharacterOnce($character);
+            return Redirect::back()->with('flash_data', [
+                'character_verification' => [
+                    'success' => true,
+                ],
+            ]);
+        } catch (LodestoneInvalidInputException $e) {
+            return Redirect::back()->withErrors([
+                'error' => 'invalid_lodestone_id',
+            ]);
+        } catch (LodestoneFetchException $e) {
+            return Redirect::back()->withErrors([
+                'error' => $e->getCode() === 404
+                    ? 'character_not_found'
+                    : 'lodestone_error',
+            ]);
+        } catch (LodestoneParseException $e) {
+            return Redirect::back()->withErrors([
+                'error' => 'parse_error',
+            ]);
+        }
+    }
+
+    public function fetchXIVAuthCharacters(Request $request)
+    {
+        $xivauthSocial = $request->user()->socialAccounts()->where('provider', 'xivauth')->first();
+        if (! $xivauthSocial) {
+            return Redirect::back()->withErrors([
+                'error' => 'xivauth_not_linked',
+            ]);
+        }
+        try {
+            $token = XIVAuthController::getValidXivAuthAccessToken($xivauthSocial);
+        } catch (\Exception $exception) {
+            return Redirect::back()->withErrors([
+                'error' => 'xivauth_token_invalid',
+            ]);
+        }
+        // Get User Data
+        $response = Http::withHeaders([
+            'Accept' => 'application/json',
+            'Authorization' => 'Bearer '.$token,
+        ])->get('https://xivauth.net/api/v1/characters');
+
+        $data = json_decode($response->getBody(), true);
+
+        return Redirect::back()->with('flash_data', [
+            'characters' => $data,
+        ]);
+    }
+
+    public function importXIVAuthCharacter(StoreXIVAuthCharacterRequest $request)
+    {
+        $validated = $request->validated();
+
+        $is_primary = false;
+        if (auth()->user()->characters()->count() === 0) {
+            $is_primary = true;
+        }
+        $character = Character::where('lodestone_id', $validated['lodestone_id'])->first();
+        // If character doesnt exist, create it
+        if (! $character) {
+            $character = Character::create([
+                'user_id' => auth()->id(),
+                'name' => $validated['name'],
+                'world' => $validated['world'],
+                'datacenter' => $validated['datacenter'],
+                'lodestone_id' => $validated['lodestone_id'],
+                'avatar_url' => $validated['avatar_url'],
+                'add_method' => 'xivauth',
+                'is_primary' => $is_primary,
+                'verified_at' => Carbon::now(),
+            ]);
+        } else {
+            $character->fill([
+                'name' => $validated['name'],
+                'world' => $validated['world'],
+                'datacenter' => $validated['datacenter'],
+                'avatar_url' => $validated['avatar_url'],
+                'add_method' => 'xivauth',
+            ]);
+        }
+
+        $this->finalizeCharacterVerification($character, auth()->user(), 'xivauth', $is_primary);
+        $this->refreshVerifiedCharacterOnce($character);
 
         $this->accountCharacterNotificationService->notifyCharacterAdded($character->fresh(), 'xivauth', auth()->user());
 
-		$character->refresh();
+        $character->refresh();
 
-		$this->auditLogger->log(
-			action: 'character.verified',
-			severity: AuditSeverity::INFO,
-			scopeType: AuditScope::CHARACTER,
-			scopeId: $character->id,
-			message: 'audit_log.events.character.verified',
-			actor: auth()->user(),
-			subject: $character,
-			metadata: [
-				'verification_method' => 'xivauth',
-				'lodestone_id' => $character->lodestone_id,
-				'is_primary' => $character->is_primary,
-			],
-		);
-		
-		return Redirect::back()->with('flash_data', [
-			'xivauth_character_import' => [
-				'character' => [
-					'id' => $character->id,
-					'lodestone_id' => $character->lodestone_id,
-					'name' => $character->name,
-					'world' => $character->world,
-					'datacenter' => $character->datacenter,
-					'avatar' => $character->avatar_url,
-					'token' => $character->token,
-				],
-			],
-		]);
-	}
+        $this->auditLogger->log(
+            action: 'character.verified',
+            severity: AuditSeverity::INFO,
+            scopeType: AuditScope::CHARACTER,
+            scopeId: $character->id,
+            message: 'audit_log.events.character.verified',
+            actor: auth()->user(),
+            subject: $character,
+            metadata: [
+                'verification_method' => 'xivauth',
+                'lodestone_id' => $character->lodestone_id,
+                'is_primary' => $character->is_primary,
+            ],
+        );
 
-	public function refreshCharacterData(Character $character): \Illuminate\Http\RedirectResponse
-	{
-		if ($character->user_id !== auth()->id()) {
-			abort(403);
-		}
+        return Redirect::back()->with('flash_data', [
+            'xivauth_character_import' => [
+                'character' => [
+                    'id' => $character->id,
+                    'lodestone_id' => $character->lodestone_id,
+                    'name' => $character->name,
+                    'world' => $character->world,
+                    'datacenter' => $character->datacenter,
+                    'avatar' => $character->avatar_url,
+                    'token' => $character->token,
+                ],
+            ],
+        ]);
+    }
 
-		$this->auditLogger->log(
-			action: 'character.refresh_requested',
-			severity: AuditSeverity::INFO,
-			scopeType: AuditScope::CHARACTER,
-			scopeId: $character->id,
-			message: 'audit_log.events.character.refresh_requested',
-			actor: auth()->user(),
-			subject: $character,
-			metadata: [
-				'lodestone_id' => $character->lodestone_id,
-				'name' => $character->name,
-			],
-		);
+    public function refreshCharacterData(Character $character): RedirectResponse
+    {
+        if ($character->user_id !== auth()->id()) {
+            abort(403);
+        }
 
-		try {
-			$this->characterProfileRefreshService->refresh($character, ignoreCache: true);
+        $this->auditLogger->log(
+            action: 'character.refresh_requested',
+            severity: AuditSeverity::INFO,
+            scopeType: AuditScope::CHARACTER,
+            scopeId: $character->id,
+            message: 'audit_log.events.character.refresh_requested',
+            actor: auth()->user(),
+            subject: $character,
+            metadata: [
+                'lodestone_id' => $character->lodestone_id,
+                'name' => $character->name,
+            ],
+        );
+
+        try {
+            $this->characterProfileRefreshService->refresh($character, ignoreCache: true);
 
             $this->accountCharacterNotificationService->notifyCharacterRefreshed($character->fresh(), auth()->user());
 
-			return Redirect::back()->with('success', 'character_data_refreshed');
-		} catch (LodestoneInvalidInputException $e) {
-			return Redirect::back()->withErrors([
-				'error' => 'invalid_lodestone_id',
-			]);
-		} catch (LodestoneFetchException $e) {
-			return Redirect::back()->withErrors([
-				'error' => $e->getCode() === 404
-					? 'character_not_found'
-					: 'lodestone_error',
-			]);
-		} catch (LodestoneParseException $e) {
-			return Redirect::back()->withErrors([
-				'error' => 'parse_error',
-			]);
-		} catch (\Throwable $e) {
-			return Redirect::back()->withErrors([
-				'error' => 'character_refresh_failed',
-			]);
-		}
-	}
+            return Redirect::back()->with('success', 'character_data_refreshed');
+        } catch (LodestoneInvalidInputException $e) {
+            return Redirect::back()->withErrors([
+                'error' => 'invalid_lodestone_id',
+            ]);
+        } catch (LodestoneFetchException $e) {
+            return Redirect::back()->withErrors([
+                'error' => $e->getCode() === 404
+                    ? 'character_not_found'
+                    : 'lodestone_error',
+            ]);
+        } catch (LodestoneParseException $e) {
+            return Redirect::back()->withErrors([
+                'error' => 'parse_error',
+            ]);
+        } catch (\Throwable $e) {
+            return Redirect::back()->withErrors([
+                'error' => 'character_refresh_failed',
+            ]);
+        }
+    }
 
-	private function renewVerificationTokenIfNeeded(Character $character): void
-	{
-		if (!$character->isTokenExpired() && filled($character->token)) {
-			return;
-		}
+    private function renewVerificationTokenIfNeeded(Character $character): void
+    {
+        if (! $character->isTokenExpired() && filled($character->token)) {
+            return;
+        }
 
-		$character->update([
-			'token' => $this->generateVerificationToken(),
-			'expires_at' => Carbon::now()->addDay(),
-		]);
-	}
+        $character->update([
+            'token' => $this->generateVerificationToken(),
+            'expires_at' => Carbon::now()->addDay(),
+        ]);
+    }
 
-	private function finalizeCharacterVerification(
-		Character $character,
-		\App\Models\User $user,
-		string $verificationMethod,
-		?bool $isPrimaryOverride = null,
-	): void {
-		DB::transaction(function () use ($character, $user, $verificationMethod, $isPrimaryOverride): void {
-			$isPrimary = $isPrimaryOverride ?? $user->characters()->count() === 0;
+    private function finalizeCharacterVerification(
+        Character $character,
+        User $user,
+        string $verificationMethod,
+        ?bool $isPrimaryOverride = null,
+    ): void {
+        DB::transaction(function () use ($character, $user, $verificationMethod, $isPrimaryOverride): void {
+            $isPrimary = $isPrimaryOverride ?? $user->characters()->count() === 0;
 
-			$character->user_id = $user->id;
-			$character->verified_at = Carbon::now();
-			$character->token = null;
-			$character->expires_at = null;
-			$character->is_primary = $isPrimary;
-			$character->add_method = $verificationMethod === 'xivauth' ? 'xivauth' : 'manual';
-			$character->save();
+            $character->user_id = $user->id;
+            $character->verified_at = Carbon::now();
+            $character->token = null;
+            $character->expires_at = null;
+            $character->is_primary = $isPrimary;
+            $character->add_method = $verificationMethod === 'xivauth' ? 'xivauth' : 'manual';
+            $character->save();
 
-			$this->claimCharacterApplications($character, $user);
-		});
-	}
+            $this->claimCharacterApplications($character, $user);
+        });
+    }
 
-	private function claimCharacterApplications(Character $character, \App\Models\User $user): void
-	{
-		$applications = ActivityApplication::query()
-			->whereNull('user_id')
-			->where('applicant_lodestone_id', $character->lodestone_id)
-			->lockForUpdate()
-			->get();
+    private function claimCharacterApplications(Character $character, User $user): void
+    {
+        $applications = ActivityApplication::query()
+            ->whereNull('user_id')
+            ->where('applicant_lodestone_id', $character->lodestone_id)
+            ->lockForUpdate()
+            ->get();
 
-		if ($applications->isEmpty()) {
-			return;
-		}
+        if ($applications->isEmpty()) {
+            return;
+        }
 
-		$conflictingActivityIds = ActivityApplication::query()
-			->where('user_id', $user->id)
-			->whereIn('activity_id', $applications->pluck('activity_id'))
-			->pluck('activity_id')
-			->all();
+        $conflictingActivityIds = ActivityApplication::query()
+            ->where('user_id', $user->id)
+            ->whereIn('activity_id', $applications->pluck('activity_id'))
+            ->pluck('activity_id')
+            ->all();
 
-		foreach ($applications as $application) {
-			if (in_array($application->activity_id, $conflictingActivityIds, true)) {
-				Log::warning('Skipping guest application claim because the user already has an application for the activity.', [
-					'application_id' => $application->id,
-					'activity_id' => $application->activity_id,
-					'user_id' => $user->id,
-					'character_id' => $character->id,
-					'lodestone_id' => $character->lodestone_id,
-				]);
+        foreach ($applications as $application) {
+            if (in_array($application->activity_id, $conflictingActivityIds, true)) {
+                Log::warning('Skipping guest application claim because the user already has an application for the activity.', [
+                    'application_id' => $application->id,
+                    'activity_id' => $application->activity_id,
+                    'user_id' => $user->id,
+                    'character_id' => $character->id,
+                    'lodestone_id' => $character->lodestone_id,
+                ]);
 
-				continue;
-			}
+                continue;
+            }
 
-			$application->update([
-				'user_id' => $user->id,
-				'selected_character_id' => $character->id,
-				'guest_access_token' => null,
-			]);
-		}
-	}
+            $application->update([
+                'user_id' => $user->id,
+                'selected_character_id' => $character->id,
+                'guest_access_token' => null,
+            ]);
+        }
+    }
 
-	private function refreshVerifiedCharacterOnce(Character $character): void
-	{
-		try {
-			$this->characterProfileRefreshService->refresh($character, ignoreCache: true);
-		} catch (\Throwable $exception) {
-			Log::warning('Unable to auto-refresh character data after verification.', [
-				'character_id' => $character->id,
-				'lodestone_id' => $character->lodestone_id,
-				'exception' => $exception->getMessage(),
-			]);
-		}
-	}
+    private function refreshVerifiedCharacterOnce(Character $character): void
+    {
+        try {
+            $this->characterProfileRefreshService->refresh($character, ignoreCache: true);
+        } catch (\Throwable $exception) {
+            Log::warning('Unable to auto-refresh character data after verification.', [
+                'character_id' => $character->id,
+                'lodestone_id' => $character->lodestone_id,
+                'exception' => $exception->getMessage(),
+            ]);
+        }
+    }
 
-	public function markPreferredClass(Request $request, Character $character): \Illuminate\Http\RedirectResponse
-	{
-		if ($character->user_id !== auth()->id()) {
-			abort(403);
-		}
+    public function markPreferredClass(Request $request, Character $character): RedirectResponse
+    {
+        if ($character->user_id !== auth()->id()) {
+            abort(403);
+        }
 
-		$validated = $request->validate([
-			'character_class_id' => ['required', 'exists:character_classes,id'],
-			'is_preferred' => ['required', 'boolean'],
-		]);
+        $validated = $request->validate([
+            'character_class_id' => ['required', 'exists:character_classes,id'],
+            'is_preferred' => ['required', 'boolean'],
+        ]);
 
-		$existingProgress = $character->classes()
-			->where('character_classes.id', $validated['character_class_id'])
-			->first();
+        $existingProgress = $character->classes()
+            ->where('character_classes.id', $validated['character_class_id'])
+            ->first();
 
-		$character->classes()->syncWithoutDetaching([
-			$validated['character_class_id'] => [
-				'level' => $existingProgress?->pivot?->level ?? 0,
-				'is_preferred' => $validated['is_preferred'],
-			],
-		]);
+        $character->classes()->syncWithoutDetaching([
+            $validated['character_class_id'] => [
+                'level' => $existingProgress?->pivot?->level ?? 0,
+                'is_preferred' => $validated['is_preferred'],
+            ],
+        ]);
 
-		return Redirect::back()->with('success', $validated['is_preferred']
-			? 'character_class_marked_preferred'
-			: 'character_class_unmarked_preferred');
-	}
+        return Redirect::back()->with('success', $validated['is_preferred']
+            ? 'character_class_marked_preferred'
+            : 'character_class_unmarked_preferred');
+    }
 
-	public function markPreferredPhantomJob(Request $request, Character $character): \Illuminate\Http\RedirectResponse
-	{
-		if ($character->user_id !== auth()->id()) {
-			abort(403);
-		}
+    public function markPreferredPhantomJob(Request $request, Character $character): RedirectResponse
+    {
+        if ($character->user_id !== auth()->id()) {
+            abort(403);
+        }
 
-		$validated = $request->validate([
-			'phantom_job_id' => ['required', 'exists:phantom_jobs,id'],
-			'is_preferred' => ['required', 'boolean'],
-		]);
+        $validated = $request->validate([
+            'phantom_job_id' => ['required', 'exists:phantom_jobs,id'],
+            'is_preferred' => ['required', 'boolean'],
+        ]);
 
-		$existingProgress = $character->phantomJobs()
-			->where('phantom_jobs.id', $validated['phantom_job_id'])
-			->first();
+        $existingProgress = $character->phantomJobs()
+            ->where('phantom_jobs.id', $validated['phantom_job_id'])
+            ->first();
 
-		$character->phantomJobs()->syncWithoutDetaching([
-			$validated['phantom_job_id'] => [
-				'current_level' => $existingProgress?->pivot?->current_level ?? 0,
-				'is_preferred' => $validated['is_preferred'],
-			],
-		]);
+        $character->phantomJobs()->syncWithoutDetaching([
+            $validated['phantom_job_id'] => [
+                'current_level' => $existingProgress?->pivot?->current_level ?? 0,
+                'is_preferred' => $validated['is_preferred'],
+            ],
+        ]);
 
-		return Redirect::back()->with('success', $validated['is_preferred']
-			? 'phantom_job_marked_preferred'
-			: 'phantom_job_unmarked_preferred');
-	}
+        return Redirect::back()->with('success', $validated['is_preferred']
+            ? 'phantom_job_marked_preferred'
+            : 'phantom_job_unmarked_preferred');
+    }
 
-	public function makePrimary(Character $character): \Illuminate\Http\RedirectResponse
-	{
-		if ($character->user_id !== auth()->id()) {
-			abort(403);
-		}
+    public function makePrimary(Character $character): RedirectResponse
+    {
+        if ($character->user_id !== auth()->id()) {
+            abort(403);
+        }
 
-		if (!$character->isVerified()) {
-			return Redirect::back()->withErrors([
-				'error' => 'character_not_verified',
-			]);
-		}
+        if (! $character->isVerified()) {
+            return Redirect::back()->withErrors([
+                'error' => 'character_not_verified',
+            ]);
+        }
 
-		DB::transaction(function () use ($character) {
-			Character::query()
-				->where('user_id', auth()->id())
-				->where('is_primary', true)
-				->update(['is_primary' => false]);
+        DB::transaction(function () use ($character) {
+            Character::query()
+                ->where('user_id', auth()->id())
+                ->where('is_primary', true)
+                ->update(['is_primary' => false]);
 
-			$character->update(['is_primary' => true]);
-		});
+            $character->update(['is_primary' => true]);
+        });
 
-		$this->auditLogger->log(
-			action: 'character.made_primary',
-			severity: AuditSeverity::INFO,
-			scopeType: AuditScope::CHARACTER,
-			scopeId: $character->id,
-			message: 'audit_log.events.character.made_primary',
-			actor: auth()->user(),
-			subject: $character->fresh(),
-			metadata: [
-				'lodestone_id' => $character->lodestone_id,
-				'name' => $character->name,
-				'is_primary' => true,
-			],
-		);
+        $this->auditLogger->log(
+            action: 'character.made_primary',
+            severity: AuditSeverity::INFO,
+            scopeType: AuditScope::CHARACTER,
+            scopeId: $character->id,
+            message: 'audit_log.events.character.made_primary',
+            actor: auth()->user(),
+            subject: $character->fresh(),
+            metadata: [
+                'lodestone_id' => $character->lodestone_id,
+                'name' => $character->name,
+                'is_primary' => true,
+            ],
+        );
 
         $this->accountCharacterNotificationService->notifyPrimaryCharacterChanged($character->fresh(), auth()->user());
 
-		return Redirect::back()->with('success', 'character_marked_primary');
-	}
-	
-	/**
-	 * List all characters the user has registered
-	 */
-	public function list()
-	{
-		$characterClasses = CharacterClass::query()
-			->orderBy('role')
-			->orderBy('name')
-			->get();
+        return Redirect::back()->with('success', 'character_marked_primary');
+    }
 
-		$phantomJobs = PhantomJob::query()
-			->orderBy('name')
-			->get();
+    /**
+     * List all characters the user has registered
+     */
+    public function list()
+    {
+        $characterClasses = CharacterClass::query()
+            ->orderBy('role')
+            ->orderBy('name')
+            ->get();
 
-		$characters = auth()->user()->characters()
-			->with([
-				'fieldValues.fieldDefinition',
-				'classes',
-				'phantomJobs',
-				'occultProgress',
-			])
-			->get()
-			->map(fn (Character $character) => $this->transformCharacterForCard($character, $characterClasses, $phantomJobs));
+        $phantomJobs = PhantomJob::query()
+            ->orderBy('name')
+            ->get();
 
-		return Inertia::render('Dashboard/Account/MyCharacters', [
-			'characters' => $characters,
-		]);
-	}
+        $characters = auth()->user()->characters()
+            ->with([
+                'fieldValues.fieldDefinition',
+                'classes',
+                'phantomJobs',
+                'occultProgress',
+            ])
+            ->get()
+            ->map(fn (Character $character) => $this->transformCharacterForCard($character, $characterClasses, $phantomJobs));
 
-	private function transformCharacterForCard(Character $character, Collection $characterClasses, Collection $phantomJobs): array
-	{
-		$classProgress = $character->classes->keyBy('id');
-		$phantomJobProgress = $character->phantomJobs->keyBy('id');
+        return Inertia::render('Dashboard/Account/MyCharacters', [
+            'characters' => $characters,
+        ]);
+    }
 
-		return [
-			'id' => $character->id,
-			'is_primary' => $character->is_primary,
-			'name' => $character->name,
-			'world' => $character->world,
-			'datacenter' => $character->datacenter,
-			'lodestone_id' => $character->lodestone_id,
-			'avatar_url' => $character->avatar_url,
-			'verified_at' => $character->verified_at,
-			'add_method' => $character->add_method,
-			'classes' => $characterClasses->map(function (CharacterClass $characterClass) use ($character, $classProgress) {
-				$progress = $classProgress->get($characterClass->id);
-				$level = $progress?->pivot?->level ?? $this->resolveCharacterClassLevel($character, $characterClass->shorthand);
+    private function transformCharacterForCard(Character $character, Collection $characterClasses, Collection $phantomJobs): array
+    {
+        $classProgress = $character->classes->keyBy('id');
+        $phantomJobProgress = $character->phantomJobs->keyBy('id');
 
-				return [
-					'id' => $characterClass->id,
-					'name' => $characterClass->name,
-					'shorthand' => $characterClass->shorthand,
-					'icon_url' => $characterClass->icon_url,
-					'role' => $characterClass->role,
-					'level' => $level,
-					'is_preferred' => $progress?->pivot?->is_preferred ?? false,
-				];
-			})->values(),
-			'occult' => [
-				'knowledge_level' => $character->occultProgress?->knowledge_level ?? 0,
-				'blood_progress' => $character->occultProgress?->forkedTowerBloodProgress() ?? $this->emptyForkedTowerBloodProgress(),
-				'phantom_jobs' => $phantomJobs->map(function (PhantomJob $phantomJob) use ($phantomJobProgress) {
-					$progress = $phantomJobProgress->get($phantomJob->id);
-					$currentLevel = $progress?->pivot?->current_level ?? 0;
-					$isMaxed = $currentLevel >= $phantomJob->max_level;
+        return [
+            'id' => $character->id,
+            'is_primary' => $character->is_primary,
+            'name' => $character->name,
+            'world' => $character->world,
+            'datacenter' => $character->datacenter,
+            'lodestone_id' => $character->lodestone_id,
+            'avatar_url' => $character->avatar_url,
+            'verified_at' => $character->verified_at,
+            'add_method' => $character->add_method,
+            'classes' => $characterClasses->map(function (CharacterClass $characterClass) use ($character, $classProgress) {
+                $progress = $classProgress->get($characterClass->id);
+                $level = $progress?->pivot?->level ?? $this->resolveCharacterClassLevel($character, $characterClass->shorthand);
 
-					return [
-						'id' => $phantomJob->id,
-						'name' => $phantomJob->name,
-						'icon_url' => $phantomJob->icon_url,
-						'black_icon_url' => $phantomJob->black_icon_url,
-						'current_level' => $currentLevel,
-						'max_level' => $phantomJob->max_level,
-						'is_preferred' => $progress?->pivot?->is_preferred ?? false,
-						'is_maxed' => $isMaxed,
-					];
-				})->values(),
-			],
-		];
-	}
+                return [
+                    'id' => $characterClass->id,
+                    'name' => $characterClass->name,
+                    'shorthand' => $characterClass->shorthand,
+                    'icon_url' => $characterClass->icon_url,
+                    'role' => $characterClass->role,
+                    'level' => $level,
+                    'is_preferred' => $progress?->pivot?->is_preferred ?? false,
+                ];
+            })->values(),
+            'occult' => [
+                'knowledge_level' => $character->occultProgress?->knowledge_level ?? 0,
+                'blood_progress' => $character->occultProgress?->forkedTowerBloodProgress() ?? $this->emptyForkedTowerBloodProgress(),
+                'phantom_jobs' => $phantomJobs->map(function (PhantomJob $phantomJob) use ($phantomJobProgress) {
+                    $progress = $phantomJobProgress->get($phantomJob->id);
+                    $currentLevel = $progress?->pivot?->current_level ?? 0;
+                    $isMaxed = $currentLevel >= $phantomJob->max_level;
 
-	private function getLoadedFieldValue(Character $character, string $slug): mixed
-	{
-		$fieldValue = $character->fieldValues
-			->first(fn ($fieldValue) => $fieldValue->fieldDefinition?->slug === $slug);
+                    return [
+                        'id' => $phantomJob->id,
+                        'name' => $phantomJob->name,
+                        'icon_url' => $phantomJob->icon_url,
+                        'black_icon_url' => $phantomJob->black_icon_url,
+                        'current_level' => $currentLevel,
+                        'max_level' => $phantomJob->max_level,
+                        'is_preferred' => $progress?->pivot?->is_preferred ?? false,
+                        'is_maxed' => $isMaxed,
+                    ];
+                })->values(),
+            ],
+        ];
+    }
 
-		return $fieldValue?->getCastedValue();
-	}
+    private function getLoadedFieldValue(Character $character, string $slug): mixed
+    {
+        $fieldValue = $character->fieldValues
+            ->first(fn ($fieldValue) => $fieldValue->fieldDefinition?->slug === $slug);
 
-	private function resolveCharacterClassLevel(Character $character, string $shorthand): int
-	{
-		$normalizedShorthand = strtolower($shorthand);
+        return $fieldValue?->getCastedValue();
+    }
 
-		return (int) (
-			$this->getLoadedFieldValue($character, sprintf('job.%s.level', $normalizedShorthand))
-			?? $this->getLoadedFieldValue($character, sprintf('%s_level', $normalizedShorthand))
-			?? 0
-		);
-	}
+    private function resolveCharacterClassLevel(Character $character, string $shorthand): int
+    {
+        $normalizedShorthand = strtolower($shorthand);
 
-	private function emptyForkedTowerBloodProgress(): array
-	{
-		return [
-			'clears' => 0,
-			'bosses' => [
-				['key' => 'demon_tablet', 'kills' => 0, 'progress' => 0],
-				['key' => 'dead_stars', 'kills' => 0, 'progress' => 0],
-				['key' => 'marble_dragon', 'kills' => 0, 'progress' => 0],
-				['key' => 'magitaur', 'kills' => 0, 'progress' => 0],
-			],
-		];
-	}
+        return (int) (
+            $this->getLoadedFieldValue($character, sprintf('job.%s.level', $normalizedShorthand))
+            ?? $this->getLoadedFieldValue($character, sprintf('%s_level', $normalizedShorthand))
+            ?? 0
+        );
+    }
+
+    private function emptyForkedTowerBloodProgress(): array
+    {
+        return [
+            'clears' => 0,
+            'bosses' => [
+                ['key' => 'demon_tablet', 'kills' => 0, 'progress' => 0],
+                ['key' => 'dead_stars', 'kills' => 0, 'progress' => 0],
+                ['key' => 'marble_dragon', 'kills' => 0, 'progress' => 0],
+                ['key' => 'magitaur', 'kills' => 0, 'progress' => 0],
+            ],
+        ];
+    }
 
     /**
      * Store a newly created resource in storage.
@@ -687,7 +705,7 @@ class CharacterController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Character $character): \Illuminate\Http\RedirectResponse
+    public function destroy(Character $character): RedirectResponse
     {
         if ($character->user_id !== auth()->id()) {
             abort(403);
@@ -741,5 +759,4 @@ class CharacterController extends Controller
 
         return Redirect::back()->with('success', 'character_unclaimed');
     }
-
 }
