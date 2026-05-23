@@ -347,3 +347,77 @@ it('falls back to cancelled application review reasons on the attendee overview 
             ->where('activity.status', Activity::STATUS_CANCELLED)
             ->where('activity.cancellation_reason', 'Static fell through for maintenance.'));
 });
+
+it('exposes completion summary data on the attendee overview payload', function () {
+    $owner = User::factory()->create();
+    $group = Group::factory()->public()->create([
+        'owner_id' => $owner->id,
+    ]);
+    $type = ActivityType::factory()->create([
+        'created_by_user_id' => $owner->id,
+    ]);
+    $version = ActivityTypeVersion::factory()->create([
+        'activity_type_id' => $type->id,
+        'published_by_user_id' => $owner->id,
+        'layout_schema' => ['groups' => []],
+        'slot_schema' => [],
+        'application_schema' => [],
+        'progress_schema' => ['milestones' => []],
+        'prog_points' => [
+            [
+                'key' => 'enrage',
+                'label' => ['en' => 'Enrage'],
+            ],
+        ],
+    ]);
+
+    $type->update([
+        'current_published_version_id' => $version->id,
+    ]);
+
+    $activity = Activity::factory()->create([
+        'group_id' => $group->id,
+        'activity_type_id' => $type->id,
+        'activity_type_version_id' => $version->id,
+        'organized_by_user_id' => $owner->id,
+        'status' => Activity::STATUS_COMPLETE,
+        'is_public' => true,
+        'progress_entry_mode' => 'manual',
+        'progress_link_url' => 'https://www.fflogs.com/reports/example',
+        'progress_notes' => 'Reached enrage consistently.',
+        'furthest_progress_key' => 'enrage',
+        'furthest_progress_percent' => 78,
+        'completed_at' => now(),
+    ]);
+
+    $activity->progressMilestones()->create([
+        'milestone_key' => 'boss-1',
+        'milestone_label' => ['en' => 'Boss 1'],
+        'sort_order' => 1,
+        'kills' => 2,
+        'best_progress_percent' => 78,
+        'source' => 'manual',
+        'notes' => 'Clean pulls.',
+    ]);
+
+    $this->get(route('groups.activities.overview', [
+        'group' => $group->slug,
+        'activity' => $activity->id,
+    ]))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->component('Groups/Activities/Overview')
+            ->where('activity.status', Activity::STATUS_COMPLETE)
+            ->where('activity.progress_entry_mode', 'manual')
+            ->where('activity.progress_link_url', 'https://www.fflogs.com/reports/example')
+            ->where('activity.progress_notes', 'Reached enrage consistently.')
+            ->where('activity.furthest_progress_key', 'enrage')
+            ->where('activity.furthest_progress_percent', 78)
+            ->where('activity.prog_points.0.key', 'enrage')
+            ->where('activity.prog_points.0.label.en', 'Enrage')
+            ->where('activity.progress_milestones.0.milestone_key', 'boss-1')
+            ->where('activity.progress_milestones.0.milestone_label.en', 'Boss 1')
+            ->where('activity.progress_milestones.0.kills', 2)
+            ->where('activity.progress_milestones.0.best_progress_percent', 78)
+            ->where('activity.progress_milestones.0.sort_order', 1));
+});

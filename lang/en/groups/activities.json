@@ -4,7 +4,6 @@
     "header_badge": "{count} upcoming",
     "back": "Go Back to Runs",
     "statuses": {
-        "draft": "Draft",
         "planned": "Planned",
         "scheduled": "Scheduled",
         "assigned": "Assigned",
@@ -56,14 +55,48 @@
         "previous": "Previous",
         "next": "Next",
         "day_count": "{count} items",
-        "more": "+{count} more"
+        "more": "+{count} more",
+        "context_menu": {
+            "create_run_18": "Create Run at 18 ST",
+            "create_run_20": "Create Run at 20 ST",
+            "create_run_22": "Create Run at 22 ST"
+        }
     },
     "context_menu": {
         "copy_discord_timestamp": "Copy Discord Timestamp",
         "copy_discord_timestamp_success_title": "Discord timestamp copied",
         "copy_discord_timestamp_success_description": "The run start time is ready to paste in Discord.",
         "copy_discord_timestamp_error_title": "Unable to copy timestamp",
-        "copy_discord_timestamp_error_description": "Please try copying the run time again."
+        "copy_discord_timestamp_error_description": "Please try copying the run time again.",
+        "copy_run_link": "Copy Link to Run",
+        "copy_run_link_success_title": "Run link copied",
+        "copy_run_link_success_description": "The run overview link is ready to share.",
+        "copy_run_link_error_title": "Unable to copy run link",
+        "copy_run_link_error_description": "Please try copying the run link again.",
+        "copy_application_link": "Copy Link to Application",
+        "copy_application_link_success_title": "Application link copied",
+        "copy_application_link_success_description": "The application link is ready to share.",
+        "copy_application_link_error_title": "Unable to copy application link",
+        "copy_application_link_error_description": "Please try copying the application link again.",
+        "edit_run": "Edit Run",
+        "export_excel": "Export Excel",
+        "copy_info": "Copy Info",
+        "copy_info_success_title": "Run summary copied",
+        "copy_info_success_description": "A formatted run summary is ready to paste.",
+        "copy_info_error_title": "Unable to copy run summary",
+        "copy_info_error_description": "Please try copying the run summary again.",
+        "summary_labels": {
+            "title": "Title",
+            "type": "Type",
+            "status": "Status",
+            "date": "Date",
+            "time": "Time",
+            "duration": "Duration",
+            "host": "Host",
+            "datacenter": "Datacenter",
+            "slots": "Slots",
+            "applications": "Applications"
+        }
     },
     "legend": {
         "title": "Status Legend"
@@ -102,6 +135,12 @@
             "warning_title": "Publishing notifies assigned applicants",
             "body": "Once published, roster placements are treated as official. You can still make moderator changes afterward, but applicants may receive placement notifications.",
             "confirm": "Yes, Publish Roster"
+        },
+        "delete_activity": "Delete Run",
+        "delete_activity_modal": {
+            "title": "Delete Run",
+            "body": "Deleting this run removes it entirely before roster publish. This cannot be undone.",
+            "confirm": "Yes, Delete Run"
         },
         "cancel_activity": "Cancel Run",
         "cancel_activity_confirm": "Cancel this run? This archives it, disables further edits, and stops new applications.",

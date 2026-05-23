@@ -3,6 +3,8 @@ export const APPLICATION_OPEN_ACTIVITY_STATUSES = ['planned', 'scheduled'] as co
 export const SCHEDULABLE_ACTIVITY_STATUSES = ['planned'] as const;
 export const ASSIGNABLE_ACTIVITY_STATUSES = ['scheduled'] as const;
 export const COMPLETABLE_ACTIVITY_STATUSES = ['assigned', 'upcoming', 'ongoing'] as const;
+export const CANCELLABLE_ACTIVITY_STATUSES = ['assigned', 'upcoming', 'ongoing'] as const;
+export const DELETABLE_ACTIVITY_STATUSES = ['planned', 'scheduled'] as const;
 
 export const isArchivedActivityStatus = (status: string | null | undefined): boolean => (
 	ARCHIVED_ACTIVITY_STATUSES.includes((status ?? '') as typeof ARCHIVED_ACTIVITY_STATUSES[number])
@@ -22,4 +24,12 @@ export const canScheduleActivity = (status: string | null | undefined): boolean 
 
 export const canCompleteActivity = (status: string | null | undefined): boolean => (
 	COMPLETABLE_ACTIVITY_STATUSES.includes((status ?? '') as typeof COMPLETABLE_ACTIVITY_STATUSES[number])
+);
+
+export const canCancelActivity = (status: string | null | undefined): boolean => (
+	CANCELLABLE_ACTIVITY_STATUSES.includes((status ?? '') as typeof CANCELLABLE_ACTIVITY_STATUSES[number])
+);
+
+export const canDeleteActivity = (status: string | null | undefined): boolean => (
+	DELETABLE_ACTIVITY_STATUSES.includes((status ?? '') as typeof DELETABLE_ACTIVITY_STATUSES[number])
 );

@@ -85,7 +85,7 @@ class GroupActivityController extends Controller
         ]);
     }
 
-    public function create(Group $group): Response
+    public function create(Request $request, Group $group): Response
     {
         $group->loadMissing('memberships.user');
         $this->authorizeModeratorAccess($group);
@@ -95,6 +95,7 @@ class GroupActivityController extends Controller
             'activityTypes' => $this->availableActivityTypesForForm(),
             'organizerCharacters' => $this->organizerCharactersForUserIds($this->moderatorUserIds($group)),
             'activityOptions' => $this->activityOptionsForForm(),
+            'prefilledStartsAt' => $this->normalizePrefilledStartsAt($request->query('starts_at')),
         ]);
     }
 
@@ -193,6 +194,7 @@ class GroupActivityController extends Controller
                     'beginner_friendly' => $activity->beginner_friendly,
                     'run_style' => $activity->run_style,
                     'is_public' => $activity->is_public,
+                    'secret_key' => $canManageActivities ? $activity->secret_key : null,
                     'needs_application' => $activity->needs_application,
                     'allow_guest_applications' => $activity->allow_guest_applications,
                     'organized_by' => $activity->organizer ? [
@@ -664,6 +666,20 @@ class GroupActivityController extends Controller
             ->utc();
 
         return $validated;
+    }
+
+    private function normalizePrefilledStartsAt(mixed $startsAt): ?string
+    {
+        if (! is_string($startsAt) || blank($startsAt)) {
+            return null;
+        }
+
+        try {
+            return CarbonImmutable::createFromFormat('Y-m-d\TH:i', trim($startsAt), 'UTC')
+                ?->format('Y-m-d\TH:i');
+        } catch (\Throwable) {
+            return null;
+        }
     }
 
     private function sanitizeActivityInput(Request $request): void

@@ -123,7 +123,6 @@ class GroupDashboardController extends Controller
                         ->where('role', GroupMembership::ROLE_MODERATOR)
                         ->count(),
                     'activity_count' => $activities->count(),
-                    'draft_count' => (int) $statusCounts->get(Activity::STATUS_DRAFT, 0),
                     'planned_count' => (int) $statusCounts->get(Activity::STATUS_PLANNED, 0),
                     'scheduled_count' => (int) $statusCounts->get(Activity::STATUS_SCHEDULED, 0),
                     'assigned_count' => (int) $statusCounts->get(Activity::STATUS_ASSIGNED, 0),

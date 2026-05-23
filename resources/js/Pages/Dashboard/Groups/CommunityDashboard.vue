@@ -21,7 +21,6 @@ const { showGroupNotificationsToast } = useGroupNotificationToast();
 
 const fallbackLocale = computed(() => String(page.props.locale?.fallback ?? "en"));
 const leadershipCount = computed(() => props.group.member_role_breakdown.owner + props.group.member_role_breakdown.moderator);
-const draftAndPlannedCount = computed(() => props.group.stats.draft_count + props.group.stats.planned_count);
 const activeRunCount = computed(() => (
 	props.group.stats.scheduled_count
 	+ props.group.stats.assigned_count
@@ -83,9 +82,9 @@ const metricCards = computed(() => [
 		accentClass: "from-amber-500/20",
 	},
 	{
-		label: t("groups.dashboard.stats.draft_and_planned"),
-		value: draftAndPlannedCount.value,
-		hint: t("groups.dashboard.stats.draft_and_planned_hint", { count: props.group.stats.draft_count }),
+		label: t("groups.dashboard.stats.planned_runs"),
+		value: props.group.stats.planned_count,
+		hint: t("groups.dashboard.stats.planned_runs_hint"),
 		icon: "i-lucide-clipboard-list",
 		iconColor: "text-zinc-700 dark:text-zinc-200",
 		accentClass: "from-zinc-500/15",
@@ -726,7 +725,7 @@ const resolveActivityOrganizer = (activity: GroupDashboardActivity) => (
 							<div class="grid gap-3 sm:grid-cols-2">
 								<div class="border border-default bg-muted/10 px-4 py-3">
 									<p class="text-xs uppercase tracking-[0.22em] text-muted">{{ t("groups.dashboard.pipeline.active_management") }}</p>
-									<p class="mt-2 text-xl font-semibold text-toned">{{ draftAndPlannedCount + activeRunCount }}</p>
+									<p class="mt-2 text-xl font-semibold text-toned">{{ props.group.stats.planned_count + activeRunCount }}</p>
 								</div>
 								<div class="border border-default bg-muted/10 px-4 py-3">
 									<p class="text-xs uppercase tracking-[0.22em] text-muted">{{ t("groups.dashboard.pipeline.archived") }}</p>

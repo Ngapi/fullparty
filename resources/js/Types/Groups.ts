@@ -245,7 +245,6 @@ export type GroupDashboardGroup = {
 		member_count: number
 		moderator_count: number
 		activity_count: number
-		draft_count: number
 		planned_count: number
 		scheduled_count: number
 		assigned_count: number

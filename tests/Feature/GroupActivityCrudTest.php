@@ -317,7 +317,24 @@ it('forbids non moderators from creating activities', function () {
     expect($group->activities()->count())->toBe(0);
 });
 
-it('hides draft and planned activities from non moderators on the dashboard runs page', function () {
+it('prefills the create run page starts_at value from the requested calendar slot', function () {
+    $owner = User::factory()->create();
+    $group = Group::factory()->public()->create([
+        'owner_id' => $owner->id,
+    ]);
+    createCrudActivityType($owner);
+
+    $this->actingAs($owner)
+        ->get(route('groups.dashboard.activities.create', [
+            'group' => $group->slug,
+            'starts_at' => '2026-06-15T20:00',
+        ]))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('prefilledStartsAt', '2026-06-15T20:00'));
+});
+
+it('hides planned activities from non moderators on the dashboard runs page', function () {
     $owner = User::factory()->create();
     $member = User::factory()->create();
     $group = Group::factory()->public()->create([
@@ -341,16 +358,14 @@ it('hides draft and planned activities from non moderators on the dashboard runs
         'updated_at' => now()->subMinutes(10),
     ]);
 
-    foreach ([Activity::STATUS_DRAFT, Activity::STATUS_PLANNED] as $status) {
-        Activity::factory()->create([
-            'group_id' => $group->id,
-            'activity_type_id' => $activityType->id,
-            'activity_type_version_id' => $activityType->current_published_version_id,
-            'organized_by_user_id' => $owner->id,
-            'status' => $status,
-            'is_public' => true,
-        ]);
-    }
+    Activity::factory()->create([
+        'group_id' => $group->id,
+        'activity_type_id' => $activityType->id,
+        'activity_type_version_id' => $activityType->current_published_version_id,
+        'organized_by_user_id' => $owner->id,
+        'status' => Activity::STATUS_PLANNED,
+        'is_public' => true,
+    ]);
 
     $this->actingAs($member)
         ->get(route('groups.dashboard.activities.index', $group))
@@ -364,7 +379,7 @@ it('hides draft and planned activities from non moderators on the dashboard runs
         ->get(route('groups.dashboard.activities.index', $group))
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
-            ->has('activities', 3));
+            ->has('activities', 2));
 });
 
 it('rejects organizer characters that do not belong to the organizer user', function () {
@@ -549,6 +564,100 @@ it('allows moderators to schedule a planned activity', function () {
         ->and($auditLog->metadata['changes']['status']['new'])->toBe(Activity::STATUS_SCHEDULED);
 });
 
+it('allows moderators to delete runs before roster publish', function (string $status) {
+    $owner = User::factory()->create();
+    $group = Group::factory()->public()->create([
+        'owner_id' => $owner->id,
+    ]);
+    $activityType = createCrudActivityType($owner);
+
+    $activity = Activity::factory()->create([
+        'group_id' => $group->id,
+        'activity_type_id' => $activityType->id,
+        'activity_type_version_id' => $activityType->current_published_version_id,
+        'organized_by_user_id' => $owner->id,
+        'status' => $status,
+    ]);
+
+    $this->actingAs($owner)
+        ->delete(route('groups.dashboard.activities.destroy', [
+            'group' => $group->slug,
+            'activity' => $activity->id,
+        ]))
+        ->assertRedirect(route('groups.dashboard.activities.index', [
+            'group' => $group->slug,
+        ]));
+
+    expect(Activity::query()->whereKey($activity->id)->exists())->toBeFalse();
+
+    $auditLog = AuditLog::query()->where('action', 'group.activity.deleted')->sole();
+
+    expect($auditLog->actor_user_id)->toBe($owner->id)
+        ->and($auditLog->subject_id)->toBe($activity->id);
+})->with([
+    'planned' => [Activity::STATUS_PLANNED],
+    'scheduled' => [Activity::STATUS_SCHEDULED],
+]);
+
+it('forbids cancelling runs before roster publish', function (string $status) {
+    $owner = User::factory()->create();
+    $group = Group::factory()->public()->create([
+        'owner_id' => $owner->id,
+    ]);
+    $activityType = createCrudActivityType($owner);
+
+    $activity = Activity::factory()->create([
+        'group_id' => $group->id,
+        'activity_type_id' => $activityType->id,
+        'activity_type_version_id' => $activityType->current_published_version_id,
+        'organized_by_user_id' => $owner->id,
+        'status' => $status,
+    ]);
+
+    $this->actingAs($owner)
+        ->post(route('groups.dashboard.activities.cancel', [
+            'group' => $group->slug,
+            'activity' => $activity->id,
+        ]), [
+            'reason' => 'No longer needed.',
+        ])
+        ->assertForbidden();
+
+    expect($activity->fresh()->status)->toBe($status);
+})->with([
+    'planned' => [Activity::STATUS_PLANNED],
+    'scheduled' => [Activity::STATUS_SCHEDULED],
+]);
+
+it('forbids deleting runs after roster publish', function (string $status) {
+    $owner = User::factory()->create();
+    $group = Group::factory()->public()->create([
+        'owner_id' => $owner->id,
+    ]);
+    $activityType = createCrudActivityType($owner);
+
+    $activity = Activity::factory()->create([
+        'group_id' => $group->id,
+        'activity_type_id' => $activityType->id,
+        'activity_type_version_id' => $activityType->current_published_version_id,
+        'organized_by_user_id' => $owner->id,
+        'status' => $status,
+    ]);
+
+    $this->actingAs($owner)
+        ->delete(route('groups.dashboard.activities.destroy', [
+            'group' => $group->slug,
+            'activity' => $activity->id,
+        ]))
+        ->assertForbidden();
+
+    expect(Activity::query()->whereKey($activity->id)->exists())->toBeTrue();
+})->with([
+    'assigned' => [Activity::STATUS_ASSIGNED],
+    'upcoming' => [Activity::STATUS_UPCOMING],
+    'ongoing' => [Activity::STATUS_ONGOING],
+]);
+
 it('does not allow archived activities to be updated', function () {
     $owner = User::factory()->create();
     $group = Group::factory()->public()->create([
@@ -649,7 +758,7 @@ it('cancels active applications, clears live slots, and keeps guest status pages
         'activity_type_id' => $activityType->id,
         'activity_type_version_id' => $activityType->current_published_version_id,
         'organized_by_user_id' => $owner->id,
-        'status' => Activity::STATUS_PLANNED,
+        'status' => Activity::STATUS_ASSIGNED,
         'needs_application' => true,
         'allow_guest_applications' => true,
         'is_public' => true,

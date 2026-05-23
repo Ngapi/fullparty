@@ -22,6 +22,7 @@ const props = defineProps<{
 	activityTypes: ActivityTypeOption[]
 	organizerCharacters: OrganizerCharacterOption[]
 	activityOptions: ActivityMetadataOptions
+	prefilledStartsAt: string | null
 }>();
 
 const { t } = useI18n();
@@ -35,7 +36,7 @@ const form = useForm({
 	status: 'planned',
 	title: '',
 	notes: '',
-	starts_at: null as string | null,
+	starts_at: props.prefilledStartsAt,
 	duration_hours: 2,
 	datacenter: props.group.datacenter,
 	intensity: props.activityOptions.intensities[0] ?? 'casual',

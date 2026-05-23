@@ -6,7 +6,15 @@ import { computed, onBeforeUnmount, onMounted, ref } from "vue";
 import { useI18n } from "vue-i18n";
 import { router, useForm, usePage } from "@inertiajs/vue3";
 import { localizedValue } from "@/utils/localizedValue";
-import { canCompleteActivity, canPublishActivityRoster, canScheduleActivity, isArchivedActivityStatus } from "@/utils/activityLifecycle";
+import {
+	canCancelActivity as canCancelActivityStatus,
+	canCompleteActivity,
+	canDeleteActivity as canDeleteActivityStatus,
+	canPublishActivityRoster,
+	canScheduleActivity,
+	isArchivedActivityStatus,
+} from "@/utils/activityLifecycle";
+import { buildActivityCompletionSummary } from "@/utils/buildActivityCompletionSummary";
 import { route } from "ziggy-js";
 import { useToast } from "@nuxt/ui/composables";
 import ActivityOverview from "@/components/Groups/Activities/ActivityOverview.vue";
@@ -49,6 +57,8 @@ const isScheduleConfirmOpen = ref(false);
 const isSchedulingActivity = ref(false);
 const isPublishRosterConfirmOpen = ref(false);
 const isPublishingRoster = ref(false);
+const isDeleteConfirmOpen = ref(false);
+const isDeletingActivity = ref(false);
 const isCancelConfirmOpen = ref(false);
 const pendingMissingUndoIds = ref<number[]>([]);
 const completionErrors = ref<Record<string, string[]>>({});
@@ -80,46 +90,27 @@ const activityTypeName = computed(() => {
 
 const activityTitle = computed(() => currentActivity.value?.title || activityTypeName.value);
 const isActivityArchived = computed(() => isArchivedActivityStatus(currentActivity.value?.status));
+const canOpenApplicationPage = computed(() => Boolean(
+	currentActivity.value?.needs_application
+	&& !isActivityArchived.value
+));
 const canEditActivity = computed(() => !currentActivity.value || !isActivityArchived.value);
 const canScheduleActivityAction = computed(() => Boolean(currentActivity.value && canScheduleActivity(currentActivity.value.status)));
 const canCompleteActivityAction = computed(() => Boolean(currentActivity.value && canCompleteActivity(currentActivity.value.status)));
 const canPublishRoster = computed(() => Boolean(currentActivity.value && canPublishActivityRoster(currentActivity.value.status)));
-const canCancelActivity = computed(() => Boolean(currentActivity.value && !isActivityArchived.value));
+const canDeleteActivity = computed(() => Boolean(currentActivity.value && canDeleteActivityStatus(currentActivity.value.status)));
+const canCancelActivity = computed(() => Boolean(currentActivity.value && canCancelActivityStatus(currentActivity.value.status)));
 const organizerName = computed(() => currentActivity.value?.organized_by_character?.name || null);
 const organizerAvatarUrl = computed(() => currentActivity.value?.organized_by_character?.avatar_url || null);
 const assignedCount = computed(() => currentActivity.value?.slots.filter((slot) => !slot.is_bench && slot.assigned_character_id !== null).length ?? 0);
 const pendingApplicationCount = computed(() => currentActivity.value?.pending_application_count ?? 0);
 const missingAssignments = computed(() => currentActivity.value?.missing_assignments ?? []);
-const completedProgression = computed(() => {
-	if (!currentActivity.value || currentActivity.value.status !== 'complete') {
-		return null;
-	}
-
-	const furthestProgPoint = currentActivity.value.prog_points.find((progPoint) => progPoint.key === currentActivity.value?.furthest_progress_key);
-	const milestones = [...currentActivity.value.progress_milestones]
-		.sort((left, right) => left.sort_order - right.sort_order)
-		.filter((milestone) => milestone.kills > 0 || milestone.best_progress_percent !== null)
-		.map((milestone) => ({
-			key: milestone.milestone_key,
-			label: localizedValue(milestone.milestone_label, locale.value, fallbackLocale.value) || milestone.milestone_key,
-			kills: milestone.kills,
-			bestProgressPercent: milestone.best_progress_percent,
-		}));
-
-	return {
-		completedAt: currentActivity.value.completed_at,
-		sourceLabel: currentActivity.value.progress_entry_mode
-			? t(`groups.activities.management.complete_activity_modal.methods.${currentActivity.value.progress_entry_mode}`)
-			: t('groups.activities.management.overview.progression.not_recorded'),
-		furthestPointLabel: furthestProgPoint
-			? (localizedValue(furthestProgPoint.label, locale.value, fallbackLocale.value) || furthestProgPoint.key)
-			: null,
-		bestProgressPercent: currentActivity.value.furthest_progress_percent,
-		progressLinkUrl: currentActivity.value.progress_link_url,
-		notes: currentActivity.value.progress_notes,
-		milestones,
-	};
-});
+const completedProgression = computed(() => buildActivityCompletionSummary({
+	activity: currentActivity.value,
+	locale: locale.value,
+	fallbackLocale: fallbackLocale.value,
+	t,
+}));
 const cancellationAlertDescription = computed(() => (
 	currentActivity.value?.cancellation_reason
 		|| t('groups.activities.management.cancelled_alert.description')
@@ -222,6 +213,14 @@ const cancelActivity = () => {
 	isCancelConfirmOpen.value = true;
 };
 
+const deleteActivity = () => {
+	if (!currentActivity.value) {
+		return;
+	}
+
+	isDeleteConfirmOpen.value = true;
+};
+
 const scheduleActivity = () => {
 	if (!currentActivity.value) {
 		return;
@@ -273,6 +272,23 @@ const confirmCancelActivity = () => {
 				resolve(false);
 			},
 		});
+	});
+};
+
+const confirmDeleteActivity = () => {
+	if (!currentActivity.value || isDeletingActivity.value) {
+		return;
+	}
+
+	isDeletingActivity.value = true;
+	router.delete(route('groups.dashboard.activities.destroy', {
+		group: props.group.slug,
+		activity: props.activity.id,
+	}), {
+		preserveScroll: true,
+		onFinish: () => {
+			isDeletingActivity.value = false;
+		},
 	});
 };
 
@@ -369,7 +385,7 @@ const activityApplicationRouteParams = computed(() => {
 });
 
 const goToApplicationPage = () => {
-	if (!activityApplicationRouteParams.value) {
+	if (!activityApplicationRouteParams.value || !canOpenApplicationPage.value) {
 		return;
 	}
 
@@ -388,7 +404,7 @@ const exportRoster = () => {
 };
 
 const copyApplicationLink = async () => {
-	if (!activityApplicationRouteParams.value) {
+	if (!activityApplicationRouteParams.value || !canOpenApplicationPage.value) {
 		return;
 	}
 
@@ -755,8 +771,12 @@ const openSlotEditModal = async (slotId: number) => {
 };
 
 const handleSlotReturnedToQueue = (event: Event) => {
-	const customEvent = event as CustomEvent<{ slot?: ActivitySlot | null }>;
+	const customEvent = event as CustomEvent<{
+		slot?: ActivitySlot | null
+		pendingApplicationCount?: number
+	}>;
 	const updatedSlot = customEvent.detail?.slot;
+	const pendingApplicationCount = customEvent.detail?.pendingApplicationCount;
 
 	if (!currentActivity.value || !updatedSlot) {
 		return;
@@ -764,7 +784,9 @@ const handleSlotReturnedToQueue = (event: Event) => {
 
 	activityData.value = {
 		...currentActivity.value,
-		pending_application_count: currentActivity.value.pending_application_count + 1,
+		pending_application_count: typeof pendingApplicationCount === 'number'
+			? pendingApplicationCount
+			: currentActivity.value.pending_application_count,
 		slots: currentActivity.value.slots.map((slot) => slot.id === updatedSlot.id ? updatedSlot : slot),
 	};
 };
@@ -1344,6 +1366,7 @@ onBeforeUnmount(() => {
 				:can-schedule="canScheduleActivityAction"
 				:can-complete="canCompleteActivityAction"
 				:can-publish-roster="canPublishRoster"
+				:can-delete="canDeleteActivity"
 				:can-cancel="canCancelActivity"
 				:roster-view="rosterView"
 				:show-applicant-queue="showApplicantQueue"
@@ -1356,7 +1379,7 @@ onBeforeUnmount(() => {
 				:slot-count="currentActivity.slot_count"
 				:assigned-count="assignedCount"
 				:pending-application-count="pendingApplicationCount"
-				:needs-application="currentActivity.needs_application"
+				:needs-application="canOpenApplicationPage"
 				:description="currentActivity.description"
 				:notes="currentActivity.notes"
 				:roster-summary-presets="currentActivity.roster_summary_presets"
@@ -1370,6 +1393,7 @@ onBeforeUnmount(() => {
 				@schedule="scheduleActivity"
 				@complete="completeActivity"
 				@publish-roster="publishRoster"
+				@delete="deleteActivity"
 				@cancel="cancelActivity"
 				@update-roster-view="rosterView = $event"
 				@toggle-applicant-queue="showApplicantQueue = !showApplicantQueue"
@@ -1664,6 +1688,20 @@ onBeforeUnmount(() => {
 				</div>
 			</template>
 		</UModal>
+
+		<ConfirmationModal
+			v-model:open="isDeleteConfirmOpen"
+			:title="t('groups.activities.management.delete_activity_modal.title')"
+			description=""
+			severity="error"
+			:warning-text="t('groups.activities.management.delete_activity_modal.body')"
+			:confirm-label="t('groups.activities.management.delete_activity_modal.confirm')"
+			:confirm-loading="isDeletingActivity"
+			confirm-icon="i-lucide-trash-2"
+			:on-confirm="() => {
+				confirmDeleteActivity();
+			}"
+		/>
 
 		<ConfirmationModal
 			v-model:open="isCancelConfirmOpen"

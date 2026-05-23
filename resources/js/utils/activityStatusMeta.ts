@@ -1,12 +1,6 @@
 import type { ActivityStatus, ActivityStatusMeta } from "@/Types/ActivityCore"
 
 const STATUS_META: Record<ActivityStatus, ActivityStatusMeta> = {
-	draft: {
-		color: 'info',
-		icon: 'i-lucide-file-pen-line',
-		borderClass: 'border-t-info',
-		dotClass: 'bg-info',
-	},
 	planned: {
 		color: 'neutral',
 		icon: 'i-lucide-clipboard-list',

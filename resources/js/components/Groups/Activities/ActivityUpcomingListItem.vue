@@ -3,7 +3,7 @@ import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 import { router, usePage } from "@inertiajs/vue3";
 import { route } from "ziggy-js";
-import ActivityDiscordTimestampContextMenu from "@/components/Groups/Activities/ActivityDiscordTimestampContextMenu.vue";
+import ActivityContextMenu from "@/components/Groups/Activities/ActivityContextMenu.vue";
 import { localizedValue } from "@/utils/localizedValue";
 import type { ActivityIndexItem } from "@/Types/ActivityCore";
 import { getActivityStatusMeta } from "@/utils/activityStatusMeta";
@@ -104,9 +104,10 @@ const goToManagementPage = () => {
 </script>
 
 <template>
-	<ActivityDiscordTimestampContextMenu
-		:starts-at="activity.starts_at"
-		:disabled="!canManageActivities"
+	<ActivityContextMenu
+		:group-slug="groupSlug"
+		:can-manage-activities="canManageActivities"
+		:activity="activity"
 	>
 		<div
 			class="cursor-pointer rounded-sm border border-default bg-elevated/50 px-4 py-4 transition hover:border-primary/40 hover:bg-primary/5 hover:shadow-sm"
@@ -177,5 +178,5 @@ const goToManagementPage = () => {
 				</div>
 			</div>
 		</div>
-	</ActivityDiscordTimestampContextMenu>
+	</ActivityContextMenu>
 </template>

@@ -5,9 +5,12 @@ import { route } from "ziggy-js";
 import { useI18n } from "vue-i18n";
 import PageHeader from "@/components/PageHeader.vue";
 import ActivityAttendeeRosterBoard from "@/components/Groups/Activities/ActivityAttendeeRosterBoard.vue";
+import ActivityCompletionSummaryPanel from "@/components/Groups/Activities/ActivityCompletionSummaryPanel.vue";
 import ActivityRosterSummaryPanel from "@/components/Groups/Activities/ActivityRosterSummaryPanel.vue";
 import { localizedValue } from "@/utils/localizedValue";
 import { getActivityStatusMeta } from "@/utils/activityStatusMeta";
+import { isArchivedActivityStatus } from "@/utils/activityLifecycle";
+import { buildActivityCompletionSummary } from "@/utils/buildActivityCompletionSummary";
 import type { ActivityOverviewPermissions, AttendeeActivity, PublicGroupSummary } from "@/Types/ActivityAttendee";
 
 const props = defineProps<{
@@ -30,6 +33,16 @@ const activityTypeName = computed(() => {
 
 const activityTitle = computed(() => props.activity.title || activityTypeName.value);
 const statusMeta = computed(() => getActivityStatusMeta(props.activity.status));
+const completedProgression = computed(() => buildActivityCompletionSummary({
+	activity: props.activity,
+	locale: locale.value,
+	fallbackLocale: fallbackLocale.value,
+	t,
+}));
+const showApplicationButton = computed(() => (
+	props.activity.needs_application
+	&& !isArchivedActivityStatus(props.activity.status)
+));
 const mainSlots = computed(() => props.activity.slots.filter((slot) => !slot.is_bench));
 const benchSlots = computed(() => props.activity.slots.filter((slot) => slot.is_bench));
 const assignedMainSlotCount = computed(() => mainSlots.value.filter((slot) => slot.assigned_character_id !== null).length);
@@ -146,12 +159,16 @@ const goBack = () => {
 		return;
 	}
 
-	if (props.permissions.can_apply) {
+	if (showApplicationButton.value) {
 		goToApplicationPage();
 	}
 };
 
 const goToApplicationPage = () => {
+	if (!showApplicationButton.value) {
+		return;
+	}
+
 	router.get(route("groups.activities.application", applicationRouteParameters.value));
 };
 
@@ -203,7 +220,7 @@ const goToManagementPage = () => {
 					:label="t(`groups.activities.statuses.${activity.status}`)"
 				/>
 				<UButton
-					v-if="activity.needs_application"
+					v-if="showApplicationButton"
 					color="primary"
 					icon="i-lucide-file-pen-line"
 					:label="t('groups.activities.overview.open_application')"
@@ -350,6 +367,10 @@ const goToManagementPage = () => {
 				</div>
 			</section>
 
+			<ActivityCompletionSummaryPanel
+				v-if="completedProgression"
+				:completed-progression="completedProgression"
+			/>
 			<ActivityRosterSummaryPanel
 				v-if="activity.roster_summary_presets.length > 0"
 				:presets="activity.roster_summary_presets"

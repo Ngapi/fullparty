@@ -152,9 +152,9 @@ it('requires membership to view public activities that belong to private groups'
     $response->assertNotFound();
 });
 
-it('only exposes draft and planned activity overviews to moderators', function (string $status) {
+it('only exposes planned activity overviews to moderators', function () {
     extract(createAccessControlActivity([], [
-        'status' => $status,
+        'status' => Activity::STATUS_PLANNED,
         'is_public' => true,
     ]));
 
@@ -187,10 +187,7 @@ it('only exposes draft and planned activity overviews to moderators', function (
     $guestResponse->assertNotFound();
     $memberResponse->assertNotFound();
     $ownerResponse->assertOk();
-})->with([
-    'draft' => [Activity::STATUS_DRAFT],
-    'planned' => [Activity::STATUS_PLANNED],
-]);
+});
 
 it('keeps complete and cancelled public activity overviews visible', function (string $status) {
     extract(createAccessControlActivity([], [
@@ -220,22 +217,20 @@ it('keeps complete and cancelled public activity overviews visible', function (s
     'cancelled' => [Activity::STATUS_CANCELLED],
 ]);
 
-it('keeps draft and planned activities off the group profile for non moderators', function () {
+it('keeps planned activities off the group profile for non moderators', function () {
     extract(createAccessControlActivity([], [
         'status' => Activity::STATUS_SCHEDULED,
         'is_public' => true,
     ]));
 
-    foreach ([Activity::STATUS_DRAFT, Activity::STATUS_PLANNED] as $status) {
-        Activity::factory()->create([
-            'group_id' => $group->id,
-            'activity_type_id' => $activity->activity_type_id,
-            'activity_type_version_id' => $activity->activity_type_version_id,
-            'organized_by_user_id' => $owner->id,
-            'status' => $status,
-            'is_public' => true,
-        ]);
-    }
+    Activity::factory()->create([
+        'group_id' => $group->id,
+        'activity_type_id' => $activity->activity_type_id,
+        'activity_type_version_id' => $activity->activity_type_version_id,
+        'organized_by_user_id' => $owner->id,
+        'status' => Activity::STATUS_PLANNED,
+        'is_public' => true,
+    ]);
 
     $member = User::factory()->create();
     $group->memberships()->create([
@@ -261,7 +256,7 @@ it('keeps draft and planned activities off the group profile for non moderators'
         ->get(route('groups.show', $group))
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
-            ->has('group.activities.current', 3));
+            ->has('group.activities.current', 2));
 });
 
 it('keeps complete and cancelled public activities on the group profile recent list', function () {

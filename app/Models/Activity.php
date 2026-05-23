@@ -12,8 +12,6 @@ class Activity extends Model
 {
     use HasFactory;
 
-    public const STATUS_DRAFT = 'draft';
-
     public const STATUS_PLANNED = 'planned';
 
     public const STATUS_SCHEDULED = 'scheduled';
@@ -29,7 +27,6 @@ class Activity extends Model
     public const STATUS_CANCELLED = 'cancelled';
 
     public const STATUSES = [
-        self::STATUS_DRAFT,
         self::STATUS_PLANNED,
         self::STATUS_SCHEDULED,
         self::STATUS_ASSIGNED,
@@ -45,7 +42,6 @@ class Activity extends Model
     ];
 
     public const MODERATOR_ONLY_STATUSES = [
-        self::STATUS_DRAFT,
         self::STATUS_PLANNED,
     ];
 
@@ -66,6 +62,17 @@ class Activity extends Model
         self::STATUS_ASSIGNED,
         self::STATUS_UPCOMING,
         self::STATUS_ONGOING,
+    ];
+
+    public const CANCELLABLE_STATUSES = [
+        self::STATUS_ASSIGNED,
+        self::STATUS_UPCOMING,
+        self::STATUS_ONGOING,
+    ];
+
+    public const DELETABLE_STATUSES = [
+        self::STATUS_PLANNED,
+        self::STATUS_SCHEDULED,
     ];
 
     public const INTENSITY_CASUAL = 'casual';
@@ -251,12 +258,12 @@ class Activity extends Model
 
     public function canBeCancelled(): bool
     {
-        return ! $this->isArchived();
+        return in_array($this->status, self::CANCELLABLE_STATUSES, true);
     }
 
     public function canBeDeleted(): bool
     {
-        return $this->status === self::STATUS_PLANNED;
+        return in_array($this->status, self::DELETABLE_STATUSES, true);
     }
 
     public function canBeMarkedAssigned(): bool

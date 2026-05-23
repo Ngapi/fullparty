@@ -45,6 +45,7 @@ trait InteractsWithGroupActivityAttendees
             'organizerCharacter',
             'activityType',
             'activityTypeVersion',
+            'progressMilestones',
         ];
     }
 
@@ -95,8 +96,16 @@ trait InteractsWithGroupActivityAttendees
             'target_prog_point_key' => $activity->target_prog_point_key,
             'target_prog_point_label' => collect($activity->activityTypeVersion?->prog_points ?? [])
                 ->firstWhere('key', $activity->target_prog_point_key)['label'] ?? null,
+            'furthest_progress_key' => $activity->furthest_progress_key,
+            'furthest_progress_percent' => $activity->furthest_progress_percent !== null
+                ? (float) $activity->furthest_progress_percent
+                : null,
             'needs_application' => $activity->needs_application,
             'allow_guest_applications' => $activity->allow_guest_applications,
+            'progress_entry_mode' => $activity->progress_entry_mode,
+            'progress_link_url' => $activity->progress_link_url,
+            'progress_notes' => $activity->progress_notes,
+            'completed_at' => $activity->completed_at?->toIso8601String(),
             'slot_count' => (int) ($activity->slots_count ?? 0),
             'assigned_slot_count' => (int) ($activity->assigned_slot_count ?? 0),
             'pending_application_count' => (int) ($activity->pending_application_count ?? 0),
@@ -111,7 +120,22 @@ trait InteractsWithGroupActivityAttendees
                 'name' => $activity->organizerCharacter->name,
                 'avatar_url' => $activity->organizerCharacter->avatar_url,
             ] : null,
+            'prog_points' => $activity->activityTypeVersion?->prog_points ?? [],
             'roster_summary_presets' => $rosterSummaryPresets,
+            'progress_milestones' => $activity->relationLoaded('progressMilestones')
+                ? $activity->progressMilestones
+                    ->map(fn ($milestone) => [
+                        'milestone_key' => $milestone->milestone_key,
+                        'milestone_label' => $milestone->milestone_label,
+                        'kills' => $milestone->kills,
+                        'best_progress_percent' => $milestone->best_progress_percent !== null
+                            ? (float) $milestone->best_progress_percent
+                            : null,
+                        'sort_order' => $milestone->sort_order,
+                    ])
+                    ->values()
+                    ->all()
+                : [],
             'slots' => $slotSerializer && $activity->relationLoaded('slots')
                 ? $activity->slots->map(fn ($slot) => $slotSerializer->serialize($slot))->values()->all()
                 : [],

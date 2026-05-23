@@ -22,7 +22,6 @@ const top = computed(() => [
 
 const account = computed(() => [
 	authLink(route('account.characters'), 'i-lucide-user-circle', t('navigation.sidebar.characters')),
-	authLink(route('account.notifications.index'), 'i-lucide-bell', t('navigation.sidebar.notifications')),
 	authLink(route('account.applications'), 'i-lucide-file-text', t('navigation.sidebar.applications')),
 ])
 

@@ -309,6 +309,7 @@ const handleDrop = async (event: DragEvent) => {
 		window.dispatchEvent(new CustomEvent('fullparty:activity-slot-returned-to-queue', {
 			detail: {
 				slot: response.data?.slot ?? null,
+				pendingApplicationCount: response.data?.pending_application_count,
 			},
 		}));
 

@@ -1,6 +1,6 @@
 import type { LocalizedText } from "@/Types/Common"
 
-export type ActivityStatus = "draft" | "planned" | "scheduled" | "assigned" | "upcoming" | "ongoing" | "complete" | "cancelled"
+export type ActivityStatus = "planned" | "scheduled" | "assigned" | "upcoming" | "ongoing" | "complete" | "cancelled"
 
 export type ActivityIntensity = "casual" | "midcore" | "hardcore"
 
@@ -45,6 +45,7 @@ export interface ActivityIndexItem {
 	run_style: ActivityRunStyle | string | null
 	slot_count: number
 	application_count: number
+	secret_key: string | null
 	progress_milestone_count: number
 	created_at: string | null
 	updated_at: string | null

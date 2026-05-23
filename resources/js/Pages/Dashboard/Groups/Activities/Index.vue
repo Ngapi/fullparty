@@ -81,6 +81,7 @@ const upcomingCount = computed(() => {
 			/>
 			<ActivityMonthCalendar
 				class="w-full xl:w-2/3"
+				:group-slug="group.slug"
 				:activities="activities"
 				:selected-date-key="selectedDateKey"
 				:can-manage-activities="group.permissions.can_manage_activities"

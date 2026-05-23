@@ -19,10 +19,7 @@ class GroupUpdateNotificationService
     {
         $activity->loadMissing('group');
 
-        $isPlanningNotification = in_array($activity->status, [
-            Activity::STATUS_DRAFT,
-            Activity::STATUS_PLANNED,
-        ], true);
+        $isPlanningNotification = $activity->status === Activity::STATUS_PLANNED;
 
         $recipients = $isPlanningNotification
             ? $this->moderatorRecipients($activity->group, $actor instanceof User ? $actor->id : null)
@@ -211,7 +208,7 @@ class GroupUpdateNotificationService
         string $titleKey,
         string $bodyKey,
     ): void {
-        if (!$member->group_update_notifications) {
+        if (! $member->group_update_notifications) {
             return;
         }
 

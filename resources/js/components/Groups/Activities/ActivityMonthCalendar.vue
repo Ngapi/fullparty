@@ -5,6 +5,7 @@ import ActivityCalendarDayCell from "@/components/Groups/Activities/ActivityCale
 import type { ActivityIndexItem } from "@/Types/ActivityCore";
 
 const props = defineProps<{
+	groupSlug: string
 	activities: ActivityIndexItem[]
 	selectedDateKey?: string | null
 	canManageActivities?: boolean
@@ -159,6 +160,7 @@ const selectDay = (dayKey: string) => {
 				<ActivityCalendarDayCell
 					v-for="day in calendarDays"
 					:key="day.key"
+					:group-slug="groupSlug"
 					:day="day"
 					:is-selected="selectedDateKey === day.key"
 					:can-manage-activities="canManageActivities"
