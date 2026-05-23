@@ -48,6 +48,7 @@ use App\Http\Controllers\SocialAccountController;
 use App\Http\Controllers\SystemNotificationController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\XIVAuthController;
+use App\Http\Middleware\ApplyLocale;
 use Illuminate\Foundation\Auth\EmailVerificationRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -59,424 +60,467 @@ use Inertia\Inertia;
 |--------------------------------------------------------------------------
 */
 
-Route::get('/', function () {
-    return Inertia::render('Home');
-});
+Route::pattern('locale', implode('|', ApplyLocale::SUPPORTED_LOCALES));
 
-Route::get('/privacy-policy', function () {
-    return Inertia::render('Legal/PrivacyPolicy');
-})->name('legal.privacy');
+$redirectToLocalizedPath = function (Request $request, string $path = '') {
+    $locale = $request->session()->get('locale')
+        ?? $request->cookie('locale')
+        ?? config('app.locale');
 
-Route::get('/cookies', function () {
-    return Inertia::render('Legal/CookiesPolicy');
-})->name('legal.cookies');
+    if (! in_array($locale, ApplyLocale::SUPPORTED_LOCALES, true)) {
+        $locale = config('app.locale');
+    }
 
-/*
-|--------------------------------------------------------------------------
-| Public Groups, Activities, And Invite Pages
-|--------------------------------------------------------------------------
-|
-| These routes must remain safe for guests and must not leak private activity
-| details without a valid secret key or guest access token.
-|
-*/
+    $targetPath = trim($path, '/');
+    $target = '/'.$locale.($targetPath !== '' ? '/'.$targetPath : '');
+    $queryString = $request->getQueryString();
 
-// Group profile pages.
-Route::get('/groups/{group:slug}', [GroupController::class, 'show'])->name('groups.show');
+    if ($queryString) {
+        $target .= '?'.$queryString;
+    }
 
-// Activity application entry points and guest application flows.
-Route::get('/groups/{group:slug}/activities/{activity}/application/{secretKey?}', [GroupActivityApplicationController::class, 'show'])
-    ->where('secretKey', '[A-Za-z0-9]{40}')
-    ->name('groups.activities.application');
+    return redirect()->to($target);
+};
 
-Route::post('/groups/{group:slug}/activities/{activity}/application/{secretKey?}', [GroupActivityApplicationController::class, 'store'])
-    ->where('secretKey', '[A-Za-z0-9]{40}')
-    ->name('groups.activities.application.store');
+Route::post('/locale', [LocaleController::class, 'update'])->name('locale.legacy-update');
 
-Route::get('/groups/{group:slug}/activities/{activity}/application-edit/{accessToken}/{secretKey?}', [GroupActivityApplicationController::class, 'editGuest'])
-    ->where('accessToken', '[A-Za-z0-9]{40}')
-    ->where('secretKey', '[A-Za-z0-9]{40}')
-    ->name('groups.activities.application.edit-guest');
+Route::get('/privacy-policy', fn (Request $request) => $redirectToLocalizedPath($request, 'privacy-policy'));
+Route::get('/cookies', fn (Request $request) => $redirectToLocalizedPath($request, 'cookies'));
+Route::get('/group-search-results', fn (Request $request) => $redirectToLocalizedPath($request, 'group-search-results'));
 
-Route::put('/groups/{group:slug}/activities/{activity}/application-edit/{accessToken}/{secretKey?}', [GroupActivityApplicationController::class, 'updateGuest'])
-    ->where('accessToken', '[A-Za-z0-9]{40}')
-    ->where('secretKey', '[A-Za-z0-9]{40}')
-    ->name('groups.activities.application.update-guest');
+Route::get('/auth/email/verify/{id}/{hash}', function (EmailVerificationRequest $request) {
+    $request->fulfill();
 
-Route::delete('/groups/{group:slug}/activities/{activity}/application-edit/{accessToken}/{secretKey?}', [GroupActivityApplicationController::class, 'destroyGuest'])
-    ->where('accessToken', '[A-Za-z0-9]{40}')
-    ->where('secretKey', '[A-Za-z0-9]{40}')
-    ->name('groups.activities.application.destroy-guest');
+    return redirect()->route('dashboard');
+})->middleware(['auth', 'signed']);
 
-Route::get('/groups/{group:slug}/activities/{activity}/application-confirmation/{secretKey?}', [GroupActivityApplicationController::class, 'confirmation'])
-    ->where('secretKey', '[A-Za-z0-9]{40}')
-    ->name('groups.activities.application.confirmation');
+foreach (['auth', 'dashboard', 'groups', 'invite', 'settings', 'account', 'characters', 'admin'] as $prefix) {
+    Route::get("/{$prefix}/{path?}", fn (Request $request, ?string $path = null) => $redirectToLocalizedPath($request, trim($prefix.'/'.($path ?? ''), '/')))
+        ->where('path', '.*');
+}
 
-Route::get('/groups/{group:slug}/activities/{activity}/application-status/{accessToken}/{secretKey?}', [GroupActivityApplicationController::class, 'status'])
-    ->where('accessToken', '[A-Za-z0-9]{40}')
-    ->where('secretKey', '[A-Za-z0-9]{40}')
-    ->name('groups.activities.application.status');
+Route::prefix('{locale?}')
+    ->where(['locale' => implode('|', ApplyLocale::SUPPORTED_LOCALES)])
+    ->group(function () {
+        Route::get('/', function () {
+            return Inertia::render('Home');
+        })->name('home');
 
-Route::get('/groups/{group:slug}/activities/{activity}/application-search/{secretKey?}', [GroupActivityApplicationController::class, 'searchCharacters'])
-    ->where('secretKey', '[A-Za-z0-9]{40}')
-    ->name('groups.activities.application.search-characters');
+        Route::get('/privacy-policy', function () {
+            return Inertia::render('Legal/PrivacyPolicy');
+        })->name('legal.privacy');
 
-// Public activity overview, with optional secret key for private activities.
-Route::get('/groups/{group:slug}/activities/{activity}/{secretKey?}', [GroupActivityController::class, 'overview'])
-    ->where('secretKey', '[A-Za-z0-9]{40}')
-    ->name('groups.activities.overview');
-
-// Group invite landing pages.
-Route::get('/invite/{token}', [GroupInviteController::class, 'show'])->name('groups.invites.show');
-
-/*
-|--------------------------------------------------------------------------
-| Authentication And Identity
-|--------------------------------------------------------------------------
-*/
-
-Route::prefix('auth')->group(function () {
-    // Guest entry: login and registration.
-    Route::middleware('guest')->group(function () {
-        Route::get('/login', function () {
-            return Inertia::render('auth/Login');
-        })->name('login');
-
-        Route::get('/register', function () {
-            return Inertia::render('auth/Register');
-        })->name('register');
-
-        Route::get('/forgot-password', function () {
-            return Inertia::render('auth/ForgotPassword');
-        })->name('password.request');
-
-        Route::post('/forgot-password', [AuthController::class, 'sendPasswordResetLink'])->name('password.email');
-
-        Route::get('/reset-password/{token}', function (Request $request, string $token) {
-            return Inertia::render('auth/ResetPassword', [
-                'token' => $token,
-                'email' => $request->query('email'),
-            ]);
-        })->name('password.reset');
-
-        Route::post('/reset-password', [AuthController::class, 'resetPassword'])->name('password.update');
-
-        Route::post('/register', [AuthController::class, 'register']);
-        Route::post('/login', [AuthController::class, 'login']);
-    });
-
-    // Email verification lifecycle.
-    Route::get('/email/verify', function () {
-        return Inertia::render('auth/VerifyEmail', [
-            'email' => request()->user()->email,
-            'status' => session('status'),
-        ]);
-    })->middleware('auth')->name('verification.notice');
-
-    Route::get('/email/verify/{id}/{hash}', function (EmailVerificationRequest $request) {
-        $request->fulfill();
-
-        return redirect()->route('dashboard');
-    })->middleware(['auth', 'signed'])->name('verification.verify');
-
-    Route::post('/email/verification-notification', function (Request $request) {
-        $request->user()->sendEmailVerificationNotification();
-
-        return back()->with('status', 'verification-link-sent');
-    })->middleware(['auth', 'throttle:6,1'])->name('verification.send');
-
-    // Social sign-in providers.
-    Route::get('/google/redirect', [GoogleAuthController::class, 'redirect'])->name('google.redirect');
-    Route::get('/google/callback', [GoogleAuthController::class, 'callback'])->name('google.callback');
-
-    Route::get('/discord/redirect', [DiscordAuthController::class, 'redirect'])->name('discord.redirect');
-    Route::get('/discord/callback', [DiscordAuthController::class, 'callback'])->name('discord.callback');
-
-    Route::get('/xivauth/redirect', [XIVAuthController::class, 'redirect'])->name('xivauth.redirect');
-    Route::get('/xivauth/callback', [XIVAuthController::class, 'callback'])->name('xivauth.callback');
-
-    // Logout remains available even before email verification completes.
-    Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
-});
-
-/*
-|--------------------------------------------------------------------------
-| Locale Switching
-|--------------------------------------------------------------------------
-*/
-
-Route::post('/locale', [LocaleController::class, 'update'])->name('locale.update');
-
-/*
-|--------------------------------------------------------------------------
-| Authenticated And Verified Application Surface
-|--------------------------------------------------------------------------
-*/
-
-Route::middleware(['auth', 'verified'])->group(function () {
-    /*
-    |--------------------------------------------------------------------------
-    | Main Dashboard
-    |--------------------------------------------------------------------------
-    */
-
-    Route::get('/dashboard', [DashboardController::class, 'show'])->name('dashboard');
-    Route::get('/dashboard/runs', [RunDiscoveryController::class, 'index'])->name('dashboard.runs.index');
-
-    /*
-    |--------------------------------------------------------------------------
-    | Groups: Discovery And Creation
-    |--------------------------------------------------------------------------
-    */
-
-    Route::get('/groups', [GroupController::class, 'index'])->name('groups.index');
-    Route::get('/group-search-results', [GroupController::class, 'search'])->name('groups.search');
-    Route::post('/groups', [GroupController::class, 'store'])->name('groups.store');
-    Route::delete('/groups/{group:slug}', [GroupController::class, 'destroy'])->name('groups.destroy');
-
-    // Signed-in user application updates.
-    Route::put('/groups/{group:slug}/activities/{activity}/application/{secretKey?}', [GroupActivityApplicationController::class, 'update'])
-        ->where('secretKey', '[A-Za-z0-9]{40}')
-        ->name('groups.activities.application.update');
-
-    Route::post('/groups/{group:slug}/activities/{activity}/slots/{slot}/self-assign/{secretKey?}', [GroupActivitySelfAssignmentController::class, 'store'])
-        ->where('secretKey', '[A-Za-z0-9]{40}')
-        ->name('groups.activities.self-assignments.store');
-
-    Route::delete('/groups/{group:slug}/activities/{activity}/slots/{slot}/self-assign/{secretKey?}', [GroupActivitySelfAssignmentController::class, 'destroy'])
-        ->where('secretKey', '[A-Za-z0-9]{40}')
-        ->name('groups.activities.self-assignments.destroy');
-
-    /*
-    |--------------------------------------------------------------------------
-    | Groups: Membership, Follows, And Moderation
-    |--------------------------------------------------------------------------
-    */
-
-    Route::post('/groups/{group:slug}/join', [GroupMembershipController::class, 'join'])->name('groups.join');
-    Route::post('/groups/{group:slug}/leave', [GroupMembershipController::class, 'leave'])->name('groups.leave');
-    Route::post('/groups/{group:slug}/follow', [GroupFollowController::class, 'store'])->name('groups.follow');
-    Route::delete('/groups/{group:slug}/follow', [GroupFollowController::class, 'destroy'])->name('groups.unfollow');
-    Route::patch('/groups/{group:slug}/follow-notifications', [GroupFollowController::class, 'updateNotifications'])->name('groups.follow-notifications.update');
-
-    Route::put('/groups/{group:slug}/members/{user}', [GroupMembershipController::class, 'update'])->name('groups.members.update');
-    Route::delete('/groups/{group:slug}/members/{user}', [GroupMembershipController::class, 'destroy'])->name('groups.members.destroy');
-    Route::post('/groups/{group:slug}/members/{user}/ban', [GroupMembershipController::class, 'ban'])->name('groups.members.ban');
-    Route::delete('/groups/{group:slug}/bans/{user}', [GroupMembershipController::class, 'unban'])->name('groups.members.unban');
-    Route::post('/groups/{group:slug}/transfer-ownership', [GroupMembershipController::class, 'transferOwnership'])->name('groups.transfer-ownership');
-
-    // Shared member notes used across member management surfaces.
-    Route::get('/groups/{group:slug}/members/{user}/notes', [GroupMemberNoteController::class, 'show'])->name('groups.members.notes.show');
-    Route::post('/groups/{group:slug}/members/{user}/notes', [GroupMemberNoteController::class, 'store'])->name('groups.members.notes.store');
-    Route::put('/groups/{group:slug}/member-notes/{note}', [GroupMemberNoteController::class, 'update'])->name('groups.members.notes.update');
-    Route::delete('/groups/{group:slug}/member-notes/{note}', [GroupMemberNoteController::class, 'destroy'])->name('groups.members.notes.destroy');
-    Route::post('/groups/{group:slug}/member-notes/{note}/addenda', [GroupMemberNoteController::class, 'storeAddendum'])->name('groups.members.notes.addenda.store');
-
-    // Invite management and acceptance.
-    Route::post('/groups/{group:slug}/invites', [GroupInviteController::class, 'store'])->name('groups.invites.store');
-    Route::delete('/groups/{group:slug}/invites/{invite}', [GroupInviteController::class, 'destroy'])->name('groups.invites.destroy');
-    Route::post('/invite/{token}/accept', [GroupInviteController::class, 'accept'])->name('groups.invites.accept');
-
-    /*
-    |--------------------------------------------------------------------------
-    | Group Dashboard Surface
-    |--------------------------------------------------------------------------
-    |
-    | These routes are behind group dashboard access and power the internal
-    | group management experience.
-    |
-    */
-
-    Route::prefix('groups/{group:slug}/dashboard')->middleware('group.dashboard.access')->group(function () {
-        // Group dashboard landing and non-activity sections.
-        Route::get('/', [GroupDashboardController::class, 'show'])->name('groups.dashboard');
-        Route::get('/members', [GroupMemberController::class, 'index'])->name('groups.dashboard.members');
-        Route::get('/audit-log', [GroupAuditLogController::class, 'index'])->name('groups.dashboard.audit-log');
-        Route::get('/settings', [GroupSettingsController::class, 'show'])->name('groups.dashboard.settings');
-        Route::put('/settings', [GroupSettingsController::class, 'update'])->name('groups.dashboard.settings.update');
+        Route::get('/cookies', function () {
+            return Inertia::render('Legal/CookiesPolicy');
+        })->name('legal.cookies');
 
         /*
         |--------------------------------------------------------------------------
-        | Group Dashboard Activities: Pages And Core CRUD
+        | Public Groups, Activities, And Invite Pages
         |--------------------------------------------------------------------------
         |
-        | Keep static paths like /create and /edit easy to spot above the more
-        | dynamic /activities/{activity} management routes.
+        | These routes must remain safe for guests and must not leak private activity
+        | details without a valid secret key or guest access token.
         |
         */
 
-        Route::get('/activities', [GroupActivityController::class, 'index'])->name('groups.dashboard.activities.index');
-        Route::get('/activities/create', [GroupActivityController::class, 'create'])->name('groups.dashboard.activities.create');
-        Route::post('/activities', [GroupActivityController::class, 'store'])->name('groups.dashboard.activities.store');
-        Route::get('/activities/{activity}', [GroupActivityController::class, 'show'])->name('groups.dashboard.activities.show');
-        Route::get('/activities/{activity}/edit', [GroupActivityController::class, 'edit'])->name('groups.dashboard.activities.edit');
-        Route::put('/activities/{activity}', [GroupActivityController::class, 'update'])->name('groups.dashboard.activities.update');
-        Route::delete('/activities/{activity}', [GroupActivityController::class, 'destroy'])->name('groups.dashboard.activities.destroy');
+        // Group profile pages.
+        Route::get('/groups/{group:slug}', [GroupController::class, 'show'])->name('groups.show');
+
+        // Activity application entry points and guest application flows.
+        Route::get('/groups/{group:slug}/activities/{activity}/application/{secretKey?}', [GroupActivityApplicationController::class, 'show'])
+            ->where('secretKey', '[A-Za-z0-9]{40}')
+            ->name('groups.activities.application');
+
+        Route::post('/groups/{group:slug}/activities/{activity}/application/{secretKey?}', [GroupActivityApplicationController::class, 'store'])
+            ->where('secretKey', '[A-Za-z0-9]{40}')
+            ->name('groups.activities.application.store');
+
+        Route::get('/groups/{group:slug}/activities/{activity}/application-edit/{accessToken}/{secretKey?}', [GroupActivityApplicationController::class, 'editGuest'])
+            ->where('accessToken', '[A-Za-z0-9]{40}')
+            ->where('secretKey', '[A-Za-z0-9]{40}')
+            ->name('groups.activities.application.edit-guest');
+
+        Route::put('/groups/{group:slug}/activities/{activity}/application-edit/{accessToken}/{secretKey?}', [GroupActivityApplicationController::class, 'updateGuest'])
+            ->where('accessToken', '[A-Za-z0-9]{40}')
+            ->where('secretKey', '[A-Za-z0-9]{40}')
+            ->name('groups.activities.application.update-guest');
+
+        Route::delete('/groups/{group:slug}/activities/{activity}/application-edit/{accessToken}/{secretKey?}', [GroupActivityApplicationController::class, 'destroyGuest'])
+            ->where('accessToken', '[A-Za-z0-9]{40}')
+            ->where('secretKey', '[A-Za-z0-9]{40}')
+            ->name('groups.activities.application.destroy-guest');
+
+        Route::get('/groups/{group:slug}/activities/{activity}/application-confirmation/{secretKey?}', [GroupActivityApplicationController::class, 'confirmation'])
+            ->where('secretKey', '[A-Za-z0-9]{40}')
+            ->name('groups.activities.application.confirmation');
+
+        Route::get('/groups/{group:slug}/activities/{activity}/application-status/{accessToken}/{secretKey?}', [GroupActivityApplicationController::class, 'status'])
+            ->where('accessToken', '[A-Za-z0-9]{40}')
+            ->where('secretKey', '[A-Za-z0-9]{40}')
+            ->name('groups.activities.application.status');
+
+        Route::get('/groups/{group:slug}/activities/{activity}/application-search/{secretKey?}', [GroupActivityApplicationController::class, 'searchCharacters'])
+            ->where('secretKey', '[A-Za-z0-9]{40}')
+            ->name('groups.activities.application.search-characters');
+
+        // Public activity overview, with optional secret key for private activities.
+        Route::get('/groups/{group:slug}/activities/{activity}/{secretKey?}', [GroupActivityController::class, 'overview'])
+            ->where('secretKey', '[A-Za-z0-9]{40}')
+            ->name('groups.activities.overview');
+
+        // Group invite landing pages.
+        Route::get('/invite/{token}', [GroupInviteController::class, 'show'])->name('groups.invites.show');
 
         /*
         |--------------------------------------------------------------------------
-        | Group Dashboard Activities: Management Data And Read Models
+        | Authentication And Identity
         |--------------------------------------------------------------------------
         */
 
-        // Full dashboard payloads, exports, and read-only queue details.
-        Route::get('/activities/{activity}/management-data', [GroupActivityManagementDataController::class, 'show'])->name('groups.dashboard.activities.management-data');
-        Route::get('/activities/{activity}/export-roster', [GroupActivityRosterExportController::class, 'show'])->name('groups.dashboard.activities.export-roster');
-        Route::get('/activities/{activity}/applicant-queue', [GroupActivityApplicantQueueController::class, 'show'])->name('groups.dashboard.activities.applicant-queue');
-        Route::get('/activities/{activity}/applicant-queue/applications/{application}', [GroupActivityApplicantQueueController::class, 'showApplication'])->name('groups.dashboard.activities.applicant-queue.application');
+        Route::prefix('auth')->group(function () {
+            // Guest entry: login and registration.
+            Route::middleware('guest')->group(function () {
+                Route::get('/login', function () {
+                    return Inertia::render('auth/Login');
+                })->name('login');
 
-        // FF Logs lookups and completion previews.
-        Route::get('/activities/{activity}/characters/{character}/fflogs-progress', [GroupActivityFflogsController::class, 'show'])->name('groups.dashboard.activities.fflogs-progress');
-        Route::get('/activities/{activity}/applications/{application}/fflogs-progress', [GroupActivityFflogsController::class, 'showForApplication'])->name('groups.dashboard.activities.application-fflogs-progress');
-        Route::post('/activities/{activity}/fflogs-completion-preview', [GroupActivityFflogsCompletionPreviewController::class, 'show'])->name('groups.dashboard.activities.fflogs-completion-preview');
+                Route::get('/register', function () {
+                    return Inertia::render('auth/Register');
+                })->name('register');
+
+                Route::get('/forgot-password', function () {
+                    return Inertia::render('auth/ForgotPassword');
+                })->name('password.request');
+
+                Route::post('/forgot-password', [AuthController::class, 'sendPasswordResetLink'])->name('password.email');
+
+                Route::get('/reset-password/{token}', function (Request $request, string $token) {
+                    return Inertia::render('auth/ResetPassword', [
+                        'token' => $token,
+                        'email' => $request->query('email'),
+                    ]);
+                })->name('password.reset');
+
+                Route::post('/reset-password', [AuthController::class, 'resetPassword'])->name('password.update');
+
+                Route::post('/register', [AuthController::class, 'register'])->name('register.store');
+                Route::post('/login', [AuthController::class, 'login'])->name('login.store');
+            });
+
+            // Email verification lifecycle.
+            Route::get('/email/verify', function () {
+                return Inertia::render('auth/VerifyEmail', [
+                    'email' => request()->user()->email,
+                    'status' => session('status'),
+                ]);
+            })->middleware('auth')->name('verification.notice');
+
+            Route::get('/email/verify/{id}/{hash}', function (EmailVerificationRequest $request) {
+                $request->fulfill();
+
+                return redirect()->route('dashboard');
+            })->middleware(['auth', 'signed'])->name('verification.verify');
+
+            Route::post('/email/verification-notification', function (Request $request) {
+                $request->user()->sendEmailVerificationNotification();
+
+                return back()->with('status', 'verification-link-sent');
+            })->middleware(['auth', 'throttle:6,1'])->name('verification.send');
+
+            // Social sign-in providers.
+            Route::get('/google/redirect', [GoogleAuthController::class, 'redirect'])->name('google.redirect');
+            Route::get('/google/callback', [GoogleAuthController::class, 'callback'])->name('google.callback');
+
+            Route::get('/discord/redirect', [DiscordAuthController::class, 'redirect'])->name('discord.redirect');
+            Route::get('/discord/callback', [DiscordAuthController::class, 'callback'])->name('discord.callback');
+
+            Route::get('/xivauth/redirect', [XIVAuthController::class, 'redirect'])->name('xivauth.redirect');
+            Route::get('/xivauth/callback', [XIVAuthController::class, 'callback'])->name('xivauth.callback');
+
+            // Logout remains available even before email verification completes.
+            Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
+        });
 
         /*
         |--------------------------------------------------------------------------
-        | Group Dashboard Activities: Assignment Context And Manual Options
+        | Locale Switching
         |--------------------------------------------------------------------------
         */
 
-        // Modal bootstrap payloads for assignment flows.
-        Route::get('/activities/{activity}/slots/{slot}/assignment-context', [GroupActivitySlotAssignmentContextController::class, 'show'])->name('groups.dashboard.activities.slot-assignments.context');
-        Route::get('/activities/{activity}/slots/{slot}/manual-assignment-options', [GroupActivityManualSlotAssignmentOptionsController::class, 'show'])->name('groups.dashboard.activities.slot-manual-assignment-options.show');
+        Route::post('/locale', [LocaleController::class, 'update'])->name('locale.update');
 
         /*
         |--------------------------------------------------------------------------
-        | Group Dashboard Activities: Roster, Attendance, And Queue Mutations
+        | Authenticated And Verified Application Surface
         |--------------------------------------------------------------------------
         */
 
-        // Roster assignment and queue state changes.
-        Route::post('/activities/{activity}/slot-swaps', [GroupActivitySlotSwapController::class, 'store'])->name('groups.dashboard.activities.slot-swaps.store');
-        Route::post('/activities/{activity}/slots/{slot}/assign-application', [GroupActivitySlotAssignmentController::class, 'store'])->name('groups.dashboard.activities.slot-assignments.store');
-        Route::post('/activities/{activity}/slots/{slot}/return-to-queue', [GroupActivitySlotUnassignmentController::class, 'store'])->name('groups.dashboard.activities.slot-unassignments.store');
-        Route::post('/activities/{activity}/applications/{application}/decline', [GroupActivityApplicationDeclineController::class, 'store'])->name('groups.dashboard.activities.application-declines.store');
+        Route::middleware(['auth', 'verified'])->group(function () {
+            /*
+            |--------------------------------------------------------------------------
+            | Main Dashboard
+            |--------------------------------------------------------------------------
+            */
 
-        // Designation and attendance.
-        Route::post('/activities/{activity}/slots/{slot}/designation', [GroupActivitySlotDesignationController::class, 'store'])->name('groups.dashboard.activities.slot-designations.store');
-        Route::post('/activities/{activity}/slots/{slot}/composition-hints', [GroupActivitySlotCompositionHintController::class, 'update'])->name('groups.dashboard.activities.slot-composition-hints.update');
-        Route::post('/activities/{activity}/slot-groups/composition-preset', [GroupActivitySlotGroupCompositionPresetController::class, 'store'])->name('groups.dashboard.activities.slot-group-composition-presets.store');
-        Route::post('/activities/{activity}/slot-groups/composition-preset/apply-to-all', [GroupActivitySlotGroupCompositionPresetController::class, 'applyToAll'])->name('groups.dashboard.activities.slot-group-composition-presets.apply-to-all');
-        Route::post('/activities/{activity}/slots/{slot}/check-in', [GroupActivitySlotCheckInController::class, 'store'])->name('groups.dashboard.activities.slot-checkins.store');
-        Route::post('/activities/{activity}/slots/{slot}/mark-late', [GroupActivitySlotCheckInController::class, 'storeLate'])->name('groups.dashboard.activities.slot-checkins.late');
-        Route::post('/activities/{activity}/slots/{slot}/undo-check-in', [GroupActivitySlotCheckInController::class, 'undo'])->name('groups.dashboard.activities.slot-checkins.undo');
-        Route::post('/activities/{activity}/slot-groups/check-in', [GroupActivitySlotCheckInController::class, 'storeGroup'])->name('groups.dashboard.activities.slot-group-checkins.store');
+            Route::get('/dashboard', [DashboardController::class, 'show'])->name('dashboard');
+            Route::get('/dashboard/runs', [RunDiscoveryController::class, 'index'])->name('dashboard.runs.index');
 
-        // Missing assignment tracking.
-        Route::post('/activities/{activity}/slots/{slot}/mark-missing', [GroupActivitySlotMissingController::class, 'store'])->name('groups.dashboard.activities.slot-missing.store');
-        Route::post('/activities/{activity}/missing-assignments/{assignment}/undo', [GroupActivitySlotMissingController::class, 'undo'])->name('groups.dashboard.activities.slot-missing.undo');
+            /*
+            |--------------------------------------------------------------------------
+            | Groups: Discovery And Creation
+            |--------------------------------------------------------------------------
+            */
 
-        /*
-        |--------------------------------------------------------------------------
-        | Group Dashboard Activities: Lifecycle Actions
-        |--------------------------------------------------------------------------
-        */
+            Route::get('/groups', [GroupController::class, 'index'])->name('groups.index');
+            Route::get('/group-search-results', [GroupController::class, 'search'])->name('groups.search');
+            Route::post('/groups', [GroupController::class, 'store'])->name('groups.store');
+            Route::delete('/groups/{group:slug}', [GroupController::class, 'destroy'])->name('groups.destroy');
 
-        Route::post('/activities/{activity}/schedule', [GroupActivityController::class, 'schedule'])->name('groups.dashboard.activities.schedule');
-        Route::post('/activities/{activity}/publish-roster', [GroupActivityController::class, 'publishRoster'])->name('groups.dashboard.activities.publish-roster');
-        Route::post('/activities/{activity}/complete', [GroupActivityCompletionController::class, 'store'])->name('groups.dashboard.activities.complete');
-        Route::post('/activities/{activity}/cancel', [GroupActivityController::class, 'cancel'])->name('groups.dashboard.activities.cancel');
+            // Signed-in user application updates.
+            Route::put('/groups/{group:slug}/activities/{activity}/application/{secretKey?}', [GroupActivityApplicationController::class, 'update'])
+                ->where('secretKey', '[A-Za-z0-9]{40}')
+                ->name('groups.activities.application.update');
+
+            Route::post('/groups/{group:slug}/activities/{activity}/slots/{slot}/self-assign/{secretKey?}', [GroupActivitySelfAssignmentController::class, 'store'])
+                ->where('secretKey', '[A-Za-z0-9]{40}')
+                ->name('groups.activities.self-assignments.store');
+
+            Route::delete('/groups/{group:slug}/activities/{activity}/slots/{slot}/self-assign/{secretKey?}', [GroupActivitySelfAssignmentController::class, 'destroy'])
+                ->where('secretKey', '[A-Za-z0-9]{40}')
+                ->name('groups.activities.self-assignments.destroy');
+
+            /*
+            |--------------------------------------------------------------------------
+            | Groups: Membership, Follows, And Moderation
+            |--------------------------------------------------------------------------
+            */
+
+            Route::post('/groups/{group:slug}/join', [GroupMembershipController::class, 'join'])->name('groups.join');
+            Route::post('/groups/{group:slug}/leave', [GroupMembershipController::class, 'leave'])->name('groups.leave');
+            Route::post('/groups/{group:slug}/follow', [GroupFollowController::class, 'store'])->name('groups.follow');
+            Route::delete('/groups/{group:slug}/follow', [GroupFollowController::class, 'destroy'])->name('groups.unfollow');
+            Route::patch('/groups/{group:slug}/follow-notifications', [GroupFollowController::class, 'updateNotifications'])->name('groups.follow-notifications.update');
+
+            Route::put('/groups/{group:slug}/members/{user}', [GroupMembershipController::class, 'update'])->name('groups.members.update');
+            Route::delete('/groups/{group:slug}/members/{user}', [GroupMembershipController::class, 'destroy'])->name('groups.members.destroy');
+            Route::post('/groups/{group:slug}/members/{user}/ban', [GroupMembershipController::class, 'ban'])->name('groups.members.ban');
+            Route::delete('/groups/{group:slug}/bans/{user}', [GroupMembershipController::class, 'unban'])->name('groups.members.unban');
+            Route::post('/groups/{group:slug}/transfer-ownership', [GroupMembershipController::class, 'transferOwnership'])->name('groups.transfer-ownership');
+
+            // Shared member notes used across member management surfaces.
+            Route::get('/groups/{group:slug}/members/{user}/notes', [GroupMemberNoteController::class, 'show'])->name('groups.members.notes.show');
+            Route::post('/groups/{group:slug}/members/{user}/notes', [GroupMemberNoteController::class, 'store'])->name('groups.members.notes.store');
+            Route::put('/groups/{group:slug}/member-notes/{note}', [GroupMemberNoteController::class, 'update'])->name('groups.members.notes.update');
+            Route::delete('/groups/{group:slug}/member-notes/{note}', [GroupMemberNoteController::class, 'destroy'])->name('groups.members.notes.destroy');
+            Route::post('/groups/{group:slug}/member-notes/{note}/addenda', [GroupMemberNoteController::class, 'storeAddendum'])->name('groups.members.notes.addenda.store');
+
+            // Invite management and acceptance.
+            Route::post('/groups/{group:slug}/invites', [GroupInviteController::class, 'store'])->name('groups.invites.store');
+            Route::delete('/groups/{group:slug}/invites/{invite}', [GroupInviteController::class, 'destroy'])->name('groups.invites.destroy');
+            Route::post('/invite/{token}/accept', [GroupInviteController::class, 'accept'])->name('groups.invites.accept');
+
+            /*
+            |--------------------------------------------------------------------------
+            | Group Dashboard Surface
+            |--------------------------------------------------------------------------
+            |
+            | These routes are behind group dashboard access and power the internal
+            | group management experience.
+            |
+            */
+
+            Route::prefix('groups/{group:slug}/dashboard')->middleware('group.dashboard.access')->group(function () {
+                // Group dashboard landing and non-activity sections.
+                Route::get('/', [GroupDashboardController::class, 'show'])->name('groups.dashboard');
+                Route::get('/members', [GroupMemberController::class, 'index'])->name('groups.dashboard.members');
+                Route::get('/audit-log', [GroupAuditLogController::class, 'index'])->name('groups.dashboard.audit-log');
+                Route::get('/settings', [GroupSettingsController::class, 'show'])->name('groups.dashboard.settings');
+                Route::put('/settings', [GroupSettingsController::class, 'update'])->name('groups.dashboard.settings.update');
+
+                /*
+                |--------------------------------------------------------------------------
+                | Group Dashboard Activities: Pages And Core CRUD
+                |--------------------------------------------------------------------------
+                |
+                | Keep static paths like /create and /edit easy to spot above the more
+                | dynamic /activities/{activity} management routes.
+                |
+                */
+
+                Route::get('/activities', [GroupActivityController::class, 'index'])->name('groups.dashboard.activities.index');
+                Route::get('/activities/create', [GroupActivityController::class, 'create'])->name('groups.dashboard.activities.create');
+                Route::post('/activities', [GroupActivityController::class, 'store'])->name('groups.dashboard.activities.store');
+                Route::get('/activities/{activity}', [GroupActivityController::class, 'show'])->name('groups.dashboard.activities.show');
+                Route::get('/activities/{activity}/edit', [GroupActivityController::class, 'edit'])->name('groups.dashboard.activities.edit');
+                Route::put('/activities/{activity}', [GroupActivityController::class, 'update'])->name('groups.dashboard.activities.update');
+                Route::delete('/activities/{activity}', [GroupActivityController::class, 'destroy'])->name('groups.dashboard.activities.destroy');
+
+                /*
+                |--------------------------------------------------------------------------
+                | Group Dashboard Activities: Management Data And Read Models
+                |--------------------------------------------------------------------------
+                */
+
+                // Full dashboard payloads, exports, and read-only queue details.
+                Route::get('/activities/{activity}/management-data', [GroupActivityManagementDataController::class, 'show'])->name('groups.dashboard.activities.management-data');
+                Route::get('/activities/{activity}/export-roster', [GroupActivityRosterExportController::class, 'show'])->name('groups.dashboard.activities.export-roster');
+                Route::get('/activities/{activity}/applicant-queue', [GroupActivityApplicantQueueController::class, 'show'])->name('groups.dashboard.activities.applicant-queue');
+                Route::get('/activities/{activity}/applicant-queue/applications/{application}', [GroupActivityApplicantQueueController::class, 'showApplication'])->name('groups.dashboard.activities.applicant-queue.application');
+
+                // FF Logs lookups and completion previews.
+                Route::get('/activities/{activity}/characters/{character}/fflogs-progress', [GroupActivityFflogsController::class, 'show'])->name('groups.dashboard.activities.fflogs-progress');
+                Route::get('/activities/{activity}/applications/{application}/fflogs-progress', [GroupActivityFflogsController::class, 'showForApplication'])->name('groups.dashboard.activities.application-fflogs-progress');
+                Route::post('/activities/{activity}/fflogs-completion-preview', [GroupActivityFflogsCompletionPreviewController::class, 'show'])->name('groups.dashboard.activities.fflogs-completion-preview');
+
+                /*
+                |--------------------------------------------------------------------------
+                | Group Dashboard Activities: Assignment Context And Manual Options
+                |--------------------------------------------------------------------------
+                */
+
+                // Modal bootstrap payloads for assignment flows.
+                Route::get('/activities/{activity}/slots/{slot}/assignment-context', [GroupActivitySlotAssignmentContextController::class, 'show'])->name('groups.dashboard.activities.slot-assignments.context');
+                Route::get('/activities/{activity}/slots/{slot}/manual-assignment-options', [GroupActivityManualSlotAssignmentOptionsController::class, 'show'])->name('groups.dashboard.activities.slot-manual-assignment-options.show');
+
+                /*
+                |--------------------------------------------------------------------------
+                | Group Dashboard Activities: Roster, Attendance, And Queue Mutations
+                |--------------------------------------------------------------------------
+                */
+
+                // Roster assignment and queue state changes.
+                Route::post('/activities/{activity}/slot-swaps', [GroupActivitySlotSwapController::class, 'store'])->name('groups.dashboard.activities.slot-swaps.store');
+                Route::post('/activities/{activity}/slots/{slot}/assign-application', [GroupActivitySlotAssignmentController::class, 'store'])->name('groups.dashboard.activities.slot-assignments.store');
+                Route::post('/activities/{activity}/slots/{slot}/return-to-queue', [GroupActivitySlotUnassignmentController::class, 'store'])->name('groups.dashboard.activities.slot-unassignments.store');
+                Route::post('/activities/{activity}/applications/{application}/decline', [GroupActivityApplicationDeclineController::class, 'store'])->name('groups.dashboard.activities.application-declines.store');
+
+                // Designation and attendance.
+                Route::post('/activities/{activity}/slots/{slot}/designation', [GroupActivitySlotDesignationController::class, 'store'])->name('groups.dashboard.activities.slot-designations.store');
+                Route::post('/activities/{activity}/slots/{slot}/composition-hints', [GroupActivitySlotCompositionHintController::class, 'update'])->name('groups.dashboard.activities.slot-composition-hints.update');
+                Route::post('/activities/{activity}/slot-groups/composition-preset', [GroupActivitySlotGroupCompositionPresetController::class, 'store'])->name('groups.dashboard.activities.slot-group-composition-presets.store');
+                Route::post('/activities/{activity}/slot-groups/composition-preset/apply-to-all', [GroupActivitySlotGroupCompositionPresetController::class, 'applyToAll'])->name('groups.dashboard.activities.slot-group-composition-presets.apply-to-all');
+                Route::post('/activities/{activity}/slots/{slot}/check-in', [GroupActivitySlotCheckInController::class, 'store'])->name('groups.dashboard.activities.slot-checkins.store');
+                Route::post('/activities/{activity}/slots/{slot}/mark-late', [GroupActivitySlotCheckInController::class, 'storeLate'])->name('groups.dashboard.activities.slot-checkins.late');
+                Route::post('/activities/{activity}/slots/{slot}/undo-check-in', [GroupActivitySlotCheckInController::class, 'undo'])->name('groups.dashboard.activities.slot-checkins.undo');
+                Route::post('/activities/{activity}/slot-groups/check-in', [GroupActivitySlotCheckInController::class, 'storeGroup'])->name('groups.dashboard.activities.slot-group-checkins.store');
+
+                // Missing assignment tracking.
+                Route::post('/activities/{activity}/slots/{slot}/mark-missing', [GroupActivitySlotMissingController::class, 'store'])->name('groups.dashboard.activities.slot-missing.store');
+                Route::post('/activities/{activity}/missing-assignments/{assignment}/undo', [GroupActivitySlotMissingController::class, 'undo'])->name('groups.dashboard.activities.slot-missing.undo');
+
+                /*
+                |--------------------------------------------------------------------------
+                | Group Dashboard Activities: Lifecycle Actions
+                |--------------------------------------------------------------------------
+                */
+
+                Route::post('/activities/{activity}/schedule', [GroupActivityController::class, 'schedule'])->name('groups.dashboard.activities.schedule');
+                Route::post('/activities/{activity}/publish-roster', [GroupActivityController::class, 'publishRoster'])->name('groups.dashboard.activities.publish-roster');
+                Route::post('/activities/{activity}/complete', [GroupActivityCompletionController::class, 'store'])->name('groups.dashboard.activities.complete');
+                Route::post('/activities/{activity}/cancel', [GroupActivityController::class, 'cancel'])->name('groups.dashboard.activities.cancel');
+            });
+
+            /*
+            |--------------------------------------------------------------------------
+            | Account Settings
+            |--------------------------------------------------------------------------
+            */
+
+            Route::get('/settings', [SettingsController::class, 'index'])->name('settings');
+            Route::post('/settings/username', [UserController::class, 'changeUsername'])->name('settings.username');
+            Route::post('/settings/password', [UserController::class, 'changePassword'])->name('settings.password');
+            Route::post('/settings/notifications', [UserController::class, 'changeNotificationSettings'])->name('settings.notifications');
+            Route::post('/settings/privacy', [UserController::class, 'changePrivacySettings'])->name('settings.privacy');
+            Route::delete('/settings/account', [UserController::class, 'destroyAccount'])->name('settings.account.destroy');
+            Route::delete('/settings/social-accounts/{socialAccount}', [SocialAccountController::class, 'destroy'])->name('settings.social-accounts.destroy');
+
+            /*
+            |--------------------------------------------------------------------------
+            | Account Pages
+            |--------------------------------------------------------------------------
+            */
+
+            Route::get('/account/characters', [CharacterController::class, 'list'])->name('account.characters');
+            Route::get('/account/applications', [AccountApplicationController::class, 'index'])->name('account.applications');
+            Route::delete('/account/applications/{application}', [AccountApplicationController::class, 'destroy'])->name('account.applications.destroy');
+
+            /*
+            |--------------------------------------------------------------------------
+            | Notification Inbox And Broadcast Opening
+            |--------------------------------------------------------------------------
+            */
+
+            Route::get('/account/notifications', [AccountNotificationController::class, 'index'])->name('account.notifications.index');
+            Route::get('/account/notifications/feed', [AccountNotificationController::class, 'feed'])->name('account.notifications.feed');
+            Route::get('/account/notifications/summary', [AccountNotificationController::class, 'summary'])->name('account.notifications.summary');
+            Route::post('/account/notifications/read-all', [AccountNotificationController::class, 'readAll'])->name('account.notifications.read-all');
+            Route::get('/account/notifications/{notification}/open', [AccountNotificationController::class, 'open'])->name('account.notifications.open');
+            Route::get('/account/notification-broadcasts/{broadcast}/open', [AccountNotificationController::class, 'openBroadcast'])->name('account.notifications.broadcasts.open');
+
+            /*
+            |--------------------------------------------------------------------------
+            | Character Management
+            |--------------------------------------------------------------------------
+            */
+
+            Route::post('/characters/exists', [CharacterController::class, 'exists'])->name('characters.exists');
+            Route::post('/characters/verify', [CharacterController::class, 'verify'])->name('characters.verify');
+            Route::post('/characters/{character}/refresh', [CharacterController::class, 'refreshCharacterData'])->name('characters.refresh');
+            Route::post('/characters/{character}/make-primary', [CharacterController::class, 'makePrimary'])->name('characters.make-primary');
+            Route::delete('/characters/{character}', [CharacterController::class, 'destroy'])->name('characters.destroy');
+            Route::post('/characters/{character}/preferred-class', [CharacterController::class, 'markPreferredClass'])->name('characters.preferred-class');
+            Route::post('/characters/{character}/preferred-phantom-job', [CharacterController::class, 'markPreferredPhantomJob'])->name('characters.preferred-phantom-job');
+            Route::post('/characters/xivauth', [CharacterController::class, 'fetchXIVAuthCharacters'])->name('characters.xivauth');
+            Route::post('/characters/xivauth/import', [CharacterController::class, 'importXIVAuthCharacter'])->name('characters.xivauth.import');
+
+            /*
+            |--------------------------------------------------------------------------
+            | Admin Surface
+            |--------------------------------------------------------------------------
+            */
+
+            Route::prefix('admin')->group(function () {
+                // Admin dashboards and audit surfaces.
+                Route::get('/character-data', [AdminController::class, 'characterData'])->name('admin.character-data');
+                Route::get('/audit-log', [AdminController::class, 'auditLog'])->name('admin.audit-log');
+
+                // System-wide notifications and temporary banners.
+                Route::get('/system-notifications', [SystemNotificationController::class, 'index'])->name('admin.system-notifications.index');
+                Route::post('/system-notifications/maintenance', [SystemNotificationController::class, 'storeMaintenance'])->name('admin.system-notifications.maintenance.store');
+                Route::post('/system-notifications/announcements', [SystemNotificationController::class, 'storeAnnouncement'])->name('admin.system-notifications.announcements.store');
+                Route::put('/system-notifications/banner', [SystemNotificationController::class, 'storeBanner'])->name('admin.system-notifications.banner.store');
+                Route::delete('/system-notifications/banner', [SystemNotificationController::class, 'clearBanner'])->name('admin.system-notifications.banner.clear');
+
+                // Activity type administration.
+                Route::get('/activity-types', [ActivityTypeController::class, 'index'])->name('admin.activity-types.index');
+                Route::get('/activity-types/create', [ActivityTypeController::class, 'create'])->name('admin.activity-types.create');
+                Route::post('/activity-types', [ActivityTypeController::class, 'store'])->name('admin.activity-types.store');
+                Route::get('/activity-types/{activityType}/edit', [ActivityTypeController::class, 'edit'])->name('admin.activity-types.edit');
+                Route::put('/activity-types/{activityType}', [ActivityTypeController::class, 'update'])->name('admin.activity-types.update');
+                Route::post('/activity-types/{activityType}/publish', [ActivityTypeController::class, 'publish'])->name('admin.activity-types.publish');
+                Route::delete('/activity-types/{activityType}', [ActivityTypeController::class, 'destroy'])->name('admin.activity-types.destroy');
+
+                // Character definition administration.
+                Route::redirect('/characters/definitions', '/admin/character-data')->name('admin.characters.definitions');
+                Route::post('/characters/definitions', [AdminCharacterController::class, 'storeDefinition'])->name('admin.characters.definitions.store');
+                Route::put('/characters/definitions/{definition}', [AdminCharacterController::class, 'updateDefinition'])->name('admin.characters.definitions.update');
+                Route::delete('/characters/definitions/{definition}', [AdminCharacterController::class, 'destroyDefinition'])->name('admin.characters.definitions.destroy');
+                Route::post('/characters/definitions/order', [AdminCharacterController::class, 'updateOrder'])->name('admin.characters.definitions.order');
+
+                // Character class administration.
+                Route::get('/character-classes', [CharacterClassController::class, 'index'])->name('admin.character-classes.index');
+                Route::post('/character-classes', [CharacterClassController::class, 'store'])->name('admin.character-classes.store');
+                Route::get('/character-classes/{characterClass}', [CharacterClassController::class, 'show'])->name('admin.character-classes.show');
+                Route::put('/character-classes/{characterClass}', [CharacterClassController::class, 'update'])->name('admin.character-classes.update');
+                Route::delete('/character-classes/{characterClass}', [CharacterClassController::class, 'destroy'])->name('admin.character-classes.destroy');
+
+                // Phantom job administration.
+                Route::get('/phantom-jobs', [PhantomJobController::class, 'index'])->name('admin.phantom-jobs.index');
+                Route::post('/phantom-jobs', [PhantomJobController::class, 'store'])->name('admin.phantom-jobs.store');
+                Route::get('/phantom-jobs/{phantomJob}', [PhantomJobController::class, 'show'])->name('admin.phantom-jobs.show');
+                Route::put('/phantom-jobs/{phantomJob}', [PhantomJobController::class, 'update'])->name('admin.phantom-jobs.update');
+                Route::delete('/phantom-jobs/{phantomJob}', [PhantomJobController::class, 'destroy'])->name('admin.phantom-jobs.destroy');
+            });
+        });
     });
-
-    /*
-    |--------------------------------------------------------------------------
-    | Account Settings
-    |--------------------------------------------------------------------------
-    */
-
-    Route::get('/settings', [SettingsController::class, 'index'])->name('settings');
-    Route::post('/settings/username', [UserController::class, 'changeUsername'])->name('settings.username');
-    Route::post('/settings/password', [UserController::class, 'changePassword'])->name('settings.password');
-    Route::post('/settings/notifications', [UserController::class, 'changeNotificationSettings'])->name('settings.notifications');
-    Route::post('/settings/privacy', [UserController::class, 'changePrivacySettings'])->name('settings.privacy');
-    Route::delete('/settings/account', [UserController::class, 'destroyAccount'])->name('settings.account.destroy');
-    Route::delete('/settings/social-accounts/{socialAccount}', [SocialAccountController::class, 'destroy'])->name('settings.social-accounts.destroy');
-
-    /*
-    |--------------------------------------------------------------------------
-    | Account Pages
-    |--------------------------------------------------------------------------
-    */
-
-    Route::get('/account/characters', [CharacterController::class, 'list'])->name('account.characters');
-    Route::get('/account/applications', [AccountApplicationController::class, 'index'])->name('account.applications');
-    Route::delete('/account/applications/{application}', [AccountApplicationController::class, 'destroy'])->name('account.applications.destroy');
-
-    /*
-    |--------------------------------------------------------------------------
-    | Notification Inbox And Broadcast Opening
-    |--------------------------------------------------------------------------
-    */
-
-    Route::get('/account/notifications', [AccountNotificationController::class, 'index'])->name('account.notifications.index');
-    Route::get('/account/notifications/feed', [AccountNotificationController::class, 'feed'])->name('account.notifications.feed');
-    Route::get('/account/notifications/summary', [AccountNotificationController::class, 'summary'])->name('account.notifications.summary');
-    Route::post('/account/notifications/read-all', [AccountNotificationController::class, 'readAll'])->name('account.notifications.read-all');
-    Route::get('/account/notifications/{notification}/open', [AccountNotificationController::class, 'open'])->name('account.notifications.open');
-    Route::get('/account/notification-broadcasts/{broadcast}/open', [AccountNotificationController::class, 'openBroadcast'])->name('account.notifications.broadcasts.open');
-
-    /*
-    |--------------------------------------------------------------------------
-    | Character Management
-    |--------------------------------------------------------------------------
-    */
-
-    Route::post('/characters/exists', [CharacterController::class, 'exists'])->name('characters.exists');
-    Route::post('/characters/verify', [CharacterController::class, 'verify'])->name('characters.verify');
-    Route::post('/characters/{character}/refresh', [CharacterController::class, 'refreshCharacterData'])->name('characters.refresh');
-    Route::post('/characters/{character}/make-primary', [CharacterController::class, 'makePrimary'])->name('characters.make-primary');
-    Route::delete('/characters/{character}', [CharacterController::class, 'destroy'])->name('characters.destroy');
-    Route::post('/characters/{character}/preferred-class', [CharacterController::class, 'markPreferredClass'])->name('characters.preferred-class');
-    Route::post('/characters/{character}/preferred-phantom-job', [CharacterController::class, 'markPreferredPhantomJob'])->name('characters.preferred-phantom-job');
-    Route::post('/characters/xivauth', [CharacterController::class, 'fetchXIVAuthCharacters'])->name('characters.xivauth');
-    Route::post('/characters/xivauth/import', [CharacterController::class, 'importXIVAuthCharacter'])->name('characters.xivauth.import');
-
-    /*
-    |--------------------------------------------------------------------------
-    | Admin Surface
-    |--------------------------------------------------------------------------
-    */
-
-    Route::prefix('admin')->group(function () {
-        // Admin dashboards and audit surfaces.
-        Route::get('/character-data', [AdminController::class, 'characterData'])->name('admin.character-data');
-        Route::get('/audit-log', [AdminController::class, 'auditLog'])->name('admin.audit-log');
-
-        // System-wide notifications and temporary banners.
-        Route::get('/system-notifications', [SystemNotificationController::class, 'index'])->name('admin.system-notifications.index');
-        Route::post('/system-notifications/maintenance', [SystemNotificationController::class, 'storeMaintenance'])->name('admin.system-notifications.maintenance.store');
-        Route::post('/system-notifications/announcements', [SystemNotificationController::class, 'storeAnnouncement'])->name('admin.system-notifications.announcements.store');
-        Route::put('/system-notifications/banner', [SystemNotificationController::class, 'storeBanner'])->name('admin.system-notifications.banner.store');
-        Route::delete('/system-notifications/banner', [SystemNotificationController::class, 'clearBanner'])->name('admin.system-notifications.banner.clear');
-
-        // Activity type administration.
-        Route::get('/activity-types', [ActivityTypeController::class, 'index'])->name('admin.activity-types.index');
-        Route::get('/activity-types/create', [ActivityTypeController::class, 'create'])->name('admin.activity-types.create');
-        Route::post('/activity-types', [ActivityTypeController::class, 'store'])->name('admin.activity-types.store');
-        Route::get('/activity-types/{activityType}/edit', [ActivityTypeController::class, 'edit'])->name('admin.activity-types.edit');
-        Route::put('/activity-types/{activityType}', [ActivityTypeController::class, 'update'])->name('admin.activity-types.update');
-        Route::post('/activity-types/{activityType}/publish', [ActivityTypeController::class, 'publish'])->name('admin.activity-types.publish');
-        Route::delete('/activity-types/{activityType}', [ActivityTypeController::class, 'destroy'])->name('admin.activity-types.destroy');
-
-        // Character definition administration.
-        Route::redirect('/characters/definitions', '/admin/character-data')->name('admin.characters.definitions');
-        Route::post('/characters/definitions', [AdminCharacterController::class, 'storeDefinition'])->name('admin.characters.definitions.store');
-        Route::put('/characters/definitions/{definition}', [AdminCharacterController::class, 'updateDefinition'])->name('admin.characters.definitions.update');
-        Route::delete('/characters/definitions/{definition}', [AdminCharacterController::class, 'destroyDefinition'])->name('admin.characters.definitions.destroy');
-        Route::post('/characters/definitions/order', [AdminCharacterController::class, 'updateOrder'])->name('admin.characters.definitions.order');
-
-        // Character class administration.
-        Route::get('/character-classes', [CharacterClassController::class, 'index'])->name('admin.character-classes.index');
-        Route::post('/character-classes', [CharacterClassController::class, 'store'])->name('admin.character-classes.store');
-        Route::get('/character-classes/{characterClass}', [CharacterClassController::class, 'show'])->name('admin.character-classes.show');
-        Route::put('/character-classes/{characterClass}', [CharacterClassController::class, 'update'])->name('admin.character-classes.update');
-        Route::delete('/character-classes/{characterClass}', [CharacterClassController::class, 'destroy'])->name('admin.character-classes.destroy');
-
-        // Phantom job administration.
-        Route::get('/phantom-jobs', [PhantomJobController::class, 'index'])->name('admin.phantom-jobs.index');
-        Route::post('/phantom-jobs', [PhantomJobController::class, 'store'])->name('admin.phantom-jobs.store');
-        Route::get('/phantom-jobs/{phantomJob}', [PhantomJobController::class, 'show'])->name('admin.phantom-jobs.show');
-        Route::put('/phantom-jobs/{phantomJob}', [PhantomJobController::class, 'update'])->name('admin.phantom-jobs.update');
-        Route::delete('/phantom-jobs/{phantomJob}', [PhantomJobController::class, 'destroy'])->name('admin.phantom-jobs.destroy');
-    });
-});

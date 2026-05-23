@@ -1,12 +1,13 @@
 <script setup>
 import {useI18n} from "vue-i18n";
+import { route } from "ziggy-js";
 
 const { t } = useI18n();
 </script>
 
 <template>
 	<a
-		href="/auth/google/redirect"
+		:href="route('google.redirect')"
 		class="inline-flex w-full items-center justify-center gap-3 rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
 	>
 		<svg class="h-5 w-5" viewBox="0 0 24 24" aria-hidden="true">

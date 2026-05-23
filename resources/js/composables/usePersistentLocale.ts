@@ -1,13 +1,31 @@
-import { router, usePage } from "@inertiajs/vue3";
+import { usePage } from "@inertiajs/vue3";
 import { computed, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { de, en, fr, ja } from "@nuxt/ui/locale";
+import { route } from "ziggy-js";
 
 const uiLocales = { en, de, fr, ja };
 
 export function usePersistentLocale() {
 	const page = usePage();
 	const { locale } = useI18n({ useScope: 'global' });
+
+	const syncZiggyLocaleDefault = (value: string) => {
+		if (typeof globalThis === 'undefined' || !('Ziggy' in globalThis)) {
+			return;
+		}
+
+		const ziggy = globalThis.Ziggy as { defaults?: Record<string, unknown> } | undefined;
+
+		if (!ziggy) {
+			return;
+		}
+
+		ziggy.defaults = {
+			...(ziggy.defaults ?? {}),
+			locale: value,
+		};
+	};
 
 	const availableLocaleCodes = computed(() => {
 		const available = page.props.locale?.available;
@@ -35,6 +53,8 @@ export function usePersistentLocale() {
 	});
 
 	watch(currentLocale, (value) => {
+		syncZiggyLocaleDefault(value);
+
 		if (locale.value !== value) {
 			locale.value = value;
 		}
@@ -46,14 +66,39 @@ export function usePersistentLocale() {
 		}
 
 		locale.value = value;
+		syncZiggyLocaleDefault(value);
+		const currentRoute = route();
+		const currentRouteName = currentRoute.current();
 
-		router.post('/locale', {
-			locale: value,
-		}, {
-			preserveScroll: true,
-			preserveState: true,
-			replace: true,
-		});
+		if (currentRouteName) {
+			const nextRouteParameters = {
+				...currentRoute.routeParams,
+				locale: value,
+			};
+			const currentQueryParameters = currentRoute.queryParams;
+			const targetUrl = route(currentRouteName, {
+				...nextRouteParameters,
+				...(Object.keys(currentQueryParameters).length > 0
+					? { _query: currentQueryParameters }
+					: {}),
+			});
+
+			window.location.assign(targetUrl);
+
+			return;
+		}
+
+		const currentUrl = new URL(window.location.href);
+		const segments = currentUrl.pathname.split('/').filter(Boolean);
+
+		if (segments.length > 0 && availableLocaleCodes.value.includes(segments[0])) {
+			segments[0] = value;
+		} else {
+			segments.unshift(value);
+		}
+
+		currentUrl.pathname = `/${segments.join('/')}`;
+		window.location.assign(currentUrl.toString());
 	};
 
 	return {

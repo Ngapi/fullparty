@@ -411,6 +411,7 @@ it('does not create a separate application-category cancellation notification wh
     ]);
     $activity = createApplicationNotificationActivity($owner, $group, [
         'allow_guest_applications' => true,
+        'status' => Activity::STATUS_ASSIGNED,
     ]);
 
     $signedInApplicant = User::factory()->create([

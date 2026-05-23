@@ -112,14 +112,14 @@ const clearBanner = () => {
 };
 
 const sendMaintenance = () => {
-	maintenanceForm.post('/admin/system-notifications/maintenance', {
+	maintenanceForm.post(route('admin.system-notifications.maintenance.store'), {
 		preserveScroll: true,
 		onSuccess: () => maintenanceForm.reset(),
 	});
 };
 
 const sendAnnouncement = () => {
-	announcementForm.post('/admin/system-notifications/announcements', {
+	announcementForm.post(route('admin.system-notifications.announcements.store'), {
 		preserveScroll: true,
 		onSuccess: () => announcementForm.reset(),
 	});

@@ -5,6 +5,7 @@ import { useToast } from "@nuxt/ui/composables";
 import { useI18n } from "vue-i18n";
 import { localizedValue } from "@/utils/localizedValue";
 import { watch } from "vue";
+import { route } from "ziggy-js";
 
 defineProps<{
 	activityTypes: Array<any>
@@ -60,19 +61,19 @@ const destroyActivityType = (activityTypeId: number) => {
 		return;
 	}
 
-	router.delete(`/admin/activity-types/${activityTypeId}`);
+	router.delete(route('admin.activity-types.destroy', activityTypeId));
 };
 
 const goToCreatePage = () => {
-	router.get('/admin/activity-types/create');
+	router.get(route('admin.activity-types.create'));
 };
 
 const goToEditPage = (activityTypeId: number) => {
-	router.get(`/admin/activity-types/${activityTypeId}/edit`);
+	router.get(route('admin.activity-types.edit', activityTypeId));
 };
 
 const publishActivityType = (activityTypeId: number) => {
-	router.post(`/admin/activity-types/${activityTypeId}/publish`, {}, {
+	router.post(route('admin.activity-types.publish', activityTypeId), {}, {
 		preserveScroll: true,
 	});
 };

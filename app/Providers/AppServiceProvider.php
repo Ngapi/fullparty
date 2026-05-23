@@ -7,7 +7,10 @@ use App\Models\User;
 use App\Policies\GroupActivityPolicy;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
+use SocialiteProviders\Discord\Provider;
+use SocialiteProviders\Manager\SocialiteWasCalled;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -24,12 +27,14 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        URL::defaults(['locale' => app()->getLocale()]);
+
         Gate::policy(Activity::class, GroupActivityPolicy::class);
         Gate::define('viewPulse', fn (?User $user) => (bool) $user?->is_admin);
 
-		Event::listen(function (\SocialiteProviders\Manager\SocialiteWasCalled $event) {
-			$event->extendSocialite('discord', \SocialiteProviders\Discord\Provider::class);
-			$event->extendSocialite('xivauth', \SocialiteProviders\XIVAuth\Provider::class);
-		});
+        Event::listen(function (SocialiteWasCalled $event) {
+            $event->extendSocialite('discord', Provider::class);
+            $event->extendSocialite('xivauth', \SocialiteProviders\XIVAuth\Provider::class);
+        });
     }
 }

@@ -7,6 +7,7 @@ import type {
 import ActivityTypeBuilderForm from "@/components/Admin/ActivityTypes/ActivityTypeBuilderForm.vue";
 import PageHeader from "@/components/PageHeader.vue";
 import { router, useForm } from "@inertiajs/vue3";
+import { route } from "ziggy-js";
 import { useI18n } from "vue-i18n";
 
 defineProps<{
@@ -68,11 +69,11 @@ const form = useForm({
 });
 
 const goBack = () => {
-	router.get('/admin/activity-types');
+	router.get(route('admin.activity-types.index'));
 };
 
 const submit = () => {
-	form.post('/admin/activity-types', {
+	form.post(route('admin.activity-types.store'), {
 		forceFormData: true,
 	});
 };
@@ -98,7 +99,7 @@ const submit = () => {
 				:schema-reference="schemaReference"
 				:existing-tags="existingTags"
 				:submit-label="t('general.create')"
-				back-href="/admin/activity-types"
+				:back-href="route('admin.activity-types.index')"
 				@submit="submit"
 			/>
 		</div>

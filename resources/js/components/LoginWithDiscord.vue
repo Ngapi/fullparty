@@ -1,12 +1,13 @@
 <script setup>
 import {useI18n} from "vue-i18n";
+import { route } from "ziggy-js";
 
 const { t } = useI18n();
 </script>
 
 <template>
 	<a
-		href="/auth/discord/redirect"
+		:href="route('discord.redirect')"
 		class="inline-flex w-full items-center justify-center gap-3 rounded-xl border border-indigo-500 bg-indigo-500 px-4 py-3 text-sm font-semibold text-white transition hover:bg-indigo-600"
 	>
 		<svg class="h-5 w-5" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">

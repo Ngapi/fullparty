@@ -1,7 +1,7 @@
 <?php
 
-use App\Http\Middleware\EnsureGroupDashboardAccess;
 use App\Http\Middleware\ApplyLocale;
+use App\Http\Middleware\EnsureGroupDashboardAccess;
 use App\Http\Middleware\HandleInertiaRequests;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Foundation\Application;
@@ -23,13 +23,24 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
 
         $middleware->web(append: [
-			ApplyLocale::class,
-			HandleInertiaRequests::class,
-		]);
+            ApplyLocale::class,
+            HandleInertiaRequests::class,
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
-        $exceptions->render(function (AuthenticationException $exception, Request $request) {
-            if (!$request->is('auth/*')) {
+        $isAuthPath = static function (Request $request): bool {
+            $segments = array_values(array_filter(explode('/', trim($request->path(), '/'))));
+            $firstSegment = $segments[0] ?? null;
+
+            if (in_array($firstSegment, ApplyLocale::SUPPORTED_LOCALES, true)) {
+                array_shift($segments);
+            }
+
+            return ($segments[0] ?? null) === 'auth';
+        };
+
+        $exceptions->render(function (AuthenticationException $exception, Request $request) use ($isAuthPath) {
+            if (! $isAuthPath($request)) {
                 $request->session()->put('url.intended', $request->fullUrl());
             }
 
@@ -38,8 +49,8 @@ return Application::configure(basePath: dirname(__DIR__))
                 ->with('error', 'session_expired');
         });
 
-        $exceptions->render(function (TokenMismatchException $exception, Request $request) {
-            if ($request->user() !== null && !$request->is('auth/*')) {
+        $exceptions->render(function (TokenMismatchException $exception, Request $request) use ($isAuthPath) {
+            if ($request->user() !== null && ! $isAuthPath($request)) {
                 $request->session()->put('url.intended', $request->fullUrl());
             }
 

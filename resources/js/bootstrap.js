@@ -10,7 +10,11 @@ window.axios.interceptors.response.use(
 		const status = error?.response?.status;
 
 		if (status === 401 || status === 419) {
-			window.location.assign('/auth/login');
+			const supportedLocales = ['en', 'de', 'fr', 'ja'];
+			const segments = window.location.pathname.split('/').filter(Boolean);
+			const localePrefix = supportedLocales.includes(segments[0]) ? `/${segments[0]}` : '';
+
+			window.location.assign(`${localePrefix}/auth/login`);
 		}
 
 		return Promise.reject(error);

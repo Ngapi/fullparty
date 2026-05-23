@@ -9,7 +9,9 @@ use App\Models\SocialAccount;
 use App\Models\SystemBanner;
 use App\Models\SystemNotificationBroadcast;
 use App\Models\User;
+use App\Services\Notifications\NotificationDeliveryDispatcher;
 use App\Services\Notifications\NotificationInboxService;
+use App\Services\Notifications\NotificationService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Queue;
 use Inertia\Testing\AssertableInertia as Assert;
@@ -22,7 +24,7 @@ it('allows admins to view the system notifications page', function () {
     ]);
 
     $this->actingAs($admin)
-        ->get('/admin/system-notifications')
+        ->get(route('admin.system-notifications.index'))
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
             ->component('Admin/SystemNotifications')
@@ -36,7 +38,7 @@ it('forbids non admins from viewing the system notifications page', function () 
     ]);
 
     $this->actingAs($user)
-        ->get('/admin/system-notifications')
+        ->get(route('admin.system-notifications.index'))
         ->assertForbidden();
 });
 
@@ -64,7 +66,7 @@ it('sends mandatory maintenance notifications in app and off site regardless of 
     ]);
 
     $this->actingAs($admin)
-        ->post('/admin/system-notifications/maintenance', [
+        ->post(route('admin.system-notifications.maintenance.store'), [
             'headline' => 'Scheduled maintenance',
             'message' => 'FullParty will be unavailable while we patch the app.',
             'scheduled_for' => '2026-05-20 18:00:00',
@@ -91,8 +93,8 @@ it('sends mandatory maintenance notifications in app and off site regardless of 
     Queue::assertPushed(DispatchSystemNotificationBroadcastChunkJob::class, 1);
 
     (new DispatchSystemNotificationBroadcastChunkJob($broadcast->id, 1, $recipient->id))->handle(
-        app(\App\Services\Notifications\NotificationService::class),
-        app(\App\Services\Notifications\NotificationDeliveryDispatcher::class),
+        app(NotificationService::class),
+        app(NotificationDeliveryDispatcher::class),
     );
 
     expect($recipient->fresh()->inAppNotifications)->toHaveCount(0)
@@ -136,7 +138,7 @@ it('only sends optional update announcements to users who have system notices en
     ]);
 
     $this->actingAs($admin)
-        ->post('/admin/system-notifications/announcements', [
+        ->post(route('admin.system-notifications.announcements.store'), [
             'headline' => 'New feature drop',
             'message' => 'Follower muting is now live for groups.',
             'action_url' => 'https://test.fullparty.gg/changelog',
@@ -163,8 +165,8 @@ it('only sends optional update announcements to users who have system notices en
     Queue::assertPushed(DispatchSystemNotificationBroadcastChunkJob::class, 1);
 
     (new DispatchSystemNotificationBroadcastChunkJob($broadcast->id, 1, $optedOutUser->id))->handle(
-        app(\App\Services\Notifications\NotificationService::class),
-        app(\App\Services\Notifications\NotificationDeliveryDispatcher::class),
+        app(NotificationService::class),
+        app(NotificationDeliveryDispatcher::class),
     );
 
     expect($optedInUser->fresh()->inAppNotifications)->toHaveCount(0)

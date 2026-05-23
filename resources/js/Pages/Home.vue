@@ -1,9 +1,10 @@
 <script setup lang="ts">
 import LandingLayout from "@/Layouts/LandingLayout.vue";
 import { Head, router } from "@inertiajs/vue3";
+import { route } from "ziggy-js";
 
 const goToLogin = () => {
-	router.get('/auth/login');
+	router.get(route('login'));
 };
 </script>
 

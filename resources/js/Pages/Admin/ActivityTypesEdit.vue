@@ -7,6 +7,7 @@ import type {
 import ActivityTypeBuilderForm from "@/components/Admin/ActivityTypes/ActivityTypeBuilderForm.vue";
 import PageHeader from "@/components/PageHeader.vue";
 import { router, useForm } from "@inertiajs/vue3";
+import { route } from "ziggy-js";
 import { useI18n } from "vue-i18n";
 
 const props = defineProps<{
@@ -50,7 +51,7 @@ const form = useForm({
 });
 
 const goBack = () => {
-	router.get('/admin/activity-types');
+	router.get(route('admin.activity-types.index'));
 };
 
 const submit = () => {
@@ -59,13 +60,13 @@ const submit = () => {
 			...data,
 			_method: 'put',
 		}))
-		.post(`/admin/activity-types/${props.activityType.id}`, {
+		.post(route('admin.activity-types.update', props.activityType.id), {
 			forceFormData: true,
 		});
 };
 
 const publish = () => {
-	router.post(`/admin/activity-types/${props.activityType.id}/publish`);
+	router.post(route('admin.activity-types.publish', props.activityType.id));
 };
 </script>
 
@@ -96,7 +97,7 @@ const publish = () => {
 				:schema-reference="schemaReference"
 				:existing-tags="existingTags"
 				:submit-label="t('general.update')"
-				back-href="/admin/activity-types"
+				:back-href="route('admin.activity-types.index')"
 				@submit="submit"
 			/>
 		</div>

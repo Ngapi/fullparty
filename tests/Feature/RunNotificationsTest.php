@@ -61,7 +61,7 @@ it('notifies signed in active applicants when a run is cancelled', function () {
         'owner_id' => $owner->id,
     ]);
     $activity = createRunNotificationActivity($owner, $group, [
-        'status' => Activity::STATUS_PLANNED,
+        'status' => Activity::STATUS_ASSIGNED,
     ]);
 
     $pendingUser = User::factory()->create([

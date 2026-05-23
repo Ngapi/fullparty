@@ -5,35 +5,41 @@ import {useI18n} from "vue-i18n";
 import DevelopmentNotice from "@/components/DevelopmentNotice.vue";
 
 const { t } = useI18n();
-const loginHref = route('login');
 const page = usePage()
+const currentLocale = computed(() => String(page.props.locale?.current ?? 'en'))
 const isAuthenticated = computed(() => Boolean(page.props.auth?.user))
+const localizedRoute = (...args) => {
+	currentLocale.value
+
+	return route(...args)
+}
+const loginHref = computed(() => localizedRoute('login'));
 const authLink = (href, icon, label) => ({
 	label,
 	icon,
-	href: isAuthenticated.value ? href : loginHref,
+	href: isAuthenticated.value ? href : loginHref.value,
 	activeHref: href,
 })
 
 const top = computed(() => [
-	authLink(route('dashboard'), 'i-lucide-house', t('navigation.sidebar.dashboard')),
-	authLink(route('dashboard.runs.index'), 'i-lucide-calendar-days', t('navigation.sidebar.runs')),
+	authLink(localizedRoute('dashboard'), 'i-lucide-house', t('navigation.sidebar.dashboard')),
+	authLink(localizedRoute('dashboard.runs.index'), 'i-lucide-calendar-days', t('navigation.sidebar.runs')),
 ])
 
 const account = computed(() => [
-	authLink(route('account.characters'), 'i-lucide-user-circle', t('navigation.sidebar.characters')),
-	authLink(route('account.applications'), 'i-lucide-file-text', t('navigation.sidebar.applications')),
+	authLink(localizedRoute('account.characters'), 'i-lucide-user-circle', t('navigation.sidebar.characters')),
+	authLink(localizedRoute('account.applications'), 'i-lucide-file-text', t('navigation.sidebar.applications')),
 ])
 
 const groups = computed(() => [
-	{ label: t('navigation.sidebar.groups'), href: route('groups.index'), icon: 'i-lucide-shield' },
+	{ label: t('navigation.sidebar.groups'), href: localizedRoute('groups.index'), icon: 'i-lucide-shield' },
 ])
 
 const admin = computed(() => [
-	{ label: t('navigation.sidebar.character_definitions'), href: '/admin/character-data', icon: 'i-lucide-user-pen' },
-	{ label: t('navigation.sidebar.admin_audit_log'), href: '/admin/audit-log', icon: 'i-lucide-scroll-text' },
-	{ label: t('navigation.sidebar.system_notifications'), href: '/admin/system-notifications', icon: 'i-lucide-megaphone' },
-	{ label: t('navigation.sidebar.activity_types'), href: '/admin/activity-types', icon: 'i-lucide-file-pen' },
+	{ label: t('navigation.sidebar.character_definitions'), href: localizedRoute('admin.character-data'), icon: 'i-lucide-user-pen' },
+	{ label: t('navigation.sidebar.admin_audit_log'), href: localizedRoute('admin.audit-log'), icon: 'i-lucide-scroll-text' },
+	{ label: t('navigation.sidebar.system_notifications'), href: localizedRoute('admin.system-notifications.index'), icon: 'i-lucide-megaphone' },
+	{ label: t('navigation.sidebar.activity_types'), href: localizedRoute('admin.activity-types.index'), icon: 'i-lucide-file-pen' },
 	{ label: t('navigation.sidebar.pulse'), href: '/pulse', icon: 'i-lucide-activity', external: true },
 ])
 

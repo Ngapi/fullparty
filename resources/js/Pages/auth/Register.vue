@@ -18,7 +18,7 @@ const form = useForm({
 })
 
 const submit = () => {
-	form.post('/auth/register')
+	form.post(route('register.store'))
 }
 defineOptions({
 	layout: AuthLayout
