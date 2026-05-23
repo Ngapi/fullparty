@@ -7,11 +7,13 @@ import LoginWithGoogle from "@/components/LoginWithGoogle.vue";
 import LoginWithDiscord from "@/components/LoginWithDiscord.vue";
 import {useI18n} from "vue-i18n";
 import { route } from "ziggy-js";
+import { usePasswordVisibility } from "@/composables/usePasswordVisibility";
 
 const { t } = useI18n();
 const page = usePage();
 const successFlags = computed(() => (page.props.flash?.success ?? []) as string[]);
 const wasPasswordReset = computed(() => successFlags.value.includes('password_reset'));
+const passwordVisibility = usePasswordVisibility(['password'] as const);
 
 const form = useForm({
 	email: '',
@@ -63,7 +65,26 @@ defineOptions({
 				</UFormField>
 
 				<UFormField name="password" :error="form.errors.password">
-					<UInput v-model="form.password" type="password" size="xl" class="w-full" :placeholder="t('auth.password')" />
+					<UInput
+						v-model="form.password"
+						:type="passwordVisibility.inputType('password')"
+						size="xl"
+						class="w-full"
+						:placeholder="t('auth.password')"
+						:ui="{ trailing: 'pe-1' }"
+					>
+						<template #trailing>
+							<UButton
+								type="button"
+								color="neutral"
+								variant="ghost"
+								size="sm"
+								:icon="passwordVisibility.icon('password')"
+								:aria-label="t('auth.password')"
+								@click="passwordVisibility.toggle('password')"
+							/>
+						</template>
+					</UInput>
 				</UFormField>
 				<UCheckbox :label="t('auth.remember_me')" name="remember" v-model="form.remember"/>
 				<UButton type="submit" color="brand" size="xl" class="w-full justify-center" :disabled="form.processing">

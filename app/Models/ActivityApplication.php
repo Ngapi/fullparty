@@ -33,6 +33,18 @@ class ActivityApplication extends Model
         self::STATUS_WITHDRAWN,
     ];
 
+    public const ACTIVE_STATUSES = [
+        self::STATUS_PENDING,
+        self::STATUS_APPROVED,
+        self::STATUS_ON_BENCH,
+    ];
+
+    public const WITHDRAWABLE_STATUSES = [
+        self::STATUS_PENDING,
+        self::STATUS_APPROVED,
+        self::STATUS_ON_BENCH,
+    ];
+
     public const NOTES_MAX_LENGTH = 5000;
 
     public const REVIEW_REASON_MAX_LENGTH = 2000;

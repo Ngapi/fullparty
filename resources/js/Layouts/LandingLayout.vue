@@ -1,7 +1,8 @@
 <script setup lang="ts">
+import AppLocaleSelect from "@/components/Navigation/AppLocaleSelect.vue";
 import { usePersistentLocale } from "@/composables/usePersistentLocale";
 
-const { currentUiLocale, localeOptions, updateLocale } = usePersistentLocale();
+const { currentUiLocale } = usePersistentLocale();
 </script>
 
 <template>
@@ -9,12 +10,7 @@ const { currentUiLocale, localeOptions, updateLocale } = usePersistentLocale();
 		<div class="min-h-screen bg-neutral-100 text-neutral-900 dark:bg-neutral-950 dark:text-neutral-50">
 			<div class="fixed right-0 top-0 z-10 flex items-center gap-2 p-4">
 				<UColorModeSelect variant="ghost" />
-				<ULocaleSelect
-					variant="ghost"
-					:locales="localeOptions"
-					:model-value="currentUiLocale.code"
-					@update:model-value="updateLocale"
-				/>
+				<AppLocaleSelect variant="ghost" />
 			</div>
 
 			<div class="relative flex min-h-screen items-center justify-center overflow-hidden px-6 py-16">

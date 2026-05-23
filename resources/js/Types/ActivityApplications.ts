@@ -46,6 +46,7 @@ export type ActivityApplicationRecord = {
 	id: number
 	selected_character_id: number | null
 	status: string
+	is_rostered: boolean
 	notes: string | null
 	submitted_at: string | null
 	review_reason?: string | null

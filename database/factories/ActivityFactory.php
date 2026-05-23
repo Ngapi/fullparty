@@ -42,7 +42,7 @@ class ActivityFactory extends Factory
             'description' => fake()->sentence(),
             'notes' => fake()->boolean(35) ? fake()->paragraph() : null,
             'starts_at' => now()->addDays(fake()->numberBetween(1, 21)),
-            'duration_hours' => fake()->randomElement([2, 3, 6]),
+            'duration_hours' => fake()->randomElement([2.0, 2.5, 3.0, 3.5, 6.0]),
             'datacenter' => null,
             'intensity' => Activity::INTENSITY_CASUAL,
             'min_item_level' => null,
@@ -102,7 +102,9 @@ class ActivityFactory extends Factory
 
                 if ($activity->status === Activity::STATUS_COMPLETE) {
                     $activity->is_completed = true;
-                    $activity->completed_at ??= $activity->starts_at?->copy()->addHours($activity->duration_hours ?? 2);
+                    $activity->completed_at ??= $activity->starts_at?->copy()->addMinutes(
+                        (int) round(($activity->duration_hours ?? Activity::DEFAULT_DURATION_HOURS) * 60)
+                    );
                 }
             })
             ->afterCreating(function (Activity $activity): void {

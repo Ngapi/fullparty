@@ -6,8 +6,10 @@ import LoginWithGoogle from "@/components/LoginWithGoogle.vue";
 import LoginWithDiscord from "@/components/LoginWithDiscord.vue";
 import { route } from "ziggy-js";
 import {useI18n} from "vue-i18n";
+import { usePasswordVisibility } from "@/composables/usePasswordVisibility";
 
 const { t } = useI18n();
+const passwordVisibility = usePasswordVisibility(['password', 'password_confirmation'] as const);
 const form = useForm({
 	username: '',
 	email: '',
@@ -52,11 +54,49 @@ defineOptions({
 				</UFormField>
 
 				<UFormField name="password" :error="form.errors.password">
-					<UInput v-model="form.password" type="password" size="xl" class="w-full" :placeholder="t('auth.password')" />
+					<UInput
+						v-model="form.password"
+						:type="passwordVisibility.inputType('password')"
+						size="xl"
+						class="w-full"
+						:placeholder="t('auth.password')"
+						:ui="{ trailing: 'pe-1' }"
+					>
+						<template #trailing>
+							<UButton
+								type="button"
+								color="neutral"
+								variant="ghost"
+								size="sm"
+								:icon="passwordVisibility.icon('password')"
+								:aria-label="t('auth.password')"
+								@click="passwordVisibility.toggle('password')"
+							/>
+						</template>
+					</UInput>
 				</UFormField>
 
 				<UFormField name="password_confirmation">
-					<UInput v-model="form.password_confirmation" type="password" size="xl" class="w-full" :placeholder="t('auth.password_confirmation')" />
+					<UInput
+						v-model="form.password_confirmation"
+						:type="passwordVisibility.inputType('password_confirmation')"
+						size="xl"
+						class="w-full"
+						:placeholder="t('auth.password_confirmation')"
+						:ui="{ trailing: 'pe-1' }"
+					>
+						<template #trailing>
+							<UButton
+								type="button"
+								color="neutral"
+								variant="ghost"
+								size="sm"
+								:icon="passwordVisibility.icon('password_confirmation')"
+								:aria-label="t('auth.password_confirmation')"
+								@click="passwordVisibility.toggle('password_confirmation')"
+							/>
+						</template>
+					</UInput>
 				</UFormField>
 				<UButton type="submit" color="brand" size="xl" class="w-full justify-center" :disabled="form.processing">
 					{{ t('auth.register') }}

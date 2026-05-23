@@ -211,9 +211,14 @@ const rows = computed(() => [...props.slots]
 					onSelect: () => emit('clickSlot', slot.id),
 				},
 				{
-					label: 'Return to queue',
-					icon: 'i-lucide-undo-2',
-					disabled: !props.canReturnToQueue || !slot.can_return_to_queue || props.isSwapPending,
+					label: slot.assignment_source === 'manual'
+						? t('groups.activities.management.roster.remove_from_slot_action')
+						: 'Return to queue',
+					icon: slot.assignment_source === 'manual' ? 'i-lucide-user-minus' : 'i-lucide-undo-2',
+					color: 'error',
+					disabled: slot.assignment_source === 'manual'
+						? props.isSwapPending
+						: !props.canReturnToQueue || !slot.can_return_to_queue || props.isSwapPending,
 					onSelect: () => emit('returnSlotToQueue', slot.id),
 				},
 			],

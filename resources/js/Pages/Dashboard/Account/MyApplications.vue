@@ -119,6 +119,22 @@ const confirmWithdrawal = (application: AccountApplication) => {
 	pendingWithdrawal.value = application;
 };
 
+const withdrawalActionLabel = (application: AccountApplication) => (
+	application.is_rostered
+		? t("applications.withdraw.action_run")
+		: t("applications.withdraw.action_application")
+);
+
+const withdrawalConfirmDescription = computed(() => {
+	if (!pendingWithdrawal.value) {
+		return t("applications.withdraw.confirm_description_application");
+	}
+
+	return pendingWithdrawal.value.is_rostered
+		? t("applications.withdraw.confirm_description_run")
+		: t("applications.withdraw.confirm_description_application");
+});
+
 const closeWithdrawalModal = () => {
 	if (isWithdrawing.value) {
 		return;
@@ -234,7 +250,7 @@ const withdrawApplication = () => {
 							</div>
 
 							<div
-								v-if="canOpenOverview(application) || application.can_edit || application.can_cancel"
+							v-if="canOpenOverview(application) || application.can_edit || application.can_withdraw"
 								class="flex flex-wrap items-center gap-2"
 							>
 								<UButton
@@ -256,12 +272,12 @@ const withdrawApplication = () => {
 									@click="editApplication(application)"
 								/>
 								<UButton
-									v-if="application.can_cancel"
+									v-if="application.can_withdraw"
 									type="button"
 									color="error"
 									variant="soft"
 									icon="i-lucide-trash-2"
-									:label="t('applications.cancel')"
+									:label="withdrawalActionLabel(application)"
 									@click="confirmWithdrawal(application)"
 								/>
 							</div>
@@ -390,7 +406,7 @@ const withdrawApplication = () => {
 							</div>
 
 							<div
-								v-if="canOpenOverview(application) || application.can_edit || application.can_cancel"
+							v-if="canOpenOverview(application) || application.can_edit || application.can_withdraw"
 								class="flex flex-wrap items-center gap-2"
 							>
 								<UButton
@@ -412,12 +428,12 @@ const withdrawApplication = () => {
 									@click="editApplication(application)"
 								/>
 								<UButton
-									v-if="application.can_cancel"
+									v-if="application.can_withdraw"
 									type="button"
 									color="error"
 									variant="soft"
 									icon="i-lucide-trash-2"
-									:label="t('applications.cancel')"
+									:label="withdrawalActionLabel(application)"
 									@click="confirmWithdrawal(application)"
 								/>
 							</div>
@@ -497,8 +513,8 @@ const withdrawApplication = () => {
 
 		<UModal
 			:open="pendingWithdrawal !== null"
-			:title="t('applications.withdraw.title')"
-			:description="t('applications.withdraw.description')"
+			:title="t('applications.withdraw.confirm_title')"
+			:description="withdrawalConfirmDescription"
 			@update:open="(open) => { if (!open) closeWithdrawalModal(); }"
 		>
 			<template #body>
@@ -538,7 +554,7 @@ const withdrawApplication = () => {
 						color="error"
 						variant="soft"
 						icon="i-lucide-trash-2"
-						:label="t('applications.withdraw.confirm')"
+						:label="pendingWithdrawal ? withdrawalActionLabel(pendingWithdrawal) : t('applications.withdraw.action_application')"
 						:loading="isWithdrawing"
 						@click="withdrawApplication"
 					/>

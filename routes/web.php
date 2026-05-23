@@ -102,6 +102,11 @@ Route::put('/groups/{group:slug}/activities/{activity}/application-edit/{accessT
     ->where('secretKey', '[A-Za-z0-9]{40}')
     ->name('groups.activities.application.update-guest');
 
+Route::delete('/groups/{group:slug}/activities/{activity}/application-edit/{accessToken}/{secretKey?}', [GroupActivityApplicationController::class, 'destroyGuest'])
+    ->where('accessToken', '[A-Za-z0-9]{40}')
+    ->where('secretKey', '[A-Za-z0-9]{40}')
+    ->name('groups.activities.application.destroy-guest');
+
 Route::get('/groups/{group:slug}/activities/{activity}/application-confirmation/{secretKey?}', [GroupActivityApplicationController::class, 'confirmation'])
     ->where('secretKey', '[A-Za-z0-9]{40}')
     ->name('groups.activities.application.confirmation');

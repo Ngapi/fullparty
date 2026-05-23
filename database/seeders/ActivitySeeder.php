@@ -9,6 +9,7 @@ use App\Models\Group;
 use App\Models\GroupMembership;
 use App\Models\User;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 use RuntimeException;
 
@@ -39,7 +40,7 @@ class ActivitySeeder extends Seeder
         $chaotic = $activityTypes->get('cloud-of-darkness-chaotic');
         $savage = $activityTypes->get('savage-raids');
 
-        if (!$forkedTower?->currentPublishedVersion || !$chaotic?->currentPublishedVersion || !$savage?->currentPublishedVersion) {
+        if (! $forkedTower?->currentPublishedVersion || ! $chaotic?->currentPublishedVersion || ! $savage?->currentPublishedVersion) {
             throw new RuntimeException('Expected published activity types for forked tower, chaotic, and savage.');
         }
 
@@ -91,7 +92,7 @@ class ActivitySeeder extends Seeder
                         'description' => fake()->sentence(),
                         'notes' => fake()->boolean(35) ? fake()->paragraph() : null,
                         'starts_at' => $startsAt,
-                        'duration_hours' => fake()->randomElement([2, 3, 6]),
+                        'duration_hours' => fake()->randomElement([2.0, 2.5, 3.0, 3.5, 6.0]),
                         'target_prog_point_key' => $progPointKey,
                         'is_public' => $group->is_public ? fake()->boolean(80) : fake()->boolean(35),
                         'needs_application' => true,
@@ -134,7 +135,7 @@ class ActivitySeeder extends Seeder
                 $slotGroups = $type->currentPublishedVersion->layout_schema['groups'] ?? [];
                 $minAssignedSlots = $this->historicalMinimumAssignedSlotCount($slotGroups);
                 $maxAssignedSlots = $this->historicalMaximumAssignedSlotCount($slotGroups, $minAssignedSlots);
-                $durationHours = fake()->randomElement([2, 3, 6]);
+                $durationHours = fake()->randomElement([2.0, 2.5, 3.0, 3.5, 6.0]);
 
                 Activity::factory()
                     ->for($group)
@@ -155,7 +156,7 @@ class ActivitySeeder extends Seeder
                         'is_public' => $group->is_public ? fake()->boolean(80) : fake()->boolean(35),
                         'needs_application' => true,
                         'is_completed' => true,
-                        'completed_at' => $startsAt->copy()->addHours($durationHours),
+                        'completed_at' => $startsAt->copy()->addMinutes((int) round($durationHours * 60)),
                         'created_at' => $startsAt->copy()->subDays(fake()->numberBetween(7, 28)),
                         'updated_at' => $startsAt->copy()->subHours(fake()->numberBetween(2, 72)),
                     ]);
@@ -235,7 +236,7 @@ class ActivitySeeder extends Seeder
         return $forkedTower;
     }
 
-    private function futureStartsAt(int $activityIndex): \Illuminate\Support\Carbon
+    private function futureStartsAt(int $activityIndex): Carbon
     {
         $base = now()->startOfDay()->addDays(fake()->numberBetween(1, 90));
         $hour = fake()->randomElement([18, 19, 20, 21, 22]);
@@ -247,7 +248,7 @@ class ActivitySeeder extends Seeder
             ->addDays(intdiv($activityIndex, 4));
     }
 
-    private function historicalStartsAt(\Illuminate\Support\Carbon $referenceDate, int $activityIndex): \Illuminate\Support\Carbon
+    private function historicalStartsAt(Carbon $referenceDate, int $activityIndex): Carbon
     {
         $daysBack = fake()->numberBetween(5, 150) + intdiv($activityIndex, 3);
         $hour = fake()->randomElement([18, 19, 20, 21, 22]);
@@ -259,7 +260,7 @@ class ActivitySeeder extends Seeder
             ->setTime($hour, $minute);
     }
 
-    private function resolveFutureStatus(\Illuminate\Support\Carbon $startsAt): string
+    private function resolveFutureStatus(Carbon $startsAt): string
     {
         $daysUntil = now()->diffInDays($startsAt, false);
 

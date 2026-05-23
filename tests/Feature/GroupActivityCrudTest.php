@@ -121,7 +121,7 @@ it('allows moderators to create private application activities with guest applic
         'title' => 'Tuesday Savage Prog',
         'notes' => 'Bring food and pots.',
         'starts_at' => '2026-06-15T20:30',
-        'duration_hours' => 3,
+        'duration_hours' => 2.5,
         'datacenter' => 'Chaos',
         'intensity' => Activity::INTENSITY_HARDCORE,
         'min_item_level' => 720,
@@ -145,6 +145,7 @@ it('allows moderators to create private application activities with guest applic
         ->and($activity->organized_by_character_id)->toBe($organizerCharacter->id)
         ->and($activity->title)->toBe('Tuesday Savage Prog')
         ->and($activity->starts_at?->format('Y-m-d H:i'))->toBe('2026-06-15 20:30')
+        ->and($activity->duration_hours)->toBe(2.5)
         ->and($activity->datacenter)->toBe('Chaos')
         ->and($activity->intensity)->toBe(Activity::INTENSITY_HARDCORE)
         ->and($activity->min_item_level)->toBe(720)
@@ -436,7 +437,7 @@ it('updates mutable activity fields while keeping private access intact', functi
         'title' => 'Updated Run',
         'notes' => 'Updated moderator notes.',
         'starts_at' => '2026-07-01T21:15',
-        'duration_hours' => 4,
+        'duration_hours' => 3.5,
         'datacenter' => 'Aether',
         'intensity' => Activity::INTENSITY_MIDCORE,
         'min_item_level' => null,
@@ -458,7 +459,7 @@ it('updates mutable activity fields while keeping private access intact', functi
         ->and($activity->title)->toBe('Updated Run')
         ->and($activity->notes)->toBe('Updated moderator notes.')
         ->and($activity->starts_at?->format('Y-m-d H:i'))->toBe('2026-07-01 21:15')
-        ->and($activity->duration_hours)->toBe(4)
+        ->and($activity->duration_hours)->toBe(3.5)
         ->and($activity->datacenter)->toBe('Aether')
         ->and($activity->intensity)->toBe(Activity::INTENSITY_MIDCORE)
         ->and($activity->min_item_level)->toBeNull()
@@ -478,6 +479,39 @@ it('updates mutable activity fields while keeping private access intact', functi
         ->and($auditLog->metadata['changes']['datacenter']['new'])->toBe('Aether')
         ->and($auditLog->metadata['changes']['min_item_level']['new'])->toBeNull()
         ->and($auditLog->metadata['changes']['allow_guest_applications']['new'])->toBeFalse();
+});
+
+it('accepts half-hour durations and rejects values outside the half-hour step', function () {
+    $owner = User::factory()->create();
+    $group = Group::factory()->public()->create([
+        'owner_id' => $owner->id,
+    ]);
+    $activityType = createCrudActivityType($owner);
+
+    $this->actingAs($owner);
+
+    $this->post(route('groups.dashboard.activities.store', [
+        'group' => $group->slug,
+    ]), [
+        'activity_type_id' => $activityType->id,
+        'status' => Activity::STATUS_PLANNED,
+        'duration_hours' => 2.5,
+    ])->assertRedirect(route('groups.dashboard.activities.index', [
+        'group' => $group->slug,
+    ]));
+
+    $activity = $group->activities()->latest('id')->firstOrFail();
+
+    expect($activity->duration_hours)->toBe(2.5);
+
+    $this->put(route('groups.dashboard.activities.update', [
+        'group' => $group->slug,
+        'activity' => $activity->id,
+    ]), [
+        'duration_hours' => 2.25,
+    ])->assertSessionHasErrors(['duration_hours']);
+
+    expect($activity->fresh()->duration_hours)->toBe(2.5);
 });
 
 it('allows moderators to schedule a planned activity', function () {

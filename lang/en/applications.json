@@ -16,7 +16,7 @@
   "unknown_character": "Unknown character",
   "editable": "Still pending review",
   "locked": "Locked for changes",
-  "locked_help": "Applications can only be edited or withdrawn while they are still pending review.",
+  "locked_help": "Applications can only be edited while they are still pending review. Approved or benched applications can still be withdrawn while the run is active.",
   "statuses": {
     "withdrawn": "Withdrawn"
   },
@@ -32,16 +32,19 @@
   },
   "edit": "Edit Application",
   "view_run": "View Run",
-  "cancel": "Cancel Application",
   "withdraw": {
-    "title": "Cancel Application",
-    "description": "Withdraw this pending application from the run queue.",
-    "warning_title": "This withdraws your application",
-    "warning_description": "The application will move to your history. If you want to sign up again later, you will need to submit a new one.",
-    "confirm": "Withdraw Application",
+    "locked_title": "Application locked",
+    "locked_description": "This application can no longer be edited, but it can still be withdrawn while the run is active.",
+    "confirm_title": "Confirm withdrawal",
+    "confirm_description_application": "This application will be moved to your history.",
+    "confirm_description_run": "You will be removed from the roster and this application will be moved to your history.",
+    "warning_title": "This cannot be undone",
+    "warning_description": "You will need to submit a new application if you want to join this run again.",
+    "action_application": "Withdraw Application",
+    "action_run": "Withdraw from Run",
     "success_title": "Application withdrawn",
     "success_description": "Your application has been withdrawn and moved to your history.",
-    "error_title": "Unable to cancel application",
-    "error_description": "This application could not be cancelled right now."
+    "error_title": "Unable to withdraw application",
+    "error_description": "This application could not be withdrawn right now."
   }
 }

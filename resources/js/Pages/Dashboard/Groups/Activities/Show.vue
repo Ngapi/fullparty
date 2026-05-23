@@ -175,6 +175,22 @@ const handleSlotStateConflict = async (error: any) => {
 	return true;
 };
 
+const firstValidationErrorMessage = (error: any): string | null => {
+	const errors = error?.response?.data?.errors;
+
+	if (!errors || typeof errors !== 'object') {
+		return null;
+	}
+
+	for (const value of Object.values(errors)) {
+		if (Array.isArray(value) && typeof value[0] === 'string' && value[0].length > 0) {
+			return value[0];
+		}
+	}
+
+	return null;
+};
+
 const goBack = () => {
 	router.get(route('groups.dashboard.activities.index', props.group.slug));
 };
@@ -806,7 +822,7 @@ const returnSlotToQueue = async (slotId: number) => {
 
 		toast.add({
 			title: t('general.error'),
-			description: t('groups.activities.management.messages.return_to_queue_failed'),
+			description: t('groups.activities.management.messages.slot_unassign_failed'),
 			color: 'error',
 			icon: 'i-lucide-octagon-alert',
 		});
@@ -1190,8 +1206,6 @@ const handleAssignApplicantToSlot = async (payload: { applicationId: number, slo
 
 		closeAssignmentModal();
 	} catch (error: any) {
-		console.error(error);
-
 		if (await handleSlotStateConflict(error)) {
 			closeAssignmentModal();
 			return;
@@ -1199,7 +1213,9 @@ const handleAssignApplicantToSlot = async (payload: { applicationId: number, slo
 
 		toast.add({
 			title: t('general.error'),
-			description: t('groups.activities.management.messages.assign_failed'),
+			description: firstValidationErrorMessage(error)
+				?? error?.response?.data?.message
+				?? t('groups.activities.management.messages.assign_failed'),
 			color: 'error',
 			icon: 'i-lucide-octagon-alert',
 		});
@@ -1254,8 +1270,6 @@ const handleAssignCharacterToSlot = async (payload: { characterId: number, slotI
 
 		closeManualAssignmentModal();
 	} catch (error: any) {
-		console.error(error);
-
 		if (await handleSlotStateConflict(error)) {
 			closeManualAssignmentModal();
 			return;
@@ -1263,7 +1277,9 @@ const handleAssignCharacterToSlot = async (payload: { characterId: number, slotI
 
 		toast.add({
 			title: t('general.error'),
-			description: t('groups.activities.management.messages.manual_assign_failed'),
+			description: firstValidationErrorMessage(error)
+				?? error?.response?.data?.message
+				?? t('groups.activities.management.messages.manual_assign_failed'),
 			color: 'error',
 			icon: 'i-lucide-octagon-alert',
 		});

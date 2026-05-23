@@ -35,7 +35,7 @@ class ActivitySlotAssignmentService
     ): void {
         $targetSlot->loadMissing('fieldValues');
 
-        if (!$application->selected_character_id) {
+        if (! $application->selected_character_id) {
             throw ValidationException::withMessages([
                 'application_id' => 'The application must have a selected character before it can be assigned.',
             ]);
@@ -44,6 +44,18 @@ class ActivitySlotAssignmentService
         if ($sourceSlot && (int) $sourceSlot->assigned_character_id !== (int) $application->selected_character_id) {
             throw ValidationException::withMessages([
                 'source_slot_id' => 'The source slot does not match the selected application character.',
+            ]);
+        }
+
+        $conflictingSlot = $targetSlot->activity?->slots()
+            ->where('assigned_character_id', $application->selected_character_id)
+            ->when($sourceSlot, fn ($query) => $query->where('id', '!=', $sourceSlot->id))
+            ->where('id', '!=', $targetSlot->id)
+            ->first();
+
+        if ($conflictingSlot) {
+            throw ValidationException::withMessages([
+                'application_id' => 'This character is already assigned to another slot in this run.',
             ]);
         }
 
@@ -74,7 +86,7 @@ class ActivitySlotAssignmentService
             $targetDesignationState = $this->designationState($targetSlot);
             $sourceDesignationState = $sourceSlot ? $this->designationState($sourceSlot) : $this->emptyDesignationState();
 
-            if ($sourceSlot && !$isSourceBench && $isTargetBench && $targetSlot->assigned_character_id) {
+            if ($sourceSlot && ! $isSourceBench && $isTargetBench && $targetSlot->assigned_character_id) {
                 throw ValidationException::withMessages([
                     'slot' => 'Promoting a bench player into a filled roster slot must use the reassignment flow.',
                 ]);
@@ -87,7 +99,7 @@ class ActivitySlotAssignmentService
             $this->applyDesignationState(
                 $targetSlot,
                 $sourceSlot ? $sourceDesignationState : $this->emptyDesignationState(),
-                !$isTargetBench,
+                ! $isTargetBench,
             );
 
             if ($isTargetBench) {
@@ -112,7 +124,7 @@ class ActivitySlotAssignmentService
             );
 
             if ($sourceSlot && (int) $sourceSlot->id !== (int) $targetSlot->id) {
-                if ($isSourceBench && !$isTargetBench && $displacedApplication && $targetHadDifferentOccupant) {
+                if ($isSourceBench && ! $isTargetBench && $displacedApplication && $targetHadDifferentOccupant) {
                     $sourceSlot->update([
                         'assigned_character_id' => $displacedApplication->selected_character_id,
                         'assigned_by_user_id' => $assignedByUserId,
@@ -143,7 +155,7 @@ class ActivitySlotAssignmentService
                     $this->clearSlotFieldValues($sourceSlot);
                 }
             } elseif ($displacedApplication && (int) $displacedApplication->id !== (int) $application->id) {
-                $this->applyDesignationState($targetSlot, $this->emptyDesignationState(), !$isTargetBench);
+                $this->applyDesignationState($targetSlot, $this->emptyDesignationState(), ! $isTargetBench);
                 $displacedApplication->update([
                     'status' => ActivityApplication::STATUS_PENDING,
                     'reviewed_by_user_id' => null,
@@ -200,7 +212,7 @@ class ActivitySlotAssignmentService
 
         if (
             $targetSlot->activity?->status !== Activity::STATUS_ASSIGNED
-            || ($event === 'updated' && !$targetFieldValuesChanged)
+            || ($event === 'updated' && ! $targetFieldValuesChanged)
         ) {
             return;
         }
@@ -248,7 +260,7 @@ class ActivitySlotAssignmentService
 
         $activity = $targetSlot->activity;
 
-        if (!$activity) {
+        if (! $activity) {
             throw ValidationException::withMessages([
                 'slot' => 'The selected slot is not attached to an activity.',
             ]);
@@ -281,6 +293,17 @@ class ActivitySlotAssignmentService
             ]);
         }
 
+        $activeApplicationExists = $activity->applications()
+            ->where('selected_character_id', $character->id)
+            ->whereIn('status', ActivityApplication::ACTIVE_STATUSES)
+            ->exists();
+
+        if ($activeApplicationExists) {
+            throw ValidationException::withMessages([
+                'character_id' => 'This character already has an active application for this run.',
+            ]);
+        }
+
         $targetPreviousCharacterId = $targetSlot->assigned_character_id;
         $originalTargetFieldValueSnapshot = $this->attendanceService->buildFieldValueSnapshot($targetSlot);
         $isTargetBench = $this->slotBench->isBench($targetSlot);
@@ -305,7 +328,7 @@ class ActivitySlotAssignmentService
             $this->applyDesignationState(
                 $targetSlot,
                 $sourceSlot ? $sourceDesignationState : $targetDesignationState,
-                !$isTargetBench,
+                ! $isTargetBench,
             );
 
             if ($isTargetBench) {
@@ -375,7 +398,7 @@ class ActivitySlotAssignmentService
 
         if (
             $targetSlot->activity?->status !== Activity::STATUS_ASSIGNED
-            || ($targetPreviousCharacterId === $character->id && !$targetFieldValuesChanged)
+            || ($targetPreviousCharacterId === $character->id && ! $targetFieldValuesChanged)
         ) {
             return;
         }
@@ -392,7 +415,7 @@ class ActivitySlotAssignmentService
 
     private function findApplicationForAssignedCharacter(ActivitySlot $slot): ?ActivityApplication
     {
-        if (!$slot->assigned_character_id) {
+        if (! $slot->assigned_character_id) {
             return null;
         }
 
@@ -429,8 +452,9 @@ class ActivitySlotAssignmentService
         foreach ($slot->fieldValues as $fieldValue) {
             $definition = $fieldDefinitions[$fieldValue->field_key] ?? null;
 
-            if (!$definition) {
+            if (! $definition) {
                 $fieldValue->update(['value' => null]);
+
                 continue;
             }
 
@@ -457,7 +481,7 @@ class ActivitySlotAssignmentService
                 ->all();
 
             foreach ($normalizedSelection as $selection) {
-                if (!in_array($selection, $allowedOptionKeys, true)) {
+                if (! in_array($selection, $allowedOptionKeys, true)) {
                     throw ValidationException::withMessages([
                         "field_values.{$fieldValue->field_key}" => 'Selected slot values must be valid options for this field.',
                     ]);
@@ -487,8 +511,9 @@ class ActivitySlotAssignmentService
         foreach ($slot->fieldValues as $fieldValue) {
             $definition = $fieldDefinitions[$fieldValue->field_key] ?? null;
 
-            if (!$definition) {
+            if (! $definition) {
                 $fieldValue->update(['value' => null]);
+
                 continue;
             }
 
@@ -512,7 +537,7 @@ class ActivitySlotAssignmentService
             }
 
             foreach ($normalizedSelection as $selection) {
-                if (!in_array($selection, $allowedOptionKeys, true)) {
+                if (! in_array($selection, $allowedOptionKeys, true)) {
                     throw ValidationException::withMessages([
                         "field_values.{$fieldValue->field_key}" => 'Selected slot values must come from the application.',
                     ]);
@@ -541,7 +566,7 @@ class ActivitySlotAssignmentService
                 ->all();
         }
 
-        if (!filled($value)) {
+        if (! filled($value)) {
             return [];
         }
 
@@ -561,7 +586,7 @@ class ActivitySlotAssignmentService
                 ->all();
         }
 
-        if (!filled($value)) {
+        if (! filled($value)) {
             return [];
         }
 
@@ -594,7 +619,7 @@ class ActivitySlotAssignmentService
      */
     private function resolveSingleStoredValue(array $definition, ?array $option, string $selection): ?array
     {
-        if (!$option) {
+        if (! $option) {
             return null;
         }
 

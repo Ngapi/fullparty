@@ -115,6 +115,14 @@ class Activity extends Model
 
     public const PROGRESS_NOTES_MAX_LENGTH = 5000;
 
+    public const DURATION_MIN_HOURS = 1.0;
+
+    public const DURATION_MAX_HOURS = 24.0;
+
+    public const DURATION_STEP_HOURS = 0.5;
+
+    public const DEFAULT_DURATION_HOURS = 2.0;
+
     public const SETTING_CANCELLATION_REASON = 'cancellation_reason';
 
     protected $fillable = [
@@ -153,7 +161,7 @@ class Activity extends Model
 
     protected $casts = [
         'starts_at' => 'datetime',
-        'duration_hours' => 'integer',
+        'duration_hours' => 'float',
         'min_item_level' => 'integer',
         'beginner_friendly' => 'boolean',
         'is_public' => 'boolean',

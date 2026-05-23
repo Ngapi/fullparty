@@ -7,14 +7,14 @@ use App\Models\ActivityApplication;
 use App\Models\ActivitySlot;
 use App\Models\ActivitySlotAssignment;
 use App\Models\Group;
-use App\Services\Notifications\AssignmentNotificationService;
 use App\Services\Groups\ActivityManagementRealtimeService;
-use App\Services\Groups\ActivitySlotDesignationService;
-use App\Services\Groups\GroupActivityAuditService;
-use App\Services\Groups\ActivitySlotSerializer;
 use App\Services\Groups\ActivitySlotAttendanceService;
+use App\Services\Groups\ActivitySlotDesignationService;
+use App\Services\Groups\ActivitySlotSerializer;
 use App\Services\Groups\ActivitySlotStateTokenService;
 use App\Services\Groups\ApplicantQueue\ApplicantQueuePayloadBuilder;
+use App\Services\Groups\GroupActivityAuditService;
+use App\Services\Notifications\AssignmentNotificationService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -40,7 +40,7 @@ class GroupActivitySlotUnassignmentController extends Controller
 
         if ($activity->isArchived()) {
             throw ValidationException::withMessages([
-                'activity' => 'Archived activities cannot be moved back into the applicant queue.',
+                'activity' => 'Archived activities cannot have roster assignments removed.',
             ]);
         }
 
@@ -48,9 +48,9 @@ class GroupActivitySlotUnassignmentController extends Controller
             abort(404);
         }
 
-        if (!$slot->assigned_character_id) {
+        if (! $slot->assigned_character_id) {
             throw ValidationException::withMessages([
-                'slot' => 'Only filled roster slots can be returned to the queue.',
+                'slot' => 'Only filled roster slots can be unassigned.',
             ]);
         }
 
@@ -69,9 +69,54 @@ class GroupActivitySlotUnassignmentController extends Controller
             ->latest('assigned_at')
             ->first();
 
-        if ($activeAssignment && $activeAssignment->application_id === null) {
-            throw ValidationException::withMessages([
-                'slot' => 'Manually assigned slots cannot be returned to the queue.',
+        $isManualAssignment = $activeAssignment && $activeAssignment->application_id === null;
+
+        if ($isManualAssignment) {
+            $slotCharacterId = (int) $slot->assigned_character_id;
+            $slotCharacterName = $slot->assignedCharacter?->name;
+
+            DB::transaction(function () use ($slot, $activity, $attendanceService, $slotCharacterId) {
+                $slot->update([
+                    'assigned_character_id' => null,
+                    'assigned_by_user_id' => null,
+                ]);
+
+                foreach ($slot->fieldValues as $fieldValue) {
+                    $fieldValue->update([
+                        'value' => null,
+                    ]);
+                }
+
+                $attendanceService->endActiveAssignment($activity, $slotCharacterId);
+            });
+
+            $slotDesignationService->clearInvalidDesignations([$slot], auth()->user());
+            $slot->load(['assignedCharacter', 'fieldValues', 'assignments']);
+
+            $activityAuditService->logRosterEvent(
+                'manual_removed',
+                $slot,
+                auth()->user(),
+                [
+                    'character_name' => $slotCharacterName,
+                    'assignment_source' => ActivitySlotAssignment::SOURCE_MANUAL,
+                ],
+            );
+
+            $pendingApplicationCount = $activity->applications()
+                ->where('status', ActivityApplication::STATUS_PENDING)
+                ->count();
+            $serializedSlot = $slotSerializer->serialize($slot);
+
+            $activityManagementRealtimeService->broadcastPatch($activity, [
+                'updated_slots' => [$serializedSlot],
+                'pending_application_count' => $pendingApplicationCount,
+            ]);
+
+            return response()->json([
+                'slot' => $serializedSlot,
+                'application' => null,
+                'pending_application_count' => $pendingApplicationCount,
             ]);
         }
 
@@ -86,7 +131,7 @@ class GroupActivitySlotUnassignmentController extends Controller
             ->latest('reviewed_at')
             ->first();
 
-        if (!$application) {
+        if (! $application) {
             throw ValidationException::withMessages([
                 'slot' => 'No assigned application could be found for this roster assignment.',
             ]);

@@ -106,7 +106,8 @@ export type AccountApplication = {
 	review_reason: string | null
 	notes: string | null
 	can_edit: boolean
-	can_cancel: boolean
+	can_withdraw: boolean
+	is_rostered: boolean
 	group: {
 		name: string | null
 		slug: string | null

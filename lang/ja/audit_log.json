@@ -151,7 +151,8 @@
           "reassigned": "がロスター枠を再割り当てしました。",
           "replaced": "がロスター割り当てを置き換えました。",
           "swapped": "がロスター内で人員を移動しました。",
-          "returned_to_queue": "がロスター枠をキューへ戻しました。"
+          "returned_to_queue": "がロスター枠をキューへ戻しました。",
+          "manual_removed": "が手動割り当てされたキャラクターをロスター枠から外しました。"
         },
         "attendance": {
           "checked_in": "がロスター枠をチェックインしました。",
@@ -355,7 +356,8 @@
           "reassigned": "ロスター枠再割り当て",
           "replaced": "ロスター割り当て置換",
           "swapped": "ロスター位置移動",
-          "returned_to_queue": "ロスター枠をキューへ戻す"
+          "returned_to_queue": "ロスター枠をキューへ戻す",
+          "manual_removed": "手動のロスター割り当てを解除"
         },
         "attendance": {
           "checked_in": "ロスター枠チェックイン",

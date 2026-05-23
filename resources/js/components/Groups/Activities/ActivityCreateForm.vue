@@ -65,6 +65,7 @@ const {
 	durationPresets,
 	selectedDurationOption,
 	isCustomDuration,
+	normalizeDurationHours,
 } = useActivityFormFields(
 	toRef(props, 'activityTypes'),
 	toRef(props, 'organizerCharacters'),
@@ -313,12 +314,13 @@ watch(() => props.form.needs_application, (needsApplication) => {
 							type="number"
 							min="1"
 							max="24"
+							step="0.5"
 							size="lg"
 							class="w-full xl:w-32"
 							:disabled="!isCustomDuration"
 							:placeholder="t('groups.activities.create.fields.duration.placeholder')"
 							@focus="selectedDurationOption = 'custom'"
-							@update:model-value="(value) => form.duration_hours = Math.min(24, Math.max(1, Number(value) || 1))"
+							@update:model-value="(value) => form.duration_hours = normalizeDurationHours(value)"
 						/>
 					</div>
 				</UFormField>

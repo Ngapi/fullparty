@@ -512,7 +512,7 @@ it('shows the moderator decline reason on the guest status page', function () {
         ->assertInertia(fn (Assert $page) => $page
             ->component('Groups/Activities/ApplicationConfirmation')
             ->where('confirmation.view', 'status')
-            ->where('confirmation.can_edit', true)
+            ->where('confirmation.can_edit', false)
             ->where('application.status', ActivityApplication::STATUS_DECLINED)
             ->where('application.review_reason', 'Roster is already full for this run.'));
 });
@@ -601,7 +601,7 @@ it('allows guests to update their application from the access token route', func
         ->and($application->answers->sole()->value)->toBe('Reached clear.');
 });
 
-it('keeps scheduled activities editable for existing guest applications until the roster is published', function () {
+it('does not allow guests to edit approved applications even before the roster is published', function () {
     $activity = createGuestApplicationActivity([
         'status' => Activity::STATUS_SCHEDULED,
     ]);
@@ -616,13 +616,24 @@ it('keeps scheduled activities editable for existing guest applications until th
         'accessToken' => $application->guest_access_token,
     ]));
 
-    $editResponse
+    $editResponse->assertRedirect(route('groups.activities.application.status', [
+        'group' => $activity->group->slug,
+        'activity' => $activity->id,
+        'accessToken' => $application->guest_access_token,
+    ]));
+
+    $statusResponse = $this->get(route('groups.activities.application.status', [
+        'group' => $activity->group->slug,
+        'activity' => $activity->id,
+        'accessToken' => $application->guest_access_token,
+    ]));
+
+    $statusResponse
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
-            ->component('Groups/Activities/Application')
-            ->where('permissions.can_apply', false)
-            ->where('permissions.can_apply_as_guest', true)
-            ->where('permissions.can_edit_application', true)
+            ->component('Groups/Activities/ApplicationConfirmation')
+            ->where('confirmation.can_edit', false)
+            ->where('confirmation.can_withdraw', true)
         );
 
     $updateResponse = $this->put(route('groups.activities.application.update-guest', [
@@ -642,13 +653,8 @@ it('keeps scheduled activities editable for existing guest applications until th
         ],
     ]);
 
-    $updateResponse->assertRedirect(route('groups.activities.application.status', [
-        'group' => $activity->group->slug,
-        'activity' => $activity->id,
-        'accessToken' => $application->guest_access_token,
-    ]));
-
-    expect($application->fresh()->status)->toBe(ActivityApplication::STATUS_PENDING);
+    $updateResponse->assertForbidden();
+    expect($application->fresh()->status)->toBe(ActivityApplication::STATUS_APPROVED);
 });
 
 it('does not allow guests to submit applications for verified characters', function () {
@@ -758,6 +764,117 @@ it('does not allow authenticated users to update applications once the roster is
     ]);
 
     $response->assertForbidden();
+});
+
+it('does not allow authenticated users to edit approved applications even before the roster is published', function () {
+    $activity = createGuestApplicationActivity([
+        'status' => Activity::STATUS_SCHEDULED,
+        'allow_guest_applications' => false,
+    ]);
+    $user = User::factory()->create();
+    $character = Character::factory()->primary()->create([
+        'user_id' => $user->id,
+    ]);
+
+    $application = ActivityApplication::factory()->approved($activity->group->owner)->create([
+        'activity_id' => $activity->id,
+        'user_id' => $user->id,
+        'selected_character_id' => $character->id,
+        'applicant_lodestone_id' => $character->lodestone_id,
+        'applicant_character_name' => $character->name,
+        'applicant_world' => $character->world,
+        'applicant_datacenter' => $character->datacenter,
+    ]);
+
+    $this->actingAs($user);
+
+    $pageResponse = $this->get(route('groups.activities.application', [
+        'group' => $activity->group->slug,
+        'activity' => $activity->id,
+    ]));
+
+    $pageResponse
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->component('Groups/Activities/Application')
+            ->where('permissions.can_edit_application', false)
+            ->where('permissions.can_withdraw_application', true)
+        );
+
+    $response = $this->put(route('groups.activities.application.update', [
+        'group' => $activity->group->slug,
+        'activity' => $activity->id,
+    ]), [
+        'selected_character_id' => $character->id,
+        'answers' => [
+            'experience' => 'Should not save.',
+        ],
+    ]);
+
+    $response->assertForbidden();
+    expect($application->fresh()->status)->toBe(ActivityApplication::STATUS_APPROVED);
+});
+
+it('does not allow authenticated users to apply with a character already assigned to the run', function () {
+    $activity = createGuestApplicationActivity([
+        'allow_guest_applications' => false,
+    ]);
+    $user = User::factory()->create();
+    $character = Character::factory()->primary()->create([
+        'user_id' => $user->id,
+    ]);
+
+    $activity->slots()->firstOrFail()->update([
+        'assigned_character_id' => $character->id,
+        'assigned_by_user_id' => $activity->group->owner_id,
+    ]);
+
+    $this->actingAs($user);
+
+    $response = $this->post(route('groups.activities.application.store', [
+        'group' => $activity->group->slug,
+        'activity' => $activity->id,
+    ]), [
+        'selected_character_id' => $character->id,
+        'answers' => [
+            'experience' => 'Trying to apply while already assigned.',
+        ],
+    ]);
+
+    $response->assertSessionHasErrors(['selected_character_id']);
+    expect(ActivityApplication::query()->count())->toBe(0);
+});
+
+it('allows guests to withdraw approved applications and clears their assigned slot', function () {
+    $activity = createGuestApplicationActivity([
+        'status' => Activity::STATUS_SCHEDULED,
+    ]);
+
+    $application = ActivityApplication::factory()->guest()->approved($activity->group->owner)->create([
+        'activity_id' => $activity->id,
+    ]);
+    $application->load('selectedCharacter');
+
+    $slot = $activity->slots()->firstOrFail();
+    $slot->update([
+        'assigned_character_id' => $application->selectedCharacter->id,
+        'assigned_by_user_id' => $activity->group->owner_id,
+    ]);
+
+    $response = $this->delete(route('groups.activities.application.destroy-guest', [
+        'group' => $activity->group->slug,
+        'activity' => $activity->id,
+        'accessToken' => $application->guest_access_token,
+    ]));
+
+    $response->assertRedirect(route('groups.activities.application.status', [
+        'group' => $activity->group->slug,
+        'activity' => $activity->id,
+        'accessToken' => $application->guest_access_token,
+    ]));
+
+    expect($application->fresh()->status)->toBe(ActivityApplication::STATUS_WITHDRAWN)
+        ->and($slot->fresh()->assigned_character_id)->toBeNull();
 });
 
 it('returns assigned guest applications back to the queue', function () {

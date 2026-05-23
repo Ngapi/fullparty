@@ -25,11 +25,13 @@ const props = defineProps<{
 	canApply: boolean
 	canApplyAsGuest: boolean
 	canEditApplication: boolean
+	canWithdrawApplication?: boolean
 	guestWorlds: GuestWorldOption[]
 }>();
 
 const emit = defineEmits<{
 	cancel: []
+	withdraw: []
 }>();
 
 const { t } = useI18n();
@@ -269,7 +271,19 @@ const submit = () => {
 				icon="i-lucide-lock"
 				:title="t('groups.activities.application.form.locked_title')"
 				:description="t('groups.activities.application.form.locked_description')"
-			/>
+			>
+				<template #actions>
+					<UButton
+						v-if="canWithdrawApplication"
+						color="error"
+						variant="soft"
+						size="sm"
+						icon="i-lucide-trash-2"
+						:label="application?.is_rostered ? t('applications.withdraw.action_run') : t('applications.withdraw.action_application')"
+						@click.prevent="emit('withdraw')"
+					/>
+				</template>
+			</UAlert>
 
 			<UAlert
 				v-if="guestModeEnabled"

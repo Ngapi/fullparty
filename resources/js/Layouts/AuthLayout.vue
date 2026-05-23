@@ -1,10 +1,11 @@
 <script setup lang="ts">
+import AppLocaleSelect from "@/components/Navigation/AppLocaleSelect.vue";
 import { useI18n } from 'vue-i18n'
 import { usePersistentLocale } from "@/composables/usePersistentLocale";
 const char1 = '/ft.jpg'
 
-const { t, locale } = useI18n({ useScope: 'global' })
-const { currentUiLocale, localeOptions, updateLocale } = usePersistentLocale();
+const { t } = useI18n({ useScope: 'global' })
+const { currentUiLocale } = usePersistentLocale();
 </script>
 
 <template>
@@ -26,12 +27,7 @@ const { currentUiLocale, localeOptions, updateLocale } = usePersistentLocale();
 			</div>
 			<div class="fixed top-0 right-0 p-4 space-x-2">
 				<UColorModeSelect variant="ghost" />
-				<ULocaleSelect
-					variant="ghost"
-					v-model="locale"
-					:locales="localeOptions"
-					@update:model-value="updateLocale"
-				/>
+				<AppLocaleSelect variant="ghost" />
 			</div>
 		</div>
 	</UApp>

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Activity;
 use App\Models\ActivityApplication;
 use App\Models\Group;
+use App\Services\Groups\ActivityApplicationWithdrawalService;
 use App\Services\Notifications\NotificationInboxService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
@@ -15,6 +16,7 @@ class DashboardController extends Controller
 {
     public function __construct(
         private readonly NotificationInboxService $notificationInboxService,
+        private readonly ActivityApplicationWithdrawalService $applicationWithdrawalService,
     ) {}
 
     public function show(Request $request): Response
@@ -153,7 +155,11 @@ class DashboardController extends Controller
     {
         $activity = $application->activity;
         $character = $application->selectedCharacter;
-        $canModify = $this->applicationCanBeModified($application);
+        $canEdit = $this->applicationCanBeModified($application);
+        $canWithdraw = $activity
+            ? $this->applicationWithdrawalService->applicationCanBeWithdrawn($activity, $application)
+            : false;
+        $isRostered = $this->applicationWithdrawalService->applicationIsRostered($application);
 
         return [
             'id' => $application->id,
@@ -162,8 +168,9 @@ class DashboardController extends Controller
             'reviewed_at' => $application->reviewed_at?->toIso8601String(),
             'review_reason' => $application->review_reason,
             'notes' => $application->notes,
-            'can_edit' => $canModify,
-            'can_cancel' => $canModify,
+            'can_edit' => $canEdit,
+            'can_withdraw' => $canWithdraw,
+            'is_rostered' => $isRostered,
             'group' => [
                 'name' => $activity?->group?->name,
                 'slug' => $activity?->group?->slug,
@@ -198,7 +205,8 @@ class DashboardController extends Controller
 
         return $application->status === ActivityApplication::STATUS_PENDING
             && $activity->needs_application
-            && ! Activity::isArchivedStatus($activity->status);
+            && ! Activity::isArchivedStatus($activity->status)
+            && ! $this->applicationWithdrawalService->applicationIsRostered($application);
     }
 
     /**

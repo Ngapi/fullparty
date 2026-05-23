@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::table('activities', function (Blueprint $table) {
             $table->foreignId('organized_by_character_id')->nullable()->after('organized_by_user_id')->constrained('characters')->nullOnDelete();
-            $table->unsignedInteger('duration_hours')->default(2)->after('starts_at');
+            $table->decimal('duration_hours', 4, 1)->unsigned()->default(2.0)->after('starts_at');
             $table->text('notes')->nullable()->after('description');
             $table->boolean('is_public')->default(true)->after('notes');
             $table->boolean('needs_application')->default(true)->after('is_public');

@@ -84,7 +84,7 @@ it('shows the authenticated users applications newest first', function () {
             ->component('Dashboard/Account/MyApplications')
             ->where('activeApplications.0.id', $latest->id)
             ->where('activeApplications.0.can_edit', true)
-            ->where('activeApplications.0.can_cancel', true)
+            ->where('activeApplications.0.can_withdraw', true)
             ->where('historicalApplications', []));
 });
 
@@ -122,7 +122,7 @@ it('allows users to withdraw their own pending application', function () {
         ->and($auditLog->metadata['application_status'])->toBe(ActivityApplication::STATUS_WITHDRAWN);
 });
 
-it('does not allow users to withdraw applications that are no longer pending', function () {
+it('allows users to withdraw approved applications and removes them from the roster', function () {
     $activity = createAccountApplicationsActivity();
     $user = User::factory()->create();
     $character = Character::factory()->primary()->create([
@@ -135,6 +135,37 @@ it('does not allow users to withdraw applications that are no longer pending', f
         'selected_character_id' => $character->id,
     ]);
 
+    $slot = $activity->slots()->firstOrFail();
+    $slot->update([
+        'assigned_character_id' => $character->id,
+        'assigned_by_user_id' => $activity->group->owner_id,
+    ]);
+
+    $this->actingAs($user);
+
+    $response = $this->delete(route('account.applications.destroy', [
+        'application' => $application->id,
+    ]));
+
+    $response->assertRedirect(route('account.applications'));
+
+    expect($application->fresh()->status)->toBe(ActivityApplication::STATUS_WITHDRAWN)
+        ->and($slot->fresh()->assigned_character_id)->toBeNull();
+});
+
+it('does not allow users to withdraw declined applications', function () {
+    $activity = createAccountApplicationsActivity();
+    $user = User::factory()->create();
+    $character = Character::factory()->primary()->create([
+        'user_id' => $user->id,
+    ]);
+
+    $application = ActivityApplication::factory()->declined($activity->group->owner)->create([
+        'activity_id' => $activity->id,
+        'user_id' => $user->id,
+        'selected_character_id' => $character->id,
+    ]);
+
     $this->actingAs($user);
 
     $response = $this->delete(route('account.applications.destroy', [
@@ -142,7 +173,7 @@ it('does not allow users to withdraw applications that are no longer pending', f
     ]));
 
     $response->assertSessionHasErrors(['application']);
-    expect(ActivityApplication::query()->whereKey($application->id)->exists())->toBeTrue();
+    expect($application->fresh()->status)->toBe(ActivityApplication::STATUS_DECLINED);
 });
 
 it('shows withdrawn applications in history', function () {

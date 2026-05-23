@@ -3,6 +3,7 @@ import { Head, Link, useForm } from "@inertiajs/vue3";
 import AuthLayout from "@/Layouts/AuthLayout.vue";
 import { route } from "ziggy-js";
 import { useI18n } from "vue-i18n";
+import { usePasswordVisibility } from "@/composables/usePasswordVisibility";
 
 const props = defineProps<{
 	token: string
@@ -10,6 +11,7 @@ const props = defineProps<{
 }>();
 
 const { t } = useI18n();
+const passwordVisibility = usePasswordVisibility(['password', 'password_confirmation'] as const);
 
 const form = useForm({
 	token: props.token,
@@ -39,33 +41,59 @@ defineOptions({
 		<form class="space-y-4" @submit.prevent="submit">
 			<UFormField name="email" class="w-full" :error="form.errors.email">
 				<UInput
-					v-model="form.email"
+					:model-value="form.email"
 					type="email"
 					size="xl"
 					class="w-full"
 					:placeholder="t('general.email')"
-					readonly
+					disabled
 				/>
 			</UFormField>
 
 			<UFormField name="password" class="w-full" :error="form.errors.password">
 				<UInput
 					v-model="form.password"
-					type="password"
+					:type="passwordVisibility.inputType('password')"
 					size="xl"
 					class="w-full"
 					:placeholder="t('auth.password')"
-				/>
+					:ui="{ trailing: 'pe-1' }"
+				>
+					<template #trailing>
+						<UButton
+							type="button"
+							color="neutral"
+							variant="ghost"
+							size="sm"
+							:icon="passwordVisibility.icon('password')"
+							:aria-label="t('auth.password')"
+							@click="passwordVisibility.toggle('password')"
+						/>
+					</template>
+				</UInput>
 			</UFormField>
 
 			<UFormField name="password_confirmation" class="w-full">
 				<UInput
 					v-model="form.password_confirmation"
-					type="password"
+					:type="passwordVisibility.inputType('password_confirmation')"
 					size="xl"
 					class="w-full"
 					:placeholder="t('auth.password_confirmation')"
-				/>
+					:ui="{ trailing: 'pe-1' }"
+				>
+					<template #trailing>
+						<UButton
+							type="button"
+							color="neutral"
+							variant="ghost"
+							size="sm"
+							:icon="passwordVisibility.icon('password_confirmation')"
+							:aria-label="t('auth.password_confirmation')"
+							@click="passwordVisibility.toggle('password_confirmation')"
+						/>
+					</template>
+				</UInput>
 			</UFormField>
 
 			<UButton

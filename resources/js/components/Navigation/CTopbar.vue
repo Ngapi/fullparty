@@ -1,13 +1,13 @@
 <script setup lang="ts">
 import NotificationBell from "@/components/Navigation/NotificationBell.vue";
 import UserMenu from "@/components/Navigation/UserMenu.vue";
+import AppLocaleSelect from "@/components/Navigation/AppLocaleSelect.vue";
 import { usePersistentLocale } from "@/composables/usePersistentLocale";
 import { usePage } from "@inertiajs/vue3";
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 
-const { t, locale } = useI18n({ useScope: 'global' })
-const { localeOptions, updateLocale } = usePersistentLocale();
+const { t } = useI18n({ useScope: 'global' })
 const page = usePage();
 const user = computed(() => page.props.auth?.user ?? null);
 
@@ -33,12 +33,7 @@ defineProps({
 		<template #right>
 			<NotificationBell v-if="user" />
 			<UColorModeButton />
-			<ULocaleSelect
-				variant="ghost"
-				v-model="locale"
-				:locales="localeOptions"
-				@update:model-value="updateLocale"
-			/>
+			<AppLocaleSelect variant="ghost" />
 			<UserMenu />
 		</template>
 	</UDashboardNavbar>

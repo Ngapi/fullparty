@@ -151,7 +151,8 @@
           "reassigned": "hat einen Roster-Slot neu zugewiesen.",
           "replaced": "hat eine Roster-Zuweisung ersetzt.",
           "swapped": "hat Personen im Roster verschoben.",
-          "returned_to_queue": "hat einen Roster-Slot zurück in die Warteschlange gesetzt."
+          "returned_to_queue": "hat einen Roster-Slot zurück in die Warteschlange gesetzt.",
+          "manual_removed": "hat eine manuelle Roster-Zuweisung aus einem Slot entfernt."
         },
         "attendance": {
           "checked_in": "hat einen Roster-Slot eingecheckt.",
@@ -355,7 +356,8 @@
           "reassigned": "Roster-Slot neu zugewiesen",
           "replaced": "Roster-Zuweisung ersetzt",
           "swapped": "Roster-Positionen verschoben",
-          "returned_to_queue": "Roster-Slot in Warteschlange zurückgesetzt"
+          "returned_to_queue": "Roster-Slot in Warteschlange zurückgesetzt",
+          "manual_removed": "Manuelle Roster-Zuweisung entfernt"
         },
         "attendance": {
           "checked_in": "Roster-Slot eingecheckt",

@@ -3,12 +3,14 @@ import type { SettingsUser } from "@/Types/Settings";
 import { useForm } from "@inertiajs/vue3";
 import { route } from "ziggy-js";
 import { useI18n } from "vue-i18n";
+import { usePasswordVisibility } from "@/composables/usePasswordVisibility";
 
 const props = defineProps<{
 	user: SettingsUser
 }>();
 
 const { t } = useI18n();
+const passwordVisibility = usePasswordVisibility(['current_password', 'password', 'password_confirmation'] as const);
 const form = useForm({
 	username: props.user.name ?? '',
 });
@@ -86,12 +88,25 @@ const submitPasswordForm = () => {
 					>
 						<UInput
 							v-model="passwordForm.current_password"
-							type="password"
+							:type="passwordVisibility.inputType('current_password')"
 							size="xl"
 							class="w-full"
 							:placeholder="t('settings.account.old_password')"
 							autocomplete="current-password"
-						/>
+							:ui="{ trailing: 'pe-1' }"
+						>
+							<template #trailing>
+								<UButton
+									type="button"
+									color="neutral"
+									variant="ghost"
+									size="sm"
+									:icon="passwordVisibility.icon('current_password')"
+									:aria-label="t('settings.account.old_password')"
+									@click="passwordVisibility.toggle('current_password')"
+								/>
+							</template>
+						</UInput>
 					</UFormField>
 
 					<div class="grid w-full grid-cols-1 gap-4 xl:grid-cols-2">
@@ -102,12 +117,25 @@ const submitPasswordForm = () => {
 						>
 							<UInput
 								v-model="passwordForm.password"
-								type="password"
+								:type="passwordVisibility.inputType('password')"
 								size="xl"
 								class="w-full"
 								:placeholder="t('settings.account.new_password')"
 								autocomplete="new-password"
-							/>
+								:ui="{ trailing: 'pe-1' }"
+							>
+								<template #trailing>
+									<UButton
+										type="button"
+										color="neutral"
+										variant="ghost"
+										size="sm"
+										:icon="passwordVisibility.icon('password')"
+										:aria-label="t('settings.account.new_password')"
+										@click="passwordVisibility.toggle('password')"
+									/>
+								</template>
+							</UInput>
 						</UFormField>
 
 						<UFormField
@@ -117,12 +145,25 @@ const submitPasswordForm = () => {
 						>
 							<UInput
 								v-model="passwordForm.password_confirmation"
-								type="password"
+								:type="passwordVisibility.inputType('password_confirmation')"
 								size="xl"
 								class="w-full"
 								:placeholder="t('settings.account.new_password_confirmation')"
 								autocomplete="new-password"
-							/>
+								:ui="{ trailing: 'pe-1' }"
+							>
+								<template #trailing>
+									<UButton
+										type="button"
+										color="neutral"
+										variant="ghost"
+										size="sm"
+										:icon="passwordVisibility.icon('password_confirmation')"
+										:aria-label="t('settings.account.new_password_confirmation')"
+										@click="passwordVisibility.toggle('password_confirmation')"
+									/>
+								</template>
+							</UInput>
 						</UFormField>
 					</div>
 

@@ -223,9 +223,14 @@ const contextMenuItems = computed<ContextMenuItem[][]>(() => [
 			onSelect: () => emit('clickSlot', props.slot.id),
 		},
 		{
-			label: 'Return to queue',
-			icon: 'i-lucide-undo-2',
-			disabled: !props.canReturnToQueue || !props.slot.can_return_to_queue || props.isSwapPending,
+			label: props.slot.assignment_source === 'manual'
+				? t('groups.activities.management.roster.remove_from_slot_action')
+				: 'Return to queue',
+			icon: props.slot.assignment_source === 'manual' ? 'i-lucide-user-minus' : 'i-lucide-undo-2',
+			color: 'error',
+			disabled: props.slot.assignment_source === 'manual'
+				? props.isSwapPending
+				: !props.canReturnToQueue || !props.slot.can_return_to_queue || props.isSwapPending,
 			onSelect: () => emit('returnSlotToQueue', props.slot.id),
 		},
 	],

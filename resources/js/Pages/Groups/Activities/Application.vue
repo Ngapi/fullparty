@@ -1,8 +1,9 @@
 <script setup lang="ts">
-import { computed } from "vue";
+import { computed, ref } from "vue";
 import { router, usePage } from "@inertiajs/vue3";
 import { route } from "ziggy-js";
 import { useI18n } from "vue-i18n";
+import { useToast } from "@nuxt/ui/composables";
 import { localizedValue } from "@/utils/localizedValue";
 import { getActivityStatusMeta } from "@/utils/activityStatusMeta";
 import { canAcceptActivityApplications } from "@/utils/activityLifecycle";
@@ -68,6 +69,7 @@ const props = defineProps<{
 		id: number
 		selected_character_id: number | null
 		status: string
+		is_rostered: boolean
 		notes: string | null
 		submitted_at: string | null
 		applicant_character?: {
@@ -97,6 +99,7 @@ const props = defineProps<{
 		can_apply: boolean
 		can_apply_as_guest: boolean
 		can_edit_application: boolean
+		can_withdraw_application: boolean
 		can_manage: boolean
 		has_existing_application: boolean
 	}
@@ -104,7 +107,10 @@ const props = defineProps<{
 
 const { t, locale } = useI18n();
 const page = usePage();
+const toast = useToast();
 const fallbackLocale = computed(() => String(page.props.locale?.fallback ?? 'en'));
+const withdrawalModalOpen = ref(false);
+const isWithdrawing = ref(false);
 
 const activityTypeName = computed(() => {
 	return localizedValue(props.activity.activity_type?.draft_name, locale.value, fallbackLocale.value)
@@ -169,6 +175,16 @@ const applicationPageSubtitle = computed(() => {
 			type: activityTypeName.value,
 		});
 });
+const withdrawalActionLabel = computed(() => (
+	props.application?.is_rostered
+		? t("applications.withdraw.action_run")
+		: t("applications.withdraw.action_application")
+));
+const withdrawalConfirmDescription = computed(() => (
+	props.application?.is_rostered
+		? t("applications.withdraw.confirm_description_run")
+		: t("applications.withdraw.confirm_description_application")
+));
 
 const goBack = () => {
 	router.get(route('groups.activities.overview', {
@@ -176,6 +192,67 @@ const goBack = () => {
 		activity: props.activity.id,
 		secretKey: props.secretKey || undefined,
 	}));
+};
+
+const openWithdrawalModal = () => {
+	withdrawalModalOpen.value = true;
+};
+
+const closeWithdrawalModal = () => {
+	if (isWithdrawing.value) {
+		return;
+	}
+
+	withdrawalModalOpen.value = false;
+};
+
+const withdrawApplication = () => {
+	if (!props.application || isWithdrawing.value) {
+		return;
+	}
+
+	isWithdrawing.value = true;
+
+	if (props.guestAccessToken) {
+		router.delete(route("groups.activities.application.destroy-guest", {
+			group: props.group.slug,
+			activity: props.activity.id,
+			accessToken: props.guestAccessToken,
+			secretKey: props.secretKey || undefined,
+		}), {
+			preserveScroll: true,
+			onFinish: () => {
+				isWithdrawing.value = false;
+				withdrawalModalOpen.value = false;
+			},
+		});
+
+		return;
+	}
+
+	router.delete(route("account.applications.destroy", {
+		application: props.application.id,
+	}), {
+		preserveScroll: true,
+		onSuccess: () => {
+			toast.add({
+				title: t("applications.withdraw.success_title"),
+				description: t("applications.withdraw.success_description"),
+				color: "success",
+			});
+		},
+		onError: () => {
+			toast.add({
+				title: t("applications.withdraw.error_title"),
+				description: t("applications.withdraw.error_description"),
+				color: "error",
+			});
+		},
+		onFinish: () => {
+			isWithdrawing.value = false;
+			withdrawalModalOpen.value = false;
+		},
+	});
 };
 </script>
 
@@ -276,9 +353,50 @@ const goBack = () => {
 				:can-apply="permissions.can_apply"
 				:can-apply-as-guest="permissions.can_apply_as_guest"
 				:can-edit-application="permissions.can_edit_application"
+				:can-withdraw-application="permissions.can_withdraw_application"
 				:guest-worlds="guestCharacterSearch.worlds"
 				@cancel="goBack"
+				@withdraw="openWithdrawalModal"
 			/>
 		</div>
+
+		<UModal
+			:open="withdrawalModalOpen"
+			:title="t('applications.withdraw.confirm_title')"
+			:description="withdrawalConfirmDescription"
+			@update:open="(open) => { if (!open) closeWithdrawalModal(); }"
+		>
+			<template #body>
+				<div class="space-y-4">
+					<UAlert
+						color="warning"
+						variant="soft"
+						icon="i-lucide-triangle-alert"
+						:title="t('applications.withdraw.warning_title')"
+						:description="t('applications.withdraw.warning_description')"
+					/>
+				</div>
+			</template>
+
+			<template #footer>
+				<div class="flex w-full items-center justify-end gap-2">
+					<UButton
+						color="neutral"
+						variant="outline"
+						:label="t('general.cancel')"
+						:disabled="isWithdrawing"
+						@click="closeWithdrawalModal"
+					/>
+					<UButton
+						color="error"
+						variant="soft"
+						icon="i-lucide-trash-2"
+						:label="withdrawalActionLabel"
+						:loading="isWithdrawing"
+						@click="withdrawApplication"
+					/>
+				</div>
+			</template>
+		</UModal>
 	</div>
 </template>

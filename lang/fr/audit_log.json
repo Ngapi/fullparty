@@ -151,7 +151,8 @@
           "reassigned": "a réattribué un slot de roster.",
           "replaced": "a remplacé une attribution de roster.",
           "swapped": "a déplacé des personnes dans le roster.",
-          "returned_to_queue": "a renvoyé un slot de roster dans la file."
+          "returned_to_queue": "a renvoyé un slot de roster dans la file.",
+          "manual_removed": "a retiré d'un slot un personnage assigné manuellement."
         },
         "attendance": {
           "checked_in": "a validé la présence sur un slot de roster.",
@@ -355,7 +356,8 @@
           "reassigned": "Slot de roster réattribué",
           "replaced": "Attribution de roster remplacée",
           "swapped": "Positions du roster déplacées",
-          "returned_to_queue": "Slot de roster renvoyé à la file"
+          "returned_to_queue": "Slot de roster renvoyé à la file",
+          "manual_removed": "Assignation manuelle retirée du roster"
         },
         "attendance": {
           "checked_in": "Slot de roster validé",

@@ -4,11 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Models\Activity;
 use App\Models\ActivityApplication;
-use App\Services\Groups\GroupActivityAuditService;
-use App\Services\Notifications\ApplicationNotificationService;
+use App\Services\Groups\ActivityApplicationWithdrawalService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -16,8 +14,7 @@ use Inertia\Response;
 class AccountApplicationController extends Controller
 {
     public function __construct(
-        private readonly GroupActivityAuditService $activityAuditService,
-        private readonly ApplicationNotificationService $applicationNotificationService,
+        private readonly ActivityApplicationWithdrawalService $applicationWithdrawalService,
     ) {}
 
     public function index(Request $request): Response
@@ -61,26 +58,13 @@ class AccountApplicationController extends Controller
             abort(404);
         }
 
-        if (!$this->applicationCanBeModified($application)) {
+        if (! $this->applicationWithdrawalService->applicationCanBeWithdrawn($application->activity, $application)) {
             throw ValidationException::withMessages([
-                'application' => 'Only pending applications can be withdrawn.',
+                'application' => 'This application cannot be withdrawn.',
             ]);
         }
 
-        DB::transaction(function () use ($application, $user): void {
-            $application->update([
-                'status' => ActivityApplication::STATUS_WITHDRAWN,
-                'reviewed_by_user_id' => null,
-                'reviewed_at' => now(),
-            ]);
-
-            $this->activityAuditService->logApplicationWithdrawn($application, $user);
-        });
-
-        $this->applicationNotificationService->notifyWithdrawn(
-            $application->fresh(['activity.group', 'selectedCharacter', 'user']),
-            $user,
-        );
+        $this->applicationWithdrawalService->withdraw($application, $user);
 
         return redirect()->route('account.applications');
     }
@@ -92,7 +76,11 @@ class AccountApplicationController extends Controller
     {
         $activity = $application->activity;
         $character = $application->selectedCharacter;
-        $canModify = $this->applicationCanBeModified($application);
+        $canEdit = $this->applicationCanBeModified($application);
+        $canWithdraw = $activity
+            ? $this->applicationWithdrawalService->applicationCanBeWithdrawn($activity, $application)
+            : false;
+        $isRostered = $this->applicationWithdrawalService->applicationIsRostered($application);
 
         return [
             'id' => $application->id,
@@ -101,8 +89,9 @@ class AccountApplicationController extends Controller
             'reviewed_at' => $application->reviewed_at?->toIso8601String(),
             'review_reason' => $application->review_reason,
             'notes' => $application->notes,
-            'can_edit' => $canModify,
-            'can_cancel' => $canModify,
+            'can_edit' => $canEdit,
+            'can_withdraw' => $canWithdraw,
+            'is_rostered' => $isRostered,
             'group' => [
                 'name' => $activity?->group?->name,
                 'slug' => $activity?->group?->slug,
@@ -131,13 +120,14 @@ class AccountApplicationController extends Controller
     {
         $activity = $application->activity;
 
-        if (!$activity) {
+        if (! $activity) {
             return false;
         }
 
         return $application->status === ActivityApplication::STATUS_PENDING
             && $activity->needs_application
-            && !Activity::isArchivedStatus($activity->status);
+            && ! Activity::isArchivedStatus($activity->status)
+            && ! $this->applicationWithdrawalService->applicationIsRostered($application);
     }
 
     /**

@@ -122,6 +122,7 @@
             "load_slot_assignment_failed": "Unable to load slot assignment details.",
             "load_manual_assignment_failed": "Unable to load group member assignment options.",
             "return_to_queue_failed": "Unable to return this slot to the queue.",
+            "slot_unassign_failed": "Unable to update this slot assignment.",
             "undo_check_in_failed": "Unable to undo check-in for this slot.",
             "check_in_failed": "Unable to check in this slot.",
             "mark_late_failed": "Unable to mark this slot as late.",
@@ -268,6 +269,7 @@
             "check_in_all": "Check In All",
             "check_in_action": "Check-in",
             "mark_late_action": "Mark late",
+            "remove_from_slot_action": "Remove from slot",
             "undo_check_in": "Undo Checkin",
             "roles": {
                 "tank": "Tank",
@@ -497,7 +499,8 @@
                   "approved": "Approved",
                   "on_bench": "On bench",
                   "declined": "Declined",
-                  "cancelled": "Cancelled"
+                  "cancelled": "Cancelled",
+                  "withdrawn": "Withdrawn"
               },
             "guest_cta_title": "FullParty account gives you the full experience",
             "guest_cta_description": "Create an account if you want proper notifications, run history, and easier access when signing up for future runs.",

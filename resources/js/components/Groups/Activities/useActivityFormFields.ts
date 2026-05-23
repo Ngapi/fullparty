@@ -13,6 +13,17 @@ export const useActivityFormFields = (
 	const { t, locale } = useI18n();
 	const page = usePage();
 	const fallbackLocale = computed(() => String(page.props.locale?.fallback ?? 'en'));
+	const normalizeDurationHours = (value: string | number | null | undefined) => {
+		const parsed = Number(value);
+
+		if (!Number.isFinite(parsed)) {
+			return 2;
+		}
+
+		const roundedToHalfHour = Math.round(parsed * 2) / 2;
+
+		return Math.min(24, Math.max(1, roundedToHalfHour));
+	};
 
 	const activityTypeItems = computed(() => activityTypes.value.map((activityType) => ({
 		label: localizedValue(activityType.draft_name, locale.value, fallbackLocale.value) || activityType.slug,
@@ -149,7 +160,7 @@ export const useActivityFormFields = (
 				return;
 			}
 
-			form.duration_hours = Number(value) || 2;
+			form.duration_hours = normalizeDurationHours(value);
 		},
 	});
 
@@ -172,5 +183,6 @@ export const useActivityFormFields = (
 		durationItems,
 		selectedDurationOption,
 		isCustomDuration,
+		normalizeDurationHours,
 	};
 };

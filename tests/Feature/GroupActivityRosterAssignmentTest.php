@@ -969,6 +969,100 @@ it('manually assigns a group member character to an empty slot without creating 
         ->and($auditLog->metadata['assignment_source'])->toBe(ActivitySlotAssignment::SOURCE_MANUAL);
 });
 
+it('does not allow manual assignment when the character already has an active application for the run', function () {
+    extract(createRosterAssignmentSetup());
+    extract(createGroupMemberCharacterForManualAssignment($group));
+
+    ActivityApplication::factory()->create([
+        'activity_id' => $activity->id,
+        'user_id' => $character->user_id,
+        'selected_character_id' => $character->id,
+        'status' => ActivityApplication::STATUS_PENDING,
+        'applicant_lodestone_id' => $character->lodestone_id,
+        'applicant_character_name' => $character->name,
+        'applicant_world' => $character->world,
+        'applicant_datacenter' => $character->datacenter,
+    ]);
+
+    $this->actingAs($owner);
+
+    $response = $this->postJson(route('groups.dashboard.activities.slot-assignments.store', [
+        'group' => $group->slug,
+        'activity' => $activity->id,
+        'slot' => $mainSlot->id,
+    ]), [
+        'character_id' => $character->id,
+        'expected_slot_state_token' => activity_slot_state_token($mainSlot),
+    ]);
+
+    $response
+        ->assertStatus(422)
+        ->assertJsonValidationErrors(['character_id']);
+
+    expect($mainSlot->fresh()->assigned_character_id)->toBeNull();
+});
+
+it('does not allow assigning an application when the character is already in another slot', function () {
+    extract(createRosterAssignmentSetup());
+    extract(createGroupMemberCharacterForManualAssignment($group));
+
+    $secondMainSlot = $activity->slots()->create([
+        'group_key' => $mainSlot->group_key,
+        'group_label' => $mainSlot->group_label,
+        'slot_key' => 'party-a-slot-2',
+        'slot_label' => ['en' => 'Party A Slot 2'],
+        'position_in_group' => 2,
+        'sort_order' => 2,
+    ]);
+
+    $mainSlot->update([
+        'assigned_character_id' => $character->id,
+        'assigned_by_user_id' => $owner->id,
+    ]);
+
+    ActivitySlotAssignment::query()->create([
+        'activity_id' => $activity->id,
+        'group_id' => $group->id,
+        'activity_slot_id' => $mainSlot->id,
+        'character_id' => $character->id,
+        'application_id' => null,
+        'assignment_source' => ActivitySlotAssignment::SOURCE_MANUAL,
+        'field_values_snapshot' => [],
+        'attendance_status' => ActivitySlotAssignment::STATUS_ASSIGNED,
+        'assigned_at' => now(),
+        'assigned_by_user_id' => $owner->id,
+    ]);
+
+    $application = ActivityApplication::factory()->create([
+        'activity_id' => $activity->id,
+        'user_id' => $character->user_id,
+        'selected_character_id' => $character->id,
+        'status' => ActivityApplication::STATUS_PENDING,
+        'applicant_lodestone_id' => $character->lodestone_id,
+        'applicant_character_name' => $character->name,
+        'applicant_world' => $character->world,
+        'applicant_datacenter' => $character->datacenter,
+    ]);
+
+    $this->actingAs($owner);
+
+    $response = $this->postJson(route('groups.dashboard.activities.slot-assignments.store', [
+        'group' => $group->slug,
+        'activity' => $activity->id,
+        'slot' => $secondMainSlot->id,
+    ]), [
+        'application_id' => $application->id,
+        'expected_slot_state_token' => activity_slot_state_token($secondMainSlot),
+    ]);
+
+    $response
+        ->assertStatus(422)
+        ->assertJsonValidationErrors(['application_id']);
+
+    expect($secondMainSlot->fresh()->assigned_character_id)->toBeNull()
+        ->and($application->fresh()->status)->toBe(ActivityApplication::STATUS_PENDING);
+});
+
 it('moves raid leader designations with manual reassignments between roster slots', function () {
     extract(createRosterAssignmentSetup());
     extract(createGroupMemberCharacterForManualAssignment($group));
@@ -1031,7 +1125,7 @@ it('moves raid leader designations with manual reassignments between roster slot
         ->and($secondMainSlot->fresh()->assigned_character_id)->toBe($character->id);
 });
 
-it('does not allow manually assigned slots to be returned to the queue', function () {
+it('allows manually assigned slots to be removed from the roster', function () {
     extract(createRosterAssignmentSetup());
     extract(createGroupMemberCharacterForManualAssignment($group));
 
@@ -1064,15 +1158,31 @@ it('does not allow manually assigned slots to be returned to the queue', functio
 
     $this->actingAs($owner);
 
-    $this->postJson(route('groups.dashboard.activities.slot-unassignments.store', [
+    $response = $this->postJson(route('groups.dashboard.activities.slot-unassignments.store', [
         'group' => $group->slug,
         'activity' => $activity->id,
         'slot' => $mainSlot->id,
     ]), [
         'expected_slot_state_token' => activity_slot_state_token($mainSlot),
-    ])
-        ->assertStatus(422)
-        ->assertJsonValidationErrors(['slot']);
+    ])->assertOk();
+
+    $mainSlot->refresh()->load(['fieldValues']);
+    $activeAssignment = ActivitySlotAssignment::query()
+        ->where('activity_id', $activity->id)
+        ->where('activity_slot_id', $mainSlot->id)
+        ->where('character_id', $character->id)
+        ->latest('assigned_at')
+        ->first();
+    $auditLog = AuditLog::query()->where('action', 'group.activity.roster.manual_removed')->sole();
+
+    expect($response->json('application'))->toBeNull()
+        ->and($response->json('pending_application_count'))->toBe(0)
+        ->and($mainSlot->assigned_character_id)->toBeNull()
+        ->and($mainSlot->assigned_by_user_id)->toBeNull()
+        ->and($mainSlot->fieldValues->every(fn ($fieldValue) => $fieldValue->value === null))->toBeTrue()
+        ->and($activeAssignment)->not->toBeNull()
+        ->and($activeAssignment?->ended_at)->not->toBeNull()
+        ->and($auditLog->metadata['character_name'] ?? null)->toBe($character->name);
 });
 
 it('allows manual assignments to use the full slot field option list', function () {

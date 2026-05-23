@@ -11,6 +11,7 @@ use App\Models\Character;
 use App\Models\CharacterClass;
 use App\Models\Group;
 use App\Models\PhantomJob;
+use App\Services\Groups\ActivityApplicationWithdrawalService;
 use App\Services\Groups\GroupActivityAuditService;
 use App\Services\Lodestone\LodestoneCharacterSearchService;
 use App\Services\Notifications\ApplicationNotificationService;
@@ -35,6 +36,7 @@ class GroupActivityApplicationController extends Controller
         private readonly ApplicationNotificationService $applicationNotificationService,
         private readonly RequestTextInputSanitizer $requestTextInputSanitizer,
         private readonly TextInputSanitizer $textInputSanitizer,
+        private readonly ActivityApplicationWithdrawalService $applicationWithdrawalService,
     ) {}
 
     public function show(Request $request, Group $group, Activity $activity, ?string $secretKey = null): Response
@@ -142,6 +144,9 @@ class GroupActivityApplicationController extends Controller
                 'can_edit' => $application->user_id !== null
                     && $application->user_id === $request->user()?->id
                     && $this->applicationIsEditable($activity, $application),
+                'can_withdraw' => $application->user_id !== null
+                    && $application->user_id === $request->user()?->id
+                    && $this->applicationWithdrawalService->applicationCanBeWithdrawn($activity, $application),
             ],
         ]);
     }
@@ -175,6 +180,7 @@ class GroupActivityApplicationController extends Controller
                 'view' => 'status',
                 'mode' => 'submitted',
                 'can_edit' => $this->applicationIsEditable($activity, $application),
+                'can_withdraw' => $this->applicationWithdrawalService->applicationCanBeWithdrawn($activity, $application),
             ],
         ]);
     }
@@ -250,6 +256,10 @@ class GroupActivityApplicationController extends Controller
 
         if ($this->hasExistingApplicationForApplicantLodestoneId($activity, $validated['applicant']['lodestone_id'])) {
             abort(422, 'An application already exists for this character.');
+        }
+
+        if ($user && isset($validated['selected_character_id'])) {
+            $this->ensureSelectedCharacterIsNotAlreadyAssigned($activity, (int) $validated['selected_character_id']);
         }
 
         $application = DB::transaction(function () use ($activity, $user, $validated) {
@@ -339,6 +349,10 @@ class GroupActivityApplicationController extends Controller
             $application->id,
         )) {
             abort(422, 'An application already exists for this character.');
+        }
+
+        if (isset($validated['selected_character_id'])) {
+            $this->ensureSelectedCharacterIsNotAlreadyAssigned($activity, (int) $validated['selected_character_id']);
         }
 
         $applicationId = DB::transaction(function () use ($application, $validated) {
@@ -435,6 +449,20 @@ class GroupActivityApplicationController extends Controller
         ]);
     }
 
+    public function destroyGuest(Request $request, Group $group, Activity $activity, string $accessToken, ?string $secretKey = null): RedirectResponse
+    {
+        $group->loadMissing('memberships');
+        $this->ensureApplicationPageAccessible($request, $group, $activity, $secretKey, allowArchivedGuestAccess: true);
+
+        $application = $this->findGuestApplicationByAccessToken($activity, $accessToken);
+        $this->applicationWithdrawalService->withdraw($application, null);
+
+        return redirect()->route('groups.activities.application.status', [
+            ...$this->activityAttendeeRouteParameters($group, $activity, $secretKey),
+            'accessToken' => $accessToken,
+        ]);
+    }
+
     private function ensureApplicationPageAccessible(
         Request $request,
         Group $group,
@@ -488,6 +516,7 @@ class GroupActivityApplicationController extends Controller
                 'can_apply' => $acceptsApplications && $guestAccessToken === null && $request->user() !== null,
                 'can_apply_as_guest' => $acceptsApplications && (($request->user() === null && $activity->allow_guest_applications) || $guestAccessToken !== null),
                 'can_edit_application' => $application ? $this->applicationIsEditable($activity, $application) : $acceptsApplications,
+                'can_withdraw_application' => $application ? $this->applicationWithdrawalService->applicationCanBeWithdrawn($activity, $application) : false,
                 'can_manage' => $group->hasModeratorAccess($request->user()?->id),
                 'has_existing_application' => $application !== null,
             ],
@@ -574,6 +603,7 @@ class GroupActivityApplicationController extends Controller
             'id' => $application->id,
             'selected_character_id' => $application->selected_character_id,
             'status' => $application->status,
+            'is_rostered' => $this->applicationWithdrawalService->applicationIsRostered($application),
             'notes' => $application->notes,
             'submitted_at' => $application->submitted_at?->toIso8601String(),
             'review_reason' => $application->review_reason,
@@ -780,8 +810,23 @@ class GroupActivityApplicationController extends Controller
     private function applicationIsEditable(Activity $activity, ActivityApplication $application): bool
     {
         return $activity->acceptsApplications()
-            && $application->status !== ActivityApplication::STATUS_WITHDRAWN
-            && $application->status !== ActivityApplication::STATUS_CANCELLED;
+            && $application->status === ActivityApplication::STATUS_PENDING
+            && ! $this->applicationWithdrawalService->applicationIsRostered($application);
+    }
+
+    private function ensureSelectedCharacterIsNotAlreadyAssigned(Activity $activity, int $characterId): void
+    {
+        $assignedSlotExists = $activity->slots()
+            ->where('assigned_character_id', $characterId)
+            ->exists();
+
+        if (! $assignedSlotExists) {
+            return;
+        }
+
+        throw ValidationException::withMessages([
+            'selected_character_id' => 'This character is already assigned to this run.',
+        ]);
     }
 
     private function ensureActivityAcceptsApplications(Activity $activity): void
