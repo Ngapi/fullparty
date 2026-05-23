@@ -4,36 +4,23 @@ namespace App\Http\Controllers;
 
 use App\Models\Activity;
 use App\Models\Group;
-use App\Services\Groups\ActivityRosterCsvExportService;
-use Symfony\Component\HttpFoundation\StreamedResponse;
+use App\Services\Groups\ActivityRosterSpreadsheetExportService;
+use Illuminate\Http\Response;
 
 class GroupActivityRosterExportController extends Controller
 {
     public function show(
         Group $group,
         Activity $activity,
-        ActivityRosterCsvExportService $exportService,
-    ): StreamedResponse {
+        ActivityRosterSpreadsheetExportService $exportService,
+    ): Response {
         $this->authorize('manageDashboard', [$activity, $group]);
 
-        $payload = $exportService->build($activity);
-
-        return response()->streamDownload(function () use ($payload) {
-            $stream = fopen('php://output', 'wb');
-
-            if ($stream === false) {
-                return;
-            }
-
-            fwrite($stream, "\xEF\xBB\xBF");
-
-            foreach ($payload['rows'] as $row) {
-                fputcsv($stream, $row);
-            }
-
-            fclose($stream);
-        }, $exportService->filename($activity), [
-            'Content-Type' => 'text/csv; charset=UTF-8',
+        return response($exportService->render($activity), 200, [
+            'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            'Content-Disposition' => sprintf('attachment; filename="%s"', $exportService->filename($activity)),
+            'Cache-Control' => 'max-age=0, no-cache, no-store, must-revalidate',
+            'Pragma' => 'public',
         ]);
     }
 }

@@ -218,7 +218,8 @@
             "go_to_application": "Go To Application",
             "application_link_copied": "Application link copied.",
             "export": "Export",
-            "export_csv": "Export CSV",
+            "export_csv": "Export Excel",
+            "generated_at": "Generated",
             "roster_summary": {
                 "eyebrow": "Composition Summary",
                 "requirements_count": "{count} requirements",
