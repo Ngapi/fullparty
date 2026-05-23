@@ -9,6 +9,7 @@ use App\Models\NotificationDelivery;
 use App\Models\NotificationEvent;
 use App\Models\User;
 use App\Models\UserNotification;
+use App\Support\Input\TextInputSanitizer;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
 uses(RefreshDatabase::class);
@@ -364,4 +365,31 @@ it('notifies moderators when a user joins or leaves and notifies the user when t
     $banNotification = UserNotification::query()->where('notification_event_id', $banEvent->id)->sole();
 
     expect($banNotification->user_id)->toBe($member->id);
+});
+
+it('sanitizes ban reasons before persisting moderation actions', function () {
+    $owner = User::factory()->create();
+    $member = User::factory()->create();
+    $group = Group::factory()->public()->create([
+        'owner_id' => $owner->id,
+    ]);
+    $group->memberships()->create([
+        'user_id' => $member->id,
+        'role' => GroupMembership::ROLE_MEMBER,
+        'joined_at' => now(),
+    ]);
+
+    $sanitizer = app(TextInputSanitizer::class);
+    $rawReason = " Repea\u{200B}ted\r\n disruptions\t ";
+
+    $this->actingAs($owner)
+        ->post(route('groups.members.ban', [
+            'group' => $group,
+            'user' => $member,
+        ]), [
+            'reason' => $rawReason,
+        ])
+        ->assertRedirect();
+
+    expect($group->bans()->sole()->reason)->toBe($sanitizer->sanitizeMultiline($rawReason));
 });

@@ -1,9 +1,11 @@
 <?php
 
+use App\Models\Character;
 use App\Models\Group;
 use App\Models\GroupMembership;
 use App\Models\GroupUserNote;
 use App\Models\User;
+use App\Support\Input\TextInputSanitizer;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
 uses(RefreshDatabase::class);
@@ -35,6 +37,24 @@ function createGroupMemberNotesContext(): array
 
 it('returns the full note payload for a group member when a moderator opens the notes modal', function () {
     extract(createGroupMemberNotesContext());
+
+    $secondaryCharacter = Character::factory()->create([
+        'user_id' => $member->id,
+        'name' => 'Alt Vanguard',
+        'world' => 'Ragnarok',
+        'datacenter' => 'Chaos',
+        'is_primary' => false,
+        'verified_at' => now(),
+    ]);
+
+    $primaryCharacter = Character::factory()->create([
+        'user_id' => $member->id,
+        'name' => 'Main Vanguard',
+        'world' => 'Cerberus',
+        'datacenter' => 'Chaos',
+        'is_primary' => true,
+        'verified_at' => now(),
+    ]);
 
     $currentGroupNote = GroupUserNote::create([
         'group_id' => $group->id,
@@ -73,6 +93,16 @@ it('returns the full note payload for a group member when a moderator opens the 
         ->assertOk()
         ->assertJsonPath('member.id', $member->id)
         ->assertJsonPath('member.name', $member->name)
+        ->assertJsonPath('member.characters.0.id', $primaryCharacter->id)
+        ->assertJsonPath('member.characters.0.name', 'Main Vanguard')
+        ->assertJsonPath('member.characters.0.world', 'Cerberus')
+        ->assertJsonPath('member.characters.0.datacenter', 'Chaos')
+        ->assertJsonPath('member.characters.0.is_primary', true)
+        ->assertJsonPath('member.characters.1.id', $secondaryCharacter->id)
+        ->assertJsonPath('member.characters.1.name', 'Alt Vanguard')
+        ->assertJsonPath('member.characters.1.world', 'Ragnarok')
+        ->assertJsonPath('member.characters.1.datacenter', 'Chaos')
+        ->assertJsonPath('member.characters.1.is_primary', false)
         ->assertJsonPath('member.notes.can_view', true)
         ->assertJsonPath('member.notes.can_add', true)
         ->assertJsonPath('member.notes.current_group_count', 1)
@@ -123,4 +153,73 @@ it('returns not found when moderators request notes for a user outside the group
     ]));
 
     $response->assertNotFound();
+});
+
+it('sanitizes member note bodies and addenda before storing them', function () {
+    extract(createGroupMemberNotesContext());
+
+    $sanitizer = app(TextInputSanitizer::class);
+    $rawBody = " Missed\u{200B}\r\n call\t times ";
+    $rawAddendum = " Needs\t a\r\n follow-up ";
+
+    $this->actingAs($moderator);
+
+    $this->post(route('groups.members.notes.store', [
+        'group' => $group->slug,
+        'user' => $member->id,
+    ]), [
+        'severity' => GroupUserNote::SEVERITY_WARNING,
+        'body' => $rawBody,
+        'is_shared_with_groups' => false,
+    ])->assertRedirect();
+
+    $note = GroupUserNote::query()->sole();
+
+    expect($note->body)->toBe($sanitizer->sanitizeMultiline($rawBody));
+
+    $this->post(route('groups.members.notes.addenda.store', [
+        'group' => $group->slug,
+        'note' => $note->id,
+    ]), [
+        'body' => $rawAddendum,
+    ])->assertRedirect();
+
+    expect($note->fresh()->addenda()->sole()->body)->toBe($sanitizer->sanitizeMultiline($rawAddendum));
+});
+
+it('rejects member note and addendum bodies that exceed the configured limits', function () {
+    extract(createGroupMemberNotesContext());
+
+    $this->actingAs($moderator);
+
+    $this->from('/groups/'.$group->slug.'/members')
+        ->post(route('groups.members.notes.store', [
+            'group' => $group->slug,
+            'user' => $member->id,
+        ]), [
+            'severity' => GroupUserNote::SEVERITY_WARNING,
+            'body' => str_repeat('n', GroupUserNote::BODY_MAX_LENGTH + 1),
+            'is_shared_with_groups' => false,
+        ])
+        ->assertRedirect('/groups/'.$group->slug.'/members')
+        ->assertSessionHasErrors(['body']);
+
+    $note = GroupUserNote::create([
+        'group_id' => $group->id,
+        'user_id' => $member->id,
+        'author_user_id' => $moderator->id,
+        'severity' => GroupUserNote::SEVERITY_INFO,
+        'body' => 'Existing note',
+        'is_shared_with_groups' => false,
+    ]);
+
+    $this->from('/groups/'.$group->slug.'/members')
+        ->post(route('groups.members.notes.addenda.store', [
+            'group' => $group->slug,
+            'note' => $note->id,
+        ]), [
+            'body' => str_repeat('a', GroupUserNote::ADDENDUM_MAX_LENGTH + 1),
+        ])
+        ->assertRedirect('/groups/'.$group->slug.'/members')
+        ->assertSessionHasErrors(['body']);
 });

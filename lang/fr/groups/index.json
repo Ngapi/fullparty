@@ -59,6 +59,16 @@
     "slug_preview": "URL d'invitation publique : /invite/{slug}",
     "slug_fallback": "votreslug",
     "slug_warning": "Votre slug est permanent une fois le groupe créé.",
+    "validation": {
+      "required": "{field} est requis.",
+      "max_characters": "{field} doit contenir au maximum {max} caractères.",
+      "slug_letters_only": "Le slug ne peut contenir que des lettres minuscules.",
+      "slug_reserved": "Ce slug est réservé. Choisissez-en un autre.",
+      "invalid_option": "Choisissez une valeur valide pour {field}.",
+      "invalid_url": "Saisissez une URL valide.",
+      "image_invalid_format": "L'image de profil doit être au format JPG, JPEG, PNG ou WEBP.",
+      "image_too_large": "L'image de profil doit faire 5 Mo ou moins."
+    },
     "sections": {
       "identity": {
         "title": "Identité du groupe",

@@ -107,6 +107,14 @@ class Activity extends Model
         self::RUN_STYLE_BLIND,
     ];
 
+    public const TITLE_MAX_LENGTH = 255;
+
+    public const DESCRIPTION_MAX_LENGTH = 5000;
+
+    public const NOTES_MAX_LENGTH = 5000;
+
+    public const PROGRESS_NOTES_MAX_LENGTH = 5000;
+
     protected $fillable = [
         'group_id',
         'activity_type_id',

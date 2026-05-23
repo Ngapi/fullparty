@@ -1,4 +1,8 @@
 <script setup lang="ts">
+import type { GroupCreateField, GroupCreateFormData } from '@/Types/Groups';
+import { useGroupCreateValidation } from '@/composables/useGroupCreateValidation';
+import { groupProfilePictureAccept } from '@/utils/groupProfilePictureValidation';
+import { sanitizeMultilineText, sanitizeSingleLineText } from '@/utils/textInputSanitizer';
 import { computed, ref } from 'vue';
 import { useI18n } from "vue-i18n";
 import { useForm, usePage } from "@inertiajs/vue3";
@@ -23,7 +27,7 @@ const groupTypeOptions = computed(() => [
 	},
 ]);
 
-const form = useForm({
+const form = useForm<GroupCreateFormData>({
 	name: '',
 	description: '',
 	profile_picture: null as File | null,
@@ -61,7 +65,38 @@ const close = () => {
 	resetForm();
 };
 
-const normalizedSlugHint = computed(() => form.slug.toLowerCase().replace(/[^a-z]/g, '').slice(0, 8));
+const {
+	canContinue,
+	clearFieldError,
+	goToStepWithErrors,
+	groupSlugMaxLength,
+	normalizeGroupSlug,
+	normalizedSlugHint,
+	slugFieldValue,
+	validateCurrentStep,
+} = useGroupCreateValidation({
+	form,
+	step,
+	datacenterOptions,
+	groupTypeOptions,
+});
+
+const nameFieldValue = computed({
+	get: () => form.name,
+	set: (value: string | number | undefined) => {
+		form.name = sanitizeSingleLineText(String(value ?? ''));
+		clearFieldError('name');
+	},
+});
+
+const descriptionFieldValue = computed({
+	get: () => form.description,
+	set: (value: string | number | undefined) => {
+		form.description = sanitizeMultilineText(String(value ?? ''));
+		clearFieldError('description');
+	},
+});
+
 const displayGroupName = computed(() => form.name.trim() || t('groups.index.create_modal.visibility_summary.default_name'));
 const visibilitySummary = computed(() => {
 	if (form.is_public && form.is_visible) {
@@ -79,16 +114,8 @@ const visibilitySummary = computed(() => {
 	return t('groups.index.create_modal.visibility_summary.private_hidden', { name: displayGroupName.value });
 });
 
-const canContinue = computed(() => {
-	if (step.value === 1) {
-		return !!form.name && !!form.slug && !!form.group_type && !!form.datacenter;
-	}
-
-	return true;
-});
-
 const nextStep = () => {
-	if (step.value >= max_steps || !canContinue.value) {
+	if (step.value >= max_steps || !canContinue.value || !validateCurrentStep()) {
 		return;
 	}
 
@@ -106,9 +133,12 @@ const previousStep = () => {
 const submit = () => {
 	form.transform((data) => ({
 		...data,
-		slug: data.slug.toLowerCase().replace(/[^a-z]/g, '').slice(0, 8),
+		slug: normalizeGroupSlug(data.slug),
 	})).post(route('groups.store'), {
 		preserveScroll: true,
+		onError: (errors) => {
+			goToStepWithErrors(errors as Partial<Record<GroupCreateField, string>>);
+		},
 		onSuccess: () => {
 			toast.add({
 				title: t('general.success'),
@@ -125,6 +155,7 @@ const updateProfilePicture = (event: Event) => {
 	const target = event.target as HTMLInputElement;
 	const file = target.files?.[0] ?? null;
 
+	clearFieldError('profile_picture');
 	form.profile_picture = file;
 
 	if (!file) {
@@ -186,7 +217,7 @@ defineExpose({
 						required
 					>
 						<UInput
-							v-model="form.name"
+							v-model="nameFieldValue"
 							class="w-full"
 							:placeholder="t('groups.index.create_modal.fields.name.placeholder')"
 							:ui="{ base: 'rounded-none' }"
@@ -200,10 +231,14 @@ defineExpose({
 						required
 					>
 						<UInput
-							v-model="form.slug"
+							v-model="slugFieldValue"
 							class="w-full"
+							:maxlength="groupSlugMaxLength"
 							:placeholder="t('groups.index.create_modal.fields.slug.placeholder')"
 							:ui="{ base: 'rounded-none' }"
+							autocapitalize="off"
+							autocomplete="off"
+							spellcheck="false"
 						/>
 					</UFormField>
 
@@ -224,6 +259,7 @@ defineExpose({
 							value-key="value"
 							:placeholder="t('groups.index.create_modal.fields.group_type.placeholder')"
 							:ui="{ base: 'rounded-none' }"
+							@update:model-value="clearFieldError('group_type')"
 						/>
 					</UFormField>
 
@@ -232,7 +268,7 @@ defineExpose({
 						:error="form.errors.description"
 					>
 						<UTextarea
-							v-model="form.description"
+							v-model="descriptionFieldValue"
 							class="w-full"
 							:rows="4"
 							:placeholder="t('groups.index.create_modal.fields.description.placeholder')"
@@ -252,6 +288,7 @@ defineExpose({
 							value-key="value"
 							:placeholder="t('groups.index.create_modal.fields.datacenter.placeholder')"
 							:ui="{ base: 'rounded-none' }"
+							@update:model-value="clearFieldError('datacenter')"
 						/>
 					</UFormField>
 				</div>
@@ -276,7 +313,7 @@ defineExpose({
 								<input
 									class="sr-only"
 									type="file"
-									accept="image/*"
+									:accept="groupProfilePictureAccept"
 									@change="updateProfilePicture"
 								>
 							</label>
@@ -311,6 +348,7 @@ defineExpose({
 							class="w-full"
 							:placeholder="t('groups.index.create_modal.fields.discord_invite_url.placeholder')"
 							:ui="{ base: 'rounded-none' }"
+							@update:model-value="clearFieldError('discord_invite_url')"
 						/>
 					</UFormField>
 				</div>

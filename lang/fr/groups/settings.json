@@ -37,6 +37,10 @@
         "help": "Les groupes visibles peuvent apparaître dans la découverte et la recherche, même s'ils sont privés."
       }
     },
+    "validation": {
+      "image_invalid_format": "L'image de profil doit être au format JPG, JPEG, PNG ou WEBP.",
+      "image_too_large": "L'image de profil doit faire 5 Mo ou moins."
+    },
     "toasts": { "updated": "Les paramètres du groupe ont été mis à jour." }
   },
   "invites": {

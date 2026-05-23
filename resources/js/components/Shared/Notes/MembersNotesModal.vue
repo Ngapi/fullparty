@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { MemberNote } from "@/Types/Groups";
+import { memberNoteLimits } from "@/utils/memberNoteLimits";
 import { useI18n } from "vue-i18n";
 import { useMemberNotes } from "@/composables/useMemberNotes";
 
@@ -135,6 +136,31 @@ const severityBorderClass = (severity: MemberNote['severity']) => ({
 					/>
 				</div>
 
+				<div class="flex flex-col gap-3">
+					<div v-if="member.characters.length > 0" class="flex flex-wrap gap-2">
+						<div
+							v-for="character in member.characters"
+							:key="`member-character-${character.id}`"
+							class="min-w-48 border border-default bg-muted/20 px-3 py-2"
+						>
+							<UUser
+								:name="character.name"
+								:description="character.datacenter ? `${character.world} - ${character.datacenter}` : character.world"
+								:avatar="{
+									src: character.avatar_url,
+									alt: character.name,
+									loading: 'lazy',
+									icon: 'i-lucide-image',
+								}"
+							/>
+						</div>
+					</div>
+
+					<p v-else class="text-sm text-muted">
+						{{ t('groups.members.roster.no_characters') }}
+					</p>
+				</div>
+
 				<div class="flex max-h-[75vh] w-full flex-row items-start justify-start gap-6">
 					<section class="w-2/5 flex flex-col gap-4">
 						<UCard v-if="member.notes.can_add" class="dark:bg-elevated/25">
@@ -169,6 +195,7 @@ const severityBorderClass = (severity: MemberNote['severity']) => ({
 										v-model="noteForm.body"
 										class="w-full"
 										:rows="10"
+										:maxlength="memberNoteLimits.body"
 										:placeholder="t('groups.members.notes.fields.body.placeholder')"
 									/>
 								</UFormField>
@@ -260,6 +287,7 @@ const severityBorderClass = (severity: MemberNote['severity']) => ({
 													v-model="noteUpdateForm.body"
 													class="w-full"
 													:rows="6"
+													:maxlength="memberNoteLimits.body"
 												/>
 											</UFormField>
 
@@ -341,6 +369,7 @@ const severityBorderClass = (severity: MemberNote['severity']) => ({
 													v-model="addendumForm.body"
 													class="w-full"
 													:rows="4"
+													:maxlength="memberNoteLimits.addendum"
 													:placeholder="t('groups.members.notes.addenda.form.placeholder')"
 												/>
 											</UFormField>

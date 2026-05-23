@@ -5,6 +5,7 @@ import { useI18n } from "vue-i18n";
 import { usePage } from "@inertiajs/vue3";
 import { localizedValue } from "@/utils/localizedValue";
 import ApplicationClassSelector from "@/components/Groups/Activities/ApplicationClassSelector.vue";
+import { activityTextLimits } from "@/utils/activityTextLimits";
 
 const props = defineProps<{
 	question: ApplicationQuestion
@@ -51,6 +52,18 @@ const textValue = computed({
 	set: (value: string | number) => emit('update:modelValue', String(value ?? '')),
 });
 
+const textMaxLength = computed(() => {
+	if (props.question.type === 'textarea') {
+		return activityTextLimits.applicationAnswerTextarea;
+	}
+
+	if (props.question.type === 'url') {
+		return activityTextLimits.applicationAnswerUrl;
+	}
+
+	return activityTextLimits.applicationAnswerText;
+});
+
 const numberValue = computed({
 	get: () => typeof props.modelValue === 'number'
 		? String(props.modelValue)
@@ -80,6 +93,7 @@ const booleanValue = computed({
 			size="lg"
 			class="w-full"
 			:type="question.type === 'url' ? 'url' : 'text'"
+			:maxlength="textMaxLength"
 			:disabled="disabled"
 		/>
 
@@ -89,6 +103,7 @@ const booleanValue = computed({
 			size="lg"
 			class="w-full"
 			:rows="5"
+			:maxlength="textMaxLength"
 			:disabled="disabled"
 		/>
 
@@ -133,6 +148,7 @@ const booleanValue = computed({
 			v-model="textValue"
 			size="lg"
 			class="w-full"
+			:maxlength="textMaxLength"
 			:disabled="disabled"
 		/>
 	</UFormField>

@@ -6,6 +6,7 @@ import { route } from "ziggy-js";
 import { useI18n } from "vue-i18n";
 import { useToast } from "@nuxt/ui/composables";
 import ApplicationQuestionField from "@/components/Groups/Activities/ApplicationQuestionField.vue";
+import { activityTextLimits } from "@/utils/activityTextLimits";
 
 const props = defineProps<{
 	groupSlug: string
@@ -320,6 +321,7 @@ const submit = () => {
 							v-model="guestSearchName"
 							size="lg"
 							class="w-full"
+							:maxlength="activityTextLimits.applicationAnswerText"
 							:disabled="applicationLocked"
 							:placeholder="t('groups.activities.application.form.guest_name_placeholder')"
 						/>
@@ -466,6 +468,7 @@ const submit = () => {
 						size="lg"
 						class="w-full"
 						:rows="5"
+						:maxlength="activityTextLimits.applicationNotes"
 						:disabled="applicationLocked || !canSubmit"
 						:placeholder="t('groups.activities.application.form.notes_placeholder')"
 					/>

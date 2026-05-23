@@ -13,11 +13,11 @@ use App\Models\Group;
 use App\Models\NotificationDelivery;
 use App\Models\NotificationEvent;
 use App\Models\PhantomJob;
-use App\Models\SocialAccount;
 use App\Models\User;
 use App\Models\UserNotification;
 use App\Services\FFLogs\ActivityReportProgressFetcher;
 use App\Services\FFLogs\CharacterZoneProgressFetcher;
+use App\Support\Input\TextInputSanitizer;
 use App\Support\Notifications\NotificationChannel;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Event;
@@ -427,6 +427,31 @@ it('allows moderators to decline pending applications with an optional reason', 
     });
 });
 
+it('sanitizes decline reasons before storing and broadcasting them', function () {
+    extract(createModerationEndpointSetup());
+
+    $application = ActivityApplication::factory()->guest()->create([
+        'activity_id' => $activity->id,
+        'status' => ActivityApplication::STATUS_PENDING,
+    ]);
+    $sanitizer = app(TextInputSanitizer::class);
+    $rawReason = " Roster\u{200B}\r\n locked\t for this run ";
+
+    $this->actingAs($owner);
+
+    $this->postJson(route('groups.dashboard.activities.application-declines.store', [
+        'group' => $group->slug,
+        'activity' => $activity->id,
+        'application' => $application->id,
+    ]), [
+        'reason' => $rawReason,
+    ])
+        ->assertOk()
+        ->assertJsonPath('application.review_reason', $sanitizer->sanitizeMultiline($rawReason));
+
+    expect($application->fresh()->review_reason)->toBe($sanitizer->sanitizeMultiline($rawReason));
+});
+
 it('does not allow moderators to decline applications that are no longer pending', function () {
     extract(createModerationEndpointSetup());
 
@@ -573,7 +598,7 @@ it('allows multiple host designations on published slots with audit, notificatio
             && $event->groupId === $group->id
             && $updatedSlots->count() === 1
             && $updatedSlots->contains(fn (array $entry) => ($entry['id'] ?? null) === $secondSlot->id && ($entry['is_host'] ?? false) === true)
-            && !$updatedSlots->contains(fn (array $entry) => ($entry['id'] ?? null) === $slot->id);
+            && ! $updatedSlots->contains(fn (array $entry) => ($entry['id'] ?? null) === $slot->id);
     });
 });
 

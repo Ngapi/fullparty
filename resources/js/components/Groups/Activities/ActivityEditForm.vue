@@ -4,6 +4,7 @@ import { computed, ref, toRef, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { useActivityFormFields } from "@/components/Groups/Activities/useActivityFormFields";
 import { usePage } from "@inertiajs/vue3";
+import { activityTextLimits } from "@/utils/activityTextLimits";
 
 const props = defineProps<{
 	activityTypes: ActivityTypeOption[]
@@ -144,6 +145,7 @@ watch(() => props.form.needs_application, (needsApplication) => {
 							v-model="form.title"
 							size="lg"
 							class="w-full"
+							:maxlength="activityTextLimits.title"
 							:placeholder="t('groups.activities.create.fields.title.placeholder')"
 						/>
 					</UFormField>
@@ -356,6 +358,7 @@ watch(() => props.form.needs_application, (needsApplication) => {
 						size="lg"
 						class="w-full"
 						:rows="5"
+						:maxlength="activityTextLimits.notes"
 						:placeholder="t('groups.activities.create.fields.notes.placeholder')"
 					/>
 				</UFormField>

@@ -134,7 +134,7 @@ const goToManagementPage = () => {
 						<div class="flex flex-wrap items-start justify-between gap-3">
 							<div class="min-w-0">
 								<div class="flex flex-wrap items-center gap-2">
-									<h3 class="text-base font-semibold text-toned">
+									<h3 class="break-words [overflow-wrap:anywhere] text-base font-semibold text-toned">
 										{{ activityTitle }}
 									</h3>
 									<UBadge
@@ -144,7 +144,7 @@ const goToManagementPage = () => {
 										variant="subtle"
 									/>
 								</div>
-								<p class="mt-1 text-sm text-muted">
+								<p class="mt-1 break-words [overflow-wrap:anywhere] text-sm text-muted">
 									{{ activityTypeName }}
 								</p>
 							</div>

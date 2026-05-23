@@ -272,10 +272,10 @@ const memberJoinedLabel = (member: GroupProfileStaffMember) => (
 								/>
 							</div>
 
-							<h1 class="mt-4 text-3xl font-black text-highlighted sm:text-4xl">
+							<h1 class="mt-4 break-words [overflow-wrap:anywhere] text-3xl font-black text-highlighted sm:text-4xl">
 								{{ group.name }}
 							</h1>
-							<p class="mt-3 max-w-3xl whitespace-pre-wrap text-sm leading-7 text-muted sm:text-base">
+							<p class="mt-3 max-w-3xl break-words [overflow-wrap:anywhere] whitespace-pre-wrap text-sm leading-7 text-muted sm:text-base">
 								{{ group.description || t("groups.profile.hero.no_description") }}
 							</p>
 
@@ -396,7 +396,7 @@ const memberJoinedLabel = (member: GroupProfileStaffMember) => (
 						>
 							<div class="min-w-0">
 								<div class="flex flex-wrap items-center gap-2">
-									<p class="truncate font-semibold text-toned">{{ resolveActivityTitle(activity) }}</p>
+									<p class="font-semibold break-words [overflow-wrap:anywhere] text-toned">{{ resolveActivityTitle(activity) }}</p>
 									<UBadge
 										:label="t(`groups.activities.statuses.${activity.status}`)"
 										:color="getActivityStatusMeta(activity.status).color"
@@ -417,7 +417,7 @@ const memberJoinedLabel = (member: GroupProfileStaffMember) => (
 									/>
 								</div>
 
-								<p class="mt-2 text-sm text-muted">{{ resolveActivityTypeName(activity) }}</p>
+								<p class="mt-2 break-words [overflow-wrap:anywhere] text-sm text-muted">{{ resolveActivityTypeName(activity) }}</p>
 
 								<div class="mt-3 flex flex-wrap gap-x-4 gap-y-2 text-sm text-muted">
 									<span class="inline-flex items-center gap-2">
@@ -475,8 +475,8 @@ const memberJoinedLabel = (member: GroupProfileStaffMember) => (
 						>
 							<div class="flex items-start justify-between gap-3">
 								<div class="min-w-0">
-									<p class="truncate font-semibold text-toned">{{ resolveActivityTitle(activity) }}</p>
-									<p class="mt-1 text-sm text-muted">{{ resolveActivityTypeName(activity) }}</p>
+									<p class="font-semibold break-words [overflow-wrap:anywhere] text-toned">{{ resolveActivityTitle(activity) }}</p>
+									<p class="mt-1 break-words [overflow-wrap:anywhere] text-sm text-muted">{{ resolveActivityTypeName(activity) }}</p>
 								</div>
 								<UBadge
 									:label="t(`groups.activities.statuses.${activity.status}`)"

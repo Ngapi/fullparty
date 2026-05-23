@@ -59,6 +59,16 @@
     "slug_preview": "Public invite URL: /invite/{slug}",
     "slug_fallback": "yourslug",
     "slug_warning": "Your slug is permanent once the group is created.",
+    "validation": {
+      "required": "{field} is required.",
+      "max_characters": "{field} must be {max} characters or fewer.",
+      "slug_letters_only": "Slug can only contain lowercase letters.",
+      "slug_reserved": "That slug is reserved. Choose a different one.",
+      "invalid_option": "Choose a valid {field}.",
+      "invalid_url": "Enter a valid URL.",
+      "image_invalid_format": "Profile picture must be a JPG, JPEG, PNG, or WEBP image.",
+      "image_too_large": "Profile picture must be 5 MB or smaller."
+    },
     "sections": {
       "identity": {
         "title": "Group Identity",

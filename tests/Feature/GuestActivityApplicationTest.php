@@ -3,12 +3,14 @@
 use App\DTOs\LodestoneCharacterSearchResult;
 use App\Models\Activity;
 use App\Models\ActivityApplication;
+use App\Models\ActivityApplicationAnswer;
 use App\Models\ActivityType;
 use App\Models\ActivityTypeVersion;
 use App\Models\Character;
 use App\Models\Group;
 use App\Models\User;
 use App\Services\Lodestone\LodestoneCharacterSearchService;
+use App\Support\Input\TextInputSanitizer;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Inertia\Testing\AssertableInertia as Assert;
 
@@ -99,6 +101,89 @@ it('allows guests to submit applications when enabled', function () {
 
     expect($application->answers)->toHaveCount(1);
     expect($application->answers->first()->question_key)->toBe('experience');
+});
+
+it('sanitizes guest applicant free-text fields, notes, and textarea answers', function () {
+    $activity = createGuestApplicationActivity();
+    $sanitizer = app(TextInputSanitizer::class);
+
+    $response = $this->post(route('groups.activities.application.store', [
+        'group' => $activity->group->slug,
+        'activity' => $activity->id,
+    ]), [
+        'guest_applicant' => [
+            'lodestone_id' => '47431834',
+            'name' => "  War\u{200B}rior   Light  ",
+            'world' => "  Twin\tania  ",
+            'datacenter' => "  Li\u{200B}ght  ",
+            'avatar_url' => 'https://example.com/avatar.png',
+        ],
+        'notes' => " Can\t flex \r\n healer ",
+        'answers' => [
+            'experience' => " Cleared\u{200B}\r\nto enrage ",
+        ],
+    ]);
+
+    $application = ActivityApplication::query()->sole();
+    $application->load('answers', 'selectedCharacter');
+
+    $response->assertRedirect(route('groups.activities.application.status', [
+        'group' => $activity->group->slug,
+        'activity' => $activity->id,
+        'accessToken' => $application->guest_access_token,
+    ]));
+
+    expect($application->applicant_character_name)->toBe($sanitizer->sanitizeSingleLine("  War\u{200B}rior   Light  "))
+        ->and($application->applicant_world)->toBe($sanitizer->sanitizeSingleLine("  Twin\tania  "))
+        ->and($application->applicant_datacenter)->toBe($sanitizer->sanitizeSingleLine("  Li\u{200B}ght  "))
+        ->and($application->notes)->toBe($sanitizer->sanitizeMultiline(" Can\t flex \r\n healer "))
+        ->and($application->answers->sole()->value)->toBe($sanitizer->sanitizeMultiline(" Cleared\u{200B}\r\nto enrage "))
+        ->and($application->selectedCharacter?->name)->toBe($sanitizer->sanitizeSingleLine("  War\u{200B}rior   Light  "));
+});
+
+it('rejects guest application notes that exceed the configured limit', function () {
+    $activity = createGuestApplicationActivity();
+
+    $this->post(route('groups.activities.application.store', [
+        'group' => $activity->group->slug,
+        'activity' => $activity->id,
+    ]), [
+        'guest_applicant' => [
+            'lodestone_id' => '47431834',
+            'name' => 'Warrior Light',
+            'world' => 'Twintania',
+            'datacenter' => 'Light',
+            'avatar_url' => 'https://example.com/avatar.png',
+        ],
+        'notes' => str_repeat('n', ActivityApplication::NOTES_MAX_LENGTH + 1),
+        'answers' => [
+            'experience' => 'Cleared to enrage.',
+        ],
+    ])->assertSessionHasErrors(['notes']);
+
+    expect(ActivityApplication::query()->count())->toBe(0);
+});
+
+it('rejects guest application textarea answers that exceed the configured limit', function () {
+    $activity = createGuestApplicationActivity();
+
+    $this->post(route('groups.activities.application.store', [
+        'group' => $activity->group->slug,
+        'activity' => $activity->id,
+    ]), [
+        'guest_applicant' => [
+            'lodestone_id' => '47431834',
+            'name' => 'Warrior Light',
+            'world' => 'Twintania',
+            'datacenter' => 'Light',
+            'avatar_url' => 'https://example.com/avatar.png',
+        ],
+        'answers' => [
+            'experience' => str_repeat('e', ActivityApplicationAnswer::TEXTAREA_VALUE_MAX_LENGTH + 1),
+        ],
+    ])->assertSessionHasErrors(['answers.experience']);
+
+    expect(ActivityApplication::query()->count())->toBe(0);
 });
 
 it('rejects guest applications when they are disabled', function () {

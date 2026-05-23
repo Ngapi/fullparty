@@ -2,6 +2,28 @@ import type { LocalizedText } from "@/Types/Common"
 
 export type MemberNoteSeverity = "info" | "warning" | "critical"
 export type GroupType = "community" | "static"
+export type GroupCreateField =
+	| "name"
+	| "description"
+	| "profile_picture"
+	| "discord_invite_url"
+	| "datacenter"
+	| "is_public"
+	| "is_visible"
+	| "slug"
+	| "group_type"
+
+export type GroupCreateFormData = {
+	name: string
+	description: string
+	profile_picture: File | null
+	discord_invite_url: string
+	datacenter: string
+	is_public: boolean
+	is_visible: boolean
+	slug: string
+	group_type: GroupType
+}
 
 export type NoteAuthor = {
 	id: number
@@ -320,6 +342,7 @@ export type GroupBannedMemberRecord = {
 export type MemberNotesTarget = {
 	id: number
 	name: string
+	characters: GroupMemberCharacter[]
 	notes: MemberNotePayload
 }
 

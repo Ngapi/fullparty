@@ -10,6 +10,7 @@ import ActivityCharacterFflogsProgress from "@/components/Groups/Activities/Acti
 import ApplicantUserStats from "@/components/Groups/Activities/ApplicantUserStats.vue";
 import type { LocalizedText } from "@/Types/Common";
 import type { QueueApplication } from "@/Types/ActivityQueue";
+import { activityTextLimits } from "@/utils/activityTextLimits";
 
 const props = defineProps<{
 	groupSlug: string
@@ -232,7 +233,6 @@ const declineApplication = async () => {
 		isDeclineModalOpen.value = false;
 		isOpen.value = false;
 	} catch (error) {
-		console.error(error);
 		toast.add({
 			title: t('groups.activities.management.queue.decline_error_title'),
 			description: t('groups.activities.management.queue.decline_error_description'),
@@ -276,10 +276,10 @@ watch(isOpen, (open) => {
 					/>
 
 					<div class="min-w-0">
-						<p class="truncate font-semibold text-highlighted">
+						<p class="break-words [overflow-wrap:anywhere] font-semibold text-highlighted">
 							{{ displayName }}
 						</p>
-						<p v-if="description" class="truncate text-sm text-muted">
+						<p v-if="description" class="break-words [overflow-wrap:anywhere] text-sm text-muted">
 							{{ description }}
 						</p>
 					</div>
@@ -447,10 +447,9 @@ watch(isOpen, (open) => {
 								:key="answer.key"
 								class="space-y-3 border border-default bg-muted/10 p-3"
 							>
-								<p class="text-sm font-medium text-toned">
+								<p class="break-words [overflow-wrap:anywhere] text-sm font-medium text-toned">
 									{{ answer.label }}
 								</p>
-
 								<div class="flex flex-wrap gap-2">
 									<UBadge
 										v-for="value in answer.displayValues"
@@ -473,7 +472,7 @@ watch(isOpen, (open) => {
 							{{ t('general.notes') }}
 						</p>
 
-						<p class="text-sm whitespace-pre-line text-toned">
+						<p class="break-words [overflow-wrap:anywhere] text-sm whitespace-pre-line text-toned">
 							{{ application.notes || t('groups.activities.management.queue.modal.no_notes') }}
 						</p>
 					</div>
@@ -557,7 +556,7 @@ watch(isOpen, (open) => {
 					v-if="application"
 					class="rounded-sm border border-default bg-default px-4 py-3"
 				>
-					<p class="font-medium text-toned">
+					<p class="break-words [overflow-wrap:anywhere] font-medium text-toned">
 						{{ displayName }}
 					</p>
 					<p class="mt-1 text-sm text-muted">
@@ -574,6 +573,7 @@ watch(isOpen, (open) => {
 						v-model="declineReason"
 						:rows="4"
 						class="w-full"
+						:maxlength="activityTextLimits.applicationDeclineReason"
 						:placeholder="t('groups.activities.management.queue.decline_modal.reason_placeholder')"
 					/>
 				</UFormField>

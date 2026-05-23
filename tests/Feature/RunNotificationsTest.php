@@ -12,6 +12,7 @@ use App\Models\NotificationEvent;
 use App\Models\SocialAccount;
 use App\Models\User;
 use App\Models\UserNotification;
+use App\Support\Input\TextInputSanitizer;
 use App\Support\Notifications\NotificationCategory;
 use App\Support\Notifications\NotificationChannel;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -257,6 +258,51 @@ it('notifies placed applicants when a run is completed', function () {
         ->and(NotificationDelivery::query()->where('notification_event_id', $event->id)->count())->toBe(4);
 
     Queue::assertPushed(SendNotificationEmailDeliveryJob::class, 2);
+});
+
+it('sanitizes completion progress notes before storing them', function () {
+    $owner = User::factory()->create();
+    $group = Group::factory()->public()->create([
+        'owner_id' => $owner->id,
+    ]);
+    $activity = createRunNotificationActivity($owner, $group, [
+        'status' => Activity::STATUS_ASSIGNED,
+    ]);
+    $sanitizer = app(TextInputSanitizer::class);
+    $rawNotes = " First\u{200B}\r\n clear\t tonight ";
+
+    $this->actingAs($owner)
+        ->postJson(route('groups.dashboard.activities.complete', [
+            'group' => $group->slug,
+            'activity' => $activity->id,
+        ]), [
+            'progress_notes' => $rawNotes,
+        ])
+        ->assertOk();
+
+    expect($activity->fresh()->progress_notes)->toBe($sanitizer->sanitizeMultiline($rawNotes));
+});
+
+it('rejects completion progress notes that exceed the configured limit', function () {
+    $owner = User::factory()->create();
+    $group = Group::factory()->public()->create([
+        'owner_id' => $owner->id,
+    ]);
+    $activity = createRunNotificationActivity($owner, $group, [
+        'status' => Activity::STATUS_ASSIGNED,
+    ]);
+
+    $this->actingAs($owner)
+        ->postJson(route('groups.dashboard.activities.complete', [
+            'group' => $group->slug,
+            'activity' => $activity->id,
+        ]), [
+            'progress_notes' => str_repeat('p', Activity::PROGRESS_NOTES_MAX_LENGTH + 1),
+        ])
+        ->assertUnprocessable()
+        ->assertJsonValidationErrors(['progress_notes']);
+
+    expect($activity->fresh()->progress_notes)->toBeNull();
 });
 
 it('dispatches starting soon and starting now reminders only once', function () {

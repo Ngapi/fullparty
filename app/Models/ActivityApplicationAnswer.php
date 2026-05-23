@@ -10,6 +10,12 @@ class ActivityApplicationAnswer extends Model
 {
     use HasFactory;
 
+    public const TEXT_VALUE_MAX_LENGTH = 255;
+
+    public const TEXTAREA_VALUE_MAX_LENGTH = 5000;
+
+    public const URL_VALUE_MAX_LENGTH = 2000;
+
     protected $fillable = [
         'activity_application_id',
         'question_key',

@@ -12,12 +12,12 @@ defineProps({
 </script>
 
 <template>
-	<div class="flex flex-row items-start py-4">
-		<div class="w-full flex flex-col items-start gap-2">
-			<h1 class="text-3xl font-black">{{title}}</h1>
-			<p class="text-muted text-md">{{subtitle}}</p>
+	<div class="flex max-w-full flex-col items-start gap-4 overflow-x-hidden py-4 xl:flex-row xl:justify-between">
+		<div class="flex w-full min-w-0 flex-1 flex-col items-start gap-2">
+			<h1 class="break-words wrap-anywhere text-3xl font-black">{{title}}</h1>
+			<p class="break-words wrap-anywhere text-muted text-md">{{subtitle}}</p>
 		</div>
-		<div class="flex flex-col items-start mt-2">
+		<div class="mt-2 flex w-full min-w-0 max-w-full flex-col items-start xl:w-auto xl:max-w-full xl:shrink xl:items-end">
 			<slot />
 		</div>
 	</div>

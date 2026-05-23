@@ -2,6 +2,8 @@
 
 namespace App\Http\Requests;
 
+use App\Support\Input\RequestTextInputSanitizer;
+use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -19,7 +21,7 @@ class StoreCharacterRequest extends FormRequest
     /**
      * Get the validation rules that apply to the request.
      *
-     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
+     * @return array<string, ValidationRule|array<mixed>|string>
      */
     public function rules(): array
     {
@@ -37,6 +39,15 @@ class StoreCharacterRequest extends FormRequest
             'field_values.*.field_definition_id' => ['required_with:field_values', 'exists:character_field_definitions,id'],
             'field_values.*.value' => ['nullable'],
         ];
+    }
+
+    protected function prepareForValidation(): void
+    {
+        app(RequestTextInputSanitizer::class)->sanitize($this, [
+            'name',
+            'world',
+            'datacenter',
+        ]);
     }
 
     /**

@@ -3,7 +3,11 @@
   "subtitle": "Manage your account preferences and notifications.",
   "account": {
     "title": "Account Settings",
-    "save": "Save Changes"
+    "save": "Save Changes",
+    "primary_character": "Primary Character",
+    "primary_character_description": "Choose the default verified character FullParty should treat as your main one.",
+    "primary_character_placeholder": "Select a primary character",
+    "save_primary_character": "Save Primary Character"
   },
   "connect": "Connect",
   "unlink": "Unlink",

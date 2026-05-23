@@ -9,6 +9,7 @@ use App\Services\Groups\ActivityManagementRealtimeService;
 use App\Services\Groups\ApplicantQueue\ApplicantQueuePayloadBuilder;
 use App\Services\Groups\GroupActivityAuditService;
 use App\Services\Notifications\ApplicationNotificationService;
+use App\Support\Input\RequestTextInputSanitizer;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -21,6 +22,7 @@ class GroupActivityApplicationDeclineController extends Controller
         Group $group,
         Activity $activity,
         ActivityApplication $application,
+        RequestTextInputSanitizer $requestTextInputSanitizer,
         GroupActivityAuditService $activityAuditService,
         ApplicantQueuePayloadBuilder $queuePayloadBuilder,
         ApplicationNotificationService $applicationNotificationService,
@@ -44,8 +46,10 @@ class GroupActivityApplicationDeclineController extends Controller
             ]);
         }
 
+        $requestTextInputSanitizer->sanitize($request, [], ['reason']);
+
         $validated = $request->validate([
-            'reason' => ['sometimes', 'nullable', 'string', 'max:2000'],
+            'reason' => ['sometimes', 'nullable', 'string', 'max:'.ActivityApplication::REVIEW_REASON_MAX_LENGTH],
         ]);
 
         DB::transaction(function () use ($application, $validated, $request, $activityAuditService): void {

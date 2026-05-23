@@ -43,6 +43,10 @@
         "help": "Visible groups can appear in discovery and search, even if they are private."
       }
     },
+    "validation": {
+      "image_invalid_format": "Profile picture must be a JPG, JPEG, PNG, or WEBP image.",
+      "image_too_large": "Profile picture must be 5 MB or smaller."
+    },
     "toasts": {
       "updated": "Group settings have been updated."
     }

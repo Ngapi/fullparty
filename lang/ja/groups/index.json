@@ -59,6 +59,16 @@
     "slug_preview": "公開招待URL: /invite/{slug}",
     "slug_fallback": "yourslug",
     "slug_warning": "グループ作成後、slug は変更できません。",
+    "validation": {
+      "required": "{field} は必須です。",
+      "max_characters": "{field} は {max} 文字以内で入力してください。",
+      "slug_letters_only": "Slug には小文字の英字のみ使用できます。",
+      "slug_reserved": "この slug は予約済みです。別のものを選んでください。",
+      "invalid_option": "{field} の有効な値を選択してください。",
+      "invalid_url": "有効な URL を入力してください。",
+      "image_invalid_format": "プロフィール画像には JPG、JPEG、PNG、WEBP のいずれかを指定してください。",
+      "image_too_large": "プロフィール画像は 5 MB 以下にしてください。"
+    },
     "sections": {
       "identity": {
         "title": "グループ情報",

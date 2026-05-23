@@ -5,6 +5,7 @@ import { computed, reactive, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { route } from "ziggy-js";
 import { localizedValue } from "@/utils/localizedValue";
+import { activityTextLimits } from "@/utils/activityTextLimits";
 
 const props = defineProps<{
 	open: boolean
@@ -50,7 +51,7 @@ const state = reactive({
 const hasProgressMilestones = computed(() => props.progressMilestones.length > 0);
 const maxSteps = computed(() => {
 	if (!hasProgressMilestones.value) {
-		return 2;
+		return 1;
 	}
 
 	return state.progressEntryMode === 'fflogs' ? 5 : 4;
@@ -195,7 +196,6 @@ const fetchFflogsPreview = async () => {
 
 		return true;
 	} catch (error: any) {
-		console.error(error);
 		fflogsPreviewError.value = error?.response?.data?.message ?? t('groups.activities.management.complete_activity_modal.fflogs_preview_error');
 		return false;
 	} finally {
@@ -280,7 +280,6 @@ const submit = () => {
 					<div class="rounded-sm border border-default bg-muted/30 px-4 py-4 text-sm text-muted">
 						<div class="space-y-3 leading-6">
 							<p>{{ t('groups.activities.management.complete_activity_modal.warning_body') }}</p>
-							<p>{{ t('groups.activities.management.complete_activity_modal.warning_points.overview_only') }}</p>
 							<p v-if="hasProgressMilestones">{{ t('groups.activities.management.complete_activity_modal.warning_points.progress') }}</p>
 						</div>
 					</div>
@@ -349,6 +348,7 @@ const submit = () => {
 						<UInput
 							v-model="state.progressLinkUrl"
 							class="w-full"
+							:maxlength="activityTextLimits.progressLinkUrl"
 							:placeholder="t('groups.activities.management.complete_activity_modal.fflogs_link_placeholder')"
 						/>
 					</UFormField>
@@ -446,6 +446,7 @@ const submit = () => {
 							v-model="state.progressNotes"
 							:rows="3"
 							class="w-full"
+							:maxlength="activityTextLimits.progressNotes"
 							:placeholder="t('groups.activities.management.complete_activity_modal.notes_placeholder')"
 						/>
 					</UFormField>
@@ -509,7 +510,7 @@ const submit = () => {
 
 					<div v-if="state.progressNotes.trim()" class="rounded-sm border border-default bg-background/60 px-4 py-4">
 						<p class="text-xs uppercase text-muted">{{ t('groups.activities.management.complete_activity_modal.notes') }}</p>
-						<p class="mt-2 whitespace-pre-wrap text-sm text-toned">
+						<p class="mt-2 break-words [overflow-wrap:anywhere] whitespace-pre-wrap text-sm text-toned">
 							{{ state.progressNotes }}
 						</p>
 					</div>

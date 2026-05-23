@@ -12,6 +12,7 @@ use App\Services\ManagedImageStorage;
 use App\Services\Notifications\GroupUpdateNotificationService;
 use App\Support\Audit\AuditScope;
 use App\Support\Audit\AuditSeverity;
+use App\Support\Input\RequestTextInputSanitizer;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -31,6 +32,7 @@ class GroupController extends Controller
         private readonly ManagedImageStorage $managedImageStorage,
         private readonly AuditLogger $auditLogger,
         private readonly GroupUpdateNotificationService $groupUpdateNotificationService,
+        private readonly RequestTextInputSanitizer $requestTextInputSanitizer,
     ) {}
 
     public function index(Request $request): Response
@@ -77,6 +79,8 @@ class GroupController extends Controller
 
     public function search(Request $request): JsonResponse
     {
+        $this->requestTextInputSanitizer->sanitize($request, ['query']);
+
         $validated = $request->validate([
             'query' => ['nullable', 'string', 'max:255'],
             'page' => ['nullable', 'integer', 'min:1'],
@@ -143,7 +147,12 @@ class GroupController extends Controller
 
     public function store(Request $request): RedirectResponse
     {
-        $validated = $request->validate($this->storeRules());
+        $this->sanitizeGroupInput($request);
+
+        $validated = $request->validate(
+            $this->storeRules(),
+            $this->storeValidationMessages(),
+        );
         $profilePictureUrl = $this->managedImageStorage->uploadImageIfPresent(
             $request->file('profile_picture'),
             self::IMAGE_DIRECTORY,
@@ -261,7 +270,7 @@ class GroupController extends Controller
         return [
             'name' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
-            'profile_picture' => ['nullable', 'image', 'max:5120'],
+            'profile_picture' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5120'],
             'discord_invite_url' => ['nullable', 'url', 'max:500'],
             'datacenter' => ['required', 'string', Rule::in(config('datacenters.values', []))],
             'is_public' => ['required', 'boolean'],
@@ -276,6 +285,25 @@ class GroupController extends Controller
                 Rule::unique('groups', 'slug'),
             ],
         ];
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    private function storeValidationMessages(): array
+    {
+        return [
+            'profile_picture.mimes' => __('groups.index.create_modal.validation.image_invalid_format'),
+        ];
+    }
+
+    private function sanitizeGroupInput(Request $request): void
+    {
+        $this->requestTextInputSanitizer->sanitize(
+            $request,
+            ['name'],
+            ['description'],
+        );
     }
 
     private function serializeGroupListItem(Group $group, int $currentUserId): array

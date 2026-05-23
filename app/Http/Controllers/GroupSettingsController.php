@@ -8,6 +8,7 @@ use App\Services\AuditLogger;
 use App\Services\ManagedImageStorage;
 use App\Support\Audit\AuditScope;
 use App\Support\Audit\AuditSeverity;
+use App\Support\Input\RequestTextInputSanitizer;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -21,7 +22,8 @@ class GroupSettingsController extends Controller
 
     public function __construct(
         private readonly ManagedImageStorage $managedImageStorage,
-        private readonly AuditLogger $auditLogger
+        private readonly AuditLogger $auditLogger,
+        private readonly RequestTextInputSanitizer $requestTextInputSanitizer,
     ) {}
 
     public function show(Group $group): Response
@@ -97,16 +99,22 @@ class GroupSettingsController extends Controller
         $group->loadMissing('memberships', 'invites');
 
         $this->authorizeOwnerAccess($group);
+        $this->sanitizeGroupInput($request);
 
-        $validated = $request->validate([
-            'name' => ['required', 'string', 'max:255'],
-            'description' => ['nullable', 'string'],
-            'profile_picture' => ['nullable', 'image', 'max:5120'],
-            'discord_invite_url' => ['nullable', 'url', 'max:500'],
-            'datacenter' => ['required', 'string', Rule::in(config('datacenters.values', []))],
-            'is_public' => ['required', 'boolean'],
-            'is_visible' => ['required', 'boolean'],
-        ]);
+        $validated = $request->validate(
+            [
+                'name' => ['required', 'string', 'max:255'],
+                'description' => ['nullable', 'string'],
+                'profile_picture' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5120'],
+                'discord_invite_url' => ['nullable', 'url', 'max:500'],
+                'datacenter' => ['required', 'string', Rule::in(config('datacenters.values', []))],
+                'is_public' => ['required', 'boolean'],
+                'is_visible' => ['required', 'boolean'],
+            ],
+            [
+                'profile_picture.mimes' => __('groups.settings.general.validation.image_invalid_format'),
+            ],
+        );
 
         $profilePictureUrl = $this->managedImageStorage->replaceUploadedImageIfPresent(
             currentUrl: $group->profile_picture_url,
@@ -176,6 +184,15 @@ class GroupSettingsController extends Controller
         }
 
         return redirect()->back()->with('success', 'group_updated');
+    }
+
+    private function sanitizeGroupInput(Request $request): void
+    {
+        $this->requestTextInputSanitizer->sanitize(
+            $request,
+            ['name'],
+            ['description'],
+        );
     }
 
     private function authorizeOwnerAccess(Group $group): void

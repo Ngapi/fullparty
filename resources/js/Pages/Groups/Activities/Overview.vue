@@ -160,7 +160,7 @@ const goToManagementPage = () => {
 </script>
 
 <template>
-	<div class="w-full">
+	<div class="w-full overflow-x-hidden">
 		<UButton
 			:label="t('groups.activities.back')"
 			icon="i-lucide-arrow-left"
@@ -174,7 +174,7 @@ const goToManagementPage = () => {
 			:title="activityTitle"
 			:subtitle="t('groups.activities.overview.subtitle', { group: group.name, type: activityTypeName })"
 		>
-			<div class="flex items-center justify-end gap-2">
+			<div class="flex flex-wrap items-center justify-end gap-2">
 				<UBadge
 					size="md"
 					variant="subtle"
@@ -206,18 +206,18 @@ const goToManagementPage = () => {
 				<div class="grid gap-px md:grid-cols-2 xl:grid-cols-5">
 					<div class=" px-4 py-4">
 						<p class="text-xs uppercase tracking-[0.22em] text-muted">{{ t("groups.activities.management.type") }}</p>
-						<p class="mt-2 font-semibold text-toned">{{ activityTypeName }}</p>
+						<p class="mt-2 break-words [overflow-wrap:anywhere] font-semibold text-toned">{{ activityTypeName }}</p>
 					</div>
 
 					<div class="bg-background px-4 py-4">
 						<p class="text-xs uppercase tracking-[0.22em] text-muted">{{ t("groups.activities.create.summary.starts_at_st") }}</p>
-						<p class="mt-2 font-semibold text-toned">{{ serverStartsAtLabel }}</p>
+						<p class="mt-2 break-words [overflow-wrap:anywhere] font-semibold text-toned">{{ serverStartsAtLabel }}</p>
 						<p class="mt-1 text-sm text-muted">{{ durationLabel }}</p>
 					</div>
 
 					<div class="bg-background px-4 py-4">
 						<p class="text-xs uppercase tracking-[0.22em] text-muted">{{ t("groups.activities.create.summary.starts_at_local", { timezone: localTimeZone }) }}</p>
-						<p class="mt-2 font-semibold text-toned">{{ localStartsAtLabel }}</p>
+						<p class="mt-2 break-words [overflow-wrap:anywhere] font-semibold text-toned">{{ localStartsAtLabel }}</p>
 						<p class="mt-1 text-sm text-muted">{{ durationLabel }}</p>
 					</div>
 
@@ -244,8 +244,8 @@ const goToManagementPage = () => {
 									:alt="organizerLabel"
 								/>
 								<div class="min-w-0">
-									<p class="font-semibold text-toned">{{ organizerLabel }}</p>
-									<p class="mt-1 text-sm text-muted">{{ group.name }}</p>
+									<p class="break-words [overflow-wrap:anywhere] font-semibold text-toned">{{ organizerLabel }}</p>
+									<p class="mt-1 break-words [overflow-wrap:anywhere] text-sm text-muted">{{ group.name }}</p>
 								</div>
 							</div>
 						</div>
@@ -295,7 +295,7 @@ const goToManagementPage = () => {
 						class="bg-background px-4 py-4"
 					>
 						<p class="text-xs uppercase tracking-[0.22em] text-muted">{{ t("groups.activities.overview.details.description") }}</p>
-						<p class="mt-2 whitespace-pre-wrap text-sm text-toned">
+						<p class="mt-2 break-words [overflow-wrap:anywhere] whitespace-pre-wrap text-sm text-toned">
 							{{ activity.description || t("groups.activities.overview.details.no_description") }}
 						</p>
 					</div>
@@ -304,7 +304,7 @@ const goToManagementPage = () => {
 						class="bg-background px-4 py-4"
 					>
 						<p class="text-xs uppercase tracking-[0.22em] text-muted">{{ t("groups.activities.create.summary.notes") }}</p>
-						<p class="mt-2 whitespace-pre-wrap text-sm text-muted">
+						<p class="mt-2 break-words [overflow-wrap:anywhere] whitespace-pre-wrap text-sm text-muted">
 							{{ activity.notes || t("groups.activities.create.summary.no_notes") }}
 						</p>
 					</div>

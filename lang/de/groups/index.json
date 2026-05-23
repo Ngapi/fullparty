@@ -59,6 +59,16 @@
     "slug_preview": "Öffentliche Einladungs-URL: /invite/{slug}",
     "slug_fallback": "deinslug",
     "slug_warning": "Dein Slug ist dauerhaft, sobald die Gruppe erstellt wurde.",
+    "validation": {
+      "required": "{field} ist erforderlich.",
+      "max_characters": "{field} darf höchstens {max} Zeichen haben.",
+      "slug_letters_only": "Der Slug darf nur Kleinbuchstaben enthalten.",
+      "slug_reserved": "Dieser Slug ist reserviert. Bitte wähle einen anderen.",
+      "invalid_option": "Wähle einen gültigen Wert für {field}.",
+      "invalid_url": "Gib eine gültige URL ein.",
+      "image_invalid_format": "Das Profilbild muss ein JPG-, JPEG-, PNG- oder WEBP-Bild sein.",
+      "image_too_large": "Das Profilbild darf höchstens 5 MB groß sein."
+    },
     "sections": {
       "identity": {
         "title": "Gruppenidentität",

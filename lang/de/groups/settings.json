@@ -37,6 +37,10 @@
         "help": "Sichtbare Gruppen können in Entdeckung und Suche erscheinen, auch wenn sie privat sind."
       }
     },
+    "validation": {
+      "image_invalid_format": "Das Profilbild muss ein JPG-, JPEG-, PNG- oder WEBP-Bild sein.",
+      "image_too_large": "Das Profilbild darf höchstens 5 MB groß sein."
+    },
     "toasts": { "updated": "Gruppeneinstellungen wurden aktualisiert." }
   },
   "invites": {

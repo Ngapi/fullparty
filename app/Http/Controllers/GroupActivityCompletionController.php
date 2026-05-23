@@ -7,6 +7,7 @@ use App\Models\Group;
 use App\Services\Groups\ActivityCompletionService;
 use App\Services\Groups\GroupActivityAuditService;
 use App\Services\Notifications\RunNotificationService;
+use App\Support\Input\RequestTextInputSanitizer;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -16,20 +17,23 @@ class GroupActivityCompletionController extends Controller
         private readonly ActivityCompletionService $completionService,
         private readonly GroupActivityAuditService $activityAuditService,
         private readonly RunNotificationService $runNotificationService,
+        private readonly RequestTextInputSanitizer $requestTextInputSanitizer,
     ) {}
 
     public function store(Request $request, Group $group, Activity $activity): JsonResponse
     {
         $this->authorize('manageDashboard', [$activity, $group]);
 
-        if (!$activity->canBeCompleted()) {
+        if (! $activity->canBeCompleted()) {
             abort(403);
         }
+
+        $this->requestTextInputSanitizer->sanitize($request, [], ['progress_notes']);
 
         $validated = $request->validate([
             'progress_entry_mode' => ['sometimes', 'nullable', 'string'],
             'progress_link_url' => ['sometimes', 'nullable', 'url', 'max:2000'],
-            'progress_notes' => ['sometimes', 'nullable', 'string'],
+            'progress_notes' => ['sometimes', 'nullable', 'string', 'max:'.Activity::PROGRESS_NOTES_MAX_LENGTH],
             'furthest_progress_key' => ['sometimes', 'nullable', 'string', 'max:255'],
             'milestones' => ['sometimes', 'array'],
         ]);

@@ -49,6 +49,26 @@ it('creates an in app notification when the username is updated', function () {
     expect($userNotification->user_id)->toBe($user->id);
 });
 
+it('sanitizes usernames before saving account settings changes', function () {
+    $user = User::factory()->create([
+        'name' => 'Before Name',
+    ]);
+
+    $this->actingAs($user);
+
+    $this->post(route('settings.username'), [
+        'username' => "  A\u{200B}fter   Name  ",
+    ])->assertRedirect(route('settings'));
+
+    $user->refresh();
+
+    expect($user->name)->toBe('After Name');
+
+    $auditLog = AuditLog::query()->where('action', 'user.settings.username_updated')->sole();
+
+    expect($auditLog->metadata['changes']['name']['new'])->toBe('After Name');
+});
+
 it('creates an in app notification when privacy settings are updated', function () {
     $user = User::factory()->create([
         'public_profile' => true,

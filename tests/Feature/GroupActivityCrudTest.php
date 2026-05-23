@@ -10,6 +10,7 @@ use App\Models\Character;
 use App\Models\Group;
 use App\Models\GroupMembership;
 use App\Models\User;
+use App\Support\Input\TextInputSanitizer;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Inertia\Testing\AssertableInertia as Assert;
 
@@ -198,6 +199,95 @@ it('defaults activity discovery metadata from the group and activity type versio
         ->and($activity->min_item_level)->toBe(710)
         ->and($activity->beginner_friendly)->toBeFalse()
         ->and($activity->run_style)->toBe(Activity::RUN_STYLE_PROGRESSION);
+});
+
+it('sanitizes activity free-text fields when creating and updating activities', function () {
+    $owner = User::factory()->create();
+    $group = Group::factory()->public()->create([
+        'owner_id' => $owner->id,
+    ]);
+    $activityType = createCrudActivityType($owner);
+    $sanitizer = app(TextInputSanitizer::class);
+
+    $this->actingAs($owner);
+
+    $this->post(route('groups.dashboard.activities.store', [
+        'group' => $group->slug,
+    ]), [
+        'activity_type_id' => $activityType->id,
+        'status' => Activity::STATUS_PLANNED,
+        'title' => "  Tues\u{200B}day   Savage  ",
+        'description' => " Line one\u{200B}\r\nLine\t two ",
+        'notes' => " Bring\t food \r\n\r\n And pots ",
+    ])->assertRedirect(route('groups.dashboard.activities.index', [
+        'group' => $group->slug,
+    ]));
+
+    $activity = $group->activities()->latest('id')->firstOrFail();
+
+    expect($activity->title)->toBe($sanitizer->sanitizeSingleLine("  Tues\u{200B}day   Savage  "))
+        ->and($activity->description)->toBe($sanitizer->sanitizeMultiline(" Line one\u{200B}\r\nLine\t two "))
+        ->and($activity->notes)->toBe($sanitizer->sanitizeMultiline(" Bring\t food \r\n\r\n And pots "));
+
+    $this->put(route('groups.dashboard.activities.update', [
+        'group' => $group->slug,
+        'activity' => $activity->id,
+    ]), [
+        'title' => "  Upd\u{200B}ated   Run  ",
+        'description' => " Fresh\r\n\r\nNotes ",
+        'notes' => " New\tplan ",
+    ])->assertRedirect(route('groups.dashboard.activities.show', [
+        'group' => $group->slug,
+        'activity' => $activity->id,
+    ]));
+
+    $activity->refresh();
+
+    expect($activity->title)->toBe($sanitizer->sanitizeSingleLine("  Upd\u{200B}ated   Run  "))
+        ->and($activity->description)->toBe($sanitizer->sanitizeMultiline(" Fresh\r\n\r\nNotes "))
+        ->and($activity->notes)->toBe($sanitizer->sanitizeMultiline(" New\tplan "));
+});
+
+it('rejects activity descriptions and notes that exceed the configured limits', function () {
+    $owner = User::factory()->create();
+    $group = Group::factory()->public()->create([
+        'owner_id' => $owner->id,
+    ]);
+    $activityType = createCrudActivityType($owner);
+
+    $this->actingAs($owner);
+
+    $this->post(route('groups.dashboard.activities.store', [
+        'group' => $group->slug,
+    ]), [
+        'activity_type_id' => $activityType->id,
+        'status' => Activity::STATUS_PLANNED,
+        'description' => str_repeat('d', Activity::DESCRIPTION_MAX_LENGTH + 1),
+        'notes' => str_repeat('n', Activity::NOTES_MAX_LENGTH + 1),
+    ])->assertSessionHasErrors(['description', 'notes']);
+
+    expect($group->activities()->count())->toBe(0);
+
+    $activity = Activity::factory()->create([
+        'group_id' => $group->id,
+        'activity_type_id' => $activityType->id,
+        'activity_type_version_id' => $activityType->current_published_version_id,
+        'organized_by_user_id' => $owner->id,
+        'status' => Activity::STATUS_PLANNED,
+        'description' => 'Original description',
+        'notes' => 'Original notes',
+    ]);
+
+    $this->put(route('groups.dashboard.activities.update', [
+        'group' => $group->slug,
+        'activity' => $activity->id,
+    ]), [
+        'description' => str_repeat('d', Activity::DESCRIPTION_MAX_LENGTH + 1),
+        'notes' => str_repeat('n', Activity::NOTES_MAX_LENGTH + 1),
+    ])->assertSessionHasErrors(['description', 'notes']);
+
+    expect($activity->fresh()->description)->toBe('Original description')
+        ->and($activity->fresh()->notes)->toBe('Original notes');
 });
 
 it('forbids non moderators from creating activities', function () {

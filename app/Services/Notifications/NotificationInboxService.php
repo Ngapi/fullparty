@@ -5,10 +5,12 @@ namespace App\Services\Notifications;
 use App\Models\SystemNotificationBroadcast;
 use App\Models\SystemNotificationBroadcastRead;
 use App\Models\User;
-use Illuminate\Support\Facades\DB;
+use DateTimeInterface;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Pagination\LengthAwarePaginator as Paginator;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
 
 class NotificationInboxService
 {
@@ -50,7 +52,7 @@ class NotificationInboxService
                 $join->on('reads.system_notification_broadcast_id', '=', 'broadcasts.id')
                     ->where('reads.user_id', '=', $user->id);
             })
-            ->when(!$user->system_notice_notifications, fn ($query) => $query->where('events.is_mandatory', true))
+            ->when(! $user->system_notice_notifications, fn ($query) => $query->where('events.is_mandatory', true))
             ->whereNull('reads.read_at')
             ->count();
 
@@ -89,7 +91,7 @@ class NotificationInboxService
 
     public function markBroadcastAsRead(User $user, SystemNotificationBroadcast $broadcast): void
     {
-        if (!$this->broadcastIsVisibleToUser($user, $broadcast)) {
+        if (! $this->broadcastIsVisibleToUser($user, $broadcast)) {
             abort(404);
         }
 
@@ -136,8 +138,8 @@ class NotificationInboxService
                     'open_url' => $sourceType === 'broadcast'
                         ? route('account.notifications.broadcasts.open', $sourceId, false)
                         : route('account.notifications.open', $sourceId, false),
-                    'created_at' => $row->created_at,
-                    'read_at' => $row->read_at,
+                    'created_at' => $this->serializeTimestamp($row->created_at),
+                    'read_at' => $this->serializeTimestamp($row->read_at),
                     'is_unread' => $row->read_at === null,
                 ];
             })
@@ -191,7 +193,7 @@ class NotificationInboxService
                 $join->on('reads.system_notification_broadcast_id', '=', 'broadcasts.id')
                     ->where('reads.user_id', '=', $user->id);
             })
-            ->when(!$user->system_notice_notifications, fn ($query) => $query->where('events.is_mandatory', true))
+            ->when(! $user->system_notice_notifications, fn ($query) => $query->where('events.is_mandatory', true))
             ->selectRaw('? as source_type', ['broadcast'])
             ->selectRaw('broadcasts.id as source_id')
             ->selectRaw('events.type')
@@ -223,7 +225,7 @@ class NotificationInboxService
                 $join->on('reads.system_notification_broadcast_id', '=', 'broadcasts.id')
                     ->where('reads.user_id', '=', $user->id);
             })
-            ->when(!$user->system_notice_notifications, fn ($query) => $query->where('events.is_mandatory', true))
+            ->when(! $user->system_notice_notifications, fn ($query) => $query->where('events.is_mandatory', true))
             ->whereNull('reads.read_at')
             ->pluck('broadcasts.id')
             ->map(fn ($id) => (int) $id)
@@ -250,5 +252,18 @@ class NotificationInboxService
         $decoded = json_decode((string) $value, true);
 
         return is_array($decoded) ? $decoded : null;
+    }
+
+    private function serializeTimestamp(mixed $value): ?string
+    {
+        if ($value === null) {
+            return null;
+        }
+
+        if ($value instanceof DateTimeInterface) {
+            return Carbon::instance($value)->toIso8601String();
+        }
+
+        return Carbon::parse((string) $value, config('app.timezone'))->toIso8601String();
     }
 }

@@ -71,7 +71,7 @@ const providerDisplayName = computed(() => {
 </script>
 
 <template>
-	<UCard class="w-full dark:bg-elevated/25">
+	<UCard class="h-full w-full dark:bg-elevated/25">
 		<template #header>
 			<div class="flex flex-row items-center font-semibold text-md">
 				<UIcon name="i-lucide-globe" class="mr-2" size="22" />

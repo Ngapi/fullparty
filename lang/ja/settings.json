@@ -3,7 +3,11 @@
   "subtitle": "アカウント設定と通知を管理します。",
   "account": {
     "title": "アカウント設定",
-    "save": "変更を保存"
+    "save": "変更を保存",
+    "primary_character": "メインキャラクター",
+    "primary_character_description": "FullParty が既定のメインとして扱う認証済みキャラクターを選択します。",
+    "primary_character_placeholder": "メインキャラクターを選択",
+    "save_primary_character": "メインキャラクターを保存"
   },
   "connect": "連携",
   "unlink": "連携解除",

@@ -13,10 +13,15 @@ class ActivityApplication extends Model
     use HasFactory;
 
     public const STATUS_PENDING = 'pending';
+
     public const STATUS_APPROVED = 'approved';
+
     public const STATUS_ON_BENCH = 'on_bench';
+
     public const STATUS_DECLINED = 'declined';
+
     public const STATUS_CANCELLED = 'cancelled';
+
     public const STATUS_WITHDRAWN = 'withdrawn';
 
     public const STATUSES = [
@@ -27,6 +32,10 @@ class ActivityApplication extends Model
         self::STATUS_CANCELLED,
         self::STATUS_WITHDRAWN,
     ];
+
+    public const NOTES_MAX_LENGTH = 5000;
+
+    public const REVIEW_REASON_MAX_LENGTH = 2000;
 
     protected $fillable = [
         'activity_id',

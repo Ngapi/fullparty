@@ -288,7 +288,6 @@ const copyStatusLink = async () => {
 			color: "success",
 		});
 	} catch (error) {
-		console.error(error);
 		toast.add({
 			title: t("groups.activities.application.confirmation.copy_link_error_title"),
 			description: t("groups.activities.application.confirmation.copy_link_error_description"),
@@ -312,10 +311,10 @@ const copyStatusLink = async () => {
 			<UCard class="dark:bg-elevated/25">
 				<template #header>
 					<div class="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
-						<div class="flex flex-col gap-1">
+						<div class="flex min-w-0 flex-1 flex-col gap-1">
 							<p class="font-semibold text-muted text-md">{{ t('groups.activities.application.run_info_title') }}</p>
-							<h1 class="font-semibold text-2xl text-toned">{{ activityTitle }}</h1>
-							<p class="text-sm text-muted">{{ activity.description || t('groups.activities.application.confirmation.run_info_subtitle') }}</p>
+							<h1 class="break-words [overflow-wrap:anywhere] font-semibold text-2xl text-toned">{{ activityTitle }}</h1>
+							<p class="break-words [overflow-wrap:anywhere] whitespace-pre-wrap text-sm text-muted">{{ activity.description || t('groups.activities.application.confirmation.run_info_subtitle') }}</p>
 						</div>
 
 						<div class="flex h-full flex-col items-start justify-center gap-4 xl:items-end">
@@ -494,7 +493,7 @@ const copyStatusLink = async () => {
 						</div>
 
 						<div class="rounded-sm border border-default bg-default px-4 py-3">
-							<p class="whitespace-pre-wrap font-medium text-toned">
+							<p class="break-words [overflow-wrap:anywhere] whitespace-pre-wrap font-medium text-toned">
 								{{ application.review_reason }}
 							</p>
 						</div>
@@ -517,7 +516,7 @@ const copyStatusLink = async () => {
 								:class="answer.isLongText ? 'xl:col-span-2' : ''"
 							>
 								<p class="text-sm text-muted">{{ answer.label }}</p>
-								<p class="mt-2 whitespace-pre-wrap font-medium text-toned">{{ answer.value }}</p>
+								<p class="mt-2 break-words [overflow-wrap:anywhere] whitespace-pre-wrap font-medium text-toned">{{ answer.value }}</p>
 							</div>
 						</div>
 					</div>
@@ -531,7 +530,7 @@ const copyStatusLink = async () => {
 						<div class="rounded-sm border border-default bg-default px-4 py-3">
 							<p
 								v-if="application?.notes"
-								class="whitespace-pre-wrap font-medium text-toned"
+								class="break-words [overflow-wrap:anywhere] whitespace-pre-wrap font-medium text-toned"
 							>
 								{{ application.notes }}
 							</p>

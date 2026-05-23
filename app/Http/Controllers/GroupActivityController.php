@@ -21,6 +21,7 @@ use App\Services\Groups\GroupActivityAuditService;
 use App\Services\Notifications\AssignmentNotificationService;
 use App\Services\Notifications\GroupUpdateNotificationService;
 use App\Support\ActivityCompositionPresets;
+use App\Support\Input\RequestTextInputSanitizer;
 use Carbon\CarbonImmutable;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Http\RedirectResponse;
@@ -39,6 +40,7 @@ class GroupActivityController extends Controller
         private readonly GroupActivityAuditService $activityAuditService,
         private readonly ActivityCancellationService $activityCancellationService,
         private readonly GroupUpdateNotificationService $groupUpdateNotificationService,
+        private readonly RequestTextInputSanitizer $requestTextInputSanitizer,
     ) {}
 
     public function overview(
@@ -217,6 +219,7 @@ class GroupActivityController extends Controller
     {
         $group->loadMissing('memberships');
         $this->authorizeModeratorAccess($group);
+        $this->sanitizeActivityInput($request);
 
         $validated = $request->validate($this->rules($group));
         $validated = $this->normalizeAndValidateOrganizerCharacter($validated);
@@ -296,6 +299,7 @@ class GroupActivityController extends Controller
         $this->authorizeModeratorAccess($group);
         $this->ensureActivityBelongsToGroup($group, $activity);
         $this->ensureActivityIsMutable($activity);
+        $this->sanitizeActivityInput($request);
 
         $validated = $request->validate($this->rules($group, false, true));
         $validated = $this->normalizeAndValidateOrganizerCharacter($validated);
@@ -543,9 +547,9 @@ class GroupActivityController extends Controller
                     Activity::STATUS_PLANNED,
                     Activity::STATUS_SCHEDULED,
                 ])],
-            'title' => ['sometimes', 'nullable', 'string', 'max:255'],
-            'description' => ['sometimes', 'nullable', 'string'],
-            'notes' => ['sometimes', 'nullable', 'string'],
+            'title' => ['sometimes', 'nullable', 'string', 'max:'.Activity::TITLE_MAX_LENGTH],
+            'description' => ['sometimes', 'nullable', 'string', 'max:'.Activity::DESCRIPTION_MAX_LENGTH],
+            'notes' => ['sometimes', 'nullable', 'string', 'max:'.Activity::NOTES_MAX_LENGTH],
             'starts_at' => ['sometimes', 'nullable', 'date_format:Y-m-d\TH:i'],
             'duration_hours' => ['sometimes', 'nullable', 'integer', 'min:1', 'max:24'],
             'datacenter' => ['sometimes', 'string', Rule::in(config('datacenters.values', []))],
@@ -635,6 +639,15 @@ class GroupActivityController extends Controller
             ->utc();
 
         return $validated;
+    }
+
+    private function sanitizeActivityInput(Request $request): void
+    {
+        $this->requestTextInputSanitizer->sanitize(
+            $request,
+            ['title'],
+            ['description', 'notes'],
+        );
     }
 
     private function materializeSlots(Activity $activity, ActivityTypeVersion $activityTypeVersion): void

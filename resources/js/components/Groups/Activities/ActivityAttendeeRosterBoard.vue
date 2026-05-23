@@ -110,7 +110,7 @@ const boardGridStyle = computed(() => ({
 						<div class="flex items-center justify-between gap-2">
 							<div class="min-w-0">
 								<p class="text-[10px] uppercase tracking-[0.22em] text-muted">{{ t("groups.activities.overview.board.party_label") }}</p>
-								<h3 class="truncate font-semibold text-sm text-toned">{{ group.label }}</h3>
+								<h3 class="font-semibold text-sm text-toned break-words [overflow-wrap:anywhere]">{{ group.label }}</h3>
 							</div>
 
 							<UBadge

@@ -77,8 +77,8 @@ const acceptInvite = () => {
 
 				<div class="text-center">
 					<p class="text-xs font-semibold uppercase tracking-[0.22em] text-muted">{{ t('groups.invite.subtitle') }}</p>
-					<h1 class="mt-2 text-3xl font-black text-toned">{{ group.name }}</h1>
-					<p class="mx-auto mt-3 max-w-xl text-sm leading-7 text-muted">
+					<h1 class="mt-2 break-words [overflow-wrap:anywhere] text-3xl font-black text-toned">{{ group.name }}</h1>
+					<p class="mx-auto mt-3 max-w-xl break-words [overflow-wrap:anywhere] text-sm leading-7 text-muted">
 						{{ group.description || t('groups.index.table.no_description') }}
 					</p>
 				</div>

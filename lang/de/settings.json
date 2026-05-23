@@ -3,7 +3,11 @@
   "subtitle": "Verwalte deine Kontoeinstellungen und Benachrichtigungen.",
   "account": {
     "title": "Kontoeinstellungen",
-    "save": "Änderungen speichern"
+    "save": "Änderungen speichern",
+    "primary_character": "Hauptcharakter",
+    "primary_character_description": "Wähle den verifizierten Charakter aus, den FullParty standardmäßig als deinen Hauptcharakter behandeln soll.",
+    "primary_character_placeholder": "Hauptcharakter auswählen",
+    "save_primary_character": "Hauptcharakter speichern"
   },
   "connect": "Verbinden",
   "unlink": "Trennen",

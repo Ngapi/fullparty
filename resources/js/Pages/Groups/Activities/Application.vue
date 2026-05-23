@@ -193,10 +193,10 @@ const goBack = () => {
 			<UCard class="dark:bg-elevated/25">
 				<template #header>
 					<div class="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
-						<div class="flex flex-col gap-1">
+						<div class="flex min-w-0 flex-1 flex-col gap-1">
 							<p class="font-semibold text-muted text-md">{{ t('groups.activities.application.run_info_title') }}</p>
-							<h1 class="font-semibold text-2xl text-toned">{{ activityTitle }}</h1>
-							<p class="text-sm text-muted">{{ activity.description ?? applicationPageSubtitle }}</p>
+							<h1 class="break-words [overflow-wrap:anywhere] font-semibold text-2xl text-toned">{{ activityTitle }}</h1>
+							<p class="break-words [overflow-wrap:anywhere] whitespace-pre-wrap text-sm text-muted">{{ activity.description ?? applicationPageSubtitle }}</p>
 						</div>
 
 						<div class="h-full flex flex-col items-start justify-center gap-4 xl:items-end">
@@ -257,8 +257,8 @@ const goBack = () => {
 					>
 						<p class="text-xs uppercase tracking-wide text-muted">{{ t('groups.activities.application.summary_notes') }}</p>
 						<div class="mt-2 flex flex-col gap-3 text-sm text-toned">
-							<p v-if="activity.description" class="whitespace-pre-wrap">{{ activity.description }}</p>
-							<p v-if="activity.notes" class="whitespace-pre-wrap text-muted">{{ activity.notes }}</p>
+							<p v-if="activity.description" class="break-words [overflow-wrap:anywhere] whitespace-pre-wrap">{{ activity.description }}</p>
+							<p v-if="activity.notes" class="break-words [overflow-wrap:anywhere] whitespace-pre-wrap text-muted">{{ activity.notes }}</p>
 						</div>
 					</div>
 				</div>

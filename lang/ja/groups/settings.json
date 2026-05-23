@@ -37,6 +37,10 @@
         "help": "表示可能なグループは、非公開でも検索や発見に表示されます。"
       }
     },
+    "validation": {
+      "image_invalid_format": "プロフィール画像には JPG、JPEG、PNG、WEBP のいずれかを指定してください。",
+      "image_too_large": "プロフィール画像は 5 MB 以下にしてください。"
+    },
     "toasts": { "updated": "グループ設定を更新しました。" }
   },
   "invites": {

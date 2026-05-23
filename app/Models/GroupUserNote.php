@@ -11,8 +11,14 @@ class GroupUserNote extends Model
 {
     use HasFactory;
 
+    public const BODY_MAX_LENGTH = 5000;
+
+    public const ADDENDUM_MAX_LENGTH = 3000;
+
     public const SEVERITY_INFO = 'info';
+
     public const SEVERITY_WARNING = 'warning';
+
     public const SEVERITY_CRITICAL = 'critical';
 
     public const SEVERITIES = [

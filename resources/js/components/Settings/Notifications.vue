@@ -47,7 +47,7 @@ const submit = () => {
 				</div>
 
 				<div class="option">
-					<div>
+					<div class="option-copy">
 						<p class="font-semibold">{{ t('settings.notifications.applications') }}</p>
 						<p class="text-sm">{{ t('settings.notifications.applications_description') }}</p>
 					</div>
@@ -55,7 +55,7 @@ const submit = () => {
 				</div>
 
 				<div class="option">
-					<div>
+					<div class="option-copy">
 						<p class="font-semibold">{{ t('settings.notifications.assignments') }}</p>
 						<p class="text-sm">{{ t('settings.notifications.assignments_description') }}</p>
 					</div>
@@ -63,7 +63,7 @@ const submit = () => {
 				</div>
 
 				<div class="option">
-					<div>
+					<div class="option-copy">
 						<p class="font-semibold">{{ t('settings.notifications.runs_and_reminders') }}</p>
 						<p class="text-sm">{{ t('settings.notifications.runs_and_reminders_description') }}</p>
 					</div>
@@ -71,7 +71,7 @@ const submit = () => {
 				</div>
 
 				<div class="option">
-					<div>
+					<div class="option-copy">
 						<p class="font-semibold">{{ t('settings.notifications.group_updates') }}</p>
 						<p class="text-sm">{{ t('settings.notifications.group_updates_description') }}</p>
 					</div>
@@ -79,7 +79,7 @@ const submit = () => {
 				</div>
 
 				<div class="option">
-					<div>
+					<div class="option-copy">
 						<p class="font-semibold">{{ t('settings.notifications.account_character_updates') }}</p>
 						<p class="text-sm">{{ t('settings.notifications.account_character_updates_description') }}</p>
 					</div>
@@ -87,7 +87,7 @@ const submit = () => {
 				</div>
 
 				<div class="option">
-					<div>
+					<div class="option-copy">
 						<p class="font-semibold">{{ t('settings.notifications.system_notices') }}</p>
 						<p class="text-sm">{{ t('settings.notifications.system_notices_description') }}</p>
 					</div>
@@ -102,7 +102,7 @@ const submit = () => {
 				</div>
 
 				<div class="option">
-					<div>
+					<div class="option-copy">
 						<p class="font-semibold">{{ t('settings.notifications.email_notifications') }}</p>
 						<p class="text-sm">{{ t('settings.notifications.email_notifications_description') }}</p>
 					</div>
@@ -110,7 +110,7 @@ const submit = () => {
 				</div>
 
 				<div :class="hasProvider('discord') ? 'option' : 'option-muted'">
-					<div>
+					<div class="option-copy">
 						<p class="font-semibold">{{ t('settings.notifications.discord_notifications') }}</p>
 						<p class="text-sm">{{ t('settings.notifications.discord_notifications_description') }}</p>
 					</div>
@@ -129,11 +129,15 @@ const submit = () => {
 @reference "../../../css/app.css";
 
 .option {
-	@apply w-full flex flex-row items-center justify-between;
+	@apply grid w-full grid-cols-[minmax(0,1fr)_auto] items-start gap-4 border border-default bg-default/30 px-4 py-3 dark:border-white/20 dark:bg-white/5;
 }
 
 .option-muted {
-	@apply w-full flex flex-row items-center justify-between text-muted cursor-not-allowed;
+	@apply grid w-full grid-cols-[minmax(0,1fr)_auto] items-start gap-4 border border-default/70 bg-muted/20 px-4 py-3 text-muted cursor-not-allowed dark:border-white/15 dark:bg-white/3;
+}
+
+.option-copy {
+	@apply min-w-0 border-b border-default/80 pb-2 md:border-b-0 md:pb-0 dark:border-white/20;
 }
 
 .section {

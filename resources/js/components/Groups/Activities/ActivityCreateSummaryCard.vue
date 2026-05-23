@@ -141,8 +141,8 @@ const beginnerFriendlyLabel = computed(() => t(
 		<div class="flex flex-col gap-4">
 			<div class="rounded-sm border border-default bg-muted/10 px-4 py-4">
 				<p class="text-xs uppercase tracking-wide text-muted">{{ t('groups.activities.create.summary.activity') }}</p>
-				<p class="mt-2 font-semibold text-toned">{{ displayTitle }}</p>
-				<p class="mt-1 text-sm text-muted">{{ activityTypeName }}</p>
+				<p class="mt-2 break-words [overflow-wrap:anywhere] font-semibold text-toned">{{ displayTitle }}</p>
+				<p class="mt-1 break-words [overflow-wrap:anywhere] text-sm text-muted">{{ activityTypeName }}</p>
 			</div>
 
 			<div class="grid grid-cols-1 xl:grid-cols-2 gap-3">
@@ -246,7 +246,7 @@ const beginnerFriendlyLabel = computed(() => t(
 
 			<div class="rounded-sm border border-default bg-muted/10 px-4 py-4">
 				<p class="text-xs uppercase tracking-wide text-muted">{{ t('groups.activities.create.summary.notes') }}</p>
-				<p class="mt-2 text-sm text-toned whitespace-pre-wrap">
+				<p class="mt-2 break-words [overflow-wrap:anywhere] whitespace-pre-wrap text-sm text-toned">
 					{{ form.notes?.trim() || t('groups.activities.create.summary.no_notes') }}
 				</p>
 			</div>

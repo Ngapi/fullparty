@@ -5,6 +5,14 @@ export type SettingsSocialAccount = {
 	provider_email: string | null
 }
 
+export type SettingsCharacter = {
+	id: number
+	name: string
+	world: string | null
+	datacenter: string | null
+	is_primary: boolean
+}
+
 export type SettingsUser = {
 	name: string
 	email: string

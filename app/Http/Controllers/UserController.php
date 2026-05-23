@@ -8,6 +8,7 @@ use App\Services\Notifications\NotificationService;
 use App\Services\Users\UserAccountDeletionService;
 use App\Support\Audit\AuditScope;
 use App\Support\Audit\AuditSeverity;
+use App\Support\Input\RequestTextInputSanitizer;
 use App\Support\Notifications\NotificationCategory;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -42,13 +43,16 @@ class UserController extends Controller
         private readonly AuditLogger $auditLogger,
         private readonly NotificationService $notificationService,
         private readonly UserAccountDeletionService $userAccountDeletionService,
+        private readonly RequestTextInputSanitizer $requestTextInputSanitizer,
     ) {}
 
     public function changeUsername(Request $request)
     {
-		$validated = $request->validate([
-			'username' => ['required', 'string', 'max:255'],
-		]);
+        $this->requestTextInputSanitizer->sanitize($request, ['username']);
+
+        $validated = $request->validate([
+            'username' => ['required', 'string', 'max:255'],
+        ]);
 
         $user = $request->user();
         $originalValues = [
@@ -79,27 +83,27 @@ class UserController extends Controller
             fieldLabelKeys: self::ACCOUNT_SETTING_LABEL_KEYS,
         );
 
-		return redirect()
-			->route('settings')
-			->with('success', ['username_updated', $validated['username']]);
+        return redirect()
+            ->route('settings')
+            ->with('success', ['username_updated', $validated['username']]);
     }
-	
-	public function changeNotificationSettings(Request $request)
-	{
-		$validated = $request->validate([
-			'application_notifications' => ['required', 'boolean'],
-			'run_and_reminder_notifications' => ['required', 'boolean'],
-			'group_update_notifications' => ['required', 'boolean'],
-			'assignment_notifications' => ['required', 'boolean'],
-			'account_character_notifications' => ['required', 'boolean'],
-			'system_notice_notifications' => ['required', 'boolean'],
-			'email_notifications' => ['required', 'boolean'],
-			'discord_notifications' => ['required', 'boolean'],
-		]);
-		// If the user doesn't have a discord account, disable discord notifications'
-		if($request->user()->socialAccounts->where('provider', 'discord')->isEmpty()){
-			$validated['discord_notifications'] = false;
-		}
+
+    public function changeNotificationSettings(Request $request)
+    {
+        $validated = $request->validate([
+            'application_notifications' => ['required', 'boolean'],
+            'run_and_reminder_notifications' => ['required', 'boolean'],
+            'group_update_notifications' => ['required', 'boolean'],
+            'assignment_notifications' => ['required', 'boolean'],
+            'account_character_notifications' => ['required', 'boolean'],
+            'system_notice_notifications' => ['required', 'boolean'],
+            'email_notifications' => ['required', 'boolean'],
+            'discord_notifications' => ['required', 'boolean'],
+        ]);
+        // If the user doesn't have a discord account, disable discord notifications'
+        if ($request->user()->socialAccounts->where('provider', 'discord')->isEmpty()) {
+            $validated['discord_notifications'] = false;
+        }
 
         $user = $request->user();
         $originalValues = [
@@ -113,7 +117,7 @@ class UserController extends Controller
             'discord_notifications' => $user->discord_notifications,
         ];
 
-		$user->update($validated);
+        $user->update($validated);
 
         $updatedUser = $user->fresh();
         $updatedValues = [
@@ -137,18 +141,18 @@ class UserController extends Controller
 
         $this->notifyUserAboutNotificationSettingChanges($updatedUser, $changes);
 
-		return redirect()
-			->route('settings')
-			->with('success', ['notification_settings_updated']);
-		
-	}
-	
-	public function changePrivacySettings(Request $request)
-	{
-		$validated = $request->validate([
-			'public_profile' => ['required', 'boolean'],
-			'public_characters' => ['required', 'boolean'],
-		]);
+        return redirect()
+            ->route('settings')
+            ->with('success', ['notification_settings_updated']);
+
+    }
+
+    public function changePrivacySettings(Request $request)
+    {
+        $validated = $request->validate([
+            'public_profile' => ['required', 'boolean'],
+            'public_characters' => ['required', 'boolean'],
+        ]);
 
         $user = $request->user();
         $originalValues = [
@@ -156,7 +160,7 @@ class UserController extends Controller
             'public_characters' => $user->public_characters,
         ];
 
-		$user->update($validated);
+        $user->update($validated);
 
         $updatedUser = $user->fresh();
         $updatedValues = [
@@ -181,10 +185,10 @@ class UserController extends Controller
             fieldLabelKeys: self::PRIVACY_SETTING_LABEL_KEYS,
         );
 
-		return redirect()
-			->route('settings')
-			->with('success', ['privacy_settings_updated']);
-	}
+        return redirect()
+            ->route('settings')
+            ->with('success', ['privacy_settings_updated']);
+    }
 
     public function destroyAccount(Request $request): RedirectResponse
     {

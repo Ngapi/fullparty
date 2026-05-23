@@ -103,6 +103,7 @@ it('returns the unread count and latest notifications for the bell summary endpo
         ->assertJsonCount(5, 'latest')
         ->assertJsonPath('latest.0.id', "user:{$expectedLatest[0]->id}")
         ->assertJsonPath('latest.4.id', "user:{$expectedLatest[4]->id}")
+        ->assertJsonPath('latest.0.created_at', $expectedLatest[0]->created_at?->toIso8601String())
         ->assertJsonPath('latest.0.is_unread', true);
 });
 
@@ -134,6 +135,7 @@ it('shares unread counts and latest notifications in inertia props for authentic
             ->where('notifications.unread_count', 6)
             ->has('notifications.latest', 5)
             ->where('notifications.latest.0.id', "user:{$latestUnread->id}")
+            ->where('notifications.latest.0.created_at', $latestUnread->created_at?->toIso8601String())
             ->where('notifications.latest.0.is_unread', true)
         );
 });
@@ -155,6 +157,7 @@ it('includes visible system notification broadcasts in the inbox without creatin
         ->assertOk()
         ->assertJsonPath('unread_count', 1)
         ->assertJsonPath('latest.0.id', "broadcast:{$broadcast->id}")
+        ->assertJsonPath('latest.0.created_at', $broadcast->created_at?->toIso8601String())
         ->assertJsonPath('latest.0.is_unread', true);
 
     expect($user->fresh()->inAppNotifications)->toHaveCount(0);

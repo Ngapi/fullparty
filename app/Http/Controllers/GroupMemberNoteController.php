@@ -4,12 +4,12 @@ namespace App\Http\Controllers;
 
 use App\Models\Group;
 use App\Models\GroupUserNote;
-use App\Models\GroupUserNoteAddendum;
 use App\Models\User;
 use App\Services\AuditLogger;
 use App\Services\Groups\GroupUserNoteVisibilityService;
 use App\Support\Audit\AuditScope;
 use App\Support\Audit\AuditSeverity;
+use App\Support\Input\RequestTextInputSanitizer;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -19,15 +19,17 @@ use Illuminate\Validation\Rule;
 class GroupMemberNoteController extends Controller
 {
     public function __construct(
-        private readonly AuditLogger $auditLogger
+        private readonly AuditLogger $auditLogger,
+        private readonly RequestTextInputSanitizer $requestTextInputSanitizer,
     ) {}
 
     public function show(Group $group, User $user, GroupUserNoteVisibilityService $noteVisibilityService): JsonResponse
     {
         $group->loadMissing(['memberships', 'bans']);
+        $user->loadMissing('characters');
         $this->authorizeModeratorAccess($group);
 
-        if (!$group->hasMember($user->id) && !$group->isBanned($user->id)) {
+        if (! $group->hasMember($user->id) && ! $group->isBanned($user->id)) {
             abort(404);
         }
 
@@ -37,6 +39,24 @@ class GroupMemberNoteController extends Controller
             'member' => [
                 'id' => $user->id,
                 'name' => $user->name,
+                'characters' => $user->characters
+                    ->sort(function ($left, $right) {
+                        if ($left->is_primary === $right->is_primary) {
+                            return strcasecmp($left->name, $right->name);
+                        }
+
+                        return $left->is_primary ? -1 : 1;
+                    })
+                    ->values()
+                    ->map(fn ($character) => [
+                        'id' => $character->id,
+                        'name' => $character->name,
+                        'world' => $character->world,
+                        'datacenter' => $character->datacenter,
+                        'avatar_url' => $character->avatar_url,
+                        'is_primary' => (bool) $character->is_primary,
+                    ])
+                    ->all(),
                 'notes' => $noteVisibilityService->serializeVisibleNotesForUser(
                     $group,
                     $user,
@@ -52,10 +72,7 @@ class GroupMemberNoteController extends Controller
     {
         $group->loadMissing(['memberships', 'bans']);
         $this->authorizeModeratorAccess($group);
-
-        $request->merge([
-            'body' => trim((string) $request->input('body', '')),
-        ]);
+        $this->requestTextInputSanitizer->sanitize($request, [], ['body']);
 
         if ($user->id === auth()->id()) {
             return redirect()->back()->withErrors([
@@ -63,13 +80,13 @@ class GroupMemberNoteController extends Controller
             ]);
         }
 
-        if (!$group->hasMember($user->id) && !$group->isBanned($user->id)) {
+        if (! $group->hasMember($user->id) && ! $group->isBanned($user->id)) {
             abort(404);
         }
 
         $validated = $request->validate([
             'severity' => ['required', Rule::in(GroupUserNote::SEVERITIES)],
-            'body' => ['required', 'string', 'max:5000'],
+            'body' => ['required', 'string', 'max:'.GroupUserNote::BODY_MAX_LENGTH],
             'is_shared_with_groups' => ['nullable', 'boolean'],
         ]);
 
@@ -109,12 +126,10 @@ class GroupMemberNoteController extends Controller
             abort(403);
         }
 
-        $request->merge([
-            'body' => trim((string) $request->input('body', '')),
-        ]);
+        $this->requestTextInputSanitizer->sanitize($request, [], ['body']);
 
         $validated = $request->validate([
-            'body' => ['required', 'string', 'max:5000'],
+            'body' => ['required', 'string', 'max:'.GroupUserNote::BODY_MAX_LENGTH],
             'severity' => ['required', Rule::in(GroupUserNote::SEVERITIES)],
             'is_shared_with_groups' => ['nullable', 'boolean'],
         ]);
@@ -196,13 +211,10 @@ class GroupMemberNoteController extends Controller
         $group->loadMissing(['memberships']);
         $this->authorizeModeratorAccess($group);
         $this->authorizeCurrentGroupNote($group, $note);
-
-        $request->merge([
-            'body' => trim((string) $request->input('body', '')),
-        ]);
+        $this->requestTextInputSanitizer->sanitize($request, [], ['body']);
 
         $validated = $request->validate([
-            'body' => ['required', 'string', 'max:3000'],
+            'body' => ['required', 'string', 'max:'.GroupUserNote::ADDENDUM_MAX_LENGTH],
         ]);
 
         $addendum = $note->addenda()->create([
@@ -230,7 +242,7 @@ class GroupMemberNoteController extends Controller
 
     private function authorizeModeratorAccess(Group $group): void
     {
-        if (!$group->hasModeratorAccess(auth()->id())) {
+        if (! $group->hasModeratorAccess(auth()->id())) {
             abort(403);
         }
     }

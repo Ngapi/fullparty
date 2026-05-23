@@ -10,6 +10,7 @@ use App\Services\AuditLogger;
 use App\Services\Notifications\GroupUpdateNotificationService;
 use App\Support\Audit\AuditScope;
 use App\Support\Audit\AuditSeverity;
+use App\Support\Input\RequestTextInputSanitizer;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -20,6 +21,7 @@ class GroupMembershipController extends Controller
     public function __construct(
         private readonly AuditLogger $auditLogger,
         private readonly GroupUpdateNotificationService $groupUpdateNotificationService,
+        private readonly RequestTextInputSanitizer $requestTextInputSanitizer,
     ) {}
 
     public function join(Group $group): RedirectResponse
@@ -244,6 +246,7 @@ class GroupMembershipController extends Controller
     {
         $group->loadMissing('memberships');
         $this->authorizeMemberManagerAccess($group, $user->id);
+        $this->requestTextInputSanitizer->sanitize($request, [], ['reason']);
 
         $validated = $request->validate([
             'reason' => ['nullable', 'string', 'max:2000'],

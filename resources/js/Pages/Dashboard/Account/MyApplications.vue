@@ -224,10 +224,10 @@ const withdrawApplication = () => {
 								</div>
 
 								<div class="space-y-1">
-									<h3 class="truncate text-xl font-semibold text-toned">
+									<h3 class="break-words [overflow-wrap:anywhere] text-xl font-semibold text-toned">
 										{{ applicationTitle(application) }}
 									</h3>
-									<p class="text-sm text-muted">
+									<p class="break-words [overflow-wrap:anywhere] text-sm text-muted">
 										{{ application.activity.description || t('applications.summary_fallback') }}
 									</p>
 								</div>
@@ -318,7 +318,7 @@ const withdrawApplication = () => {
 
 						<div class="rounded-sm border border-default bg-default px-4 py-3">
 							<p class="text-xs uppercase tracking-wide text-muted">{{ t('applications.notes') }}</p>
-							<p class="mt-3 whitespace-pre-wrap text-sm text-toned">
+							<p class="mt-3 break-words [overflow-wrap:anywhere] whitespace-pre-wrap text-sm text-toned">
 								{{ notesPreview(application.notes) || t('applications.no_notes') }}
 							</p>
 						</div>
@@ -328,7 +328,7 @@ const withdrawApplication = () => {
 							class="rounded-sm border border-default bg-default px-4 py-3"
 						>
 							<p class="text-xs uppercase tracking-wide text-muted">{{ t('applications.review_reason') }}</p>
-							<p class="mt-3 whitespace-pre-wrap text-sm text-toned">
+							<p class="mt-3 break-words [overflow-wrap:anywhere] whitespace-pre-wrap text-sm text-toned">
 								{{ application.review_reason }}
 							</p>
 						</div>
@@ -380,10 +380,10 @@ const withdrawApplication = () => {
 								</div>
 
 								<div class="space-y-1">
-									<h3 class="truncate text-xl font-semibold text-toned">
+									<h3 class="break-words [overflow-wrap:anywhere] text-xl font-semibold text-toned">
 										{{ applicationTitle(application) }}
 									</h3>
-									<p class="text-sm text-muted">
+									<p class="break-words [overflow-wrap:anywhere] text-sm text-muted">
 										{{ application.activity.description || t('applications.summary_fallback') }}
 									</p>
 								</div>
@@ -472,7 +472,7 @@ const withdrawApplication = () => {
 
 						<div class="rounded-sm border border-default bg-default px-4 py-3">
 							<p class="text-xs uppercase tracking-wide text-muted">{{ t('applications.notes') }}</p>
-							<p class="mt-3 whitespace-pre-wrap text-sm text-toned">
+							<p class="mt-3 break-words [overflow-wrap:anywhere] whitespace-pre-wrap text-sm text-toned">
 								{{ notesPreview(application.notes) || t('applications.no_notes') }}
 							</p>
 						</div>
@@ -482,7 +482,7 @@ const withdrawApplication = () => {
 							class="rounded-sm border border-default bg-default px-4 py-3"
 						>
 							<p class="text-xs uppercase tracking-wide text-muted">{{ t('applications.review_reason') }}</p>
-							<p class="mt-3 whitespace-pre-wrap text-sm text-toned">
+							<p class="mt-3 break-words [overflow-wrap:anywhere] whitespace-pre-wrap text-sm text-toned">
 								{{ application.review_reason }}
 							</p>
 						</div>

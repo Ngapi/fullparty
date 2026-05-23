@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Controllers\Concerns\InteractsWithGroupActivityAttendees;
 use App\Models\Activity;
 use App\Models\ActivityApplication;
+use App\Models\ActivityApplicationAnswer;
 use App\Models\ActivityTypeVersion;
 use App\Models\Character;
 use App\Models\CharacterClass;
@@ -13,6 +14,8 @@ use App\Models\PhantomJob;
 use App\Services\Groups\GroupActivityAuditService;
 use App\Services\Lodestone\LodestoneCharacterSearchService;
 use App\Services\Notifications\ApplicationNotificationService;
+use App\Support\Input\RequestTextInputSanitizer;
+use App\Support\Input\TextInputSanitizer;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -30,6 +33,8 @@ class GroupActivityApplicationController extends Controller
         private readonly GroupActivityAuditService $activityAuditService,
         private readonly LodestoneCharacterSearchService $lodestoneCharacterSearchService,
         private readonly ApplicationNotificationService $applicationNotificationService,
+        private readonly RequestTextInputSanitizer $requestTextInputSanitizer,
+        private readonly TextInputSanitizer $textInputSanitizer,
     ) {}
 
     public function show(Request $request, Group $group, Activity $activity, ?string $secretKey = null): Response
@@ -182,6 +187,11 @@ class GroupActivityApplicationController extends Controller
         if (! $activity->allow_guest_applications) {
             abort(404);
         }
+
+        $this->requestTextInputSanitizer->sanitize($request, [
+            'name',
+            'world',
+        ]);
 
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
@@ -604,9 +614,15 @@ class GroupActivityApplicationController extends Controller
      */
     private function validateApplicationPayload(Request $request, Activity $activity, ?int $userId = null): array
     {
+        $this->requestTextInputSanitizer->sanitize(
+            $request,
+            ['guest_applicant.name', 'guest_applicant.world', 'guest_applicant.datacenter'],
+            ['notes'],
+        );
+
         $validated = $request->validate([
             'selected_character_id' => [$userId ? 'sometimes' : 'prohibited', 'nullable', 'integer', 'exists:characters,id'],
-            'notes' => ['sometimes', 'nullable', 'string'],
+            'notes' => ['sometimes', 'nullable', 'string', 'max:'.ActivityApplication::NOTES_MAX_LENGTH],
             'answers' => ['sometimes', 'array'],
             'guest_applicant' => [$userId ? 'prohibited' : 'required', 'array'],
             'guest_applicant.lodestone_id' => [$userId ? 'prohibited' : 'required', 'string', 'max:255'],
@@ -641,6 +657,8 @@ class GroupActivityApplicationController extends Controller
             $validated['answers'] ?? [],
             $activity->activityTypeVersion
         );
+        $validated['answers'] = $this->sanitizeApplicationAnswers($validated['answers']);
+        $this->validateApplicationAnswerLengths($validated['answers']);
 
         $requiredQuestionKeys = collect($activity->activityTypeVersion?->application_schema ?? [])
             ->filter(fn ($question) => is_array($question) && filled($question['key'] ?? null) && (bool) ($question['required'] ?? false))
@@ -830,6 +848,107 @@ class GroupActivityApplicationController extends Controller
             })
             ->values()
             ->all();
+    }
+
+    /**
+     * @param  array<int, array<string, mixed>>  $answers
+     * @return array<int, array<string, mixed>>
+     */
+    private function sanitizeApplicationAnswers(array $answers): array
+    {
+        return collect($answers)
+            ->map(function (array $answer): array {
+                $type = (string) ($answer['question_type'] ?? 'text');
+
+                if ($type === 'textarea') {
+                    $answer['value'] = $this->sanitizeAnswerValue($answer['value'] ?? null, multiline: true);
+
+                    return $answer;
+                }
+
+                if ($type === 'text') {
+                    $answer['value'] = $this->sanitizeAnswerValue($answer['value'] ?? null);
+                }
+
+                return $answer;
+            })
+            ->all();
+    }
+
+    private function sanitizeAnswerValue(mixed $value, bool $multiline = false): mixed
+    {
+        if (is_string($value)) {
+            return $multiline
+                ? $this->requestTextInputSanitizerValue($value, true)
+                : $this->requestTextInputSanitizerValue($value, false);
+        }
+
+        if (! is_array($value)) {
+            return $value;
+        }
+
+        foreach ($value as $key => $entry) {
+            $value[$key] = $this->sanitizeAnswerValue($entry, $multiline);
+        }
+
+        return $value;
+    }
+
+    private function requestTextInputSanitizerValue(string $value, bool $multiline): string
+    {
+        return $multiline
+            ? $this->textInputSanitizer->sanitizeMultiline($value) ?? ''
+            : $this->textInputSanitizer->sanitizeSingleLine($value) ?? '';
+    }
+
+    /**
+     * @param  array<int, array<string, mixed>>  $answers
+     */
+    private function validateApplicationAnswerLengths(array $answers): void
+    {
+        foreach ($answers as $answer) {
+            $questionKey = (string) ($answer['question_key'] ?? '');
+            $limit = $this->answerLengthLimit((string) ($answer['question_type'] ?? ''));
+
+            if ($questionKey === '' || $limit === null) {
+                continue;
+            }
+
+            if (! $this->answerValueFitsWithinLimit($answer['value'] ?? null, $limit)) {
+                throw ValidationException::withMessages([
+                    "answers.{$questionKey}" => "The {$questionKey} field must not be greater than {$limit} characters.",
+                ]);
+            }
+        }
+    }
+
+    private function answerLengthLimit(string $questionType): ?int
+    {
+        return match ($questionType) {
+            'text' => ActivityApplicationAnswer::TEXT_VALUE_MAX_LENGTH,
+            'textarea' => ActivityApplicationAnswer::TEXTAREA_VALUE_MAX_LENGTH,
+            'url' => ActivityApplicationAnswer::URL_VALUE_MAX_LENGTH,
+            default => null,
+        };
+    }
+
+    private function answerValueFitsWithinLimit(mixed $value, int $limit): bool
+    {
+        if (is_string($value)) {
+            return mb_strlen($value) <= $limit;
+        }
+
+        if (! is_array($value)) {
+            return true;
+        }
+
+        foreach ($value as $entry) {
+            if (! $this->answerValueFitsWithinLimit($entry, $limit)) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     /**

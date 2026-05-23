@@ -154,7 +154,6 @@
             "warning_body": "Once completed, this run becomes archival-only. Moderators will no longer be able to edit the roster, applications, or activity details.",
             "warning_points": {
                 "immutable": "The run will be locked and treated as archival/overview-only.",
-                "overview_only": "Moderators will no longer be able to edit or delete the activity after completion.",
                 "progress": "The final stored progression result becomes the source of truth for this run."
             },
             "no_milestones": "This activity type has no progress milestones configured, so this completion will only archive the run.",

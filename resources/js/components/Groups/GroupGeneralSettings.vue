@@ -1,9 +1,13 @@
 <script setup lang="ts">
+import { groupProfilePictureAccept, validateGroupProfilePictureFile } from "@/utils/groupProfilePictureValidation";
+import { sanitizeMultilineText, sanitizeSingleLineText } from "@/utils/textInputSanitizer";
 import { computed, ref } from "vue";
 import { useForm, usePage } from "@inertiajs/vue3";
 import { route } from "ziggy-js";
 import { useToast } from "@nuxt/ui/composables";
 import { useI18n } from "vue-i18n";
+
+const groupProfilePictureMaxBytes = 5 * 1024 * 1024;
 
 const props = defineProps<{
 	group: {
@@ -39,6 +43,22 @@ const form = useForm({
 
 const profilePicturePreviewUrl = ref<string | null>(props.group.profile_picture_url ?? null);
 
+const nameFieldValue = computed({
+	get: () => form.name,
+	set: (value: string | number | undefined) => {
+		form.name = sanitizeSingleLineText(String(value ?? ""));
+		form.clearErrors("name");
+	},
+});
+
+const descriptionFieldValue = computed({
+	get: () => form.description,
+	set: (value: string | number | undefined) => {
+		form.description = sanitizeMultilineText(String(value ?? ""));
+		form.clearErrors("description");
+	},
+});
+
 const visibilitySummary = computed(() => {
 	const displayGroupName = form.name.trim() || t('groups.settings.general.visibility_summary.default_name');
 
@@ -61,10 +81,30 @@ const updateProfilePicture = (event: Event) => {
 	const target = event.target as HTMLInputElement;
 	const file = target.files?.[0] ?? null;
 
+	form.clearErrors("profile_picture");
+
 	form.profile_picture = file;
 
 	if (!file) {
 		profilePicturePreviewUrl.value = props.group.profile_picture_url ?? null;
+		return;
+	}
+
+	const profilePictureValidation = validateGroupProfilePictureFile(file);
+
+	if (!profilePictureValidation.isValid) {
+		form.profile_picture = null;
+		profilePicturePreviewUrl.value = props.group.profile_picture_url ?? null;
+		form.setError("profile_picture", t("groups.settings.general.validation.image_invalid_format"));
+		target.value = "";
+		return;
+	}
+
+	if (file.size > groupProfilePictureMaxBytes) {
+		form.profile_picture = null;
+		profilePicturePreviewUrl.value = props.group.profile_picture_url ?? null;
+		form.setError("profile_picture", t("groups.settings.general.validation.image_too_large"));
+		target.value = "";
 		return;
 	}
 
@@ -120,7 +160,7 @@ const submit = () => {
 				required
 			>
 				<UInput
-					v-model="form.name"
+					v-model="nameFieldValue"
 					class="w-full"
 					:placeholder="t('groups.settings.general.fields.name.placeholder')"
 					:disabled="!group.permissions.can_manage_group"
@@ -132,7 +172,7 @@ const submit = () => {
 				:error="form.errors.description"
 			>
 				<UTextarea
-					v-model="form.description"
+					v-model="descriptionFieldValue"
 					class="w-full"
 					:rows="4"
 					:placeholder="t('groups.settings.general.fields.description.placeholder')"
@@ -157,7 +197,7 @@ const submit = () => {
 						<input
 							class="sr-only"
 							type="file"
-							accept="image/*"
+							:accept="groupProfilePictureAccept"
 							:disabled="!group.permissions.can_manage_group"
 							@change="updateProfilePicture"
 						>

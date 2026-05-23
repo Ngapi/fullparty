@@ -178,9 +178,7 @@ const statItems = (group: GroupIndexRecord) => ([
 
 							<div class="min-w-0">
 								<div class="flex items-center gap-2">
-									<p
-										class="font-semibold"
-									>
+									<p class="font-semibold break-words [overflow-wrap:anywhere]">
 										{{ group.name }}
 									</p>
 									<UBadge
@@ -193,7 +191,7 @@ const statItems = (group: GroupIndexRecord) => ([
 									/>
 									<UIcon :name="groupVisibilityIcon(group)" size="14" class="text-muted" />
 								</div>
-								<p class="mt-1 line-clamp-2 text-sm text-muted">
+								<p class="mt-1 line-clamp-2 break-words [overflow-wrap:anywhere] text-sm text-muted">
 									{{ group.description || t('groups.index.table.no_description') }}
 								</p>
 							</div>

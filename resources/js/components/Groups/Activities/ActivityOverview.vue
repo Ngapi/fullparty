@@ -168,12 +168,12 @@ const milestoneProgressWidth = (progress: number | null) => {
 <template>
 	<section class="border border-default bg-muted dark:bg-elevated/50 px-5 py-5 shadow-sm">
 		<div class="flex flex-col gap-4">
-			<div class="flex flex-col gap-4 border-b border-default pb-4 xl:flex-row xl:items-start xl:justify-between">
-				<div class="flex flex-col gap-2">
-					<div class="flex flex-wrap items-center gap-3">
-						<h1 class="font-semibold text-2xl text-toned">
-							{{ title }}
-						</h1>
+				<div class="flex flex-col gap-4 border-b border-default pb-4 xl:flex-row xl:items-start xl:justify-between">
+					<div class="flex min-w-0 flex-1 flex-col gap-2">
+						<div class="flex min-w-0 flex-wrap items-start gap-3">
+							<h1 class="min-w-0 break-words [overflow-wrap:anywhere] font-semibold text-2xl text-toned">
+								{{ title }}
+							</h1>
 						<UBadge
 							size="md"
 							variant="subtle"
@@ -275,11 +275,11 @@ const milestoneProgressWidth = (progress: number | null) => {
 				</div>
 			</div>
 
-			<div class="flex flex-col gap-3 border-t border-default pt-4 text-sm xl:flex-row xl:items-center xl:justify-between">
+				<div class="flex flex-col gap-3 border-t border-default pt-4 text-sm xl:flex-row xl:items-center xl:justify-between">
 				<div class="flex flex-wrap items-center gap-x-6 gap-y-2">
 				<div class="inline-flex items-center gap-2">
 					<span class="text-muted">{{ t('groups.activities.management.overview.group') }}:</span>
-					<span class="font-medium text-toned">{{ groupName }}</span>
+					<span class="font-medium text-toned break-words [overflow-wrap:anywhere]">{{ groupName }}</span>
 				</div>
 
 				<div class="hidden h-4 w-px bg-default md:block"></div>
@@ -346,13 +346,13 @@ const milestoneProgressWidth = (progress: number | null) => {
 			<div class="flex flex-col gap-4 border-t border-default pt-4 xl:flex-row xl:items-start xl:justify-between">
 				<div
 					v-if="description || notes || completedProgression"
-					class="flex flex-1 flex-col gap-4"
+					class="flex min-w-0 flex-1 flex-col gap-4"
 				>
-					<div v-if="description" class="text-sm whitespace-pre-wrap text-toned">
+					<div v-if="description" class="break-words [overflow-wrap:anywhere] text-sm whitespace-pre-wrap text-toned">
 						{{ description }}
 					</div>
 
-					<div v-if="notes" class="text-sm whitespace-pre-wrap text-muted">
+					<div v-if="notes" class="break-words [overflow-wrap:anywhere] text-sm whitespace-pre-wrap text-muted">
 						{{ notes }}
 					</div>
 
@@ -453,7 +453,7 @@ const milestoneProgressWidth = (progress: number | null) => {
 
 			<div v-if="completedProgression.notes" class="flex flex-col gap-1">
 				<span class="text-xs uppercase tracking-wide text-muted">{{ t('groups.activities.management.overview.progression.notes') }}</span>
-				<p class="text-sm whitespace-pre-wrap text-toned">
+				<p class="break-words [overflow-wrap:anywhere] text-sm whitespace-pre-wrap text-toned">
 					{{ completedProgression.notes }}
 				</p>
 			</div>

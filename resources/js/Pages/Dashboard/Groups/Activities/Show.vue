@@ -1283,7 +1283,7 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-	<div class="w-full">
+	<div class="w-full overflow-x-hidden">
 		<UButton
 			:label="t('groups.activities.back')"
 			icon="i-lucide-arrow-left"
