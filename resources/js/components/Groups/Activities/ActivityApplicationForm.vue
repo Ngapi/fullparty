@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { ActivityApplicationRecord, ApplicationQuestion, GuestCharacterSearchResult, GuestWorldOption } from "@/Types/ActivityApplications";
+import type { ActivityApplicationRecord, ApplicationQuestion, GuestCharacterSearchResult, GuestWorldOption, RememberedApplicationDefaults } from "@/Types/ActivityApplications";
 import { computed, ref } from "vue";
 import { router, useForm } from "@inertiajs/vue3";
 import { route } from "ziggy-js";
@@ -21,6 +21,7 @@ const props = defineProps<{
 	}>
 	questions: ApplicationQuestion[]
 	application: ActivityApplicationRecord | null
+	rememberedApplicationDefaults: RememberedApplicationDefaults | null
 	acceptsApplications: boolean
 	canApply: boolean
 	canApplyAsGuest: boolean
@@ -44,15 +45,24 @@ const characterItems = computed(() => props.characters.map((character) => ({
 })));
 
 const guestWorldItems = computed(() => props.guestWorlds);
+const showRememberChoicesOption = computed(() => props.application === null && props.canApply);
+const rememberedDefaults = computed(() => showRememberChoicesOption.value
+	? props.rememberedApplicationDefaults
+	: null);
 
 const form = useForm({
-	selected_character_id: props.application?.selected_character_id ?? props.characters[0]?.id ?? null,
-	notes: props.application?.notes ?? '',
+	selected_character_id: props.application?.selected_character_id
+		?? rememberedDefaults.value?.selected_character_id
+		?? props.characters[0]?.id
+		?? null,
+	notes: props.application?.notes ?? rememberedDefaults.value?.notes ?? '',
 	answers: Object.fromEntries(props.questions.map((question) => [
 		question.key,
 		props.application?.answers?.[question.key]
+			?? rememberedDefaults.value?.answers?.[question.key]
 			?? (question.type === 'multi_select' ? [] : question.type === 'boolean' ? false : ''),
 	])),
+	remember_application_defaults: showRememberChoicesOption.value,
 });
 
 const selectedCharacter = computed(() => props.characters.find((character) => character.id === form.selected_character_id) || null);
@@ -180,6 +190,9 @@ const submit = () => {
 	form.transform((data) => ({
 		...data,
 		selected_character_id: props.canApply ? data.selected_character_id : null,
+		remember_application_defaults: showRememberChoicesOption.value
+			? Boolean(data.remember_application_defaults)
+			: undefined,
 		guest_applicant: props.canApplyAsGuest && selectedGuestCharacter.value
 			? {
 				lodestone_id: selectedGuestCharacter.value.lodestone_id,
@@ -489,7 +502,21 @@ const submit = () => {
 				</UFormField>
 			</section>
 
-			<div class="flex items-center gap-3 border-t border-default pt-2">
+			<div class="border-t border-default pt-4">
+				<UCheckbox
+					v-if="showRememberChoicesOption"
+					v-model="form.remember_application_defaults"
+					:label="t('groups.activities.application.form.remember_defaults_label')"
+				/>
+				<p
+					v-if="showRememberChoicesOption"
+					class="mt-1 text-sm text-muted"
+				>
+					{{ t('groups.activities.application.form.remember_defaults_description') }}
+				</p>
+			</div>
+
+			<div class="flex items-center gap-3 pt-2">
 				<UButton
 					type="button"
 					color="neutral"

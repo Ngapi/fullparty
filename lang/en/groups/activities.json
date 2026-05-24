@@ -548,6 +548,8 @@
             "notes_description": "A freeform notes area will live here for any extra context the applicant wants to share.",
             "notes_field": "Notes",
             "notes_placeholder": "Anything else the moderators should know?",
+            "remember_defaults_label": "Remember my choices for this activity type",
+            "remember_defaults_description": "We'll prefill this activity type with the same character, answers, and notes the next time you start a new application.",
             "cancel": "Cancel",
             "submit": "Submit Application",
             "update": "Update Application",

@@ -11,6 +11,7 @@ use App\Models\Character;
 use App\Models\CharacterClass;
 use App\Models\Group;
 use App\Models\PhantomJob;
+use App\Models\UserActivityApplicationDefault;
 use App\Services\Groups\ActivityApplicationWithdrawalService;
 use App\Services\Groups\GroupActivityAuditService;
 use App\Services\Lodestone\LodestoneCharacterSearchService;
@@ -285,6 +286,17 @@ class GroupActivityApplicationController extends Controller
             ]);
 
             $this->syncApplicationAnswers($application, $validated['answers'] ?? []);
+
+            if ($user && (bool) ($validated['remember_application_defaults'] ?? false)) {
+                $this->storeRememberedApplicationDefaults(
+                    userId: $user->id,
+                    activity: $activity,
+                    selectedCharacterId: $validated['selected_character_id'] ?? null,
+                    answers: $validated['answers'] ?? [],
+                    notes: $validated['notes'] ?? null,
+                );
+            }
+
             $application->loadMissing(['activity.group', 'selectedCharacter', 'user']);
             $this->activityAuditService->logApplicationSubmitted($application, $user);
 
@@ -504,6 +516,13 @@ class GroupActivityApplicationController extends Controller
             'activity' => $this->serializeAttendeeActivity($activity),
             'applicationSchema' => $this->serializeApplicationSchema($activity->activityTypeVersion),
             'application' => $this->serializeExistingApplication($application),
+            'rememberedApplicationDefaults' => $this->serializeRememberedApplicationDefaults(
+                userId: $request->user()?->id,
+                activity: $activity,
+                activityTypeVersion: $activity->activityTypeVersion,
+                existingApplication: $application,
+                guestAccessToken: $guestAccessToken,
+            ),
             'characters' => $request->user()
                 ? $this->applicationCharactersForUser($request->user()->id)
                 : [],
@@ -621,6 +640,59 @@ class GroupActivityApplicationController extends Controller
     }
 
     /**
+     * @return array<string, mixed>|null
+     */
+    private function serializeRememberedApplicationDefaults(
+        ?int $userId,
+        Activity $activity,
+        ?ActivityTypeVersion $activityTypeVersion,
+        ?ActivityApplication $existingApplication,
+        ?string $guestAccessToken = null,
+    ): ?array {
+        if ($userId === null || $existingApplication !== null || $guestAccessToken !== null) {
+            return null;
+        }
+
+        $defaults = UserActivityApplicationDefault::query()
+            ->where('user_id', $userId)
+            ->where('activity_type_id', $activity->activity_type_id)
+            ->first();
+
+        if (! $defaults instanceof UserActivityApplicationDefault) {
+            return null;
+        }
+
+        $characterIds = Character::query()
+            ->where('user_id', $userId)
+            ->whereNotNull('verified_at')
+            ->pluck('id')
+            ->all();
+
+        $selectedCharacterId = in_array($defaults->selected_character_id, $characterIds, true)
+            ? $defaults->selected_character_id
+            : null;
+
+        $notes = is_string($defaults->notes) && mb_strlen($defaults->notes) <= ActivityApplication::NOTES_MAX_LENGTH
+            ? $defaults->notes
+            : null;
+
+        $answers = $this->filterRememberedApplicationAnswers(
+            $defaults->answers ?? [],
+            $activityTypeVersion,
+        );
+
+        if ($selectedCharacterId === null && $notes === null && $answers === []) {
+            return null;
+        }
+
+        return [
+            'selected_character_id' => $selectedCharacterId,
+            'notes' => $notes,
+            'answers' => $answers,
+        ];
+    }
+
+    /**
      * @return array<int, array<string, mixed>>
      */
     private function applicationCharactersForUser(int $userId): array
@@ -640,6 +712,34 @@ class GroupActivityApplicationController extends Controller
     }
 
     /**
+     * @param  array<int, array<string, mixed>>  $answers
+     */
+    private function storeRememberedApplicationDefaults(
+        int $userId,
+        Activity $activity,
+        ?int $selectedCharacterId,
+        array $answers,
+        ?string $notes,
+    ): void {
+        UserActivityApplicationDefault::query()->updateOrCreate(
+            [
+                'user_id' => $userId,
+                'activity_type_id' => $activity->activity_type_id,
+            ],
+            [
+                'selected_character_id' => $selectedCharacterId,
+                'answers' => collect($answers)
+                    ->mapWithKeys(fn (array $answer) => [
+                        (string) ($answer['question_key'] ?? '') => $answer['value'] ?? null,
+                    ])
+                    ->filter(fn ($value, string $key) => $key !== '')
+                    ->all(),
+                'notes' => $notes,
+            ],
+        );
+    }
+
+    /**
      * @return array<string, mixed>
      */
     private function validateApplicationPayload(Request $request, Activity $activity, ?int $userId = null): array
@@ -654,6 +754,7 @@ class GroupActivityApplicationController extends Controller
             'selected_character_id' => [$userId ? 'sometimes' : 'prohibited', 'nullable', 'integer', 'exists:characters,id'],
             'notes' => ['sometimes', 'nullable', 'string', 'max:'.ActivityApplication::NOTES_MAX_LENGTH],
             'answers' => ['sometimes', 'array'],
+            'remember_application_defaults' => [$userId ? 'sometimes' : 'prohibited', 'boolean'],
             'guest_applicant' => [$userId ? 'prohibited' : 'required', 'array'],
             'guest_applicant.lodestone_id' => [$userId ? 'prohibited' : 'required', 'string', 'max:255'],
             'guest_applicant.name' => [$userId ? 'prohibited' : 'required', 'string', 'max:255'],
@@ -869,6 +970,38 @@ class GroupActivityApplicationController extends Controller
 
     /**
      * @param  array<string, mixed>  $answers
+     * @return array<string, mixed>
+     */
+    private function filterRememberedApplicationAnswers(array $answers, ?ActivityTypeVersion $activityTypeVersion): array
+    {
+        $questionDefinitions = collect($activityTypeVersion?->application_schema ?? [])
+            ->filter(fn ($question) => is_array($question) && filled($question['key'] ?? null))
+            ->mapWithKeys(fn (array $question) => [(string) $question['key'] => $question]);
+
+        $filtered = [];
+
+        foreach ($questionDefinitions as $questionKey => $question) {
+            if (! array_key_exists($questionKey, $answers)) {
+                continue;
+            }
+
+            $value = $this->filterRememberedApplicationAnswerValue(
+                value: $answers[$questionKey],
+                question: $question,
+            );
+
+            if ($value === null) {
+                continue;
+            }
+
+            $filtered[$questionKey] = $value;
+        }
+
+        return $filtered;
+    }
+
+    /**
+     * @param  array<string, mixed>  $answers
      * @return array<int, array<string, mixed>>
      */
     private function normalizeApplicationAnswers(array $answers, ?ActivityTypeVersion $activityTypeVersion): array
@@ -893,6 +1026,104 @@ class GroupActivityApplicationController extends Controller
             })
             ->values()
             ->all();
+    }
+
+    /**
+     * @param  array<string, mixed>  $question
+     */
+    private function filterRememberedApplicationAnswerValue(mixed $value, array $question): mixed
+    {
+        $questionType = (string) ($question['type'] ?? 'text');
+
+        return match ($questionType) {
+            'single_select' => $this->filterRememberedSingleSelectAnswerValue($value, $question),
+            'multi_select' => $this->filterRememberedMultiSelectAnswerValue($value, $question),
+            'boolean' => $this->filterRememberedBooleanAnswerValue($value),
+            'number' => $this->filterRememberedNumberAnswerValue($value),
+            'textarea', 'text', 'url' => $this->filterRememberedTextAnswerValue($value, $questionType),
+            default => $this->filterRememberedTextAnswerValue($value, 'text'),
+        };
+    }
+
+    /**
+     * @param  array<string, mixed>  $question
+     */
+    private function filterRememberedSingleSelectAnswerValue(mixed $value, array $question): ?string
+    {
+        if (! is_scalar($value) || blank((string) $value)) {
+            return null;
+        }
+
+        $normalized = (string) $value;
+        $allowedKeys = collect($this->resolveQuestionOptions($question))
+            ->pluck('key')
+            ->map(fn ($key) => (string) $key)
+            ->all();
+
+        return in_array($normalized, $allowedKeys, true) ? $normalized : null;
+    }
+
+    /**
+     * @param  array<string, mixed>  $question
+     * @return array<int, string>|null
+     */
+    private function filterRememberedMultiSelectAnswerValue(mixed $value, array $question): ?array
+    {
+        if (! is_array($value)) {
+            return null;
+        }
+
+        $allowedKeys = collect($this->resolveQuestionOptions($question))
+            ->pluck('key')
+            ->map(fn ($key) => (string) $key)
+            ->all();
+
+        $filtered = collect($value)
+            ->filter(fn ($entry) => is_scalar($entry) && in_array((string) $entry, $allowedKeys, true))
+            ->map(fn ($entry) => (string) $entry)
+            ->values()
+            ->all();
+
+        return $filtered !== [] ? $filtered : null;
+    }
+
+    private function filterRememberedBooleanAnswerValue(mixed $value): ?bool
+    {
+        if (is_bool($value)) {
+            return $value;
+        }
+
+        if (is_int($value) || is_string($value)) {
+            $normalized = filter_var($value, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE);
+
+            return is_bool($normalized) ? $normalized : null;
+        }
+
+        return null;
+    }
+
+    private function filterRememberedNumberAnswerValue(mixed $value): ?string
+    {
+        if (! is_scalar($value) || blank((string) $value) || ! is_numeric($value)) {
+            return null;
+        }
+
+        return (string) $value;
+    }
+
+    private function filterRememberedTextAnswerValue(mixed $value, string $questionType): ?string
+    {
+        if (! is_string($value) || blank($value)) {
+            return null;
+        }
+
+        $limit = $this->answerLengthLimit($questionType);
+
+        if ($limit !== null && ! $this->answerValueFitsWithinLimit($value, $limit)) {
+            return null;
+        }
+
+        return $value;
     }
 
     /**

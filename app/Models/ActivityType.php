@@ -87,6 +87,11 @@ class ActivityType extends Model
         return $this->hasMany(ActivityTypeVersion::class)->orderByDesc('version');
     }
 
+    public function applicationDefaults(): HasMany
+    {
+        return $this->hasMany(UserActivityApplicationDefault::class);
+    }
+
     public function tags(): BelongsToMany
     {
         return $this->belongsToMany(ActivityTag::class, 'activity_type_activity_tag')

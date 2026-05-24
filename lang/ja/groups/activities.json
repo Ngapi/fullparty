@@ -540,6 +540,8 @@
             "notes_description": "A freeform notes area will live here for any extra context the applicant wants to share.",
             "notes_field": "Notes",
             "notes_placeholder": "Anything else the moderators should know?",
+            "remember_defaults_label": "このアクティビティ種別の入力内容を記憶する",
+            "remember_defaults_description": "次回このアクティビティ種別で新しい応募を始めるとき、同じキャラクター、回答、メモを自動入力します。",
             "cancel": "Cancel",
             "submit": "Submit Application",
             "update": "Update Application",

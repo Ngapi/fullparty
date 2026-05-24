@@ -540,6 +540,8 @@
             "notes_description": "A freeform notes area will live here for any extra context the applicant wants to share.",
             "notes_field": "Notes",
             "notes_placeholder": "Anything else the moderators should know?",
+            "remember_defaults_label": "Meine Auswahl fuer diesen Aktivitaetstyp merken",
+            "remember_defaults_description": "Beim naechsten Start einer neuen Bewerbung fuer diesen Aktivitaetstyp werden derselbe Charakter, dieselben Antworten und dieselben Notizen vorausgefuellt.",
             "cancel": "Cancel",
             "submit": "Submit Application",
             "update": "Update Application",

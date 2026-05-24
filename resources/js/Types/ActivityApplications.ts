@@ -53,3 +53,9 @@ export type ActivityApplicationRecord = {
 	applicant_character?: ActivityApplicantCharacter | null
 	answers: Record<string, unknown>
 }
+
+export type RememberedApplicationDefaults = {
+	selected_character_id: number | null
+	notes: string | null
+	answers: Record<string, unknown>
+}

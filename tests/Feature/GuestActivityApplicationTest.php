@@ -7,8 +7,10 @@ use App\Models\ActivityApplicationAnswer;
 use App\Models\ActivityType;
 use App\Models\ActivityTypeVersion;
 use App\Models\Character;
+use App\Models\CharacterClass;
 use App\Models\Group;
 use App\Models\User;
+use App\Models\UserActivityApplicationDefault;
 use App\Services\Lodestone\LodestoneCharacterSearchService;
 use App\Support\Input\TextInputSanitizer;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -283,6 +285,205 @@ it('still allows authenticated users to submit applications with their verified 
         ->and($application->applicant_datacenter)->toBe('Light');
 });
 
+it('stores remembered application defaults for authenticated users on create by default', function () {
+    $activity = createGuestApplicationActivity([
+        'allow_guest_applications' => false,
+    ]);
+    $user = User::factory()->create();
+    $character = Character::factory()->primary()->create([
+        'user_id' => $user->id,
+        'lodestone_id' => '55112233',
+    ]);
+
+    $this->actingAs($user);
+
+    $this->post(route('groups.activities.application.store', [
+        'group' => $activity->group->slug,
+        'activity' => $activity->id,
+    ]), [
+        'selected_character_id' => $character->id,
+        'notes' => 'Remember this exact note.',
+        'answers' => [
+            'experience' => 'Remembered experience text.',
+        ],
+        'remember_application_defaults' => true,
+    ])->assertRedirect(route('groups.activities.application.confirmation', [
+        'group' => $activity->group->slug,
+        'activity' => $activity->id,
+    ]));
+
+    $defaults = UserActivityApplicationDefault::query()->sole();
+
+    expect($defaults->user_id)->toBe($user->id)
+        ->and($defaults->activity_type_id)->toBe($activity->activity_type_id)
+        ->and($defaults->selected_character_id)->toBe($character->id)
+        ->and($defaults->notes)->toBe('Remember this exact note.')
+        ->and($defaults->answers)->toBe([
+            'experience' => 'Remembered experience text.',
+        ]);
+});
+
+it('does not store remembered application defaults when the user opts out', function () {
+    $activity = createGuestApplicationActivity([
+        'allow_guest_applications' => false,
+    ]);
+    $user = User::factory()->create();
+    $character = Character::factory()->primary()->create([
+        'user_id' => $user->id,
+        'lodestone_id' => '55112234',
+    ]);
+
+    $this->actingAs($user);
+
+    $this->post(route('groups.activities.application.store', [
+        'group' => $activity->group->slug,
+        'activity' => $activity->id,
+    ]), [
+        'selected_character_id' => $character->id,
+        'notes' => 'Do not remember this.',
+        'answers' => [
+            'experience' => 'Skip saving defaults for this one.',
+        ],
+        'remember_application_defaults' => false,
+    ])->assertRedirect(route('groups.activities.application.confirmation', [
+        'group' => $activity->group->slug,
+        'activity' => $activity->id,
+    ]));
+
+    expect(UserActivityApplicationDefault::query()->count())->toBe(0);
+});
+
+it('prefills new authenticated applications from remembered defaults for the same activity type', function () {
+    $activity = createGuestApplicationActivity([
+        'allow_guest_applications' => false,
+    ]);
+    $secondActivity = Activity::factory()->create([
+        'group_id' => $activity->group_id,
+        'activity_type_id' => $activity->activity_type_id,
+        'activity_type_version_id' => $activity->activity_type_version_id,
+        'organized_by_user_id' => $activity->organized_by_user_id,
+        'status' => Activity::STATUS_SCHEDULED,
+        'needs_application' => true,
+        'allow_guest_applications' => false,
+        'is_public' => true,
+    ]);
+    $user = User::factory()->create();
+    $character = Character::factory()->primary()->create([
+        'user_id' => $user->id,
+        'lodestone_id' => '55112235',
+    ]);
+
+    UserActivityApplicationDefault::query()->create([
+        'user_id' => $user->id,
+        'activity_type_id' => $activity->activity_type_id,
+        'selected_character_id' => $character->id,
+        'answers' => [
+            'experience' => 'Use this remembered answer.',
+            'missing_question' => 'Should be ignored.',
+        ],
+        'notes' => 'Use these remembered notes.',
+    ]);
+
+    $this->actingAs($user);
+
+    $this->get(route('groups.activities.application', [
+        'group' => $secondActivity->group->slug,
+        'activity' => $secondActivity->id,
+    ]))->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->component('Groups/Activities/Application')
+            ->where('rememberedApplicationDefaults.selected_character_id', $character->id)
+            ->where('rememberedApplicationDefaults.notes', 'Use these remembered notes.')
+            ->where('rememberedApplicationDefaults.answers.experience', 'Use this remembered answer.')
+            ->missing('rememberedApplicationDefaults.answers.missing_question')
+        );
+});
+
+it('filters stale remembered application defaults before sending them to the new form', function () {
+    $owner = User::factory()->create();
+    $group = Group::factory()->public()->create([
+        'owner_id' => $owner->id,
+    ]);
+    $type = ActivityType::factory()->create([
+        'created_by_user_id' => $owner->id,
+    ]);
+    $version = ActivityTypeVersion::factory()->create([
+        'activity_type_id' => $type->id,
+        'published_by_user_id' => $owner->id,
+        'application_schema' => [
+            [
+                'key' => 'jobs',
+                'label' => ['en' => 'Jobs'],
+                'type' => 'multi_select',
+                'source' => 'character_classes',
+            ],
+            [
+                'key' => 'experience',
+                'label' => ['en' => 'Experience'],
+                'type' => 'textarea',
+            ],
+        ],
+    ]);
+
+    $type->update([
+        'current_published_version_id' => $version->id,
+    ]);
+
+    $activity = Activity::factory()->create([
+        'group_id' => $group->id,
+        'activity_type_id' => $type->id,
+        'activity_type_version_id' => $version->id,
+        'organized_by_user_id' => $owner->id,
+        'status' => Activity::STATUS_SCHEDULED,
+        'needs_application' => true,
+        'allow_guest_applications' => false,
+        'is_public' => true,
+    ]);
+
+    $whiteMage = CharacterClass::query()->create([
+        'name' => 'White Mage',
+        'shorthand' => 'WHM',
+        'icon_url' => 'https://example.com/whm.png',
+        'flaticon_url' => 'https://example.com/whm-flat.png',
+        'role' => 'healer',
+    ]);
+
+    $user = User::factory()->create();
+    Character::factory()->primary()->create([
+        'user_id' => $user->id,
+        'lodestone_id' => '55112236',
+    ]);
+    $otherCharacter = Character::factory()->primary()->create([
+        'user_id' => User::factory()->create()->id,
+        'lodestone_id' => '55112237',
+    ]);
+
+    UserActivityApplicationDefault::query()->create([
+        'user_id' => $user->id,
+        'activity_type_id' => $type->id,
+        'selected_character_id' => $otherCharacter->id,
+        'answers' => [
+            'jobs' => [(string) $whiteMage->id, '999999'],
+            'experience' => str_repeat('x', ActivityApplicationAnswer::TEXTAREA_VALUE_MAX_LENGTH + 1),
+        ],
+        'notes' => str_repeat('n', ActivityApplication::NOTES_MAX_LENGTH + 1),
+    ]);
+
+    $this->actingAs($user);
+
+    $this->get(route('groups.activities.application', [
+        'group' => $group->slug,
+        'activity' => $activity->id,
+    ]))->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->component('Groups/Activities/Application')
+            ->where('rememberedApplicationDefaults.selected_character_id', null)
+            ->where('rememberedApplicationDefaults.answers.jobs', [(string) $whiteMage->id])
+            ->where('rememberedApplicationDefaults.notes', null)
+            ->missing('rememberedApplicationDefaults.answers.experience')
+        );
+});
+
 it('allows authenticated users to reapply after withdrawing a previous application', function () {
     $activity = createGuestApplicationActivity([
         'allow_guest_applications' => false,
@@ -323,6 +524,62 @@ it('allows authenticated users to reapply after withdrawing a previous applicati
 
     expect(ActivityApplication::query()->where('activity_id', $activity->id)->count())->toBe(2);
     expect(ActivityApplication::query()->where('activity_id', $activity->id)->where('status', ActivityApplication::STATUS_PENDING)->count())->toBe(1);
+});
+
+it('does not overwrite remembered application defaults when an authenticated user edits an existing application', function () {
+    $activity = createGuestApplicationActivity([
+        'allow_guest_applications' => false,
+    ]);
+    $user = User::factory()->create();
+    $character = Character::factory()->primary()->create([
+        'user_id' => $user->id,
+        'lodestone_id' => '55112238',
+    ]);
+
+    UserActivityApplicationDefault::query()->create([
+        'user_id' => $user->id,
+        'activity_type_id' => $activity->activity_type_id,
+        'selected_character_id' => $character->id,
+        'answers' => [
+            'experience' => 'Original remembered value.',
+        ],
+        'notes' => 'Original remembered notes.',
+    ]);
+
+    ActivityApplication::factory()->create([
+        'activity_id' => $activity->id,
+        'user_id' => $user->id,
+        'selected_character_id' => $character->id,
+        'applicant_lodestone_id' => $character->lodestone_id,
+        'applicant_character_name' => $character->name,
+        'applicant_world' => $character->world,
+        'applicant_datacenter' => $character->datacenter,
+        'status' => ActivityApplication::STATUS_PENDING,
+    ]);
+
+    $this->actingAs($user);
+
+    $this->put(route('groups.activities.application.update', [
+        'group' => $activity->group->slug,
+        'activity' => $activity->id,
+    ]), [
+        'selected_character_id' => $character->id,
+        'notes' => 'Edited application notes.',
+        'answers' => [
+            'experience' => 'Edited application answer.',
+        ],
+        'remember_application_defaults' => true,
+    ])->assertRedirect(route('groups.activities.application.confirmation', [
+        'group' => $activity->group->slug,
+        'activity' => $activity->id,
+    ]));
+
+    $defaults = UserActivityApplicationDefault::query()->sole();
+
+    expect($defaults->notes)->toBe('Original remembered notes.')
+        ->and($defaults->answers)->toBe([
+            'experience' => 'Original remembered value.',
+        ]);
 });
 
 it('allows guests to reapply after withdrawing a previous application', function () {

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { RememberedApplicationDefaults } from "@/Types/ActivityApplications";
 import { computed, ref } from "vue";
 import { router, usePage } from "@inertiajs/vue3";
 import { route } from "ziggy-js";
@@ -82,6 +83,7 @@ const props = defineProps<{
 		} | null
 		answers: Record<string, unknown>
 	} | null
+	rememberedApplicationDefaults: RememberedApplicationDefaults | null
 	secretKey?: string
 	guestAccessToken?: string
 	guestCharacterSearch: {
@@ -360,6 +362,7 @@ const withdrawApplication = () => {
 				:characters="characters"
 				:questions="applicationSchema"
 				:application="application"
+				:remembered-application-defaults="rememberedApplicationDefaults"
 				:accepts-applications="acceptsApplications"
 				:can-apply="permissions.can_apply"
 				:can-apply-as-guest="permissions.can_apply_as_guest"
