@@ -50,6 +50,19 @@
     --color-brand-800: #4f306b;
     --color-brand-900: #43295a;
     --color-brand-950: #2c183d;
+
+
+    --color-neutral-50: #f7f5fa;
+    --color-neutral-100: #efebf4;
+    --color-neutral-200: #ddd8e7;
+    --color-neutral-300: #c6bdd6;
+    --color-neutral-400: #a79bb9;
+    --color-neutral-500: #887b99;
+    --color-neutral-600: #6f647e;
+    --color-neutral-700: #595062;
+    --color-neutral-800: #403946;
+    --color-neutral-900: #29252d;
+    --color-neutral-950: #171419;
 }
 
 @layer base {

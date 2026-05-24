@@ -83,11 +83,12 @@ const removeCharacter = () => {
 </script>
 
 <template>
-	<UCard :ui="{ root: 'rounded-sm dark:bg-neutral-800/50' }">
+	<UCard :ui="{ root: 'border-l-2 border-brand-800 bg-neutral-950' }">
+<!--	<UCard :ui="{ root: 'border border-white/10 bg-white/5 p-8 backdrop-blur-xl shadow-[0_10px_30px_rgba(0,0,0,0.35)]' }">-->
 
 		<UCollapsible v-model:open="open" class="flex flex-col gap-2 w-full">
 			<div class="w-full flex flex-row items-stretch">
-				<div id="div1" class="flex flex-row items-start">
+				<div id="div1" class="flex flex-row items-start border-2 border-blue-800 shadow-lg shadow-blue-800">
 					<img
 						class="h-24 w-24 rounded-sm object-cover"
 						:src="character.avatar_url"
@@ -181,6 +182,7 @@ const removeCharacter = () => {
 							>
 								<div class="grid gap-2 sm:grid-cols-2 2xl:grid-cols-4">
 									<ClassElement
+										class="bg-neutral-800/50"
 										v-for="characterClass in group.classes"
 										:key="characterClass.id"
 										:character-id="character.id"
@@ -206,6 +208,7 @@ const removeCharacter = () => {
 
 						<div class="grid gap-2 sm:grid-cols-3">
 							<PhantomJobElement
+								class="bg-neutral-800/50"
 								v-for="phantomJob in character.occult.phantom_jobs"
 								:key="phantomJob.id"
 								:character-id="character.id"

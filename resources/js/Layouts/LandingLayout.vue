@@ -9,7 +9,6 @@ const { currentUiLocale } = usePersistentLocale();
 	<UApp :locale="currentUiLocale">
 		<div class="min-h-screen bg-neutral-100 text-neutral-900 dark:bg-neutral-950 dark:text-neutral-50">
 			<div class="fixed right-0 top-0 z-10 flex items-center gap-2 p-4">
-				<UColorModeSelect variant="ghost" />
 				<AppLocaleSelect variant="ghost" />
 			</div>
 

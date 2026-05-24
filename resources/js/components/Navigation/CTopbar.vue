@@ -23,7 +23,7 @@ defineProps({
 	<UDashboardNavbar>
 		<template #leading>
 <!--			<UDashboardSidebarCollapse />-->
-			<UInput :placeholder="t('navigation.topbar.search_bar')" :ui="{base: 'rounded-sm placeholder:text-neutral-500'}" leading-icon="i-lucide-search" size="lg" class="min-w-96"/>
+			<UInput :placeholder="t('navigation.topbar.search_bar')" :ui="{base: 'rounded-none placeholder:text-neutral-500'}" leading-icon="i-lucide-search" size="xl"  class="min-w-96"/>
 		</template>
 
 		<template #trailing>
@@ -32,7 +32,6 @@ defineProps({
 
 		<template #right>
 			<NotificationBell v-if="user" />
-			<UColorModeButton />
 			<AppLocaleSelect variant="ghost" />
 			<UserMenu />
 		</template>

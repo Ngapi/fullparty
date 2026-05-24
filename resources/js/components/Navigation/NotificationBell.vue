@@ -140,13 +140,14 @@ onBeforeUnmount(() => {
 <template>
 	<UPopover
 		v-if="user"
+		arrow
 		:popper="{ placement: 'bottom-end' }"
 	>
 		<template #default="{ open }">
 			<UButton
 				color="neutral"
 				variant="ghost"
-				:class="{ 'bg-gray-100 dark:bg-gray-800': open }"
+				:class="{ 'bg-gray-100 dark:bg-neutral-900 rounded-lg': open }"
 				class="relative"
 				icon="i-lucide-bell"
 				@click="handleBellClick"
@@ -162,9 +163,9 @@ onBeforeUnmount(() => {
 		</template>
 
 		<template #content>
-			<div class="w-96 max-w-md">
-				<div class="flex items-center justify-between px-4 py-3 border-b border-gray-200 dark:border-gray-800">
-					<h3 class="text-sm font-semibold text-gray-900 dark:text-white">
+			<div class="w-96 max-w-md bg-linear-to-b from-neutral-900 to-brand-800 ">
+				<div class="flex items-center justify-between px-4 py-3 bg-neutral-950/50 border-b  border-neutral-800">
+					<h3 class="text-sm font-semibold  text-brand-100">
 						{{ t('notifications.ui.title') }}
 					</h3>
 					<UButton
@@ -178,7 +179,7 @@ onBeforeUnmount(() => {
 					</UButton>
 				</div>
 
-				<div class="max-h-96 overflow-y-auto">
+				<div class="max-h-96 overflow-y-auto bg-neutral-950/80">
 					<div
 						v-if="latestNotifications.length === 0"
 						class="px-4 py-8 text-center text-sm text-gray-500 dark:text-gray-400"
@@ -190,12 +191,12 @@ onBeforeUnmount(() => {
 						v-for="notification in latestNotifications"
 						:key="notification.id"
 						:href="notification.open_url"
-						class="block px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors border-b border-gray-100 dark:border-gray-800 last:border-b-0"
-						:class="{ 'bg-blue-50/50 dark:bg-blue-950/20': notification.is_unread }"
+						class="block px-4 py-3 hover:bg-neutral-600/50 transition-colors border-b border-gray-100 dark:border-neutral-700 last:border-b-0"
+						:class="{ 'bg-blue-50/50 dark:bg-brand-950/20': notification.is_unread }"
 					>
 						<div class="flex gap-3">
 							<div class="flex-shrink-0 mt-0.5">
-								<div class="h-8 w-8 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
+								<div class="h-8 w-8 rounded-full bg-neutral-800 flex items-center justify-center">
 									<UIcon
 										:name="resolveNotificationMeta(notification).icon"
 										:class="[resolveNotificationMeta(notification).iconColor, 'h-4 w-4']"
@@ -234,7 +235,7 @@ onBeforeUnmount(() => {
 					</Link>
 				</div>
 
-				<div class="px-4 py-3 border-t border-gray-200 dark:border-gray-800">
+				<div class="px-4 py-1.5 border-t border-gray-200 dark:border-neutral-700 bg-neutral-950/80">
 					<Link
 						:href="route('account.notifications.index')"
 						class="text-sm font-medium text-brand hover:text-brand-600 dark:text-brand-400 dark:hover:text-brand-300 transition-colors"

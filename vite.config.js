@@ -26,7 +26,7 @@ export default defineConfig({
                 },
                 card: {
                     slots: {
-                        root: 'rounded-none'
+                        root: 'rounded-none bg-elevated'
                     }
                 },
                 input: {

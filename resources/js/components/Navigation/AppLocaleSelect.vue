@@ -40,6 +40,7 @@ const selectedLocale = computed(() => (
 		:search-input="false"
 		:variant="variant"
 		:size="size"
+		:ui="{content:'bg-linear-to-b to-brand-900/50 from-neutral-950 rounded-none cursor-pointer', item:'before:rounded-none hover:bg-brand-600/50'}"
 		@update:model-value="updateLocale"
 	>
 		<template #leading>

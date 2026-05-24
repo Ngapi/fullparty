@@ -25,12 +25,12 @@ defineProps({
 </script>
 
 <template>
-	<UApp :locale="currentUiLocale">
-		<div class="min-h-screen">
+	<UApp :locale="currentUiLocale" class="">
+		<div class="min-h-screen bg-linear-to-br from-brand-900 via-neutral-950 via-15% to-neutral-950 to-90%" >
 			<UDashboardGroup>
 				<CSidebar />
 
-				<UDashboardPanel :ui="{ body: 'bg-neutral-100 dark:bg-neutral-900' }">
+				<UDashboardPanel >
 					<template #header>
 						<SystemBanner
 							v-if="systemBanner"

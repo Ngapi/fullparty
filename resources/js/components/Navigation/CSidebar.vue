@@ -14,32 +14,37 @@ const localizedRoute = (...args) => {
 	return route(...args)
 }
 const loginHref = computed(() => localizedRoute('login'));
-const authLink = (href, icon, label) => ({
+const authLink = (href, icon, label, activePatterns) => ({
 	label,
 	icon,
 	href: isAuthenticated.value ? href : loginHref.value,
-	activeHref: href,
+	activePatterns,
 })
+const isRouteActive = (patterns) => {
+	const routeMatcher = route()
+
+	return patterns.some((pattern) => routeMatcher.current(pattern))
+}
 
 const top = computed(() => [
-	authLink(localizedRoute('dashboard'), 'i-lucide-house', t('navigation.sidebar.dashboard')),
-	authLink(localizedRoute('dashboard.runs.index'), 'i-lucide-calendar-days', t('navigation.sidebar.runs')),
+	authLink(localizedRoute('dashboard'), 'i-lucide-house', t('navigation.sidebar.dashboard'), ['dashboard']),
+	authLink(localizedRoute('dashboard.runs.index'), 'i-lucide-calendar-days', t('navigation.sidebar.runs'), ['dashboard.runs.*']),
 ])
 
 const account = computed(() => [
-	authLink(localizedRoute('account.characters'), 'i-lucide-user-circle', t('navigation.sidebar.characters')),
-	authLink(localizedRoute('account.applications'), 'i-lucide-file-text', t('navigation.sidebar.applications')),
+	authLink(localizedRoute('account.characters'), 'i-lucide-user-circle', t('navigation.sidebar.characters'), ['account.characters*']),
+	authLink(localizedRoute('account.applications'), 'i-lucide-file-text', t('navigation.sidebar.applications'), ['account.applications*']),
 ])
 
 const groups = computed(() => [
-	{ label: t('navigation.sidebar.groups'), href: localizedRoute('groups.index'), icon: 'i-lucide-shield' },
+	{ label: t('navigation.sidebar.groups'), href: localizedRoute('groups.index'), icon: 'i-lucide-shield', activePatterns: ['groups.index'] },
 ])
 
 const admin = computed(() => [
-	{ label: t('navigation.sidebar.character_definitions'), href: localizedRoute('admin.character-data'), icon: 'i-lucide-user-pen' },
-	{ label: t('navigation.sidebar.admin_audit_log'), href: localizedRoute('admin.audit-log'), icon: 'i-lucide-scroll-text' },
-	{ label: t('navigation.sidebar.system_notifications'), href: localizedRoute('admin.system-notifications.index'), icon: 'i-lucide-megaphone' },
-	{ label: t('navigation.sidebar.activity_types'), href: localizedRoute('admin.activity-types.index'), icon: 'i-lucide-file-pen' },
+	{ label: t('navigation.sidebar.character_definitions'), href: localizedRoute('admin.character-data'), icon: 'i-lucide-user-pen', activePatterns: ['admin.character-data'] },
+	{ label: t('navigation.sidebar.admin_audit_log'), href: localizedRoute('admin.audit-log'), icon: 'i-lucide-scroll-text', activePatterns: ['admin.audit-log'] },
+	{ label: t('navigation.sidebar.system_notifications'), href: localizedRoute('admin.system-notifications.index'), icon: 'i-lucide-megaphone', activePatterns: ['admin.system-notifications.*'] },
+	{ label: t('navigation.sidebar.activity_types'), href: localizedRoute('admin.activity-types.index'), icon: 'i-lucide-file-pen', activePatterns: ['admin.activity-types.*'] },
 	{ label: t('navigation.sidebar.pulse'), href: '/pulse', icon: 'i-lucide-activity', external: true },
 ])
 
@@ -93,9 +98,9 @@ watch([currentUrl, groupQuickLinkSections], () => {
 </script>
 
 <template>
-	<UDashboardSidebar :default-size="15"  :ui="{ footer: '',  body: 'px-2' }" class="bg-brand-950">
+	<UDashboardSidebar :default-size="15"  :ui="{ footer: '',  body: 'px-4' }" class="border-0">
 		<template #header="{ collapsed }">
-			<div v-if="!collapsed" class="w-full h-full mt-4">
+			<div v-if="!collapsed" class="w-full h-full mt-8">
 				<img :src="full_logo" class="h-full w-auto mx-auto " alt="FullParty Logo">
 			</div>
 			<img v-else :src="compact_logo" class="w-full h-auto" alt="FullParty Logo">
@@ -105,10 +110,10 @@ watch([currentUrl, groupQuickLinkSections], () => {
 			<div class="mt-4 flex flex-col w-full h-full ">
 				<Link
 					v-for="item in top"
-					:key="item.activeHref"
+					:key="item.href"
 					:href="item.href"
 					class="sidebar-link"
-					:class="currentUrl.startsWith(item.activeHref) ? 'link-highlighted': 'link-default'"
+					:class="isRouteActive(item.activePatterns) ? 'link-highlighted': 'link-default'"
 				>
 					<UIcon :name="item.icon" :class="!collapsed ? 'sidebar-link-icon' : 'sidebar-link-icon-large'" />
 					<span v-if="!collapsed">{{ item.label }}</span>
@@ -119,10 +124,10 @@ watch([currentUrl, groupQuickLinkSections], () => {
 
 				<Link
 					v-for="item in account"
-					:key="item.activeHref"
+					:key="item.href"
 					:href="item.href"
 					class="sidebar-link"
-					:class="currentUrl.startsWith(item.activeHref) ? 'link-highlighted': 'link-default'"
+					:class="isRouteActive(item.activePatterns) ? 'link-highlighted': 'link-default'"
 				>
 					<UIcon :name="item.icon" :class="!collapsed ? 'sidebar-link-icon' : 'sidebar-link-icon-large'" />
 					<span v-if="!collapsed">{{ item.label }}</span>
@@ -137,7 +142,7 @@ watch([currentUrl, groupQuickLinkSections], () => {
 					:key="item.href"
 					:href="item.href"
 					class="sidebar-link"
-					:class="currentUrl === item.href ? 'link-highlighted': 'link-default'"
+					:class="isRouteActive(item.activePatterns) ? 'link-highlighted': 'link-default'"
 				>
 					<UIcon :name="item.icon" :class="!collapsed ? 'sidebar-link-icon' : 'sidebar-link-icon-large'" />
 					<span v-if="!collapsed">{{ item.label }}</span>
@@ -191,7 +196,7 @@ watch([currentUrl, groupQuickLinkSections], () => {
 						:key="item.href"
 						:href="item.href"
 						class="sidebar-link"
-						:class="!item.external && currentUrl.startsWith(item.href) ? 'link-highlighted': 'link-default'"
+						:class="!item.external && isRouteActive(item.activePatterns) ? 'link-highlighted': 'link-default'"
 						:target="item.external ? '_blank' : undefined"
 						:rel="item.external ? 'noopener noreferrer' : undefined"
 					>
@@ -227,21 +232,21 @@ watch([currentUrl, groupQuickLinkSections], () => {
 	@apply mt-6 mb-2 px-5 text-sm font-semibold uppercase tracking-wider text-brand-300/80 ;
 }
 .link-highlighted {
-	@apply text-neutral-200 bg-brand rounded-xs;
+	@apply text-neutral-200 rounded-xs border-l-4 border-brand-500 bg-linear-to-r from-brand-800 via-brand-800/30 to-brand-800/10;
 }
 .link-default {
-	@apply text-brand-100/80 hover:bg-brand hover:text-white rounded-xs;
+	@apply text-brand-100/80 hover:text-white rounded-xs hover:bg-linear-to-r from-brand-800 via-brand-800/30 to-brand-800/10;
 }
 .sublink-highlighted {
-	@apply text-neutral-100 bg-brand-800/80;
+	@apply text-neutral-100 border-l-4 border-brand-500 bg-linear-to-r from-brand-800 via-brand-800/30 to-brand-800/10 ;
 }
 .sublink-default {
-	@apply text-brand-100/70 hover:bg-brand-900/60 hover:text-neutral-100;
+	@apply text-brand-100/70 hover:hover:bg-linear-to-r from-brand-800 via-brand-800/30 to-brand-800/10 hover:text-neutral-100;
 }
 .sidebar-link {
-	@apply flex items-center gap-2 py-2 px-5  transition;
+	@apply flex items-center gap-2 py-4 px-5  transition;
 }
 .sidebar-sublink {
-	@apply block rounded-xs py-1.5 pl-9 pr-5 text-sm transition;
+	@apply block rounded-xs py-3.5 pl-9 pr-5 text-sm transition;
 }
 </style>

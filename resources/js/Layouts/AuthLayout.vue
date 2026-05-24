@@ -26,7 +26,6 @@ const { currentUiLocale } = usePersistentLocale();
 				</div>
 			</div>
 			<div class="fixed top-0 right-0 p-4 space-x-2">
-				<UColorModeSelect variant="ghost" />
 				<AppLocaleSelect variant="ghost" />
 			</div>
 		</div>
