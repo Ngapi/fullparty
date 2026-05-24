@@ -1,0 +1,7 @@
+{
+  "validation": {
+    "active_time_pair_required": "Les heures de début et de fin d'activité doivent être fournies ensemble.",
+    "active_timezone_required": "Un fuseau horaire actif est requis lorsque des jours ou des heures d'activité sont fournis.",
+    "active_end_time_after_start": "L'heure de fin d'activité doit être postérieure à l'heure de début."
+  }
+}

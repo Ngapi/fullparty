@@ -24,12 +24,23 @@ class GroupFactory extends Factory
             'name' => fake()->unique()->words(3, true),
             'description' => fake()->sentence(),
             'profile_picture_url' => null,
+            'banner_image_url' => null,
             'discord_invite_url' => fake()->boolean(60) ? fake()->url() : null,
             'datacenter' => fake()->randomElement(['Light', 'Chaos', 'Aether', 'Crystal', 'Primal', 'Dynamis']),
             'is_public' => fake()->boolean(70),
             'is_visible' => true,
             'slug' => strtolower(fake()->unique()->regexify('[a-z0-9]{8}')),
             'group_type' => Group::TYPE_COMMUNITY,
+            'recruiting_status' => null,
+            'primary_focuses' => [],
+            'experience_expectation' => null,
+            'voice_expectation' => null,
+            'preferred_languages' => [],
+            'tags' => [],
+            'active_timezone' => null,
+            'active_days' => [],
+            'active_start_time' => null,
+            'active_end_time' => null,
         ];
     }
 

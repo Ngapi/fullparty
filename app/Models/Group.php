@@ -27,17 +27,32 @@ class Group extends Model
         'name',
         'description',
         'profile_picture_url',
+        'banner_image_url',
         'discord_invite_url',
         'datacenter',
         'is_public',
         'is_visible',
         'slug',
         'group_type',
+        'recruiting_status',
+        'primary_focuses',
+        'experience_expectation',
+        'voice_expectation',
+        'preferred_languages',
+        'tags',
+        'active_timezone',
+        'active_days',
+        'active_start_time',
+        'active_end_time',
     ];
 
     protected $casts = [
         'is_public' => 'boolean',
         'is_visible' => 'boolean',
+        'primary_focuses' => 'array',
+        'preferred_languages' => 'array',
+        'tags' => 'array',
+        'active_days' => 'array',
     ];
 
     public function getRouteKeyName(): string
@@ -151,6 +166,20 @@ class Group extends Model
     public function usesCommunityJoinFlow(): bool
     {
         return $this->group_type === self::TYPE_COMMUNITY;
+    }
+
+    public function inferredRegion(): ?string
+    {
+        return self::regionForDatacenter($this->datacenter);
+    }
+
+    public static function regionForDatacenter(?string $datacenter): ?string
+    {
+        if ($datacenter === null) {
+            return null;
+        }
+
+        return config("datacenters.regions.$datacenter");
     }
 
     public function ensureSystemInvite(): void

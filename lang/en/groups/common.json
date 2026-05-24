@@ -1,0 +1,7 @@
+{
+  "validation": {
+    "active_time_pair_required": "Active start and end times must be provided together.",
+    "active_timezone_required": "Active timezone is required when active days or hours are provided.",
+    "active_end_time_after_start": "Active end time must be later than the start time."
+  }
+}

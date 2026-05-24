@@ -15,7 +15,6 @@ class ProductionSeeder extends Seeder
     public function run(): void
     {
         $this->call([
-            ProductionAdminUserSeeder::class,
             CharacterClassSeeder::class,
             PhantomJobSeeder::class,
             ActivityTypeSeeder::class,

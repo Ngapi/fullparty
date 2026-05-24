@@ -18,7 +18,7 @@ class UserSeeder extends Seeder
     {
         $seededUser = $this->seededUserConfig();
 
-        $adminUserId = DB::table('users')->insertGetId([
+        $developmentOwnerUserId = DB::table('users')->insertGetId([
             'id' => 1,
             'name' => $seededUser['name'],
             'email' => $seededUser['email'],
@@ -26,7 +26,7 @@ class UserSeeder extends Seeder
             'password' => null,
             'avatar_url' => $seededUser['avatar_url'],
             'last_login_at' => null,
-            'is_admin' => true,
+            'is_admin' => false,
             'public_profile' => true,
             'public_characters' => true,
             'run_and_reminder_notifications' => true,
@@ -57,7 +57,7 @@ class UserSeeder extends Seeder
 
         DB::table('social_accounts')->insert([
             'id' => 1,
-            'user_id' => $adminUserId,
+            'user_id' => $developmentOwnerUserId,
             'provider' => 'discord',
             'provider_user_id' => $seededUser['discord_user_id'],
             'provider_name' => $seededUser['discord_name'],

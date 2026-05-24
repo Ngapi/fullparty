@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\StoreGroupRequest;
 use App\Models\Activity;
 use App\Models\Group;
 use App\Models\GroupMembership;
@@ -9,18 +10,15 @@ use App\Models\ScheduledRun;
 use App\Models\User;
 use App\Services\AuditLogger;
 use App\Services\ManagedImageStorage;
-use App\Services\Notifications\GroupUpdateNotificationService;
 use App\Support\Audit\AuditScope;
 use App\Support\Audit\AuditSeverity;
 use App\Support\Input\RequestTextInputSanitizer;
-use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -31,7 +29,6 @@ class GroupController extends Controller
     public function __construct(
         private readonly ManagedImageStorage $managedImageStorage,
         private readonly AuditLogger $auditLogger,
-        private readonly GroupUpdateNotificationService $groupUpdateNotificationService,
         private readonly RequestTextInputSanitizer $requestTextInputSanitizer,
     ) {}
 
@@ -145,32 +142,42 @@ class GroupController extends Controller
         return response()->json($this->serializePaginatedGroups($paginator, $user->id));
     }
 
-    public function store(Request $request): RedirectResponse
+    public function store(StoreGroupRequest $request): RedirectResponse
     {
-        $this->sanitizeGroupInput($request);
-
-        $validated = $request->validate(
-            $this->storeRules(),
-            $this->storeValidationMessages(),
-        );
+        $validated = $request->validated();
         $profilePictureUrl = $this->managedImageStorage->uploadImageIfPresent(
             $request->file('profile_picture'),
             self::IMAGE_DIRECTORY,
             true
         );
+        $bannerImageUrl = $this->managedImageStorage->uploadImageIfPresent(
+            $request->file('banner_image'),
+            self::IMAGE_DIRECTORY,
+        );
 
-        $group = DB::transaction(function () use ($validated, $profilePictureUrl) {
+        $group = DB::transaction(function () use ($validated, $profilePictureUrl, $bannerImageUrl) {
             $group = Group::create([
                 'owner_id' => auth()->id(),
                 'name' => $validated['name'],
                 'description' => $validated['description'] ?? null,
                 'profile_picture_url' => $profilePictureUrl,
+                'banner_image_url' => $bannerImageUrl,
                 'discord_invite_url' => $validated['discord_invite_url'] ?? null,
                 'datacenter' => $validated['datacenter'],
                 'is_public' => $validated['is_public'],
                 'is_visible' => $validated['is_visible'],
                 'slug' => $validated['slug'],
                 'group_type' => $validated['group_type'],
+                'recruiting_status' => $validated['recruiting_status'] ?? null,
+                'primary_focuses' => $validated['primary_focuses'] ?? [],
+                'experience_expectation' => $validated['experience_expectation'] ?? null,
+                'voice_expectation' => $validated['voice_expectation'] ?? null,
+                'preferred_languages' => $validated['preferred_languages'] ?? [],
+                'tags' => $validated['tags'] ?? [],
+                'active_timezone' => $validated['active_timezone'] ?? null,
+                'active_days' => $validated['active_days'] ?? [],
+                'active_start_time' => $validated['active_start_time'] ?? null,
+                'active_end_time' => $validated['active_end_time'] ?? null,
             ]);
 
             $group->memberships()->create([
@@ -194,14 +201,7 @@ class GroupController extends Controller
             message: 'audit_log.events.group.created',
             actor: auth()->user(),
             subject: $group,
-            metadata: [
-                'name' => $group->name,
-                'slug' => $group->slug,
-                'group_type' => $group->group_type,
-                'datacenter' => $group->datacenter,
-                'is_public' => $group->is_public,
-                'is_visible' => $group->is_visible,
-            ],
+            metadata: $this->groupAuditSnapshot($group),
         );
 
         return redirect()->route('groups.show', $group)->with('success', 'group_created');
@@ -243,6 +243,7 @@ class GroupController extends Controller
         ];
 
         $this->managedImageStorage->deleteManagedImage($group->profile_picture_url, self::IMAGE_DIRECTORY);
+        $this->managedImageStorage->deleteManagedImage($group->banner_image_url, self::IMAGE_DIRECTORY);
         $group->delete();
 
         $this->auditLogger->log(
@@ -262,50 +263,6 @@ class GroupController extends Controller
         return redirect()->route('groups.index')->with('success', 'group_deleted');
     }
 
-    /**
-     * @return array<string, array<int, ValidationRule|string>>
-     */
-    private function storeRules(): array
-    {
-        return [
-            'name' => ['required', 'string', 'max:255'],
-            'description' => ['nullable', 'string'],
-            'profile_picture' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5120'],
-            'discord_invite_url' => ['nullable', 'url', 'max:500'],
-            'datacenter' => ['required', 'string', Rule::in(config('datacenters.values', []))],
-            'is_public' => ['required', 'boolean'],
-            'is_visible' => ['required', 'boolean'],
-            'group_type' => ['required', 'string', Rule::in(Group::TYPES)],
-            'slug' => [
-                'required',
-                'string',
-                'max:8',
-                'regex:/^[a-z]{1,8}$/',
-                Rule::notIn(['admin', 'api', 'auth', 'groups', 'group', 'invite', 'invites', 'login', 'register', 'settings']),
-                Rule::unique('groups', 'slug'),
-            ],
-        ];
-    }
-
-    /**
-     * @return array<string, string>
-     */
-    private function storeValidationMessages(): array
-    {
-        return [
-            'profile_picture.mimes' => __('groups.index.create_modal.validation.image_invalid_format'),
-        ];
-    }
-
-    private function sanitizeGroupInput(Request $request): void
-    {
-        $this->requestTextInputSanitizer->sanitize(
-            $request,
-            ['name'],
-            ['description'],
-        );
-    }
-
     private function serializeGroupListItem(Group $group, int $currentUserId): array
     {
         return [
@@ -313,12 +270,24 @@ class GroupController extends Controller
             'name' => $group->name,
             'description' => $group->description,
             'profile_picture_url' => $group->profile_picture_url,
+            'banner_image_url' => $group->banner_image_url,
             'discord_invite_url' => $group->discord_invite_url,
             'datacenter' => $group->datacenter,
+            'region' => $group->inferredRegion(),
             'is_public' => $group->is_public,
             'is_visible' => $group->is_visible,
             'slug' => $group->slug,
             'group_type' => $group->group_type,
+            'recruiting_status' => $group->recruiting_status,
+            'primary_focuses' => $group->primary_focuses ?? [],
+            'experience_expectation' => $group->experience_expectation,
+            'voice_expectation' => $group->voice_expectation,
+            'preferred_languages' => $group->preferred_languages ?? [],
+            'tags' => $group->tags ?? [],
+            'active_timezone' => $group->active_timezone,
+            'active_days' => $group->active_days ?? [],
+            'active_start_time' => $group->active_start_time,
+            'active_end_time' => $group->active_end_time,
             'current_user_role' => $group->memberships
                 ->firstWhere('user_id', $currentUserId)
                 ?->role,
@@ -415,12 +384,24 @@ class GroupController extends Controller
             'name' => $group->name,
             'description' => $group->description,
             'profile_picture_url' => $group->profile_picture_url,
+            'banner_image_url' => $group->banner_image_url,
             'discord_invite_url' => $group->discord_invite_url,
             'datacenter' => $group->datacenter,
+            'region' => $group->inferredRegion(),
             'is_public' => $group->is_public,
             'is_visible' => $group->is_visible,
             'slug' => $group->slug,
             'group_type' => $group->group_type,
+            'recruiting_status' => $group->recruiting_status,
+            'primary_focuses' => $group->primary_focuses ?? [],
+            'experience_expectation' => $group->experience_expectation,
+            'voice_expectation' => $group->voice_expectation,
+            'preferred_languages' => $group->preferred_languages ?? [],
+            'tags' => $group->tags ?? [],
+            'active_timezone' => $group->active_timezone,
+            'active_days' => $group->active_days ?? [],
+            'active_start_time' => $group->active_start_time,
+            'active_end_time' => $group->active_end_time,
             'owner' => [
                 'id' => $group->owner?->id,
                 'name' => $group->owner?->name,
@@ -481,6 +462,34 @@ class GroupController extends Controller
                 'current' => $currentActivities,
                 'recent' => $recentActivities,
             ],
+        ];
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function groupAuditSnapshot(Group $group): array
+    {
+        return [
+            'name' => $group->name,
+            'slug' => $group->slug,
+            'group_type' => $group->group_type,
+            'profile_picture_url' => $group->profile_picture_url,
+            'banner_image_url' => $group->banner_image_url,
+            'datacenter' => $group->datacenter,
+            'region' => $group->inferredRegion(),
+            'is_public' => $group->is_public,
+            'is_visible' => $group->is_visible,
+            'recruiting_status' => $group->recruiting_status,
+            'primary_focuses' => $group->primary_focuses ?? [],
+            'experience_expectation' => $group->experience_expectation,
+            'voice_expectation' => $group->voice_expectation,
+            'preferred_languages' => $group->preferred_languages ?? [],
+            'tags' => $group->tags ?? [],
+            'active_timezone' => $group->active_timezone,
+            'active_days' => $group->active_days ?? [],
+            'active_start_time' => $group->active_start_time,
+            'active_end_time' => $group->active_end_time,
         ];
     }
 
