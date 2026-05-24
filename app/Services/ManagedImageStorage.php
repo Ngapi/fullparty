@@ -72,6 +72,24 @@ class ManagedImageStorage
         return $uploadedUrl;
     }
 
+    public function downloadImageToPath(string $url, string $field, string $absolutePath): void
+    {
+        $response = $this->fetchImageResponse($url, $field);
+        $directory = dirname($absolutePath);
+
+        if (! is_dir($directory) && ! mkdir($directory, 0755, true) && ! is_dir($directory)) {
+            throw ValidationException::withMessages([
+                $field => 'Unable to create the destination directory for the downloaded image.',
+            ]);
+        }
+
+        if (file_put_contents($absolutePath, $response->body()) === false) {
+            throw ValidationException::withMessages([
+                $field => 'Unable to save the downloaded image.',
+            ]);
+        }
+    }
+
     public function copyManagedImage(?string $url, string $directory): ?string
     {
         if (blank($url)) {
