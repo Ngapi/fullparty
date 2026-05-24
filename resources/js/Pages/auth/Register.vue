@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import {useForm, Link, Head} from '@inertiajs/vue3'
+import {useForm, Link} from '@inertiajs/vue3'
 import AuthLayout from '@/Layouts/AuthLayout.vue'
+import SeoHead from "@/components/Shared/SeoHead.vue";
 import LoginWithXIVAuth from "@/components/LoginWithXIVAuth.vue";
 import LoginWithGoogle from "@/components/LoginWithGoogle.vue";
 import LoginWithDiscord from "@/components/LoginWithDiscord.vue";
@@ -26,7 +27,11 @@ defineOptions({
 </script>
 
 <template>
-	<Head title="Register -" />
+	<SeoHead
+		:title="t('auth.register')"
+		:description="t('meta.seo.auth.register_description')"
+		noindex
+	/>
 	<div>
 		<div class="mb-1 mx-auto">
 			<p class="italic text-center text-gray-600 dark:text-gray-300">{{ t('auth.express_options') }}</p>

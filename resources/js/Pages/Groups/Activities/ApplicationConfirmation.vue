@@ -5,6 +5,7 @@ import { router, usePage } from "@inertiajs/vue3";
 import { route } from "ziggy-js";
 import { useI18n } from "vue-i18n";
 import { useToast } from "@nuxt/ui/composables";
+import SeoHead from "@/components/Shared/SeoHead.vue";
 import { localizedValue } from "@/utils/localizedValue";
 import { getActivityStatusMeta } from "@/utils/activityStatusMeta";
 
@@ -67,6 +68,10 @@ const activityTypeName = computed(() => {
 
 const activityTitle = computed(() => props.activity.title || activityTypeName.value);
 const statusMeta = computed(() => getActivityStatusMeta(props.activity.status));
+const seoDescription = computed(() => t("meta.seo.activities.application_status_description", {
+	title: activityTitle.value,
+	group: props.group.name,
+}));
 
 const dateLabel = computed(() => {
 	if (!props.activity.starts_at) {
@@ -374,6 +379,12 @@ const copyStatusLink = async () => {
 
 <template>
 	<div class="w-full">
+		<SeoHead
+			:title="activityTitle"
+			:description="seoDescription"
+			noindex
+		/>
+
 		<UButton
 			:label="t('groups.activities.application.back')"
 			icon="i-lucide-arrow-left"

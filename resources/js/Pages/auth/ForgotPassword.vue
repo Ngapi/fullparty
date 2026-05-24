@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { computed } from "vue";
-import { Head, Link, useForm, usePage } from "@inertiajs/vue3";
+import { Link, useForm, usePage } from "@inertiajs/vue3";
 import AuthLayout from "@/Layouts/AuthLayout.vue";
+import SeoHead from "@/components/Shared/SeoHead.vue";
 import { route } from "ziggy-js";
 import { useI18n } from "vue-i18n";
 
@@ -25,7 +26,11 @@ defineOptions({
 </script>
 
 <template>
-	<Head :title="`${t('auth.forgot_password_page.title')} -`" />
+	<SeoHead
+		:title="t('auth.forgot_password_page.title')"
+		:description="t('meta.seo.auth.forgot_password_description')"
+		noindex
+	/>
 
 	<div>
 		<div class="mb-6 text-center">

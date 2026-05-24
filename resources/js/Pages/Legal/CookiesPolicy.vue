@@ -1,7 +1,9 @@
 <script setup lang="ts">
 import LandingLayout from "@/Layouts/LandingLayout.vue";
 import LegalDocument from "@/components/LegalDocument.vue";
-import { Head, usePage } from "@inertiajs/vue3";
+import SeoHead from "@/components/Shared/SeoHead.vue";
+import { usePage } from "@inertiajs/vue3";
+import { useI18n } from "vue-i18n";
 
 const page = usePage<{
 	legal: {
@@ -9,6 +11,7 @@ const page = usePage<{
 		contact_email: string | null;
 	};
 }>();
+const { t } = useI18n();
 
 const controllerName = page.props.legal.controller_name;
 const contactEmail = page.props.legal.contact_email
@@ -78,7 +81,10 @@ const sections = [
 </script>
 
 <template>
-	<Head title="Cookies Policy -" />
+	<SeoHead
+		:title="t('meta.seo.legal.cookies_title')"
+		:description="t('meta.seo.legal.cookies_description')"
+	/>
 
 	<LegalDocument
 		title="Cookies Policy"

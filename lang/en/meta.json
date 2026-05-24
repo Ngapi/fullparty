@@ -1,4 +1,37 @@
 {
   "title": "FullParty.gg",
-  "tagline": "The real endgame is organization."
+  "tagline": "The real endgame is organization.",
+  "seo": {
+    "defaults": {
+      "description": "FullParty helps Final Fantasy XIV groups coordinate runs, applications, rosters, and raid organization."
+    },
+    "home": {
+      "title": "FFXIV group and roster planning",
+      "description": "Organize Final Fantasy XIV groups, applications, rosters, and raid coordination on FullParty."
+    },
+    "legal": {
+      "privacy_title": "Privacy Policy",
+      "privacy_description": "Read how this FullParty instance handles personal data, privacy, and account information.",
+      "cookies_title": "Cookies Policy",
+      "cookies_description": "Read how this FullParty instance uses cookies and similar technologies for sessions, security, and preferences."
+    },
+    "auth": {
+      "login_description": "Sign in to FullParty to manage characters, groups, runs, and notifications.",
+      "register_description": "Create a FullParty account to join groups, submit applications, and manage your characters.",
+      "forgot_password_description": "Request a password reset link for your FullParty account.",
+      "reset_password_description": "Set a new password for your FullParty account.",
+      "verify_email_description": "Verify your email address to continue using your FullParty account."
+    },
+    "groups": {
+      "profile_description": "View {group}, an FFXIV group on {datacenter}, including current runs, staff, and recent activity."
+    },
+    "activities": {
+      "overview_description": "View {title}, a FullParty run organized by {group}.",
+      "application_description": "Submit an application for {title} in {group}.",
+      "application_status_description": "Review the status of your application for {title} in {group}."
+    },
+    "invite": {
+      "description": "Review a group invite and sign in to accept it on FullParty."
+    }
+  }
 }

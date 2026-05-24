@@ -4,6 +4,7 @@ import { Link, useForm } from '@inertiajs/vue3'
 import { useI18n } from 'vue-i18n'
 import { route } from 'ziggy-js';
 import AuthLayout from '@/Layouts/AuthLayout.vue'
+import SeoHead from "@/components/Shared/SeoHead.vue";
 
 const props = defineProps<{
 	email: string
@@ -26,6 +27,12 @@ defineOptions({
 </script>
 
 <template>
+	<SeoHead
+		:title="t('auth.verify_email.title')"
+		:description="t('meta.seo.auth.verify_email_description')"
+		noindex
+	/>
+
 	<div class="w-full max-w-xl">
 		<div
 			class="border border-default bg-background px-8 py-8"

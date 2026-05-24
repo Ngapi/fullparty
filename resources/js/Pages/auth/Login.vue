@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { computed } from "vue";
-import {useForm, Link, Head, usePage} from '@inertiajs/vue3'
+import {useForm, Link, usePage} from '@inertiajs/vue3'
 import AuthLayout from '@/Layouts/AuthLayout.vue'
+import SeoHead from "@/components/Shared/SeoHead.vue";
 import LoginWithXIVAuth from "@/components/LoginWithXIVAuth.vue";
 import LoginWithGoogle from "@/components/LoginWithGoogle.vue";
 import LoginWithDiscord from "@/components/LoginWithDiscord.vue";
@@ -31,7 +32,11 @@ defineOptions({
 </script>
 
 <template>
-	<Head title="Login -" />
+	<SeoHead
+		:title="t('auth.login')"
+		:description="t('meta.seo.auth.login_description')"
+		noindex
+	/>
 	<div>
 		<UAlert
 			v-if="wasPasswordReset"

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed } from "vue";
-import { Head, Link, router, usePage } from "@inertiajs/vue3";
+import SeoHead from "@/components/Shared/SeoHead.vue";
+import { Link, router, usePage } from "@inertiajs/vue3";
 import AuthLayout from "@/Layouts/AuthLayout.vue";
 import { route } from "ziggy-js";
 import { useI18n } from "vue-i18n";
@@ -56,7 +57,11 @@ const acceptInvite = () => {
 </script>
 
 <template>
-	<Head :title="`${t('groups.invite.title')} -`" />
+	<SeoHead
+		:title="t('groups.invite.title')"
+		:description="t('meta.seo.invite.description')"
+		noindex
+	/>
 
 	<div class="w-full">
 		<UCard class="invite-simple-card">

@@ -5,6 +5,7 @@ import { router, usePage } from "@inertiajs/vue3";
 import { route } from "ziggy-js";
 import { useI18n } from "vue-i18n";
 import { useToast } from "@nuxt/ui/composables";
+import SeoHead from "@/components/Shared/SeoHead.vue";
 import PageHeader from "@/components/PageHeader.vue";
 import ActivityCompletionSummaryPanel from "@/components/Groups/Activities/ActivityCompletionSummaryPanel.vue";
 import ActivityRosterSummaryPanel from "@/components/Groups/Activities/ActivityRosterSummaryPanel.vue";
@@ -56,6 +57,30 @@ const activityTypeName = computed(() => {
 
 const activityTitle = computed(() => currentActivity.value.title || activityTypeName.value);
 const statusMeta = computed(() => getActivityStatusMeta(currentActivity.value.status));
+const seoDescription = computed(() => currentActivity.value.description
+	|| t("meta.seo.activities.overview_description", {
+		title: activityTitle.value,
+		group: props.group.name,
+	}));
+const seoStructuredData = computed(() => ({
+	"@context": "https://schema.org",
+	"@type": "Event",
+	name: activityTitle.value,
+	description: seoDescription.value,
+	startDate: currentActivity.value.starts_at || undefined,
+	eventAttendanceMode: "https://schema.org/OnlineEventAttendanceMode",
+	eventStatus: currentActivity.value.status === "cancelled"
+		? "https://schema.org/EventCancelled"
+		: currentActivity.value.status === "complete"
+			? "https://schema.org/EventCompleted"
+			: "https://schema.org/EventScheduled",
+	organizer: {
+		"@type": "Organization",
+		name: props.group.name,
+	},
+	image: currentActivity.value.banner_image_url || currentActivity.value.small_image_url || undefined,
+	url: route("groups.activities.overview", selfAssignmentRouteParameters.value),
+}));
 const completedProgression = computed(() => buildActivityCompletionSummary({
 	activity: currentActivity.value,
 	locale: locale.value,
@@ -315,6 +340,14 @@ const removeSelfFromSlot = async (slot: ActivitySlot) => {
 
 <template>
 	<div class="w-full overflow-x-hidden">
+		<SeoHead
+			:title="activityTitle"
+			:description="seoDescription"
+			:image="currentActivity.banner_image_url || currentActivity.small_image_url"
+			og-type="event"
+			:structured-data="seoStructuredData"
+		/>
+
 		<UButton
 			:label="t('groups.activities.back')"
 			icon="i-lucide-arrow-left"

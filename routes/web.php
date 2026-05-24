@@ -44,6 +44,7 @@ use App\Http\Controllers\LocaleController;
 use App\Http\Controllers\PhantomJobController;
 use App\Http\Controllers\RunDiscoveryController;
 use App\Http\Controllers\SettingsController;
+use App\Http\Controllers\SitemapController;
 use App\Http\Controllers\SocialAccountController;
 use App\Http\Controllers\SystemNotificationController;
 use App\Http\Controllers\UserController;
@@ -61,6 +62,8 @@ use Inertia\Inertia;
 */
 
 Route::pattern('locale', implode('|', ApplyLocale::SUPPORTED_LOCALES));
+
+Route::get('/sitemap.xml', SitemapController::class)->name('sitemap');
 
 $redirectToLocalizedPath = function (Request $request, string $path = '') {
     $locale = $request->session()->get('locale')

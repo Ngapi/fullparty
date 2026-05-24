@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import type { GroupProfileActivity, GroupProfileGroup, GroupProfileStaffMember } from "@/Types/Groups";
+import SeoHead from "@/components/Shared/SeoHead.vue";
 import { computed } from "vue";
-import { Head, router, usePage } from "@inertiajs/vue3";
+import { router, usePage } from "@inertiajs/vue3";
 import { route } from "ziggy-js";
 import { useI18n } from "vue-i18n";
 import { localizedValue } from "@/utils/localizedValue";
@@ -18,6 +19,19 @@ const { showGroupNotificationsToast } = useGroupNotificationToast();
 const fallbackLocale = computed(() => String(page.props.locale?.fallback ?? "en"));
 const isAuthenticated = computed(() => Boolean(page.props.auth?.user));
 const isGroupActionProcessing = computed(() => router.processing);
+const seoDescription = computed(() => props.group.description
+	|| t("meta.seo.groups.profile_description", {
+		group: props.group.name,
+		datacenter: props.group.datacenter,
+	}));
+const seoStructuredData = computed(() => ({
+	"@context": "https://schema.org",
+	"@type": "Organization",
+	name: props.group.name,
+	description: seoDescription.value,
+	url: route("groups.show", props.group.slug),
+	logo: props.group.profile_picture_url || undefined,
+}));
 
 const staffMembers = computed(() => props.group.staff_members.length > 0
 	? props.group.staff_members
@@ -222,7 +236,12 @@ const memberJoinedLabel = (member: GroupProfileStaffMember) => (
 </script>
 
 <template>
-	<Head :title="`${group.name} -`" />
+	<SeoHead
+		:title="group.name"
+		:description="seoDescription"
+		:image="group.profile_picture_url"
+		:structured-data="seoStructuredData"
+	/>
 
 	<div class="w-full">
 		<UButton

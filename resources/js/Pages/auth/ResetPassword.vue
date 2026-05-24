@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { Head, Link, useForm } from "@inertiajs/vue3";
+import { Link, useForm } from "@inertiajs/vue3";
 import AuthLayout from "@/Layouts/AuthLayout.vue";
+import SeoHead from "@/components/Shared/SeoHead.vue";
 import { route } from "ziggy-js";
 import { useI18n } from "vue-i18n";
 import { usePasswordVisibility } from "@/composables/usePasswordVisibility";
@@ -30,7 +31,11 @@ defineOptions({
 </script>
 
 <template>
-	<Head :title="`${t('auth.reset_password_page.title')} -`" />
+	<SeoHead
+		:title="t('auth.reset_password_page.title')"
+		:description="t('meta.seo.auth.reset_password_description')"
+		noindex
+	/>
 
 	<div>
 		<div class="mb-6 text-center">

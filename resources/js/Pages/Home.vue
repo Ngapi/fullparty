@@ -1,15 +1,21 @@
 <script setup lang="ts">
 import LandingLayout from "@/Layouts/LandingLayout.vue";
-import { Head, router } from "@inertiajs/vue3";
+import SeoHead from "@/components/Shared/SeoHead.vue";
+import { router } from "@inertiajs/vue3";
 import { route } from "ziggy-js";
+import { useI18n } from "vue-i18n";
 
+const { t } = useI18n();
 const goToLogin = () => {
 	router.get(route('login'));
 };
 </script>
 
 <template>
-	<Head title="Under Construction -" />
+	<SeoHead
+		:title="t('meta.seo.home.title')"
+		:description="t('meta.seo.home.description')"
+	/>
 
 	<div class="rounded-3xl border border-default/70 bg-white/85 p-8 shadow-2xl shadow-neutral-300/30 backdrop-blur xl:p-12 dark:bg-neutral-900/80 dark:shadow-black/30">
 		<div class="flex flex-col gap-6">

@@ -1,4 +1,37 @@
 {
   "title": "FullParty.gg",
-  "tagline": "Das wahre Endgame ist Organisation."
+  "tagline": "Das wahre Endgame ist Organisation.",
+  "seo": {
+    "defaults": {
+      "description": "FullParty hilft Final Fantasy XIV Gruppen bei der Organisation von Runs, Bewerbungen, Rostern und Raid-Koordination."
+    },
+    "home": {
+      "title": "FFXIV Gruppen- und Rosterplanung",
+      "description": "Organisiere Final Fantasy XIV Gruppen, Bewerbungen, Roster und Raid-Koordination mit FullParty."
+    },
+    "legal": {
+      "privacy_title": "Datenschutzerklärung",
+      "privacy_description": "Lies, wie diese FullParty-Instanz personenbezogene Daten, Privatsphäre und Kontoinformationen verarbeitet.",
+      "cookies_title": "Cookie-Richtlinie",
+      "cookies_description": "Lies, wie diese FullParty-Instanz Cookies und ähnliche Technologien für Sitzungen, Sicherheit und Einstellungen verwendet."
+    },
+    "auth": {
+      "login_description": "Melde dich bei FullParty an, um Charaktere, Gruppen, Runs und Benachrichtigungen zu verwalten.",
+      "register_description": "Erstelle ein FullParty-Konto, um Gruppen beizutreten, Bewerbungen zu senden und deine Charaktere zu verwalten.",
+      "forgot_password_description": "Fordere einen Link zum Zurücksetzen des Passworts für dein FullParty-Konto an.",
+      "reset_password_description": "Lege ein neues Passwort für dein FullParty-Konto fest.",
+      "verify_email_description": "Bestätige deine E-Mail-Adresse, um dein FullParty-Konto weiter zu nutzen."
+    },
+    "groups": {
+      "profile_description": "Sieh dir {group} an, eine FFXIV-Gruppe auf {datacenter}, mit aktuellen Runs, Teamleitung und letzten Aktivitäten."
+    },
+    "activities": {
+      "overview_description": "Sieh dir {title} an, einen von {group} organisierten FullParty-Run.",
+      "application_description": "Sende eine Bewerbung für {title} in {group}.",
+      "application_status_description": "Prüfe den Status deiner Bewerbung für {title} in {group}."
+    },
+    "invite": {
+      "description": "Sieh dir eine Gruppeneinladung an und melde dich an, um sie in FullParty anzunehmen."
+    }
+  }
 }
