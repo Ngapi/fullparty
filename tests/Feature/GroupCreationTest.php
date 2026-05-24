@@ -11,19 +11,30 @@ use Inertia\Testing\AssertableInertia as Assert;
 
 uses(RefreshDatabase::class);
 
+function validCreateGroupPayload(array $overrides = []): array
+{
+    return array_merge([
+        'name' => 'Static Full Party',
+        'description' => 'A fixed roster for weekly clears.',
+        'datacenter' => 'Light',
+        'is_public' => false,
+        'is_visible' => true,
+        'slug' => 'staticfp',
+        'group_type' => Group::TYPE_STATIC,
+        'recruiting_status' => 'looking_for_members',
+        'primary_focuses' => ['progression'],
+        'experience_expectation' => 'mixed',
+        'voice_expectation' => 'preferred',
+        'preferred_languages' => ['en'],
+        'tags' => [],
+    ], $overrides);
+}
+
 it('stores the selected group type when creating a group', function () {
     $user = User::factory()->create();
 
     $this->actingAs($user)
-        ->post(route('groups.store'), [
-            'name' => 'Static Full Party',
-            'description' => 'A fixed roster for weekly clears.',
-            'datacenter' => 'Light',
-            'is_public' => false,
-            'is_visible' => true,
-            'slug' => 'staticfp',
-            'group_type' => Group::TYPE_STATIC,
-        ])
+        ->post(route('groups.store'), validCreateGroupPayload())
         ->assertRedirect(route('groups.show', 'staticfp'));
 
     $group = Group::query()->where('slug', 'staticfp')->firstOrFail();
@@ -40,14 +51,12 @@ it('rejects unknown group types when creating a group', function () {
 
     $this->actingAs($user)
         ->from(route('groups.index'))
-        ->post(route('groups.store'), [
+        ->post(route('groups.store'), validCreateGroupPayload([
             'name' => 'Odd Group',
-            'datacenter' => 'Light',
-            'is_public' => true,
-            'is_visible' => true,
             'slug' => 'oddgroup',
+            'is_public' => true,
             'group_type' => 'raid-team',
-        ])
+        ]))
         ->assertRedirect(route('groups.index'))
         ->assertSessionHasErrors('group_type');
 
@@ -59,15 +68,12 @@ it('rejects unsupported profile picture formats when creating a group', function
 
     $this->actingAs($user)
         ->from(route('groups.index'))
-        ->post(route('groups.store'), [
+        ->post(route('groups.store'), validCreateGroupPayload([
             'name' => 'Gif Group',
-            'datacenter' => 'Light',
-            'is_public' => false,
-            'is_visible' => true,
             'slug' => 'gifgroup',
             'group_type' => Group::TYPE_COMMUNITY,
             'profile_picture' => UploadedFile::fake()->create('animated.gif', 64, 'image/gif'),
-        ])
+        ]))
         ->assertRedirect(route('groups.index'))
         ->assertSessionHasErrors('profile_picture');
 
@@ -82,15 +88,12 @@ it('sanitizes group name and description when creating a group', function () {
     $rawDescription = "Line\u{00A0}one\u{200B}\r\nSecond\u{202E} line\t";
 
     $this->actingAs($user)
-        ->post(route('groups.store'), [
+        ->post(route('groups.store'), validCreateGroupPayload([
             'name' => $rawName,
             'description' => $rawDescription,
-            'datacenter' => 'Light',
-            'is_public' => false,
-            'is_visible' => true,
             'slug' => 'langraid',
             'group_type' => Group::TYPE_COMMUNITY,
-        ])
+        ]))
         ->assertRedirect(route('groups.show', 'langraid'));
 
     $group = Group::query()->where('slug', 'langraid')->firstOrFail();
@@ -105,16 +108,14 @@ it('stores discovery metadata and exposes inferred region on the group profile',
     $user = User::factory()->create();
 
     $this->actingAs($user)
-        ->post(route('groups.store'), [
+        ->post(route('groups.store'), validCreateGroupPayload([
             'name' => 'Chaos Prog',
             'description' => 'Late night progression group.',
-            'datacenter' => 'Light',
             'is_public' => true,
-            'is_visible' => true,
             'slug' => 'chaospro',
             'group_type' => Group::TYPE_COMMUNITY,
             'banner_image' => UploadedFile::fake()->image('banner.png', 1500, 500),
-            'recruiting_status' => 'open',
+            'recruiting_status' => 'looking_for_members',
             'primary_focuses' => ['progression', 'mount_farming'],
             'experience_expectation' => 'mixed',
             'voice_expectation' => 'preferred',
@@ -124,14 +125,14 @@ it('stores discovery metadata and exposes inferred region on the group profile',
             'active_days' => ['fri', 'sat'],
             'active_start_time' => '19:00',
             'active_end_time' => '22:30',
-        ])
+        ]))
         ->assertRedirect(route('groups.show', 'chaospro'));
 
     $group = Group::query()->where('slug', 'chaospro')->firstOrFail();
 
     expect($group->banner_image_url)->not->toBeNull()
         ->and($group->banner_image_url)->toContain('/storage/groups/')
-        ->and($group->recruiting_status)->toBe('open')
+        ->and($group->recruiting_status)->toBe('looking_for_members')
         ->and($group->primary_focuses)->toBe(['progression', 'mount_farming'])
         ->and($group->experience_expectation)->toBe('mixed')
         ->and($group->voice_expectation)->toBe('preferred')
@@ -149,7 +150,7 @@ it('stores discovery metadata and exposes inferred region on the group profile',
         ->assertInertia(fn (Assert $page) => $page
             ->where('group.banner_image_url', $group->banner_image_url)
             ->where('group.region', 'EU')
-            ->where('group.recruiting_status', 'open')
+            ->where('group.recruiting_status', 'looking_for_members')
             ->where('group.primary_focuses', ['progression', 'mount_farming'])
             ->where('group.experience_expectation', 'mixed')
             ->where('group.voice_expectation', 'preferred')
@@ -167,16 +168,37 @@ it('requires a timezone and complete time pair when active schedule metadata is 
 
     $this->actingAs($user)
         ->from(route('groups.index'))
-        ->post(route('groups.store'), [
+        ->post(route('groups.store'), validCreateGroupPayload([
             'name' => 'Schedule Group',
-            'datacenter' => 'Light',
             'is_public' => true,
-            'is_visible' => true,
             'slug' => 'schedgrp',
             'group_type' => Group::TYPE_COMMUNITY,
             'active_days' => ['fri'],
             'active_start_time' => '19:00',
-        ])
+        ]))
         ->assertRedirect(route('groups.index'))
         ->assertSessionHasErrors(['active_end_time', 'active_timezone']);
+});
+
+it('requires the discovery and group fit fields when creating a group', function () {
+    $user = User::factory()->create();
+
+    $this->actingAs($user)
+        ->from(route('groups.index'))
+        ->post(route('groups.store'), validCreateGroupPayload([
+            'slug' => 'nofitgrp',
+            'recruiting_status' => '',
+            'primary_focuses' => [],
+            'experience_expectation' => '',
+            'voice_expectation' => '',
+            'preferred_languages' => [],
+        ]))
+        ->assertRedirect(route('groups.index'))
+        ->assertSessionHasErrors([
+            'recruiting_status',
+            'primary_focuses',
+            'experience_expectation',
+            'voice_expectation',
+            'preferred_languages',
+        ]);
 });

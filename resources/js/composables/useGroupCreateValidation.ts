@@ -5,7 +5,7 @@ import { computed, type ComputedRef, type Ref } from "vue";
 import { useI18n } from "vue-i18n";
 
 const groupSlugMaxLength = 8;
-const groupProfilePictureMaxBytes = 5 * 1024 * 1024;
+const groupImageMaxBytes = 5 * 1024 * 1024;
 
 const reservedGroupSlugs = new Set([
 	"admin",
@@ -22,8 +22,10 @@ const reservedGroupSlugs = new Set([
 
 const stepFields: Record<number, GroupCreateField[]> = {
 	1: ["name", "slug", "group_type", "description", "datacenter"],
-	2: ["profile_picture", "discord_invite_url"],
-	3: ["is_public", "is_visible"],
+	2: ["profile_picture", "banner_image", "discord_invite_url"],
+	3: ["recruiting_status", "primary_focuses", "experience_expectation", "voice_expectation", "preferred_languages", "tags"],
+	4: ["active_timezone", "active_days", "active_start_time", "active_end_time"],
+	5: ["is_public", "is_visible"],
 };
 
 type GroupCreateOption = {
@@ -35,6 +37,7 @@ type UseGroupCreateValidationOptions = {
 	step: Ref<number>
 	datacenterOptions: ComputedRef<GroupCreateOption[]>
 	groupTypeOptions: ComputedRef<GroupCreateOption[]>
+	maxTagCount: ComputedRef<number>
 };
 
 export const useGroupCreateValidation = ({
@@ -42,6 +45,7 @@ export const useGroupCreateValidation = ({
 	step,
 	datacenterOptions,
 	groupTypeOptions,
+	maxTagCount,
 }: UseGroupCreateValidationOptions) => {
 	const { t } = useI18n();
 
@@ -161,10 +165,106 @@ export const useGroupCreateValidation = ({
 			if (!profilePictureValidation.isValid) {
 				setFieldError("profile_picture", t("groups.index.create_modal.validation.image_invalid_format"));
 				isValid = false;
-			} else if (form.profile_picture.size > groupProfilePictureMaxBytes) {
+			} else if (form.profile_picture.size > groupImageMaxBytes) {
 				setFieldError("profile_picture", t("groups.index.create_modal.validation.image_too_large"));
 				isValid = false;
 			}
+		}
+
+		if (form.banner_image) {
+			const bannerImageValidation = validateGroupProfilePictureFile(form.banner_image);
+
+			if (!bannerImageValidation.isValid) {
+				setFieldError("banner_image", t("groups.index.create_modal.validation.image_invalid_format"));
+				isValid = false;
+			} else if (form.banner_image.size > groupImageMaxBytes) {
+				setFieldError("banner_image", t("groups.index.create_modal.validation.image_too_large"));
+				isValid = false;
+			}
+		}
+
+		return isValid;
+	};
+
+	const validateStepThree = () => {
+		form.clearErrors(...stepFields[3]);
+
+		let isValid = true;
+
+		if (!form.recruiting_status) {
+			setFieldError("recruiting_status", t("groups.index.create_modal.validation.required", {
+				field: t("groups.index.create_modal.fields.recruiting_status.label"),
+			}));
+			isValid = false;
+		}
+
+		if (form.primary_focuses.length === 0) {
+			setFieldError("primary_focuses", t("groups.index.create_modal.validation.required", {
+				field: t("groups.index.create_modal.fields.primary_focuses.label"),
+			}));
+			isValid = false;
+		}
+
+		if (!form.experience_expectation) {
+			setFieldError("experience_expectation", t("groups.index.create_modal.validation.required", {
+				field: t("groups.index.create_modal.fields.experience_expectation.label"),
+			}));
+			isValid = false;
+		}
+
+		if (!form.voice_expectation) {
+			setFieldError("voice_expectation", t("groups.index.create_modal.validation.required", {
+				field: t("groups.index.create_modal.fields.voice_expectation.label"),
+			}));
+			isValid = false;
+		}
+
+		if (form.preferred_languages.length === 0) {
+			setFieldError("preferred_languages", t("groups.index.create_modal.validation.required", {
+				field: t("groups.index.create_modal.fields.preferred_languages.label"),
+			}));
+			isValid = false;
+		}
+
+		if (form.tags.length > maxTagCount.value) {
+			setFieldError("tags", t("groups.index.create_modal.validation.max_tags", {
+				max: maxTagCount.value,
+			}));
+			isValid = false;
+		}
+
+		if (form.tags.some((tag) => tag.length > 50)) {
+			setFieldError("tags", t("groups.index.create_modal.validation.tag_too_long", {
+				max: 50,
+			}));
+			isValid = false;
+		}
+
+		return isValid;
+	};
+
+	const validateStepFour = () => {
+		form.clearErrors(...stepFields[4]);
+
+		let isValid = true;
+		const hasActiveDays = form.active_days.length > 0;
+		const hasActiveStart = Boolean(form.active_start_time);
+		const hasActiveEnd = Boolean(form.active_end_time);
+		const hasTimezone = Boolean(form.active_timezone);
+
+		if ((hasActiveStart && !hasActiveEnd) || (!hasActiveStart && hasActiveEnd)) {
+			setFieldError(hasActiveStart ? "active_end_time" : "active_start_time", t("groups.common.validation.active_time_pair_required"));
+			isValid = false;
+		}
+
+		if ((hasActiveDays || hasActiveStart || hasActiveEnd) && !hasTimezone) {
+			setFieldError("active_timezone", t("groups.common.validation.active_timezone_required"));
+			isValid = false;
+		}
+
+		if (hasActiveStart && hasActiveEnd && form.active_start_time >= form.active_end_time) {
+			setFieldError("active_end_time", t("groups.common.validation.active_end_time_after_start"));
+			isValid = false;
 		}
 
 		return isValid;
@@ -179,12 +279,20 @@ export const useGroupCreateValidation = ({
 			return validateStepTwo();
 		}
 
+		if (step.value === 3) {
+			return validateStepThree();
+		}
+
+		if (step.value === 4) {
+			return validateStepFour();
+		}
+
 		return true;
 	};
 
 	const goToStepWithErrors = (errors: Partial<Record<GroupCreateField, string>>) => {
 		for (const [stepNumber, fields] of Object.entries(stepFields)) {
-			if (fields.some((field) => Boolean(errors[field]))) {
+			if (fields.some((field) => Object.keys(errors).some((errorField) => errorField === field || errorField.startsWith(`${field}.`)))) {
 				step.value = Number(stepNumber);
 				return;
 			}

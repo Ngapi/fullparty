@@ -48,13 +48,15 @@
   },
   "create_modal": {
     "title": "Gruppe erstellen",
-    "subtitle": "Richte die Identität, Sichtbarkeit und Einladung deiner Gruppe ein, bevor du Runs organisierst.",
+    "subtitle": "Richte Identität, Präsenz, Entdeckungsdetails und Aktivitätsfenster deiner Gruppe ein, bevor du Runs organisierst.",
     "open_button": "Gruppe erstellen",
     "progress": "Schritt {current} von {total}",
     "steps": {
       "1": "Identität",
       "2": "Präsenz",
-      "3": "Sichtbarkeit"
+      "3": "Entdeckung",
+      "4": "Aktivitätsfenster",
+      "5": "Sichtbarkeit"
     },
     "slug_preview": "Öffentliche Einladungs-URL: /invite/{slug}",
     "slug_fallback": "deinslug",
@@ -66,8 +68,10 @@
       "slug_reserved": "Dieser Slug ist reserviert. Bitte wähle einen anderen.",
       "invalid_option": "Wähle einen gültigen Wert für {field}.",
       "invalid_url": "Gib eine gültige URL ein.",
-      "image_invalid_format": "Das Profilbild muss ein JPG-, JPEG-, PNG- oder WEBP-Bild sein.",
-      "image_too_large": "Das Profilbild darf höchstens 5 MB groß sein."
+      "image_invalid_format": "Bilder müssen JPG-, JPEG-, PNG- oder WEBP-Dateien sein.",
+      "image_too_large": "Bilder dürfen höchstens 5 MB groß sein.",
+      "max_tags": "Wähle höchstens {max} Tags.",
+      "tag_too_long": "Jeder Tag darf höchstens {max} Zeichen haben."
     },
     "sections": {
       "identity": {
@@ -77,6 +81,14 @@
       "presence": {
         "title": "Community-Präsenz",
         "subtitle": "Füge optionale Links und Bilder hinzu, damit sich die Gruppe etablierter anfühlt."
+      },
+      "discovery": {
+        "title": "Entdeckung & Gruppen-Fit",
+        "subtitle": "Zeige, wie deine Gruppe ist, für wen sie gedacht ist und wie Leute mit ihr interagieren sollten."
+      },
+      "schedule": {
+        "title": "Aktivitätsfenster",
+        "subtitle": "Hilf Leuten zu verstehen, in welcher Zeitzone ihr spielt, an welchen Tagen ihr aktiv seid und zu welchen Stunden die Gruppe meist online ist."
       },
       "visibility": {
         "title": "Sichtbarkeit & Zugriff",
@@ -117,9 +129,114 @@
         "preview_label": "Sichtbare Beschnittvorschau",
         "preview_help": "Diese Vorschau zeigt den zentrierten quadratischen Zuschnitt, der skaliert und als Profilbild deiner Gruppe verwendet wird."
       },
+      "banner_image": {
+        "label": "Bannerbild",
+        "placeholder": "Breites Bannerbild auswählen",
+        "help": "Optional. Lade ein breites Banner für das Gruppenprofil und Entdeckungsansichten hoch.",
+        "preview_alt": "Vorschau des Gruppenbanners",
+        "preview_label": "Bannervorschau",
+        "preview_help": "Diese Vorschau zeigt den breiten Beschnitt, der für den Gruppenheader und Entdeckungskarten verwendet wird."
+      },
       "discord_invite_url": {
         "placeholder": "https://discord.gg/yourserver",
         "help": "Optional. Füge eine Discord-Einladung hinzu, damit Mitglieder deinem Server leicht beitreten können."
+      },
+      "recruiting_status": {
+        "label": "Recruiting-Status",
+        "placeholder": "Recruiting-Status auswählen",
+        "help": "Lass Leute wissen, ob deine Gruppe aktiv nach neuen Mitgliedern sucht.",
+        "options": {
+          "looking_for_members": "Sucht Mitglieder",
+          "applications_open": "Bewerbungen offen",
+          "closed": "Geschlossen"
+        }
+      },
+      "primary_focuses": {
+        "label": "Hauptfokus",
+        "placeholder": "Einen oder mehrere Schwerpunkte auswählen",
+        "help": "Wähle die wichtigsten Aktivitäten oder Vibes aus, die Leute mit deiner Gruppe verbinden sollen.",
+        "options": {
+          "progression": "Progression",
+          "clears": "Clears",
+          "reclears": "Reclears",
+          "farming": "Farming",
+          "mount_farming": "Mount-Farming",
+          "maps": "Karten",
+          "casual_roulettes": "Casual-Roulettes"
+        }
+      },
+      "experience_expectation": {
+        "label": "Erfahrungserwartung",
+        "placeholder": "Erfahrungserwartung auswählen",
+        "help": "Setze Erwartungen daran, wie viel Vorwissen oder Erfahrung Leute mitbringen sollten.",
+        "options": {
+          "beginner_friendly": "Einsteigerfreundlich",
+          "casual": "Casual",
+          "midcore": "Midcore",
+          "semi_hardcore": "Semi-Hardcore",
+          "hardcore": "Hardcore",
+          "mixed": "Gemischt"
+        }
+      },
+      "voice_expectation": {
+        "label": "Voice-/Discord-Erwartung",
+        "placeholder": "Voice-Erwartung auswählen",
+        "help": "Sag Leuten, ob Sprachchat erforderlich, bevorzugt oder optional ist.",
+        "options": {
+          "required": "Erforderlich",
+          "preferred": "Bevorzugt",
+          "optional": "Optional"
+        }
+      },
+      "preferred_languages": {
+        "label": "Bevorzugte Sprachen",
+        "placeholder": "Eine oder mehrere Sprachen auswählen",
+        "help": "Zeige, in welchen Sprachen deine Gruppe hauptsächlich kommuniziert."
+      },
+      "tags": {
+        "label": "Zusätzliche Tags",
+        "placeholder": "Zusätzliche Tags wie Late Night oder Blind Prog hinzufügen oder erstellen",
+        "help": "Optional. Nutze bis zu {max} freie Tags für zusätzlichen Kontext oder Nischendetails.",
+        "suggestions": {
+          "late_night": "Late Night",
+          "lgbtq_friendly": "LGBTQ+ Friendly",
+          "blind_prog": "Blind Prog",
+          "alt_friendly": "Alt Friendly",
+          "achievement_hunting": "Achievement Hunting",
+          "weekend_raids": "Weekend Raids"
+        }
+      },
+      "region": {
+        "label": "Betriebsregion",
+        "inferred": "Basierend auf {datacenter} wird diese Gruppe in {region} eingeordnet.",
+        "pending": "Wähle zuerst ein Datenzentrum, damit die Hauptregion der Gruppe abgeleitet werden kann."
+      },
+      "active_timezone": {
+        "label": "Aktive Zeitzone",
+        "placeholder": "Zeitzone auswählen",
+        "help": "Optional. Wenn du unten Tage oder Uhrzeiten angibst, wähle die Zeitzone, in der sie interpretiert werden sollen."
+      },
+      "active_days": {
+        "label": "Aktive Tage",
+        "placeholder": "Einen oder mehrere aktive Tage auswählen",
+        "help": "Optional. Wähle die Tage, an denen deine Gruppe am häufigsten läuft oder rekrutiert.",
+        "options": {
+          "mon": "Montag",
+          "tue": "Dienstag",
+          "wed": "Mittwoch",
+          "thu": "Donnerstag",
+          "fri": "Freitag",
+          "sat": "Samstag",
+          "sun": "Sonntag"
+        }
+      },
+      "active_start_time": {
+        "label": "Aktive Startzeit",
+        "help": "Optional. Typischer Beginn eures aktiven Zeitfensters."
+      },
+      "active_end_time": {
+        "label": "Aktive Endzeit",
+        "help": "Optional. Typisches Ende eures aktiven Zeitfensters."
       },
       "is_public": {
         "label": "Öffentliche Gruppe",

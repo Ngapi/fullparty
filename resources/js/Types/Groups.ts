@@ -6,23 +6,45 @@ export type GroupCreateField =
 	| "name"
 	| "description"
 	| "profile_picture"
+	| "banner_image"
 	| "discord_invite_url"
 	| "datacenter"
 	| "is_public"
 	| "is_visible"
 	| "slug"
 	| "group_type"
+	| "recruiting_status"
+	| "primary_focuses"
+	| "experience_expectation"
+	| "voice_expectation"
+	| "preferred_languages"
+	| "tags"
+	| "active_timezone"
+	| "active_days"
+	| "active_start_time"
+	| "active_end_time"
 
 export type GroupCreateFormData = {
 	name: string
 	description: string
 	profile_picture: File | null
+	banner_image: File | null
 	discord_invite_url: string
 	datacenter: string
 	is_public: boolean
 	is_visible: boolean
 	slug: string
 	group_type: GroupType
+	recruiting_status: string
+	primary_focuses: string[]
+	experience_expectation: string
+	voice_expectation: string
+	preferred_languages: string[]
+	tags: string[]
+	active_timezone: string
+	active_days: string[]
+	active_start_time: string
+	active_end_time: string
 }
 
 export type NoteAuthor = {

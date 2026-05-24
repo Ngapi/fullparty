@@ -2,20 +2,62 @@
 import type { GroupCreateField, GroupCreateFormData } from '@/Types/Groups';
 import { useGroupCreateValidation } from '@/composables/useGroupCreateValidation';
 import { groupProfilePictureAccept } from '@/utils/groupProfilePictureValidation';
-import { sanitizeMultilineText, sanitizeSingleLineText } from '@/utils/textInputSanitizer';
-import { computed, ref } from 'vue';
-import { useI18n } from "vue-i18n";
-import { useForm, usePage } from "@inertiajs/vue3";
-import { route } from "ziggy-js";
-import { useToast } from "@nuxt/ui/composables";
+import {
+	sanitizeMultilineText,
+	sanitizeMultilineTextForInput,
+	sanitizeSingleLineText,
+	sanitizeSingleLineTextForInput,
+} from '@/utils/textInputSanitizer';
+import { de, en, fr, ja } from '@nuxt/ui/locale';
+import { useToast } from '@nuxt/ui/composables';
+import { useForm, usePage } from '@inertiajs/vue3';
+import { computed, onBeforeUnmount, ref, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
+import { route } from 'ziggy-js';
 
-const { t } = useI18n();
+type DatacenterOption = {
+	label: string
+	value: string
+	region?: string | null
+}
+
+type GroupDiscoveryLookups = {
+	recruiting_statuses?: string[]
+	primary_focuses?: string[]
+	experience_expectations?: string[]
+	voice_expectations?: string[]
+	active_days?: string[]
+	preferred_languages?: string[]
+	max_tags?: number
+}
+
+const fallbackTimeZones = [
+	'America/Los_Angeles',
+	'America/Denver',
+	'America/Chicago',
+	'America/New_York',
+	'Europe/London',
+	'Europe/Berlin',
+	'Europe/Paris',
+	'Asia/Tokyo',
+	'Australia/Sydney',
+];
+
+const uiLocales = { en, de, fr, ja };
+
+const { t, tm } = useI18n();
 const toast = useToast();
 const page = usePage();
 const self_open = ref(false);
 const step = ref(1);
-const max_steps = 3;
-const datacenterOptions = computed(() => page.props.lookups?.datacenters ?? []);
+const max_steps = 5;
+const tagSearchTerm = ref('');
+const profilePicturePreviewUrl = ref<string | null>(null);
+const bannerImagePreviewUrl = ref<string | null>(null);
+const availableTags = ref<string[]>([]);
+
+const datacenterOptions = computed<DatacenterOption[]>(() => page.props.lookups?.datacenters ?? []);
+const groupDiscoveryLookups = computed<GroupDiscoveryLookups>(() => page.props.lookups?.group_discovery ?? {});
 const groupTypeOptions = computed(() => [
 	{
 		label: t('groups.index.create_modal.fields.group_type.options.community'),
@@ -26,19 +68,166 @@ const groupTypeOptions = computed(() => [
 		value: 'static',
 	},
 ]);
+const maxTagCount = computed(() => Number(groupDiscoveryLookups.value.max_tags ?? 12));
+const tagSuggestions = computed(() => {
+	const suggestions = tm('groups.index.create_modal.fields.tags.suggestions');
+
+	if (!suggestions || typeof suggestions !== 'object') {
+		return [];
+	}
+
+	return Object.values(suggestions as Record<string, unknown>)
+		.map((entry) => sanitizeSingleLineText(String(entry)).trim())
+		.filter((entry) => entry !== '');
+});
+const localeOptions = computed(() => {
+	const codes = groupDiscoveryLookups.value.preferred_languages ?? [];
+
+	return codes.map((code) => ({
+		value: code,
+		label: uiLocales[code as keyof typeof uiLocales]?.name ?? code.toUpperCase(),
+	}));
+});
+const recruitingStatusOptions = computed(() => (groupDiscoveryLookups.value.recruiting_statuses ?? []).map((value) => ({
+	value,
+	label: t(`groups.index.create_modal.fields.recruiting_status.options.${value}`),
+})));
+const primaryFocusOptions = computed(() => (groupDiscoveryLookups.value.primary_focuses ?? []).map((value) => ({
+	value,
+	label: t(`groups.index.create_modal.fields.primary_focuses.options.${value}`),
+})));
+const experienceExpectationOptions = computed(() => (groupDiscoveryLookups.value.experience_expectations ?? []).map((value) => ({
+	value,
+	label: t(`groups.index.create_modal.fields.experience_expectation.options.${value}`),
+})));
+const voiceExpectationOptions = computed(() => (groupDiscoveryLookups.value.voice_expectations ?? []).map((value) => ({
+	value,
+	label: t(`groups.index.create_modal.fields.voice_expectation.options.${value}`),
+})));
+const activeDayOptions = computed(() => (groupDiscoveryLookups.value.active_days ?? []).map((value) => ({
+	value,
+	label: t(`groups.index.create_modal.fields.active_days.options.${value}`),
+})));
+const timeZoneOptions = computed(() => {
+	const supportedValuesOf = (Intl as typeof Intl & {
+		supportedValuesOf?: (key: 'timeZone') => string[]
+	}).supportedValuesOf;
+	const values = supportedValuesOf
+		? supportedValuesOf('timeZone')
+		: fallbackTimeZones;
+
+	return values.map((value) => ({
+		value,
+		label: value,
+	}));
+});
 
 const form = useForm<GroupCreateFormData>({
 	name: '',
 	description: '',
-	profile_picture: null as File | null,
+	profile_picture: null,
+	banner_image: null,
 	discord_invite_url: '',
 	datacenter: '',
 	is_public: false,
 	is_visible: true,
 	slug: '',
 	group_type: 'community',
+	recruiting_status: '',
+	primary_focuses: [],
+	experience_expectation: '',
+	voice_expectation: '',
+	preferred_languages: [],
+	tags: [],
+	active_timezone: '',
+	active_days: [],
+	active_start_time: '',
+	active_end_time: '',
 });
-const profilePicturePreviewUrl = ref<string | null>(null);
+
+const mergeTagOptions = (tags: string[]) => {
+	availableTags.value = Array.from(new Set(tags))
+		.filter((tag) => tag !== '')
+		.sort((left, right) => left.localeCompare(right));
+};
+
+watch(tagSuggestions, (suggestions) => {
+	mergeTagOptions([...suggestions, ...form.tags]);
+}, { immediate: true });
+
+const {
+	canContinue,
+	clearFieldError,
+	goToStepWithErrors,
+	groupSlugMaxLength,
+	normalizeGroupSlug,
+	normalizedSlugHint,
+	slugFieldValue,
+	validateCurrentStep,
+} = useGroupCreateValidation({
+	form,
+	step,
+	datacenterOptions,
+	groupTypeOptions,
+	maxTagCount,
+});
+
+const nameFieldValue = computed({
+	get: () => form.name,
+	set: (value: string | number | undefined) => {
+		form.name = sanitizeSingleLineTextForInput(String(value ?? ''));
+		clearFieldError('name');
+	},
+});
+
+const descriptionFieldValue = computed({
+	get: () => form.description,
+	set: (value: string | number | undefined) => {
+		form.description = sanitizeMultilineTextForInput(String(value ?? ''));
+		clearFieldError('description');
+	},
+});
+
+const discordInviteFieldValue = computed({
+	get: () => form.discord_invite_url,
+	set: (value: string | number | undefined) => {
+		form.discord_invite_url = sanitizeSingleLineText(String(value ?? ''));
+		clearFieldError('discord_invite_url');
+	},
+});
+
+const selectedDatacenterOption = computed(() => datacenterOptions.value.find((option) => option.value === form.datacenter) ?? null);
+const inferredRegion = computed(() => selectedDatacenterOption.value?.region ?? null);
+const displayGroupName = computed(() => form.name.trim() || t('groups.index.create_modal.visibility_summary.default_name'));
+
+const visibilitySummary = computed(() => {
+	if (form.is_public && form.is_visible) {
+		return t('groups.index.create_modal.visibility_summary.public_visible', { name: displayGroupName.value });
+	}
+
+	if (form.is_public && !form.is_visible) {
+		return t('groups.index.create_modal.visibility_summary.public_hidden', { name: displayGroupName.value });
+	}
+
+	if (!form.is_public && form.is_visible) {
+		return t('groups.index.create_modal.visibility_summary.private_visible', { name: displayGroupName.value });
+	}
+
+	return t('groups.index.create_modal.visibility_summary.private_hidden', { name: displayGroupName.value });
+});
+
+const revokePreviewUrl = (url: string | null) => {
+	if (!url || !url.startsWith('blob:')) {
+		return;
+	}
+
+	URL.revokeObjectURL(url);
+};
+
+const replacePreviewUrl = (target: typeof profilePicturePreviewUrl, url: string | null) => {
+	revokePreviewUrl(target.value);
+	target.value = url;
+};
 
 const open = () => {
 	step.value = 1;
@@ -56,7 +245,21 @@ const resetForm = () => {
 	form.is_visible = true;
 	form.group_type = 'community';
 	form.profile_picture = null;
-	profilePicturePreviewUrl.value = null;
+	form.banner_image = null;
+	form.recruiting_status = '';
+	form.primary_focuses = [];
+	form.experience_expectation = '';
+	form.voice_expectation = '';
+	form.preferred_languages = [];
+	form.tags = [];
+	form.active_timezone = '';
+	form.active_days = [];
+	form.active_start_time = '';
+	form.active_end_time = '';
+	tagSearchTerm.value = '';
+	mergeTagOptions(tagSuggestions.value);
+	replacePreviewUrl(profilePicturePreviewUrl, null);
+	replacePreviewUrl(bannerImagePreviewUrl, null);
 	step.value = 1;
 };
 
@@ -64,55 +267,6 @@ const close = () => {
 	hide();
 	resetForm();
 };
-
-const {
-	canContinue,
-	clearFieldError,
-	goToStepWithErrors,
-	groupSlugMaxLength,
-	normalizeGroupSlug,
-	normalizedSlugHint,
-	slugFieldValue,
-	validateCurrentStep,
-} = useGroupCreateValidation({
-	form,
-	step,
-	datacenterOptions,
-	groupTypeOptions,
-});
-
-const nameFieldValue = computed({
-	get: () => form.name,
-	set: (value: string | number | undefined) => {
-		form.name = sanitizeSingleLineText(String(value ?? ''));
-		clearFieldError('name');
-	},
-});
-
-const descriptionFieldValue = computed({
-	get: () => form.description,
-	set: (value: string | number | undefined) => {
-		form.description = sanitizeMultilineText(String(value ?? ''));
-		clearFieldError('description');
-	},
-});
-
-const displayGroupName = computed(() => form.name.trim() || t('groups.index.create_modal.visibility_summary.default_name'));
-const visibilitySummary = computed(() => {
-	if (form.is_public && form.is_visible) {
-		return t('groups.index.create_modal.visibility_summary.public_visible', { name: displayGroupName.value });
-	}
-
-	if (form.is_public && !form.is_visible) {
-		return t('groups.index.create_modal.visibility_summary.public_hidden', { name: displayGroupName.value });
-	}
-
-	if (!form.is_public && form.is_visible) {
-		return t('groups.index.create_modal.visibility_summary.private_visible', { name: displayGroupName.value });
-	}
-
-	return t('groups.index.create_modal.visibility_summary.private_hidden', { name: displayGroupName.value });
-});
 
 const nextStep = () => {
 	if (step.value >= max_steps || !canContinue.value || !validateCurrentStep()) {
@@ -130,9 +284,28 @@ const previousStep = () => {
 	step.value--;
 };
 
+const addCreatedTag = (rawTag: string) => {
+	const tag = sanitizeSingleLineText(rawTag).trim();
+
+	if (!tag) {
+		tagSearchTerm.value = '';
+		return;
+	}
+
+	if (!form.tags.includes(tag)) {
+		form.tags = [...form.tags, tag];
+	}
+
+	mergeTagOptions([...availableTags.value, tag]);
+	clearFieldError('tags');
+	tagSearchTerm.value = '';
+};
+
 const submit = () => {
 	form.transform((data) => ({
 		...data,
+		name: sanitizeSingleLineText(data.name),
+		description: sanitizeMultilineText(data.description),
 		slug: normalizeGroupSlug(data.slug),
 	})).post(route('groups.store'), {
 		preserveScroll: true,
@@ -151,20 +324,27 @@ const submit = () => {
 	});
 };
 
-const updateProfilePicture = (event: Event) => {
+const updateImage = (event: Event, field: 'profile_picture' | 'banner_image') => {
 	const target = event.target as HTMLInputElement;
 	const file = target.files?.[0] ?? null;
 
-	clearFieldError('profile_picture');
-	form.profile_picture = file;
+	clearFieldError(field);
+	form[field] = file;
 
-	if (!file) {
-		profilePicturePreviewUrl.value = null;
+	const nextUrl = file ? URL.createObjectURL(file) : null;
+
+	if (field === 'profile_picture') {
+		replacePreviewUrl(profilePicturePreviewUrl, nextUrl);
 		return;
 	}
 
-	profilePicturePreviewUrl.value = URL.createObjectURL(file);
+	replacePreviewUrl(bannerImagePreviewUrl, nextUrl);
 };
+
+onBeforeUnmount(() => {
+	revokePreviewUrl(profilePicturePreviewUrl.value);
+	revokePreviewUrl(bannerImagePreviewUrl.value);
+});
 
 defineExpose({
 	open,
@@ -314,7 +494,7 @@ defineExpose({
 									class="sr-only"
 									type="file"
 									:accept="groupProfilePictureAccept"
-									@change="updateProfilePicture"
+									@change="(event) => updateImage(event, 'profile_picture')"
 								>
 							</label>
 
@@ -339,21 +519,249 @@ defineExpose({
 					</UFormField>
 
 					<UFormField
+						:label="t('groups.index.create_modal.fields.banner_image.label')"
+						:help="t('groups.index.create_modal.fields.banner_image.help')"
+						:error="form.errors.banner_image"
+					>
+						<div class="flex flex-col gap-3">
+							<label class="file-upload-field">
+								<UIcon name="i-lucide-image-up" size="16" />
+								<span class="text-sm font-medium">
+									{{ form.banner_image?.name || t('groups.index.create_modal.fields.banner_image.placeholder') }}
+								</span>
+								<input
+									class="sr-only"
+									type="file"
+									:accept="groupProfilePictureAccept"
+									@change="(event) => updateImage(event, 'banner_image')"
+								>
+							</label>
+
+							<div v-if="bannerImagePreviewUrl" class="rounded-sm border border-muted p-3">
+								<p class="mb-2 text-xs uppercase tracking-wide text-muted">
+									{{ t('groups.index.create_modal.fields.banner_image.preview_label') }}
+								</p>
+								<div class="wide-preview-frame">
+									<img
+										:src="bannerImagePreviewUrl"
+										:alt="t('groups.index.create_modal.fields.banner_image.preview_alt')"
+										class="wide-preview-image"
+									>
+								</div>
+								<p class="mt-2 text-sm text-muted">
+									{{ t('groups.index.create_modal.fields.banner_image.preview_help') }}
+								</p>
+							</div>
+						</div>
+					</UFormField>
+
+					<UFormField
 						:label="t('general.discord_invite_url')"
 						:help="t('groups.index.create_modal.fields.discord_invite_url.help')"
 						:error="form.errors.discord_invite_url"
 					>
 						<UInput
-							v-model="form.discord_invite_url"
+							v-model="discordInviteFieldValue"
 							class="w-full"
 							:placeholder="t('groups.index.create_modal.fields.discord_invite_url.placeholder')"
 							:ui="{ base: 'rounded-none' }"
-							@update:model-value="clearFieldError('discord_invite_url')"
 						/>
 					</UFormField>
 				</div>
 
 				<div v-if="step === 3" class="section-block">
+					<div class="flex flex-col gap-1">
+						<p class="font-bold">{{ t('groups.index.create_modal.sections.discovery.title') }}</p>
+						<p class="text-sm text-muted">{{ t('groups.index.create_modal.sections.discovery.subtitle') }}</p>
+					</div>
+
+					<UFormField
+						:label="t('groups.index.create_modal.fields.recruiting_status.label')"
+						:help="t('groups.index.create_modal.fields.recruiting_status.help')"
+						:error="form.errors.recruiting_status"
+						required
+					>
+						<USelect
+							v-model="form.recruiting_status"
+							class="w-full"
+							:items="recruitingStatusOptions"
+							value-key="value"
+							:placeholder="t('groups.index.create_modal.fields.recruiting_status.placeholder')"
+							:ui="{ base: 'rounded-none' }"
+							@update:model-value="clearFieldError('recruiting_status')"
+						/>
+					</UFormField>
+
+					<UFormField
+						:label="t('groups.index.create_modal.fields.primary_focuses.label')"
+						:help="t('groups.index.create_modal.fields.primary_focuses.help')"
+						:error="form.errors.primary_focuses"
+						required
+					>
+						<USelectMenu
+							v-model="form.primary_focuses"
+							class="w-full"
+							:items="primaryFocusOptions"
+							value-key="value"
+							multiple
+							:placeholder="t('groups.index.create_modal.fields.primary_focuses.placeholder')"
+							@update:model-value="clearFieldError('primary_focuses')"
+						/>
+					</UFormField>
+
+					<div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+						<UFormField
+							:label="t('groups.index.create_modal.fields.experience_expectation.label')"
+							:help="t('groups.index.create_modal.fields.experience_expectation.help')"
+							:error="form.errors.experience_expectation"
+							required
+						>
+							<USelect
+								v-model="form.experience_expectation"
+								class="w-full"
+								:items="experienceExpectationOptions"
+								value-key="value"
+								:placeholder="t('groups.index.create_modal.fields.experience_expectation.placeholder')"
+								:ui="{ base: 'rounded-none' }"
+								@update:model-value="clearFieldError('experience_expectation')"
+							/>
+						</UFormField>
+
+						<UFormField
+							:label="t('groups.index.create_modal.fields.voice_expectation.label')"
+							:help="t('groups.index.create_modal.fields.voice_expectation.help')"
+							:error="form.errors.voice_expectation"
+							required
+						>
+							<USelect
+								v-model="form.voice_expectation"
+								class="w-full"
+								:items="voiceExpectationOptions"
+								value-key="value"
+								:placeholder="t('groups.index.create_modal.fields.voice_expectation.placeholder')"
+								:ui="{ base: 'rounded-none' }"
+								@update:model-value="clearFieldError('voice_expectation')"
+							/>
+						</UFormField>
+					</div>
+
+					<UFormField
+						:label="t('groups.index.create_modal.fields.preferred_languages.label')"
+						:help="t('groups.index.create_modal.fields.preferred_languages.help')"
+						:error="form.errors.preferred_languages"
+						required
+					>
+						<USelectMenu
+							v-model="form.preferred_languages"
+							class="w-full"
+							:items="localeOptions"
+							value-key="value"
+							multiple
+							:placeholder="t('groups.index.create_modal.fields.preferred_languages.placeholder')"
+							@update:model-value="clearFieldError('preferred_languages')"
+						/>
+					</UFormField>
+
+					<UFormField
+						:label="t('groups.index.create_modal.fields.tags.label')"
+						:help="t('groups.index.create_modal.fields.tags.help', { max: maxTagCount })"
+						:error="form.errors.tags"
+					>
+						<UInputMenu
+							v-model="form.tags"
+							v-model:search-term="tagSearchTerm"
+							class="w-full"
+							:items="availableTags"
+							multiple
+							create-item="always"
+							:placeholder="t('groups.index.create_modal.fields.tags.placeholder')"
+							@create="addCreatedTag"
+							@update:model-value="clearFieldError('tags')"
+						/>
+					</UFormField>
+				</div>
+
+				<div v-if="step === 4" class="section-block">
+					<div class="flex flex-col gap-1">
+						<p class="font-bold">{{ t('groups.index.create_modal.sections.schedule.title') }}</p>
+						<p class="text-sm text-muted">{{ t('groups.index.create_modal.sections.schedule.subtitle') }}</p>
+					</div>
+
+					<div class="rounded-sm border border-default bg-muted/20 px-3 py-3">
+						<p class="text-sm font-semibold mb-1">{{ t('groups.index.create_modal.fields.region.label') }}</p>
+						<p class="text-sm text-muted">
+							<span v-if="form.datacenter && inferredRegion">
+								{{ t('groups.index.create_modal.fields.region.inferred', { datacenter: form.datacenter, region: inferredRegion }) }}
+							</span>
+							<span v-else>
+								{{ t('groups.index.create_modal.fields.region.pending') }}
+							</span>
+						</p>
+					</div>
+
+					<UFormField
+						:label="t('groups.index.create_modal.fields.active_timezone.label')"
+						:help="t('groups.index.create_modal.fields.active_timezone.help')"
+						:error="form.errors.active_timezone"
+					>
+						<USelectMenu
+							v-model="form.active_timezone"
+							class="w-full"
+							:items="timeZoneOptions"
+							value-key="value"
+							:placeholder="t('groups.index.create_modal.fields.active_timezone.placeholder')"
+							@update:model-value="clearFieldError('active_timezone')"
+						/>
+					</UFormField>
+
+					<UFormField
+						:label="t('groups.index.create_modal.fields.active_days.label')"
+						:help="t('groups.index.create_modal.fields.active_days.help')"
+						:error="form.errors.active_days"
+					>
+						<USelectMenu
+							v-model="form.active_days"
+							class="w-full"
+							:items="activeDayOptions"
+							value-key="value"
+							multiple
+							:placeholder="t('groups.index.create_modal.fields.active_days.placeholder')"
+							@update:model-value="clearFieldError('active_days')"
+						/>
+					</UFormField>
+
+					<div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+						<UFormField
+							:label="t('groups.index.create_modal.fields.active_start_time.label')"
+							:help="t('groups.index.create_modal.fields.active_start_time.help')"
+							:error="form.errors.active_start_time"
+						>
+							<UInput
+								v-model="form.active_start_time"
+								class="w-full"
+								type="time"
+								:ui="{ base: 'rounded-none' }"
+								@update:model-value="clearFieldError('active_start_time')"
+							/>
+						</UFormField>
+
+						<UFormField
+							:label="t('groups.index.create_modal.fields.active_end_time.label')"
+							:help="t('groups.index.create_modal.fields.active_end_time.help')"
+							:error="form.errors.active_end_time"
+						>
+							<UInput
+								v-model="form.active_end_time"
+								class="w-full"
+								type="time"
+								:ui="{ base: 'rounded-none' }"
+								@update:model-value="clearFieldError('active_end_time')"
+							/>
+						</UFormField>
+					</div>
+				</div>
+
+				<div v-if="step === 5" class="section-block">
 					<div class="flex flex-col gap-1">
 						<p class="font-bold">{{ t('groups.index.create_modal.sections.visibility.title') }}</p>
 						<p class="text-sm text-muted">{{ t('groups.index.create_modal.sections.visibility.subtitle') }}</p>
@@ -439,6 +847,14 @@ defineExpose({
 }
 
 .square-preview-image {
+	@apply absolute inset-0 h-full w-full object-cover object-center;
+}
+
+.wide-preview-frame {
+	@apply relative aspect-[15/4] w-full overflow-hidden rounded-sm border border-default bg-muted/30;
+}
+
+.wide-preview-image {
 	@apply absolute inset-0 h-full w-full object-cover object-center;
 }
 </style>

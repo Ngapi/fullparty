@@ -4,12 +4,11 @@ use App\Http\Middleware\ApplyLocale;
 
 return [
     'recruiting_statuses' => [
-        'open',
-        'selective',
+        'looking_for_members',
+        'applications_open',
         'closed',
     ],
     'primary_focuses' => [
-        'social_community',
         'progression',
         'clears',
         'reclears',
@@ -20,8 +19,11 @@ return [
     ],
     'experience_expectations' => [
         'beginner_friendly',
+        'casual',
+        'midcore',
+        'semi_hardcore',
+        'hardcore',
         'mixed',
-        'experienced_only',
     ],
     'voice_expectations' => [
         'required',

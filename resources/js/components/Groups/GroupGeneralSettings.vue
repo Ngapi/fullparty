@@ -1,6 +1,11 @@
 <script setup lang="ts">
 import { groupProfilePictureAccept, validateGroupProfilePictureFile } from "@/utils/groupProfilePictureValidation";
-import { sanitizeMultilineText, sanitizeSingleLineText } from "@/utils/textInputSanitizer";
+import {
+	sanitizeMultilineText,
+	sanitizeMultilineTextForInput,
+	sanitizeSingleLineText,
+	sanitizeSingleLineTextForInput,
+} from "@/utils/textInputSanitizer";
 import { computed, ref } from "vue";
 import { useForm, usePage } from "@inertiajs/vue3";
 import { route } from "ziggy-js";
@@ -46,7 +51,7 @@ const profilePicturePreviewUrl = ref<string | null>(props.group.profile_picture_
 const nameFieldValue = computed({
 	get: () => form.name,
 	set: (value: string | number | undefined) => {
-		form.name = sanitizeSingleLineText(String(value ?? ""));
+		form.name = sanitizeSingleLineTextForInput(String(value ?? ""));
 		form.clearErrors("name");
 	},
 });
@@ -54,7 +59,7 @@ const nameFieldValue = computed({
 const descriptionFieldValue = computed({
 	get: () => form.description,
 	set: (value: string | number | undefined) => {
-		form.description = sanitizeMultilineText(String(value ?? ""));
+		form.description = sanitizeMultilineTextForInput(String(value ?? ""));
 		form.clearErrors("description");
 	},
 });
@@ -119,6 +124,8 @@ const submit = () => {
 	form
 		.transform((data) => ({
 			...data,
+			name: sanitizeSingleLineText(data.name),
+			description: sanitizeMultilineText(data.description),
 			_method: 'put',
 		}))
 		.post(route('groups.dashboard.settings.update', props.group.slug), {

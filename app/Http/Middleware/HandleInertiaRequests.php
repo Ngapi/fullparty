@@ -6,6 +6,7 @@ use App\Models\Group;
 use App\Services\Notifications\NotificationInboxService;
 use App\Services\SystemBannerService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 use Inertia\Middleware;
 
 class HandleInertiaRequests extends Middleware
@@ -43,41 +44,41 @@ class HandleInertiaRequests extends Middleware
      */
     public function share(Request $request): array
     {
-		return array_merge(parent::share($request), [
-			'flash' => [
-				'success' => fn () => $request->session()->get('success'),
-				'error' => fn () => $request->session()->get('error'),
-				'data' => fn () => $request->session()->get('flash_data', []),],
-			'auth' => [
-				'user' => fn () => $request->user()
-					? array_merge(
-						$request->user()->load(['primaryCharacter', 'socialAccounts'])->toArray(),
-						[
-							'primary_character' => $request->user()->primaryCharacter,
-							'social_accounts' => $request->user()->socialAccounts,
-						]
-					)
-					: null,
-			],
-			'navigation' => [
-				'group_quick_links' => fn () => $request->user()
-					? [
-						'owned' => $this->serializeGroupQuickLinks(
-							$request->user()->ownedGroups()->get(['id', 'name', 'slug'])
-						),
-						'moderated' => $this->serializeGroupQuickLinks(
-							$request->user()->moderatedGroups()->get(['groups.id', 'groups.name', 'groups.slug'])
-						),
-						'member' => $this->serializeGroupQuickLinks(
-							$request->user()->memberGroups()->get(['groups.id', 'groups.name', 'groups.slug'])
-						),
-					]
-					: [
-						'owned' => [],
-						'moderated' => [],
-						'member' => [],
-					],
-			],
+        return array_merge(parent::share($request), [
+            'flash' => [
+                'success' => fn () => $request->session()->get('success'),
+                'error' => fn () => $request->session()->get('error'),
+                'data' => fn () => $request->session()->get('flash_data', []), ],
+            'auth' => [
+                'user' => fn () => $request->user()
+                    ? array_merge(
+                        $request->user()->load(['primaryCharacter', 'socialAccounts'])->toArray(),
+                        [
+                            'primary_character' => $request->user()->primaryCharacter,
+                            'social_accounts' => $request->user()->socialAccounts,
+                        ]
+                    )
+                    : null,
+            ],
+            'navigation' => [
+                'group_quick_links' => fn () => $request->user()
+                    ? [
+                        'owned' => $this->serializeGroupQuickLinks(
+                            $request->user()->ownedGroups()->get(['id', 'name', 'slug'])
+                        ),
+                        'moderated' => $this->serializeGroupQuickLinks(
+                            $request->user()->moderatedGroups()->get(['groups.id', 'groups.name', 'groups.slug'])
+                        ),
+                        'member' => $this->serializeGroupQuickLinks(
+                            $request->user()->memberGroups()->get(['groups.id', 'groups.name', 'groups.slug'])
+                        ),
+                    ]
+                    : [
+                        'owned' => [],
+                        'moderated' => [],
+                        'member' => [],
+                    ],
+            ],
             'notifications' => [
                 'unread_count' => fn () => $request->user()
                     ? $this->notificationInboxService->unreadCount($request->user())
@@ -95,38 +96,48 @@ class HandleInertiaRequests extends Middleware
                 'controller_name' => fn () => config('services.legal.controller_name'),
                 'contact_email' => fn () => config('services.legal.contact_email'),
             ],
-			'lookups' => [
-				'datacenters' => fn () => collect(config('datacenters.values', []))
-					->map(fn (string $value) => [
-						'label' => $value,
-						'value' => $value,
-					])
-					->values()
-					->all(),
-			],
+            'lookups' => [
+                'datacenters' => fn () => collect(config('datacenters.values', []))
+                    ->map(fn (string $value) => [
+                        'label' => $value,
+                        'value' => $value,
+                        'region' => Group::regionForDatacenter($value),
+                    ])
+                    ->values()
+                    ->all(),
+                'group_discovery' => fn () => [
+                    'recruiting_statuses' => config('group_discovery.recruiting_statuses', []),
+                    'primary_focuses' => config('group_discovery.primary_focuses', []),
+                    'experience_expectations' => config('group_discovery.experience_expectations', []),
+                    'voice_expectations' => config('group_discovery.voice_expectations', []),
+                    'active_days' => config('group_discovery.active_days', []),
+                    'preferred_languages' => config('group_discovery.preferred_languages', []),
+                    'max_tags' => config('group_discovery.max_tags', 12),
+                ],
+            ],
             'locale' => [
                 'current' => fn () => app()->getLocale(),
                 'fallback' => fn () => config('app.fallback_locale'),
-                'available' => fn () => \App\Http\Middleware\ApplyLocale::SUPPORTED_LOCALES,
+                'available' => fn () => ApplyLocale::SUPPORTED_LOCALES,
             ],
-		]);
+        ]);
     }
 
-	/**
-	 * @param \Illuminate\Support\Collection<int, Group> $groups
-	 * @return array<int, array<string, string|int>>
-	 */
-	private function serializeGroupQuickLinks($groups): array
-	{
-		return $groups
-			->sortBy('name')
-			->values()
-			->map(fn (Group $group) => [
-				'id' => $group->id,
-				'name' => $group->name,
-				'slug' => $group->slug,
-				'href' => route('groups.dashboard', $group, false),
-			])
-			->all();
-	}
+    /**
+     * @param  Collection<int, Group>  $groups
+     * @return array<int, array<string, string|int>>
+     */
+    private function serializeGroupQuickLinks($groups): array
+    {
+        return $groups
+            ->sortBy('name')
+            ->values()
+            ->map(fn (Group $group) => [
+                'id' => $group->id,
+                'name' => $group->name,
+                'slug' => $group->slug,
+                'href' => route('groups.dashboard', $group, false),
+            ])
+            ->all();
+    }
 }

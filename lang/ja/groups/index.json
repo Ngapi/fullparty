@@ -48,13 +48,15 @@
   },
   "create_modal": {
     "title": "グループを作成",
-    "subtitle": "Runs の管理を始める前に、グループのアイデンティティ、公開設定、招待設定を整えましょう。",
+    "subtitle": "Runs の管理を始める前に、グループの基本情報、プレゼンス、発見用の詳細、活動時間帯を整えましょう。",
     "open_button": "グループを作成",
     "progress": "ステップ {current} / {total}",
     "steps": {
       "1": "基本情報",
       "2": "プレゼンス",
-      "3": "公開設定"
+      "3": "発見設定",
+      "4": "活動時間帯",
+      "5": "公開設定"
     },
     "slug_preview": "公開招待URL: /invite/{slug}",
     "slug_fallback": "yourslug",
@@ -66,8 +68,10 @@
       "slug_reserved": "この slug は予約済みです。別のものを選んでください。",
       "invalid_option": "{field} の有効な値を選択してください。",
       "invalid_url": "有効な URL を入力してください。",
-      "image_invalid_format": "プロフィール画像には JPG、JPEG、PNG、WEBP のいずれかを指定してください。",
-      "image_too_large": "プロフィール画像は 5 MB 以下にしてください。"
+      "image_invalid_format": "画像は JPG、JPEG、PNG、WEBP のいずれかである必要があります。",
+      "image_too_large": "画像は 5 MB 以下にしてください。",
+      "max_tags": "タグは最大 {max} 個まで選択できます。",
+      "tag_too_long": "各タグは {max} 文字以内で入力してください。"
     },
     "sections": {
       "identity": {
@@ -77,6 +81,14 @@
       "presence": {
         "title": "コミュニティ情報",
         "subtitle": "任意のリンクや画像を追加して、グループの雰囲気を整えましょう。"
+      },
+      "discovery": {
+        "title": "発見設定と相性",
+        "subtitle": "どんなグループなのか、誰向けなのか、どう関わってほしいのかを伝えましょう。"
+      },
+      "schedule": {
+        "title": "活動時間帯",
+        "subtitle": "普段のタイムゾーン、活動日、よくプレイする時間帯を伝えましょう。"
       },
       "visibility": {
         "title": "公開範囲と参加設定",
@@ -117,9 +129,114 @@
         "preview_label": "表示される切り抜きプレビュー",
         "preview_help": "このプレビューは、中央の正方形トリミングがリサイズされ、グループのプロフィール画像として使われることを示します。"
       },
+      "banner_image": {
+        "label": "バナー画像",
+        "placeholder": "横長のバナー画像を選択",
+        "help": "任意。グループプロフィールや発見画面の上部に表示する横長バナーです。",
+        "preview_alt": "グループバナーのプレビュー",
+        "preview_label": "バナープレビュー",
+        "preview_help": "このプレビューは、グループヘッダーや発見カードで使われる横長の切り抜きを示します。"
+      },
       "discord_invite_url": {
         "placeholder": "https://discord.gg/yourserver",
         "help": "任意。メンバーが簡単に参加できるように Discord 招待を追加します。"
+      },
+      "recruiting_status": {
+        "label": "募集状況",
+        "placeholder": "募集状況を選択",
+        "help": "新しいメンバーを積極的に募集しているかどうかを伝えます。",
+        "options": {
+          "looking_for_members": "メンバー募集中",
+          "applications_open": "応募受付中",
+          "closed": "募集停止中"
+        }
+      },
+      "primary_focuses": {
+        "label": "主な方針",
+        "placeholder": "1つ以上の方針を選択",
+        "help": "このグループに期待してほしい主な活動や雰囲気を選びます。",
+        "options": {
+          "progression": "攻略進行",
+          "clears": "クリア",
+          "reclears": "再クリア",
+          "farming": "周回",
+          "mount_farming": "マウント周回",
+          "maps": "地図",
+          "casual_roulettes": "カジュアルルーレット"
+        }
+      },
+      "experience_expectation": {
+        "label": "想定する経験値",
+        "placeholder": "想定する経験レベルを選択",
+        "help": "参加者にどれくらいの事前知識や経験を期待するかを設定します。",
+        "options": {
+          "beginner_friendly": "初心者歓迎",
+          "casual": "カジュアル",
+          "midcore": "ミッドコア",
+          "semi_hardcore": "セミハードコア",
+          "hardcore": "ハードコア",
+          "mixed": "混合"
+        }
+      },
+      "voice_expectation": {
+        "label": "VC / Discord の期待値",
+        "placeholder": "VC の期待値を選択",
+        "help": "ボイスチャットが必須か、推奨か、任意かを伝えます。",
+        "options": {
+          "required": "必須",
+          "preferred": "推奨",
+          "optional": "任意"
+        }
+      },
+      "preferred_languages": {
+        "label": "主な使用言語",
+        "placeholder": "1つ以上の言語を選択",
+        "help": "グループで主に使われる言語を示します。"
+      },
+      "tags": {
+        "label": "追加タグ",
+        "placeholder": "Late Night や Blind Prog のようなタグを追加または作成",
+        "help": "任意。最大 {max} 個まで、雰囲気やニッチな特徴を表す自由タグを使えます。",
+        "suggestions": {
+          "late_night": "Late Night",
+          "lgbtq_friendly": "LGBTQ+ Friendly",
+          "blind_prog": "Blind Prog",
+          "alt_friendly": "Alt Friendly",
+          "achievement_hunting": "Achievement Hunting",
+          "weekend_raids": "Weekend Raids"
+        }
+      },
+      "region": {
+        "label": "主な活動リージョン",
+        "inferred": "{datacenter} をもとに、このグループは {region} で活動するものとして表示されます。",
+        "pending": "まずデータセンターを選択すると、このグループの主な活動リージョンを推測できます。"
+      },
+      "active_timezone": {
+        "label": "活動タイムゾーン",
+        "placeholder": "タイムゾーンを選択",
+        "help": "任意。下で曜日や時間帯を設定する場合、それらをどのタイムゾーンで解釈するかを選びます。"
+      },
+      "active_days": {
+        "label": "主な活動曜日",
+        "placeholder": "1つ以上の活動曜日を選択",
+        "help": "任意。普段よく活動したり募集したりする曜日を選びます。",
+        "options": {
+          "mon": "月曜日",
+          "tue": "火曜日",
+          "wed": "水曜日",
+          "thu": "木曜日",
+          "fri": "金曜日",
+          "sat": "土曜日",
+          "sun": "日曜日"
+        }
+      },
+      "active_start_time": {
+        "label": "活動開始時間",
+        "help": "任意。普段の活動時間帯の開始時刻です。"
+      },
+      "active_end_time": {
+        "label": "活動終了時間",
+        "help": "任意。普段の活動時間帯の終了時刻です。"
       },
       "is_public": {
         "label": "公開グループ",

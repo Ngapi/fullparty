@@ -48,13 +48,15 @@
   },
   "create_modal": {
     "title": "Créer un groupe",
-    "subtitle": "Configurez l'identité, la visibilité et la présence d'invitation de votre groupe avant de commencer à organiser des runs.",
+    "subtitle": "Configurez l'identité, la présence, les détails de découverte et la fenêtre d'activité de votre groupe avant de commencer à organiser des runs.",
     "open_button": "Créer un groupe",
     "progress": "Étape {current} sur {total}",
     "steps": {
       "1": "Identité",
       "2": "Présence",
-      "3": "Visibilité"
+      "3": "Découverte",
+      "4": "Fenêtre d'activité",
+      "5": "Visibilité"
     },
     "slug_preview": "URL d'invitation publique : /invite/{slug}",
     "slug_fallback": "votreslug",
@@ -66,8 +68,10 @@
       "slug_reserved": "Ce slug est réservé. Choisissez-en un autre.",
       "invalid_option": "Choisissez une valeur valide pour {field}.",
       "invalid_url": "Saisissez une URL valide.",
-      "image_invalid_format": "L'image de profil doit être au format JPG, JPEG, PNG ou WEBP.",
-      "image_too_large": "L'image de profil doit faire 5 Mo ou moins."
+      "image_invalid_format": "Les images doivent être au format JPG, JPEG, PNG ou WEBP.",
+      "image_too_large": "Les images doivent faire 5 Mo ou moins.",
+      "max_tags": "Choisissez jusqu'à {max} tags.",
+      "tag_too_long": "Chaque tag doit contenir au maximum {max} caractères."
     },
     "sections": {
       "identity": {
@@ -77,6 +81,14 @@
       "presence": {
         "title": "Présence communautaire",
         "subtitle": "Ajoutez des liens et des images facultatifs pour rendre le groupe plus établi."
+      },
+      "discovery": {
+        "title": "Découverte et compatibilité",
+        "subtitle": "Montrez à quoi ressemble votre groupe, à qui il s'adresse et comment les gens doivent s'attendre à interagir avec lui."
+      },
+      "schedule": {
+        "title": "Fenêtre d'activité",
+        "subtitle": "Aidez les gens à comprendre votre fuseau horaire habituel, vos jours actifs et les heures où le groupe joue le plus souvent."
       },
       "visibility": {
         "title": "Visibilité et accès",
@@ -117,9 +129,114 @@
         "preview_label": "Aperçu du recadrage visible",
         "preview_help": "Cet aperçu montre le recadrage carré centré qui sera redimensionné et utilisé comme image de profil de votre groupe."
       },
+      "banner_image": {
+        "label": "Image de bannière",
+        "placeholder": "Choisir une bannière large",
+        "help": "Optionnel. Téléversez une large bannière pour le profil du groupe et les vues de découverte.",
+        "preview_alt": "Aperçu de la bannière du groupe",
+        "preview_label": "Aperçu de la bannière",
+        "preview_help": "Cet aperçu montre le recadrage large utilisé pour l'en-tête du groupe et les cartes de découverte."
+      },
       "discord_invite_url": {
         "placeholder": "https://discord.gg/yourserver",
         "help": "Optionnel. Ajoutez une invitation Discord pour que les membres puissent rejoindre facilement votre serveur."
+      },
+      "recruiting_status": {
+        "label": "Statut de recrutement",
+        "placeholder": "Sélectionnez un statut de recrutement",
+        "help": "Indiquez aux gens si le groupe recherche activement de nouveaux membres.",
+        "options": {
+          "looking_for_members": "Recherche de membres",
+          "applications_open": "Candidatures ouvertes",
+          "closed": "Fermé"
+        }
+      },
+      "primary_focuses": {
+        "label": "Objectif principal",
+        "placeholder": "Sélectionnez un ou plusieurs axes",
+        "help": "Choisissez les principales activités ou ambiances que les gens doivent associer à votre groupe.",
+        "options": {
+          "progression": "Progression",
+          "clears": "Clears",
+          "reclears": "Reclears",
+          "farming": "Farm",
+          "mount_farming": "Farm de montures",
+          "maps": "Cartes",
+          "casual_roulettes": "Roulettes casual"
+        }
+      },
+      "experience_expectation": {
+        "label": "Niveau d'expérience attendu",
+        "placeholder": "Sélectionnez un niveau attendu",
+        "help": "Définissez les attentes sur le niveau de connaissance ou d'expérience que les gens doivent avoir.",
+        "options": {
+          "beginner_friendly": "Débutant bienvenu",
+          "casual": "Casual",
+          "midcore": "Midcore",
+          "semi_hardcore": "Semi-Hardcore",
+          "hardcore": "Hardcore",
+          "mixed": "Mixte"
+        }
+      },
+      "voice_expectation": {
+        "label": "Attente vocal / Discord",
+        "placeholder": "Sélectionnez une attente vocale",
+        "help": "Indiquez si le vocal est requis, préféré ou facultatif.",
+        "options": {
+          "required": "Requis",
+          "preferred": "Préféré",
+          "optional": "Optionnel"
+        }
+      },
+      "preferred_languages": {
+        "label": "Langues préférées",
+        "placeholder": "Sélectionnez une ou plusieurs langues",
+        "help": "Indiquez les langues dans lesquelles votre groupe communique principalement."
+      },
+      "tags": {
+        "label": "Tags supplémentaires",
+        "placeholder": "Ajoutez ou créez des tags comme Late Night ou Blind Prog",
+        "help": "Optionnel. Utilisez jusqu'à {max} tags libres pour ajouter de la nuance ou des détails de niche.",
+        "suggestions": {
+          "late_night": "Late Night",
+          "lgbtq_friendly": "LGBTQ+ Friendly",
+          "blind_prog": "Blind Prog",
+          "alt_friendly": "Alt Friendly",
+          "achievement_hunting": "Achievement Hunting",
+          "weekend_raids": "Weekend Raids"
+        }
+      },
+      "region": {
+        "label": "Région d'activité",
+        "inferred": "D'après {datacenter}, ce groupe sera affiché comme opérant en {region}.",
+        "pending": "Choisissez d'abord un centre de données pour déduire la principale région d'activité du groupe."
+      },
+      "active_timezone": {
+        "label": "Fuseau horaire actif",
+        "placeholder": "Sélectionnez un fuseau horaire",
+        "help": "Optionnel. Si vous définissez des jours ou des heures ci-dessous, choisissez le fuseau horaire dans lequel ils doivent être interprétés."
+      },
+      "active_days": {
+        "label": "Jours actifs",
+        "placeholder": "Sélectionnez un ou plusieurs jours actifs",
+        "help": "Optionnel. Choisissez les jours où votre groupe joue ou recrute le plus souvent.",
+        "options": {
+          "mon": "Lundi",
+          "tue": "Mardi",
+          "wed": "Mercredi",
+          "thu": "Jeudi",
+          "fri": "Vendredi",
+          "sat": "Samedi",
+          "sun": "Dimanche"
+        }
+      },
+      "active_start_time": {
+        "label": "Heure de début active",
+        "help": "Optionnel. Début habituel de la fenêtre d'activité de votre groupe."
+      },
+      "active_end_time": {
+        "label": "Heure de fin active",
+        "help": "Optionnel. Fin habituelle de la fenêtre d'activité de votre groupe."
       },
       "is_public": {
         "label": "Groupe public",

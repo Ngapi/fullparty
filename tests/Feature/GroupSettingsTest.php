@@ -79,9 +79,9 @@ it('stores discovery metadata when updating group settings', function () {
             'is_public' => $group->is_public,
             'is_visible' => $group->is_visible,
             'banner_image' => UploadedFile::fake()->image('banner.png', 1500, 500),
-            'recruiting_status' => 'selective',
-            'primary_focuses' => ['social_community', 'maps'],
-            'experience_expectation' => 'beginner_friendly',
+            'recruiting_status' => 'applications_open',
+            'primary_focuses' => ['maps'],
+            'experience_expectation' => 'casual',
             'voice_expectation' => 'optional',
             'preferred_languages' => ['de', 'fr'],
             'tags' => ['Weekend', 'weekend', 'Maps'],
@@ -98,9 +98,9 @@ it('stores discovery metadata when updating group settings', function () {
         ->and($group->banner_image_url)->toContain('/storage/groups/')
         ->and($group->datacenter)->toBe('Chaos')
         ->and($group->inferredRegion())->toBe('EU')
-        ->and($group->recruiting_status)->toBe('selective')
-        ->and($group->primary_focuses)->toBe(['social_community', 'maps'])
-        ->and($group->experience_expectation)->toBe('beginner_friendly')
+        ->and($group->recruiting_status)->toBe('applications_open')
+        ->and($group->primary_focuses)->toBe(['maps'])
+        ->and($group->experience_expectation)->toBe('casual')
         ->and($group->voice_expectation)->toBe('optional')
         ->and($group->preferred_languages)->toBe(['de', 'fr'])
         ->and($group->tags)->toBe(['Weekend', 'Maps'])
@@ -115,9 +115,9 @@ it('stores discovery metadata when updating group settings', function () {
         ->assertInertia(fn (Assert $page) => $page
             ->where('group.region', 'EU')
             ->where('group.banner_image_url', $group->banner_image_url)
-            ->where('group.recruiting_status', 'selective')
-            ->where('group.primary_focuses', ['social_community', 'maps'])
-            ->where('group.experience_expectation', 'beginner_friendly')
+            ->where('group.recruiting_status', 'applications_open')
+            ->where('group.primary_focuses', ['maps'])
+            ->where('group.experience_expectation', 'casual')
             ->where('group.voice_expectation', 'optional')
             ->where('group.preferred_languages', ['de', 'fr'])
             ->where('group.tags', ['Weekend', 'Maps'])
@@ -133,7 +133,7 @@ it('preserves existing discovery metadata when omitted from a settings update', 
     $group = Group::factory()->create([
         'owner_id' => $owner->id,
         'group_type' => Group::TYPE_COMMUNITY,
-        'recruiting_status' => 'open',
+        'recruiting_status' => 'looking_for_members',
         'primary_focuses' => ['progression'],
         'experience_expectation' => 'mixed',
         'voice_expectation' => 'preferred',
@@ -159,7 +159,7 @@ it('preserves existing discovery metadata when omitted from a settings update', 
     $group->refresh();
 
     expect($group->name)->toBe('Updated Name')
-        ->and($group->recruiting_status)->toBe('open')
+        ->and($group->recruiting_status)->toBe('looking_for_members')
         ->and($group->primary_focuses)->toBe(['progression'])
         ->and($group->experience_expectation)->toBe('mixed')
         ->and($group->voice_expectation)->toBe('preferred')

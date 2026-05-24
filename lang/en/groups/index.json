@@ -48,13 +48,15 @@
   },
   "create_modal": {
     "title": "Create Group",
-    "subtitle": "Set up your group's identity, visibility, and invite presence before you start organizing runs.",
+    "subtitle": "Set up your group's identity, presence, discovery details, and activity window before you start organizing runs.",
     "open_button": "Create Group",
     "progress": "Step {current} of {total}",
     "steps": {
       "1": "Identity",
       "2": "Presence",
-      "3": "Visibility"
+      "3": "Discovery",
+      "4": "Activity Window",
+      "5": "Visibility"
     },
     "slug_preview": "Public invite URL: /invite/{slug}",
     "slug_fallback": "yourslug",
@@ -66,8 +68,10 @@
       "slug_reserved": "That slug is reserved. Choose a different one.",
       "invalid_option": "Choose a valid {field}.",
       "invalid_url": "Enter a valid URL.",
-      "image_invalid_format": "Profile picture must be a JPG, JPEG, PNG, or WEBP image.",
-      "image_too_large": "Profile picture must be 5 MB or smaller."
+      "image_invalid_format": "Images must be JPG, JPEG, PNG, or WEBP files.",
+      "image_too_large": "Images must be 5 MB or smaller.",
+      "max_tags": "Choose up to {max} tags.",
+      "tag_too_long": "Each tag must be {max} characters or fewer."
     },
     "sections": {
       "identity": {
@@ -77,6 +81,14 @@
       "presence": {
         "title": "Community Presence",
         "subtitle": "Add optional links and imagery that make the group feel established."
+      },
+      "discovery": {
+        "title": "Discovery & Group Fit",
+        "subtitle": "Show what your group is like, who it is for, and how people should expect to interact with it."
+      },
+      "schedule": {
+        "title": "Activity Window",
+        "subtitle": "Help people understand your usual timezone, active days, and the hours your group most often plays."
       },
       "visibility": {
         "title": "Visibility & Access",
@@ -117,9 +129,114 @@
         "preview_label": "Visible Crop Preview",
         "preview_help": "This preview shows the centered square crop that will be resized and used as your group's profile image."
       },
+      "banner_image": {
+        "label": "Banner Image",
+        "placeholder": "Choose a wide banner image",
+        "help": "Optional. Upload a wide banner for the top of the group profile and discovery surfaces.",
+        "preview_alt": "Group banner preview",
+        "preview_label": "Banner Preview",
+        "preview_help": "This preview shows the wide banner crop used for the group header and discovery cards."
+      },
       "discord_invite_url": {
         "placeholder": "https://discord.gg/yourserver",
         "help": "Optional. Add a Discord invite so members can easily join your server."
+      },
+      "recruiting_status": {
+        "label": "Recruiting Status",
+        "placeholder": "Select a recruiting status",
+        "help": "Let people know whether the group is actively looking for new members.",
+        "options": {
+          "looking_for_members": "Looking for Members",
+          "applications_open": "Applications Open",
+          "closed": "Closed"
+        }
+      },
+      "primary_focuses": {
+        "label": "Primary Focus",
+        "placeholder": "Select one or more focuses",
+        "help": "Pick the main activities or vibes people should associate with your group.",
+        "options": {
+          "progression": "Progression",
+          "clears": "Clears",
+          "reclears": "Reclears",
+          "farming": "Farming",
+          "mount_farming": "Mount Farming",
+          "maps": "Maps",
+          "casual_roulettes": "Casual Roulettes"
+        }
+      },
+      "experience_expectation": {
+        "label": "Experience Expectation",
+        "placeholder": "Select an experience expectation",
+        "help": "Set expectations for how much prior knowledge or experience people should bring.",
+        "options": {
+          "beginner_friendly": "Beginner-friendly",
+          "casual": "Casual",
+          "midcore": "Midcore",
+          "semi_hardcore": "Semi-Hardcore",
+          "hardcore": "Hardcore",
+          "mixed": "Mixed"
+        }
+      },
+      "voice_expectation": {
+        "label": "Voice / Discord Expectation",
+        "placeholder": "Select a voice expectation",
+        "help": "Tell people whether voice chat is required, encouraged, or optional.",
+        "options": {
+          "required": "Required",
+          "preferred": "Preferred",
+          "optional": "Optional"
+        }
+      },
+      "preferred_languages": {
+        "label": "Preferred Languages",
+        "placeholder": "Select one or more languages",
+        "help": "Show which languages your group mainly communicates in."
+      },
+      "tags": {
+        "label": "Extra Tags",
+        "placeholder": "Add or create extra tags like Late Night or Blind Prog",
+        "help": "Optional. Use up to {max} freeform tags for extra flavor or niche details.",
+        "suggestions": {
+          "late_night": "Late Night",
+          "lgbtq_friendly": "LGBTQ+ Friendly",
+          "blind_prog": "Blind Prog",
+          "alt_friendly": "Alt Friendly",
+          "achievement_hunting": "Achievement Hunting",
+          "weekend_raids": "Weekend Raids"
+        }
+      },
+      "region": {
+        "label": "Operating Region",
+        "inferred": "Based on {datacenter}, this group will be shown as operating in {region}.",
+        "pending": "Choose a data center first to infer this group's main operating region."
+      },
+      "active_timezone": {
+        "label": "Active Timezone",
+        "placeholder": "Select a timezone",
+        "help": "Optional. If you set days or hours below, choose the timezone they should be interpreted in."
+      },
+      "active_days": {
+        "label": "Active Days",
+        "placeholder": "Select one or more active days",
+        "help": "Optional. Pick the days when your group most often runs or recruits.",
+        "options": {
+          "mon": "Monday",
+          "tue": "Tuesday",
+          "wed": "Wednesday",
+          "thu": "Thursday",
+          "fri": "Friday",
+          "sat": "Saturday",
+          "sun": "Sunday"
+        }
+      },
+      "active_start_time": {
+        "label": "Active Start Time",
+        "help": "Optional. Typical start of your group's active window."
+      },
+      "active_end_time": {
+        "label": "Active End Time",
+        "help": "Optional. Typical end of your group's active window."
       },
       "is_public": {
         "label": "Public Group",

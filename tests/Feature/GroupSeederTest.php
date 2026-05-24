@@ -33,7 +33,7 @@ it('seeds groups with populated discovery metadata and banner images', function 
         ->and($groups->every(fn (Group $group) => filled($group->active_end_time)))->toBeTrue()
         ->and($forkedTowerGroup->inferredRegion())->toBe('EU')
         ->and($forkedTowerGroup->owner_id)->toBe(1)
-        ->and($forkedTowerGroup->recruiting_status)->toBe('selective')
+        ->and($forkedTowerGroup->recruiting_status)->toBe('applications_open')
         ->and($forkedTowerGroup->primary_focuses)->toBe(['progression', 'clears', 'reclears'])
         ->and($forkedTowerGroup->preferred_languages)->toBe(['en', 'de', 'fr'])
         ->and($developmentOwner->is_admin)->toBeFalse();
