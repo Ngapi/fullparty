@@ -4,7 +4,7 @@ import { useI18n } from "vue-i18n";
 
 const props = withDefaults(defineProps<{
 	role: string | null | undefined
-	fallbackRole?: 'member' | 'moderator'
+	fallbackRole?: 'member' | 'moderator' | 'admin'
 	compact?: boolean
 }>(), {
 	fallbackRole: 'member',
@@ -19,6 +19,14 @@ const badge = computed(() => {
 			label: t('groups.access.owner'),
 			color: 'warning',
 			icon: 'i-lucide-crown',
+		};
+	}
+
+	if (props.role === 'admin' || props.fallbackRole === 'admin') {
+		return {
+			label: t('groups.access.admin'),
+			color: 'secondary',
+			icon: 'i-lucide-shield-check',
 		};
 	}
 

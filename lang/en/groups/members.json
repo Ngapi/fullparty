@@ -130,8 +130,8 @@
     "note_updated": "Member note updated.",
     "note_deleted": "Member note deleted.",
     "note_addendum_added": "Context added to note.",
-    "promoted": "Member promoted to moderator.",
-    "demoted": "Moderator changed back to member.",
+    "promoted": "Member role promoted.",
+    "demoted": "Member role demoted.",
     "removed": "Member removed from the group.",
     "banned": "Member banned from the group.",
     "unbanned": "Member unbanned successfully."

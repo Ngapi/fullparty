@@ -26,6 +26,7 @@
   },
   "roles": {
     "owner": "オーナー",
+    "admin": "管理者",
     "moderator": "モデレーター",
     "member": "メンバー"
   },
@@ -97,11 +98,58 @@
     "detail": {
       "title": "Group Details",
       "loading": "Loading group details...",
+      "tabs": {
+        "about": "Info",
+        "activity": "Activity",
+        "content": "Content",
+        "team": "Team"
+      },
+      "content": {
+        "summary": "Content Snapshot",
+        "summary_hint": "A quick breakdown of the public runs this group has put together.",
+        "total_public_runs": "Public Runs",
+        "library": "Content Library",
+        "library_hint": "Grouped by the activity types this group has actually been running.",
+        "completed": "Completed",
+        "active": "Active",
+        "last_run": "Last Run",
+        "next_run": "Next Run",
+        "run_singular": "run",
+        "run_plural": "runs",
+        "empty": "No public run history yet.",
+        "statuses": {
+          "planned": "Planned",
+          "scheduled": "Scheduled",
+          "active": "Active",
+          "complete": "Completed",
+          "cancelled": "Cancelled"
+        }
+      },
+      "team": {
+        "core_leadership": "Owner & Admins",
+        "core_leadership_hint": "The people leading the group at the highest level and keeping it moving forward.",
+        "owner_copy": "This player owns the group, handles the big calls, and sets the overall direction.",
+        "moderation_team": "Moderation Team",
+        "moderation_hint": "The people helping organize, moderate, and keep the group healthy.",
+        "role": "Role",
+        "no_moderation": "No moderators are listed for this group yet."
+      },
+      "description": "About Us",
+      "metadata_tags": "Metadata Tags",
+      "extra_tags": "Extra Tags",
+      "activity_summary": "Activity Summary",
       "owner": "Owner",
       "members": "Members",
       "recent_activity": "Recent Activity",
+      "recent_runs": "Recent Runs",
+      "recent_runs_hint": "A quick look at what this group has been running lately.",
+      "no_recent_runs": "No completed or archived runs yet.",
       "runs_total": "Total Runs",
       "runs_upcoming": "Upcoming Runs",
+      "completed_runs": "Completed Runs",
+      "total_runs": "Total Runs",
+      "runs_per_week": "Runs / Week",
+      "average_turnout": "Avg. Turnout",
       "latest_member": "Latest Member Join",
       "about": "About",
       "discord": "Discord",
@@ -116,10 +164,17 @@
       "timezone": "Timezone",
       "active_days": "Active Days",
       "active_hours": "Active Hours",
+      "progress": "Progress",
       "public_group": "Public Group",
       "visible_in_discovery": "Visible in Discovery",
       "description_fallback": "This group has not added a description yet.",
       "not_shared": "Not shared",
+      "closed": "Closed",
+      "showed_up": "{count} showed up",
+      "statuses": {
+        "complete": "Completed",
+        "cancelled": "Cancelled"
+      },
       "yes": "Yes",
       "no": "No"
     }

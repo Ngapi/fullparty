@@ -11,11 +11,16 @@ class GroupMembership extends Model
     use HasFactory;
 
     public const ROLE_OWNER = 'owner';
+
+    public const ROLE_ADMIN = 'admin';
+
     public const ROLE_MODERATOR = 'moderator';
+
     public const ROLE_MEMBER = 'member';
 
     public const ROLES = [
         self::ROLE_OWNER,
+        self::ROLE_ADMIN,
         self::ROLE_MODERATOR,
         self::ROLE_MEMBER,
     ];

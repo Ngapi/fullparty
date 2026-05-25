@@ -130,8 +130,8 @@
     "note_updated": "Note de membre mise à jour.",
     "note_deleted": "Note de membre supprimée.",
     "note_addendum_added": "Contexte ajouté à la note.",
-    "promoted": "Membre promu au rang de modérateur.",
-    "demoted": "Le modérateur a été rétrogradé au rang de membre.",
+    "promoted": "Rôle du membre promu.",
+    "demoted": "Rôle du membre rétrogradé.",
     "removed": "Membre retiré du groupe.",
     "banned": "Membre banni du groupe.",
     "unbanned": "Membre débanni avec succès."

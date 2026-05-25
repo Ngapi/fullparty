@@ -149,11 +149,11 @@
     },
     "member_promoted": {
       "title": "Role updated",
-      "body": "You were promoted to moderator in {group}."
+      "body": "Your role in {group} was updated to {role}."
     },
     "member_demoted": {
       "title": "Role updated",
-      "body": "You were moved back to member in {group}."
+      "body": "Your role in {group} was updated to {role}."
     },
     "ownership_transferred_to_you": {
       "title": "Group ownership transferred",

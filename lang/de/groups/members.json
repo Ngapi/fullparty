@@ -130,8 +130,8 @@
     "note_updated": "Mitgliedsnotiz aktualisiert.",
     "note_deleted": "Mitgliedsnotiz gelöscht.",
     "note_addendum_added": "Kontext zur Notiz hinzugefügt.",
-    "promoted": "Mitglied zum Moderator befördert.",
-    "demoted": "Moderator wieder zum Mitglied zurückgestuft.",
+    "promoted": "Mitgliedsrolle befördert.",
+    "demoted": "Mitgliedsrolle zurückgestuft.",
     "removed": "Mitglied aus der Gruppe entfernt.",
     "banned": "Mitglied aus der Gruppe gebannt.",
     "unbanned": "Mitglied erfolgreich entbannt."

@@ -171,8 +171,8 @@
         "joined": "ist der Gruppe beigetreten.",
         "joined_via_invite": "ist der Gruppe per Einladung beigetreten.",
         "left": "hat die Gruppe verlassen.",
-        "promoted": "hat ein Mitglied zum Moderator befördert.",
-        "demoted": "hat einen Moderator wieder zum Mitglied gemacht.",
+        "promoted": "hat eine Mitgliedsrolle befördert.",
+        "demoted": "hat eine Mitgliedsrolle zurückgestuft.",
         "note": {
           "created": "hat eine Mitgliedsnotiz hinzugefügt.",
           "updated": "hat eine Mitgliedsnotiz aktualisiert.",
@@ -376,8 +376,8 @@
         "joined": "Mitglied ist öffentlicher Gruppe beigetreten",
         "joined_via_invite": "Mitglied ist per Einladung beigetreten",
         "left": "Mitglied hat Gruppe verlassen",
-        "promoted": "Mitglied zum Moderator befördert",
-        "demoted": "Moderator wieder zum Mitglied gemacht",
+        "promoted": "Mitgliedsrolle befördert",
+        "demoted": "Mitgliedsrolle zurückgestuft",
         "note": {
           "created": "Mitgliedsnotiz erstellt",
           "updated": "Mitgliedsnotiz aktualisiert",

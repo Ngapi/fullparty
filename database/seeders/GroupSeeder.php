@@ -120,18 +120,26 @@ class GroupSeeder extends Seeder
             ->values();
 
         $selectedUsers = $availableUsers->take(max(0, $targetCount - 1));
-        $moderatorCount = min(fake()->numberBetween(0, 8), $selectedUsers->count());
-        $moderatorIds = $selectedUsers->take($moderatorCount)->pluck('id')->all();
+        $adminCount = $selectedUsers->isEmpty()
+            ? 0
+            : min(fake()->numberBetween(1, 3), $selectedUsers->count());
+        $adminIds = $selectedUsers->take($adminCount)->pluck('id')->all();
 
-        $selectedUsers->each(function (User $user, int $index) use ($group, $moderatorIds): void {
+        $remainingUsers = $selectedUsers->slice($adminCount)->values();
+        $moderatorCount = min(fake()->numberBetween(0, 8), $remainingUsers->count());
+        $moderatorIds = $remainingUsers->take($moderatorCount)->pluck('id')->all();
+
+        $selectedUsers->each(function (User $user, int $index) use ($group, $adminIds, $moderatorIds): void {
             $joinedAt = $group->created_at->copy()->addHours($index + 1);
 
             $group->memberships()->firstOrCreate(
                 ['user_id' => $user->id],
                 [
-                    'role' => in_array($user->id, $moderatorIds, true)
-                        ? GroupMembership::ROLE_MODERATOR
-                        : GroupMembership::ROLE_MEMBER,
+                    'role' => match (true) {
+                        in_array($user->id, $adminIds, true) => GroupMembership::ROLE_ADMIN,
+                        in_array($user->id, $moderatorIds, true) => GroupMembership::ROLE_MODERATOR,
+                        default => GroupMembership::ROLE_MEMBER,
+                    },
                     'joined_at' => $joinedAt,
                     'created_at' => $joinedAt,
                     'updated_at' => $joinedAt,

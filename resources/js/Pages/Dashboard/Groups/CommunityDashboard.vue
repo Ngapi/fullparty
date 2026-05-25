@@ -20,7 +20,11 @@ const page = usePage();
 const { showGroupNotificationsToast } = useGroupNotificationToast();
 
 const fallbackLocale = computed(() => String(page.props.locale?.fallback ?? "en"));
-const leadershipCount = computed(() => props.group.member_role_breakdown.owner + props.group.member_role_breakdown.moderator);
+const leadershipCount = computed(() => (
+	props.group.member_role_breakdown.owner
+	+ props.group.member_role_breakdown.admin
+	+ props.group.member_role_breakdown.moderator
+));
 const activeRunCount = computed(() => (
 	props.group.stats.scheduled_count
 	+ props.group.stats.assigned_count
@@ -122,6 +126,12 @@ const memberRoleItems = computed(() => [
 		label: t("groups.index.roles.owner"),
 		count: props.group.member_role_breakdown.owner,
 		color: "warning" as const,
+	},
+	{
+		key: "admin",
+		label: t("groups.index.roles.admin"),
+		count: props.group.member_role_breakdown.admin,
+		color: "secondary" as const,
 	},
 	{
 		key: "moderator",
@@ -858,6 +868,8 @@ const resolveActivityOrganizer = (activity: GroupDashboardActivity) => (
 									:label="t(`groups.index.roles.${member.role}`)"
 									:color="member.role === 'owner'
 										? 'warning'
+										: member.role === 'admin'
+											? 'secondary'
 										: member.role === 'moderator'
 											? 'primary'
 											: 'neutral'"

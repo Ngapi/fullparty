@@ -3,9 +3,12 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreGroupRequest;
+use App\Models\Activity;
+use App\Models\ActivitySlotAssignment;
 use App\Models\Group;
 use App\Models\GroupMembership;
 use App\Models\ScheduledRun;
+use App\Models\User;
 use App\Services\AuditLogger;
 use App\Services\Groups\GeneratedGroupImageService;
 use App\Services\ManagedImageStorage;
@@ -14,6 +17,7 @@ use App\Support\Audit\AuditSeverity;
 use App\Support\Groups\GroupDiscoveryBadgePalette;
 use App\Support\Input\RequestTextInputSanitizer;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -42,21 +46,21 @@ class GroupController extends Controller
         $user = auth()->user();
 
         $ownedGroups = $user->ownedGroups()
-            ->with(['memberships', 'scheduledRuns'])
+            ->with(['owner.primaryCharacter', 'memberships.user.primaryCharacter', 'scheduledRuns'])
             ->get()
             ->sortBy('name')
             ->values()
             ->map(fn (Group $group) => $this->serializeGroupListItem($group, $user->id));
 
         $moderatedGroups = $user->moderatedGroups()
-            ->with(['memberships', 'scheduledRuns'])
+            ->with(['owner.primaryCharacter', 'memberships.user.primaryCharacter', 'scheduledRuns'])
             ->get()
             ->sortBy('name')
             ->values()
             ->map(fn (Group $group) => $this->serializeGroupListItem($group, $user->id));
 
         $memberGroups = $user->memberGroups()
-            ->with(['memberships', 'scheduledRuns'])
+            ->with(['owner.primaryCharacter', 'memberships.user.primaryCharacter', 'scheduledRuns'])
             ->get()
             ->sortBy('name')
             ->values()
@@ -143,10 +147,10 @@ class GroupController extends Controller
     {
         abort_unless($group->is_visible, 404);
 
-        $group->loadMissing(['owner', 'memberships', 'scheduledRuns']);
+        $group->loadMissing(['owner.primaryCharacter', 'memberships.user.primaryCharacter', 'scheduledRuns']);
 
         return response()->json([
-            'data' => $this->serializeGroupListItem($group, (int) $request->user()->id),
+            'data' => $this->serializeGroupDiscoveryDetail($group, (int) $request->user()->id),
         ]);
     }
 
@@ -292,11 +296,7 @@ class GroupController extends Controller
             'active_start_time' => $group->active_start_time,
             'active_end_time' => $group->active_end_time,
             'badge_meta' => $this->groupDiscoveryBadgePalette->badgeMetaForGroup($group),
-            'owner' => [
-                'id' => $group->owner?->id,
-                'name' => $group->owner?->name,
-                'avatar_url' => $group->owner?->avatar_url,
-            ],
+            'owner' => $this->serializeDiscoveryUserIdentity($group->owner),
             'links' => [
                 'dashboard' => $group->hasMember($currentUserId)
                     ? route('groups.dashboard', $group, false)
@@ -324,6 +324,45 @@ class GroupController extends Controller
         ];
     }
 
+    private function serializeGroupDiscoveryDetail(Group $group, int $currentUserId): array
+    {
+        $publicRunsQuery = $group->activities()->where('is_public', true);
+        $allPublicRuns = (clone $publicRunsQuery)
+            ->with('activityTypeVersion.activityType')
+            ->orderByDesc('starts_at')
+            ->orderByDesc('id')
+            ->get();
+
+        $recentRuns = (clone $publicRunsQuery)
+            ->with(['activityTypeVersion.activityType', 'progressMilestones'])
+            ->withCount([
+                'slotAssignments as checked_in_assignment_count' => fn (Builder $query) => $query->whereIn('attendance_status', [
+                    ActivitySlotAssignment::STATUS_CHECKED_IN,
+                    ActivitySlotAssignment::STATUS_LATE,
+                ]),
+                'slots as assigned_slot_count' => fn (Builder $query) => $query->whereNotNull('assigned_character_id'),
+            ])
+            ->whereIn('status', [
+                Activity::STATUS_COMPLETE,
+                Activity::STATUS_CANCELLED,
+            ])
+            ->orderByDesc('starts_at')
+            ->orderByDesc('id')
+            ->limit(6)
+            ->get();
+
+        return array_merge($this->serializeGroupListItem($group, $currentUserId), [
+            'activity_summary' => $this->serializeGroupActivitySummary($publicRunsQuery, $recentRuns),
+            'recent_runs' => $recentRuns
+                ->map(fn (Activity $activity) => $this->serializeGroupRecentRun($activity))
+                ->values()
+                ->all(),
+            'content_summary' => $this->serializeGroupContentSummary($allPublicRuns),
+            'content_items' => $this->serializeGroupContentItems($allPublicRuns),
+            'team_members' => $this->serializeGroupTeamMembers($group),
+        ]);
+    }
+
     private function resolveLastActivityAt(Group $group)
     {
         $runActivity = $group->scheduledRuns->max('updated_at');
@@ -337,6 +376,269 @@ class GroupController extends Controller
             : $runActivity;
     }
 
+    private function serializeGroupActivitySummary(Builder|HasMany $publicRunsQuery, $recentRuns): array
+    {
+        $completedRuns = (clone $publicRunsQuery)
+            ->where('status', Activity::STATUS_COMPLETE)
+            ->count();
+        $totalRuns = (clone $publicRunsQuery)->count();
+        $recentWindowRuns = (clone $publicRunsQuery)
+            ->where('starts_at', '>=', now()->subDays(28))
+            ->whereNotIn('status', [
+                Activity::STATUS_PLANNED,
+                Activity::STATUS_CANCELLED,
+            ])
+            ->count();
+
+        $averageTurnout = $recentRuns
+            ->where('status', Activity::STATUS_COMPLETE)
+            ->map(fn (Activity $activity) => $this->resolveRunTurnoutCount($activity))
+            ->filter(fn (int $count) => $count > 0)
+            ->avg();
+
+        return [
+            'completed_runs' => $completedRuns,
+            'total_runs' => $totalRuns,
+            'runs_per_week' => round($recentWindowRuns / 4, 1),
+            'average_turnout' => $averageTurnout !== null ? round((float) $averageTurnout, 1) : 0,
+        ];
+    }
+
+    private function serializeGroupRecentRun(Activity $activity): array
+    {
+        return [
+            'id' => $activity->id,
+            'status' => $activity->status,
+            'starts_at' => $activity->starts_at?->toIso8601String(),
+            'activity_name' => $this->resolveActivityDisplayName($activity),
+            'activity_image_url' => $activity->activityTypeVersion?->small_image_url,
+            'run_title' => filled($activity->title) && $activity->title !== $this->resolveActivityDisplayName($activity)
+                ? $activity->title
+                : null,
+            'turnout_count' => $this->resolveRunTurnoutCount($activity),
+            'progress_summary' => $this->resolveRunProgressSummary($activity),
+        ];
+    }
+
+    private function serializeGroupContentSummary($publicRuns): array
+    {
+        $statusBreakdown = [
+            [
+                'status' => 'planned',
+                'count' => (int) $publicRuns->where('status', Activity::STATUS_PLANNED)->count(),
+            ],
+            [
+                'status' => 'scheduled',
+                'count' => (int) $publicRuns->where('status', Activity::STATUS_SCHEDULED)->count(),
+            ],
+            [
+                'status' => 'active',
+                'count' => (int) $publicRuns->whereIn('status', [
+                    Activity::STATUS_ASSIGNED,
+                    Activity::STATUS_UPCOMING,
+                    Activity::STATUS_ONGOING,
+                ])->count(),
+            ],
+            [
+                'status' => 'complete',
+                'count' => (int) $publicRuns->where('status', Activity::STATUS_COMPLETE)->count(),
+            ],
+            [
+                'status' => 'cancelled',
+                'count' => (int) $publicRuns->where('status', Activity::STATUS_CANCELLED)->count(),
+            ],
+        ];
+
+        return [
+            'total_runs' => (int) $publicRuns->count(),
+            'status_breakdown' => $statusBreakdown,
+        ];
+    }
+
+    private function serializeGroupContentItems($publicRuns): array
+    {
+        $now = now();
+
+        return $publicRuns
+            ->groupBy(function (Activity $activity) {
+                if ($activity->activity_type_version_id !== null) {
+                    return 'version:'.$activity->activity_type_version_id;
+                }
+
+                return 'name:'.$this->resolveActivityDisplayName($activity);
+            })
+            ->map(function ($runs, string $key) use ($now) {
+                /** @var Activity $representativeRun */
+                $representativeRun = $runs->first();
+
+                return [
+                    'key' => $key,
+                    'activity_name' => $this->resolveActivityDisplayName($representativeRun),
+                    'activity_image_url' => $representativeRun->activityTypeVersion?->small_image_url,
+                    'total_runs' => (int) $runs->count(),
+                    'completed_runs' => (int) $runs->where('status', Activity::STATUS_COMPLETE)->count(),
+                    'active_runs' => (int) $runs->whereIn('status', [
+                        Activity::STATUS_PLANNED,
+                        Activity::STATUS_SCHEDULED,
+                        Activity::STATUS_ASSIGNED,
+                        Activity::STATUS_UPCOMING,
+                        Activity::STATUS_ONGOING,
+                    ])->count(),
+                    'last_run_at' => $runs
+                        ->filter(fn (Activity $run) => $run->starts_at !== null && $run->starts_at->lte($now))
+                        ->pluck('starts_at')
+                        ->filter()
+                        ->sortDesc()
+                        ->first()?->toIso8601String(),
+                    'next_run_at' => $runs
+                        ->filter(fn (Activity $run) => $run->starts_at !== null
+                            && $run->starts_at->gt($now)
+                            && in_array($run->status, [
+                                Activity::STATUS_PLANNED,
+                                Activity::STATUS_SCHEDULED,
+                                Activity::STATUS_ASSIGNED,
+                                Activity::STATUS_UPCOMING,
+                                Activity::STATUS_ONGOING,
+                            ], true))
+                        ->pluck('starts_at')
+                        ->filter()
+                        ->sort()
+                        ->first()?->toIso8601String(),
+                ];
+            })
+            ->sortByDesc(fn (array $item) => $item['next_run_at'] ?? $item['last_run_at'] ?? '')
+            ->values()
+            ->all();
+    }
+
+    private function serializeGroupTeamMembers(Group $group): array
+    {
+        return $group->memberships
+            ->whereIn('role', [
+                GroupMembership::ROLE_OWNER,
+                GroupMembership::ROLE_ADMIN,
+                GroupMembership::ROLE_MODERATOR,
+            ])
+            ->sortBy(fn (GroupMembership $membership) => match ($membership->role) {
+                GroupMembership::ROLE_OWNER => 0,
+                GroupMembership::ROLE_ADMIN => 1,
+                GroupMembership::ROLE_MODERATOR => 2,
+                default => 3,
+            })
+            ->values()
+            ->map(fn (GroupMembership $membership) => [
+                ...$this->serializeDiscoveryUserIdentity($membership->user),
+                'role' => $membership->role,
+                'joined_at' => $membership->joined_at?->toIso8601String(),
+            ])
+            ->all();
+    }
+
+    /**
+     * @return array{id: int|null, name: string|null, avatar_url: string|null}
+     */
+    private function serializeDiscoveryUserIdentity(?User $user): array
+    {
+        $primaryCharacter = $user?->primaryCharacter;
+
+        return [
+            'id' => $user?->id,
+            'name' => $primaryCharacter?->name ?? $user?->name,
+            'avatar_url' => $primaryCharacter?->avatar_url ?? $user?->avatar_url,
+        ];
+    }
+
+    private function resolveRunTurnoutCount(Activity $activity): int
+    {
+        $checkedInCount = (int) ($activity->checked_in_assignment_count ?? 0);
+
+        if ($checkedInCount > 0) {
+            return $checkedInCount;
+        }
+
+        return (int) ($activity->assigned_slot_count ?? 0);
+    }
+
+    private function resolveRunProgressSummary(Activity $activity): ?string
+    {
+        if (filled($activity->furthest_progress_key)) {
+            $furthestLabel = $activity->progressMilestones
+                ->firstWhere('milestone_key', $activity->furthest_progress_key)
+                ?->milestone_label;
+
+            $furthestText = $this->resolveLocalizedText($furthestLabel);
+
+            if ($furthestText !== null && $activity->furthest_progress_percent !== null) {
+                return sprintf('%s - %s%%', $furthestText, rtrim(rtrim((string) $activity->furthest_progress_percent, '0'), '.'));
+            }
+
+            if ($furthestText !== null) {
+                return $furthestText;
+            }
+        }
+
+        $milestone = $activity->progressMilestones
+            ->filter(fn ($item) => $item->kills > 0 || $item->best_progress_percent !== null)
+            ->sortBy('sort_order')
+            ->last();
+
+        if (! $milestone) {
+            return null;
+        }
+
+        $milestoneLabel = $this->resolveLocalizedText($milestone->milestone_label);
+
+        if ($milestoneLabel === null) {
+            return null;
+        }
+
+        if ($milestone->kills > 0) {
+            return sprintf('Cleared %s', $milestoneLabel);
+        }
+
+        if ($milestone->best_progress_percent !== null) {
+            return sprintf(
+                '%s - %s%%',
+                $milestoneLabel,
+                rtrim(rtrim((string) $milestone->best_progress_percent, '0'), '.')
+            );
+        }
+
+        return null;
+    }
+
+    private function resolveActivityDisplayName(Activity $activity): string
+    {
+        $activityTypeVersionName = $this->resolveLocalizedText($activity->activityTypeVersion?->name);
+
+        if ($activityTypeVersionName !== null) {
+            return $activityTypeVersionName;
+        }
+
+        if (filled($activity->title)) {
+            return (string) $activity->title;
+        }
+
+        return 'Run';
+    }
+
+    private function resolveLocalizedText($value): ?string
+    {
+        if (! is_array($value)) {
+            return null;
+        }
+
+        foreach (['en', 'de', 'fr', 'ja'] as $locale) {
+            $candidate = $value[$locale] ?? null;
+
+            if (filled($candidate)) {
+                return (string) $candidate;
+            }
+        }
+
+        return null;
+    }
+
     private function discoverGroupsQuery(int $currentUserId, string $sortBy = 'created_at_desc'): Builder
     {
         $latestRunActivity = ScheduledRun::query()
@@ -348,7 +650,7 @@ class GroupController extends Controller
             ->leftJoinSub($latestRunActivity, 'latest_run_activity', function ($join) {
                 $join->on('latest_run_activity.group_id', '=', 'groups.id');
             })
-            ->with(['owner', 'memberships', 'scheduledRuns'])
+            ->with(['owner.primaryCharacter', 'memberships.user.primaryCharacter', 'scheduledRuns'])
             ->withCount('memberships')
             ->visible();
 

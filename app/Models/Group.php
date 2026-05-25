@@ -135,7 +135,11 @@ class Group extends Model
         }
 
         return $this->memberships
-            ->contains(fn (GroupMembership $membership) => $membership->user_id === $userId && $membership->role === GroupMembership::ROLE_MODERATOR);
+            ->contains(fn (GroupMembership $membership) => $membership->user_id === $userId
+                && in_array($membership->role, [
+                    GroupMembership::ROLE_ADMIN,
+                    GroupMembership::ROLE_MODERATOR,
+                ], true));
     }
 
     public function hasMember(?int $userId): bool

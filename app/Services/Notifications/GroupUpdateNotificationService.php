@@ -97,7 +97,7 @@ class GroupUpdateNotificationService
         $this->notificationService->sendInAppNotifications($event, $recipients);
     }
 
-    public function notifyMemberPromoted(Group $group, User $member, mixed $actor): void
+    public function notifyMemberPromoted(Group $group, User $member, mixed $actor, string $newRole): void
     {
         $this->notifyTargetUser(
             group: $group,
@@ -106,10 +106,13 @@ class GroupUpdateNotificationService
             type: 'groups.member_promoted',
             titleKey: 'notifications.groups.member_promoted.title',
             bodyKey: 'notifications.groups.member_promoted.body',
+            messageParams: [
+                'role' => $this->formatGroupRole($newRole),
+            ],
         );
     }
 
-    public function notifyMemberDemoted(Group $group, User $member, mixed $actor): void
+    public function notifyMemberDemoted(Group $group, User $member, mixed $actor, string $newRole): void
     {
         $this->notifyTargetUser(
             group: $group,
@@ -118,6 +121,9 @@ class GroupUpdateNotificationService
             type: 'groups.member_demoted',
             titleKey: 'notifications.groups.member_demoted.title',
             bodyKey: 'notifications.groups.member_demoted.body',
+            messageParams: [
+                'role' => $this->formatGroupRole($newRole),
+            ],
         );
     }
 
@@ -213,6 +219,7 @@ class GroupUpdateNotificationService
         string $type,
         string $titleKey,
         string $bodyKey,
+        array $messageParams = [],
     ): void {
         if (! $member->group_update_notifications) {
             return;
@@ -223,10 +230,10 @@ class GroupUpdateNotificationService
             category: NotificationCategory::GROUP_UPDATES,
             titleKey: $titleKey,
             bodyKey: $bodyKey,
-            messageParams: [
+            messageParams: array_merge([
                 'group' => $group->name,
                 'user' => $member->name,
-            ],
+            ], $messageParams),
             actionUrl: $type === 'groups.member_banned'
                 ? route('groups.index')
                 : route('groups.dashboard', $group),
@@ -295,7 +302,10 @@ class GroupUpdateNotificationService
                     ->orWhereHas('groupMemberships', function ($membershipQuery) use ($group): void {
                         $membershipQuery
                             ->where('group_id', $group->id)
-                            ->where('role', GroupMembership::ROLE_MODERATOR);
+                            ->whereIn('role', [
+                                GroupMembership::ROLE_ADMIN,
+                                GroupMembership::ROLE_MODERATOR,
+                            ]);
                     });
             })
             ->when($excludeUserId !== null, fn ($query) => $query->whereKeyNot($excludeUserId))
@@ -325,5 +335,15 @@ class GroupUpdateNotificationService
         }
 
         return sprintf('Activity #%d', $activity->id);
+    }
+
+    private function formatGroupRole(string $role): string
+    {
+        return match ($role) {
+            GroupMembership::ROLE_OWNER => 'Owner',
+            GroupMembership::ROLE_ADMIN => 'Admin',
+            GroupMembership::ROLE_MODERATOR => 'Moderator',
+            default => 'Member',
+        };
     }
 }

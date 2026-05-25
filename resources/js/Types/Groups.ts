@@ -2,6 +2,7 @@ import type { LocalizedText } from "@/Types/Common"
 
 export type MemberNoteSeverity = "info" | "warning" | "critical"
 export type GroupType = "community" | "static"
+export type GroupRole = "owner" | "admin" | "moderator" | "member"
 export type GroupCreateField =
 	| "name"
 	| "description"
@@ -235,7 +236,7 @@ export type GroupDashboardMemberPreview = {
 	id: number
 	name: string
 	avatar_url: string | null
-	role: string
+	role: GroupRole
 	joined_at: string | null
 }
 
@@ -286,6 +287,7 @@ export type GroupDashboardGroup = {
 	}
 	member_role_breakdown: {
 		owner: number
+		admin: number
 		moderator: number
 		member: number
 	}
@@ -308,7 +310,60 @@ export type PaginatedGroups = {
 	}
 }
 
-export type GroupDiscoveryDetailRecord = GroupIndexRecord
+export type GroupDiscoveryActivitySummary = {
+	completed_runs: number
+	total_runs: number
+	runs_per_week: number
+	average_turnout: number
+}
+
+export type GroupDiscoveryRecentRun = {
+	id: number
+	status: string
+	starts_at: string | null
+	activity_name: string
+	activity_image_url: string | null
+	run_title: string | null
+	turnout_count: number
+	progress_summary: string | null
+}
+
+export type GroupDiscoveryContentStatusCount = {
+	status: "planned" | "scheduled" | "active" | "complete" | "cancelled"
+	count: number
+}
+
+export type GroupDiscoveryContentSummary = {
+	total_runs: number
+	status_breakdown: GroupDiscoveryContentStatusCount[]
+}
+
+export type GroupDiscoveryContentItem = {
+	key: string
+	activity_name: string
+	activity_image_url: string | null
+	total_runs: number
+	completed_runs: number
+	active_runs: number
+	last_run_at: string | null
+	next_run_at: string | null
+}
+
+export type GroupDiscoveryTeamMember = {
+	id: number
+	name: string | null
+	avatar_url: string | null
+	role: "owner" | "admin" | "moderator"
+	joined_at: string | null
+}
+
+export type GroupDiscoveryDetailRecord = GroupIndexRecord & {
+	activity_summary: GroupDiscoveryActivitySummary
+	recent_runs: GroupDiscoveryRecentRun[]
+	content_summary: GroupDiscoveryContentSummary
+	content_items: GroupDiscoveryContentItem[]
+	team_members: GroupDiscoveryTeamMember[]
+}
 
 export type GroupMemberManagementGroup = {
 	slug: string
@@ -334,7 +389,7 @@ export type GroupMemberRecord = {
 	id: number
 	name: string
 	avatar_url: string | null
-	role: string
+	role: GroupRole
 	joined_at: string | null
 	participated_run_count: number
 	characters: GroupMemberCharacter[]
@@ -401,7 +456,7 @@ export type GroupMembersTableModerationController = {
 	memberPendingRoleUpdateId: number | null
 	memberPendingRemovalId: number | null
 	memberPendingBanId: number | null
-	updateMemberRole: (member: GroupMemberRecord, role: 'moderator' | 'member') => void
+	updateMemberRole: (member: GroupMemberRecord, role: 'admin' | 'moderator' | 'member') => void
 	openKickConfirmation: (member: GroupMemberRecord) => void | Promise<unknown>
 	openBanConfirmation: (member: GroupMemberRecord) => void | Promise<unknown>
 }

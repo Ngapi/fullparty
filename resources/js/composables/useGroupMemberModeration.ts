@@ -10,6 +10,7 @@ import {useI18n} from "vue-i18n";
 import {route} from "ziggy-js";
 // @ts-ignore
 import {useConfirmationModal} from "@/composables/useConfirmationModal";
+import type { GroupRole } from "@/Types/Groups";
 
 type UseGroupMemberModerationOptions = {
 	groupSlug: MaybeRefOrGetter<string>
@@ -55,14 +56,14 @@ export const useGroupMemberModeration = (options: UseGroupMemberModerationOption
 		rows: 4,
 	});
 
-	const updateMemberRole = (member: GroupMemberRecord, role: 'moderator' | 'member') => {
+	const updateMemberRole = (member: GroupMemberRecord, role: 'admin' | 'moderator' | 'member') => {
 		memberPendingRoleUpdateId.value = member.id;
 		updateRoleForm.role = role;
 
 		updateRoleForm.put(route('groups.members.update', [currentGroupSlug.value, member.id]), {
 			preserveScroll: true,
 			onSuccess: () => {
-				showSuccessToast(role === 'moderator'
+				showSuccessToast(isRolePromotion(member.role, role)
 					? t('groups.members.toasts.promoted')
 					: t('groups.members.toasts.demoted'));
 			},
@@ -185,3 +186,9 @@ export const useGroupMemberModeration = (options: UseGroupMemberModerationOption
 		unbanMember,
 	};
 };
+
+const roleOrder: GroupRole[] = ["owner", "admin", "moderator", "member"];
+
+const isRolePromotion = (currentRole: GroupRole, nextRole: GroupRole) => (
+	roleOrder.indexOf(nextRole) < roleOrder.indexOf(currentRole)
+);

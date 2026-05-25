@@ -10,6 +10,7 @@ import { getPaginationRowModel } from "@tanstack/vue-table";
 import { computed, ref, useTemplateRef, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import MemberNotesButton from "@/components/Shared/Notes/MemberNotesButton.vue";
+import type { GroupRole } from "@/Types/Groups";
 
 const props = defineProps<{
 	members: GroupMemberRecord[]
@@ -39,6 +40,11 @@ const roleBadge = (role: string) => ({
 		label: t('groups.index.roles.moderator'),
 		color: 'primary',
 		icon: 'i-lucide-shield',
+	},
+	admin: {
+		label: t('groups.index.roles.admin'),
+		color: 'secondary',
+		icon: 'i-lucide-shield-check',
 	},
 	member: {
 		label: t('groups.index.roles.member'),
@@ -73,6 +79,26 @@ const memberTableData = computed<GroupMemberTableRow[]>(() => props.members.map(
 	...member,
 	character_summary: summarizeCharacters(member.characters),
 })));
+
+const nextPromotedRole = (role: GroupRole) => {
+	if (role === "member") {
+		return "moderator";
+	}
+
+	if (role === "moderator") {
+		return "admin";
+	}
+
+	return "admin";
+};
+
+const nextDemotedRole = (role: GroupRole) => {
+	if (role === "admin") {
+		return "moderator";
+	}
+
+	return "member";
+};
 
 const memberColumns = computed(() => [
 	{ accessorKey: 'name', header: t('groups.members.table.columns.member') },
@@ -197,7 +223,7 @@ watch(memberGlobalFilter, () => {
 								icon="i-lucide-arrow-up"
 								:label="t('groups.members.actions.promote')"
 								:loading="props.moderation.updateRoleForm.processing && props.moderation.memberPendingRoleUpdateId === row.original.id"
-								@click="props.moderation.updateMemberRole(row.original, 'moderator')"
+								@click="props.moderation.updateMemberRole(row.original, nextPromotedRole(row.original.role))"
 							/>
 							<UButton
 								v-if="row.original.permissions.can_demote"
@@ -206,7 +232,7 @@ watch(memberGlobalFilter, () => {
 								icon="i-lucide-arrow-down"
 								:label="t('groups.members.actions.demote')"
 								:loading="props.moderation.updateRoleForm.processing && props.moderation.memberPendingRoleUpdateId === row.original.id"
-								@click="props.moderation.updateMemberRole(row.original, 'member')"
+								@click="props.moderation.updateMemberRole(row.original, nextDemotedRole(row.original.role))"
 							/>
 							<UButton
 								v-if="row.original.permissions.can_kick"

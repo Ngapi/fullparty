@@ -1,10 +1,12 @@
 <?php
 
+use App\Models\Character;
 use App\Models\Group;
 use App\Models\GroupMembership;
 use App\Models\User;
 use App\Support\Groups\GroupDiscoveryBadgePalette;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Inertia\Testing\AssertableInertia as Assert;
 
 uses(RefreshDatabase::class);
 
@@ -41,6 +43,11 @@ it('returns the initial discovery results when the query is empty', function () 
             'name' => "Owner {$index}",
             'avatar_url' => "https://example.com/avatar-{$index}.png",
         ]);
+        Character::factory()->primary()->create([
+            'user_id' => $group->owner_id,
+            'name' => "Character {$index}",
+            'avatar_url' => "https://example.com/character-avatar-{$index}.png",
+        ]);
 
         $group->forceFill([
             'name' => "Search Group {$index}",
@@ -67,10 +74,39 @@ it('returns the initial discovery results when the query is empty', function () 
         ->assertJsonPath('meta.per_page', 6)
         ->assertJsonPath('meta.total', 8)
         ->assertJsonPath('data.0.name', 'Search Group 6')
-        ->assertJsonPath('data.0.owner.name', 'Owner 6')
+        ->assertJsonPath('data.0.owner.name', 'Character 6')
+        ->assertJsonPath('data.0.owner.avatar_url', 'https://example.com/character-avatar-6.png')
         ->assertJsonPath('data.0.badge_meta.recruiting_status.color', '#4C7DFF')
         ->assertJsonPath('data.0.badge_meta.tags.0.color', app(GroupDiscoveryBadgePalette::class)->tagColor('Tag 6'))
         ->assertJsonMissing(['name' => 'Hidden Group']);
+});
+
+it('uses the owner primary character in the initial discovery page payload', function () {
+    $user = User::factory()->create();
+    $group = Group::factory()->public()->create([
+        'name' => 'Initial Discovery Group',
+        'slug' => 'initdisc',
+    ]);
+
+    $group->owner->update([
+        'name' => 'Fallback Owner Name',
+        'avatar_url' => 'https://example.com/fallback-owner.png',
+    ]);
+
+    Character::factory()->primary()->create([
+        'user_id' => $group->owner_id,
+        'name' => 'Owner Main Character',
+        'avatar_url' => 'https://example.com/owner-main-character.png',
+    ]);
+
+    $this->actingAs($user)
+        ->get(route('groups.index'))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->component('Dashboard/Groups/Index')
+            ->where('discoverGroups.data.0.owner.name', 'Owner Main Character')
+            ->where('discoverGroups.data.0.owner.avatar_url', 'https://example.com/owner-main-character.png')
+        );
 });
 
 it('includes groups the current user already belongs to in discovery results', function () {

@@ -73,6 +73,9 @@ class GroupDashboardController extends Controller
             GroupMembership::ROLE_OWNER => $group->memberships
                 ->where('role', GroupMembership::ROLE_OWNER)
                 ->count(),
+            GroupMembership::ROLE_ADMIN => $group->memberships
+                ->where('role', GroupMembership::ROLE_ADMIN)
+                ->count(),
             GroupMembership::ROLE_MODERATOR => $group->memberships
                 ->where('role', GroupMembership::ROLE_MODERATOR)
                 ->count(),
@@ -144,6 +147,7 @@ class GroupDashboardController extends Controller
                 ],
                 'member_role_breakdown' => [
                     'owner' => $memberRoleBreakdown[GroupMembership::ROLE_OWNER],
+                    'admin' => $memberRoleBreakdown[GroupMembership::ROLE_ADMIN],
                     'moderator' => $memberRoleBreakdown[GroupMembership::ROLE_MODERATOR],
                     'member' => $memberRoleBreakdown[GroupMembership::ROLE_MEMBER],
                 ],

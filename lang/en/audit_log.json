@@ -175,8 +175,8 @@
         "joined": "joined the group.",
         "joined_via_invite": "joined the group via invite.",
         "left": "left the group.",
-        "promoted": "promoted a member to moderator.",
-        "demoted": "changed a moderator back to member.",
+        "promoted": "promoted a member role.",
+        "demoted": "demoted a member role.",
         "note": {
           "created": "added a member note.",
           "updated": "updated a member note.",
@@ -397,8 +397,8 @@
         "joined": "Member joined public group",
         "joined_via_invite": "Member joined via invite",
         "left": "Member left group",
-        "promoted": "Member promoted to moderator",
-        "demoted": "Moderator changed back to member",
+        "promoted": "Member role promoted",
+        "demoted": "Member role demoted",
         "note": {
           "created": "Member note created",
           "updated": "Member note updated",

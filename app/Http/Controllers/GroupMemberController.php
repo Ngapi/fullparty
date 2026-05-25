@@ -7,9 +7,9 @@ use App\Models\GroupBan;
 use App\Models\GroupMembership;
 use App\Models\User;
 use App\Services\Groups\GroupUserNoteVisibilityService;
+use Illuminate\Support\Collection;
 use Inertia\Inertia;
 use Inertia\Response;
-use Illuminate\Support\Collection;
 
 class GroupMemberController extends Controller
 {
@@ -25,7 +25,7 @@ class GroupMemberController extends Controller
         $currentUserId = auth()->id();
         $canManageMembers = $group->hasModeratorAccess($currentUserId);
 
-        if (!$group->hasMember($currentUserId)) {
+        if (! $group->hasMember($currentUserId)) {
             abort(403);
         }
 
@@ -82,8 +82,7 @@ class GroupMemberController extends Controller
         Collection $groupNotesByUserId,
         Collection $sharedNotesByUserId,
         GroupUserNoteVisibilityService $noteVisibilityService,
-    ): array
-    {
+    ): array {
         return $group->memberships
             ->sort(function (GroupMembership $left, GroupMembership $right) {
                 $leftRole = array_search($left->role, GroupMembership::ROLES, true);
@@ -160,14 +159,20 @@ class GroupMemberController extends Controller
     {
         return $group->isOwnedBy($currentUserId)
             && $membership->user_id !== $currentUserId
-            && $membership->role === GroupMembership::ROLE_MEMBER;
+            && in_array($membership->role, [
+                GroupMembership::ROLE_MEMBER,
+                GroupMembership::ROLE_MODERATOR,
+            ], true);
     }
 
     private function canDemote(Group $group, GroupMembership $membership, int $currentUserId): bool
     {
         return $group->isOwnedBy($currentUserId)
             && $membership->user_id !== $currentUserId
-            && $membership->role === GroupMembership::ROLE_MODERATOR;
+            && in_array($membership->role, [
+                GroupMembership::ROLE_ADMIN,
+                GroupMembership::ROLE_MODERATOR,
+            ], true);
     }
 
     private function canKick(Group $group, GroupMembership $membership, int $currentUserId): bool
@@ -195,8 +200,7 @@ class GroupMemberController extends Controller
         Collection $groupNotesByUserId,
         Collection $sharedNotesByUserId,
         GroupUserNoteVisibilityService $noteVisibilityService,
-    ): array
-    {
+    ): array {
         return $group->bans
             ->sort(function (GroupBan $left, GroupBan $right) {
                 return $right->created_at <=> $left->created_at;

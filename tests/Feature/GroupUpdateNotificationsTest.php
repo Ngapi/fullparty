@@ -263,6 +263,36 @@ it('notifies the affected user when they are promoted and demoted', function () 
         ->and(UserNotification::query()->pluck('user_id')->unique()->all())->toBe([$member->id]);
 });
 
+it('treats admin as an elevated promotion tier with the same notification flow', function () {
+    $owner = User::factory()->create();
+    $moderator = User::factory()->create([
+        'group_update_notifications' => true,
+    ]);
+
+    $group = Group::factory()->public()->create([
+        'owner_id' => $owner->id,
+    ]);
+
+    $group->memberships()->create([
+        'user_id' => $moderator->id,
+        'role' => GroupMembership::ROLE_MODERATOR,
+        'joined_at' => now(),
+    ]);
+
+    $this->actingAs($owner)
+        ->put(route('groups.members.update', [
+            'group' => $group,
+            'user' => $moderator,
+        ]), [
+            'role' => GroupMembership::ROLE_ADMIN,
+        ])
+        ->assertRedirect();
+
+    expect($group->memberships()->where('user_id', $moderator->id)->sole()->role)->toBe(GroupMembership::ROLE_ADMIN)
+        ->and(NotificationEvent::query()->where('type', 'groups.member_promoted')->count())->toBe(1)
+        ->and(UserNotification::query()->pluck('user_id')->unique()->all())->toBe([$moderator->id]);
+});
+
 it('notifies both sides when ownership is transferred', function () {
     $owner = User::factory()->create([
         'group_update_notifications' => true,

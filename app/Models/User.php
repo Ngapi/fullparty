@@ -123,7 +123,10 @@ class User extends Authenticatable implements MustVerifyEmail
 
     public function moderatedGroups(): BelongsToMany
     {
-        return $this->groups()->wherePivot('role', GroupMembership::ROLE_MODERATOR);
+        return $this->groups()->wherePivotIn('role', [
+            GroupMembership::ROLE_ADMIN,
+            GroupMembership::ROLE_MODERATOR,
+        ]);
     }
 
     public function memberGroups(): BelongsToMany

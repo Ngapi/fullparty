@@ -148,6 +148,7 @@ class GroupMembershipController extends Controller
 
         $validated = $request->validate([
             'role' => ['required', Rule::in([
+                GroupMembership::ROLE_ADMIN,
                 GroupMembership::ROLE_MODERATOR,
                 GroupMembership::ROLE_MEMBER,
             ])],
@@ -169,14 +170,16 @@ class GroupMembershipController extends Controller
             'role' => $validated['role'],
         ]);
 
+        $isPromotion = $this->roleRank($validated['role']) < $this->roleRank($previousRole);
+
         $this->auditLogger->log(
-            action: $validated['role'] === GroupMembership::ROLE_MODERATOR
+            action: $isPromotion
                 ? 'group.member.promoted'
                 : 'group.member.demoted',
             severity: AuditSeverity::MODERATION_CHANGE,
             scopeType: AuditScope::GROUP,
             scopeId: $group->id,
-            message: $validated['role'] === GroupMembership::ROLE_MODERATOR
+            message: $isPromotion
                 ? 'audit_log.events.group.member.promoted'
                 : 'audit_log.events.group.member.demoted',
             actor: auth()->user(),
@@ -191,10 +194,20 @@ class GroupMembershipController extends Controller
             ],
         );
 
-        if ($validated['role'] === GroupMembership::ROLE_MODERATOR) {
-            $this->groupUpdateNotificationService->notifyMemberPromoted($group->fresh(), $user, auth()->user());
+        if ($isPromotion) {
+            $this->groupUpdateNotificationService->notifyMemberPromoted(
+                $group->fresh(),
+                $user,
+                auth()->user(),
+                $validated['role'],
+            );
         } else {
-            $this->groupUpdateNotificationService->notifyMemberDemoted($group->fresh(), $user, auth()->user());
+            $this->groupUpdateNotificationService->notifyMemberDemoted(
+                $group->fresh(),
+                $user,
+                auth()->user(),
+                $validated['role'],
+            );
         }
 
         return redirect()->back()->with('success', 'group_member_updated');
@@ -373,7 +386,7 @@ class GroupMembershipController extends Controller
         DB::transaction(function () use ($group, $newOwnerMembership) {
             $group->memberships()
                 ->where('role', GroupMembership::ROLE_OWNER)
-                ->update(['role' => GroupMembership::ROLE_MODERATOR]);
+                ->update(['role' => GroupMembership::ROLE_ADMIN]);
 
             $newOwnerMembership->update([
                 'role' => GroupMembership::ROLE_OWNER,
@@ -446,5 +459,15 @@ class GroupMembershipController extends Controller
         if (! $group->hasModeratorAccess(auth()->id())) {
             abort(403);
         }
+    }
+
+    private function roleRank(string $role): int
+    {
+        return match ($role) {
+            GroupMembership::ROLE_OWNER => 0,
+            GroupMembership::ROLE_ADMIN => 1,
+            GroupMembership::ROLE_MODERATOR => 2,
+            default => 3,
+        };
     }
 }

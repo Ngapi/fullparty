@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\Group;
+use App\Models\GroupMembership;
 use App\Models\User;
 use Database\Seeders\GroupSeeder;
 use Database\Seeders\UserSeeder;
@@ -32,6 +33,7 @@ it('seeds groups with populated discovery metadata and generated images', functi
         ->and($groups->every(fn (Group $group) => ($group->active_days ?? []) !== []))->toBeTrue()
         ->and($groups->every(fn (Group $group) => filled($group->active_start_time)))->toBeTrue()
         ->and($groups->every(fn (Group $group) => filled($group->active_end_time)))->toBeTrue()
+        ->and($groups->every(fn (Group $group) => $group->memberships()->where('role', GroupMembership::ROLE_ADMIN)->exists()))->toBeTrue()
         ->and($forkedTowerGroup->inferredRegion())->toBe('EU')
         ->and($forkedTowerGroup->owner_id)->toBe(1)
         ->and($forkedTowerGroup->recruiting_status)->toBe('applications_open')

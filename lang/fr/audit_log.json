@@ -171,8 +171,8 @@
         "joined": "a rejoint le groupe.",
         "joined_via_invite": "a rejoint le groupe via une invitation.",
         "left": "a quitté le groupe.",
-        "promoted": "a promu un membre au rang de modérateur.",
-        "demoted": "a rétrogradé un modérateur au rang de membre.",
+        "promoted": "a promu le rôle d'un membre.",
+        "demoted": "a rétrogradé le rôle d'un membre.",
         "note": {
           "created": "a ajouté une note de membre.",
           "updated": "a mis à jour une note de membre.",
@@ -376,8 +376,8 @@
         "joined": "Membre ayant rejoint un groupe public",
         "joined_via_invite": "Membre ayant rejoint via une invitation",
         "left": "Membre ayant quitté le groupe",
-        "promoted": "Membre promu au rang de modérateur",
-        "demoted": "Modérateur redevenu membre",
+        "promoted": "Rôle de membre promu",
+        "demoted": "Rôle de membre rétrogradé",
         "note": {
           "created": "Note de membre créée",
           "updated": "Note de membre mise à jour",

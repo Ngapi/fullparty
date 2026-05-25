@@ -1,5 +1,6 @@
 {
   "owner": "Owner Access",
+  "admin": "Admin Access",
   "moderator": "Moderator Access",
   "member": "Member Access"
 }
