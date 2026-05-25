@@ -81,6 +81,12 @@ it('returns discovery details for visible groups', function () {
         ->assertJsonPath('data.preferred_languages.0', 'en')
         ->assertJsonPath('data.tags.0', 'Late Night')
         ->assertJsonPath('data.links.dashboard', null)
+        ->assertJsonPath('data.follow.is_following', false)
+        ->assertJsonPath('data.follow.notifications_enabled', true)
+        ->assertJsonPath('data.permissions.can_follow', true)
+        ->assertJsonPath('data.permissions.can_join', true)
+        ->assertJsonPath('data.permissions.can_leave', false)
+        ->assertJsonPath('data.permissions.can_toggle_notifications', false)
         ->assertJsonPath('data.owner.name', 'Owner Main')
         ->assertJsonPath('data.owner.avatar_url', 'https://example.com/owner-main.png')
         ->assertJsonPath('data.stats.member_count', 1)
@@ -237,4 +243,26 @@ it('only exposes owner and moderators in discovery team details', function () {
         ->assertJsonPath('data.team_members.2.role', GroupMembership::ROLE_MODERATOR)
         ->assertJsonPath('data.team_members.2.id', $moderator->id)
         ->assertJsonPath('data.team_members.2.name', 'Helpful Mod');
+});
+
+it('returns member interaction state for discovery details', function () {
+    $member = User::factory()->create();
+    $group = Group::factory()
+        ->public()
+        ->withMember($member)
+        ->create([
+            'slug' => 'memberstate',
+        ]);
+
+    $this->actingAs($member)
+        ->getJson(route('groups.details', $group))
+        ->assertOk()
+        ->assertJsonPath('data.current_user_role', GroupMembership::ROLE_MEMBER)
+        ->assertJsonPath('data.links.dashboard', route('groups.dashboard', $group, false))
+        ->assertJsonPath('data.follow.is_following', true)
+        ->assertJsonPath('data.follow.notifications_enabled', true)
+        ->assertJsonPath('data.permissions.can_follow', false)
+        ->assertJsonPath('data.permissions.can_join', false)
+        ->assertJsonPath('data.permissions.can_leave', true)
+        ->assertJsonPath('data.permissions.can_toggle_notifications', true);
 });

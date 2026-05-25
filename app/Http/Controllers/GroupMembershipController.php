@@ -28,6 +28,10 @@ class GroupMembershipController extends Controller
     {
         $group->loadMissing('memberships');
 
+        $validated = request()->validate([
+            'redirect_to' => ['nullable', Rule::in(['back', 'dashboard'])],
+        ]);
+
         if (! $group->usesCommunityJoinFlow()) {
             return redirect()->back()->withErrors([
                 'error' => 'group_join_unavailable',
@@ -72,7 +76,8 @@ class GroupMembershipController extends Controller
             );
         }
 
-        return redirect()->route('groups.dashboard', $group)->with('success', 'group_joined');
+        return $this->joinRedirect($group, $validated['redirect_to'] ?? 'dashboard')
+            ->with('success', 'group_joined');
     }
 
     public function leave(Request $request, Group $group): RedirectResponse
@@ -139,6 +144,15 @@ class GroupMembershipController extends Controller
         }
 
         return redirect()->back();
+    }
+
+    private function joinRedirect(Group $group, string $target): RedirectResponse
+    {
+        if ($target === 'back') {
+            return redirect()->back();
+        }
+
+        return redirect()->route('groups.dashboard', $group);
     }
 
     public function update(Request $request, Group $group, User $user): RedirectResponse

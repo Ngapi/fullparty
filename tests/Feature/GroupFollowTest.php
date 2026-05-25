@@ -51,6 +51,24 @@ it('auto follows members when they join and removes the follow when they leave',
     expect($group->fresh()->followers()->where('users.id', $member->id)->exists())->toBeFalse();
 });
 
+it('can join a group and stay on the discovery page when requested', function () {
+    $owner = User::factory()->create();
+    $member = User::factory()->create();
+    $group = Group::factory()->public()->create([
+        'owner_id' => $owner->id,
+    ]);
+
+    $this->actingAs($member)
+        ->from(route('groups.index', ['group' => $group->slug]))
+        ->post(route('groups.join', $group), [
+            'redirect_to' => 'back',
+        ])
+        ->assertRedirect(route('groups.index', ['group' => $group->slug]));
+
+    expect($group->fresh()->memberships()->where('user_id', $member->id)->exists())->toBeTrue()
+        ->and($group->fresh()->followers()->where('users.id', $member->id)->exists())->toBeTrue();
+});
+
 it('can redirect dashboard leave requests away from the dashboard', function () {
     $owner = User::factory()->create();
     $member = User::factory()->create();

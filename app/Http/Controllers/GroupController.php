@@ -46,21 +46,36 @@ class GroupController extends Controller
         $user = auth()->user();
 
         $ownedGroups = $user->ownedGroups()
-            ->with(['owner.primaryCharacter', 'memberships.user.primaryCharacter', 'scheduledRuns'])
+            ->with([
+                'owner.primaryCharacter',
+                'memberships.user.primaryCharacter',
+                'scheduledRuns',
+                'followers' => fn ($query) => $query->where('users.id', $user->id),
+            ])
             ->get()
             ->sortBy('name')
             ->values()
             ->map(fn (Group $group) => $this->serializeGroupListItem($group, $user->id));
 
         $moderatedGroups = $user->moderatedGroups()
-            ->with(['owner.primaryCharacter', 'memberships.user.primaryCharacter', 'scheduledRuns'])
+            ->with([
+                'owner.primaryCharacter',
+                'memberships.user.primaryCharacter',
+                'scheduledRuns',
+                'followers' => fn ($query) => $query->where('users.id', $user->id),
+            ])
             ->get()
             ->sortBy('name')
             ->values()
             ->map(fn (Group $group) => $this->serializeGroupListItem($group, $user->id));
 
         $memberGroups = $user->memberGroups()
-            ->with(['owner.primaryCharacter', 'memberships.user.primaryCharacter', 'scheduledRuns'])
+            ->with([
+                'owner.primaryCharacter',
+                'memberships.user.primaryCharacter',
+                'scheduledRuns',
+                'followers' => fn ($query) => $query->where('users.id', $user->id),
+            ])
             ->get()
             ->sortBy('name')
             ->values()
@@ -273,6 +288,7 @@ class GroupController extends Controller
     private function serializeGroupListItem(Group $group, int $currentUserId): array
     {
         return [
+            ...$this->serializeGroupInteractionState($group, $currentUserId),
             'id' => $group->id,
             'name' => $group->name,
             'description' => $group->description,
@@ -297,14 +313,6 @@ class GroupController extends Controller
             'active_end_time' => $group->active_end_time,
             'badge_meta' => $this->groupDiscoveryBadgePalette->badgeMetaForGroup($group),
             'owner' => $this->serializeDiscoveryUserIdentity($group->owner),
-            'links' => [
-                'dashboard' => $group->hasMember($currentUserId)
-                    ? route('groups.dashboard', $group, false)
-                    : null,
-            ],
-            'current_user_role' => $group->memberships
-                ->firstWhere('user_id', $currentUserId)
-                ?->role,
             'stats' => [
                 'member_count' => $group->memberships->count(),
                 'upcoming_run_count' => $group->scheduledRuns
@@ -352,6 +360,7 @@ class GroupController extends Controller
             ->get();
 
         return array_merge($this->serializeGroupListItem($group, $currentUserId), [
+            ...$this->serializeGroupInteractionState($group, $currentUserId, true),
             'activity_summary' => $this->serializeGroupActivitySummary($publicRunsQuery, $recentRuns),
             'recent_runs' => $recentRuns
                 ->map(fn (Activity $activity) => $this->serializeGroupRecentRun($activity))
@@ -650,7 +659,12 @@ class GroupController extends Controller
             ->leftJoinSub($latestRunActivity, 'latest_run_activity', function ($join) {
                 $join->on('latest_run_activity.group_id', '=', 'groups.id');
             })
-            ->with(['owner.primaryCharacter', 'memberships.user.primaryCharacter', 'scheduledRuns'])
+            ->with([
+                'owner.primaryCharacter',
+                'memberships.user.primaryCharacter',
+                'scheduledRuns',
+                'followers' => fn ($query) => $query->where('users.id', $currentUserId),
+            ])
             ->withCount('memberships')
             ->visible();
 
@@ -843,5 +857,60 @@ class GroupController extends Controller
             'active_start_time' => $group->active_start_time,
             'active_end_time' => $group->active_end_time,
         ];
+    }
+
+    /**
+     * @return array{
+     *     links: array{dashboard: string|null},
+     *     current_user_role: string|null,
+     *     follow: array{is_following: bool, notifications_enabled: bool},
+     *     permissions: array{can_join: bool, can_leave: bool, can_toggle_notifications: bool, can_follow: bool}
+     * }
+     */
+    private function serializeGroupInteractionState(Group $group, int $currentUserId, bool $includeBanCheck = false): array
+    {
+        $currentMembership = $group->memberships->firstWhere('user_id', $currentUserId);
+        $isMember = $currentMembership instanceof GroupMembership;
+        $currentFollow = $this->resolveCurrentFollow($group, $currentUserId);
+        $isFollowing = $isMember || $currentFollow !== null;
+        $notificationsEnabled = $currentFollow
+            ? (bool) $currentFollow->pivot->notifications_enabled
+            : true;
+        $isBanned = $includeBanCheck ? $group->isBanned($currentUserId) : false;
+
+        return [
+            'links' => [
+                'dashboard' => $isMember
+                    ? route('groups.dashboard', $group, false)
+                    : null,
+            ],
+            'current_user_role' => $currentMembership?->role,
+            'follow' => [
+                'is_following' => $isFollowing,
+                'notifications_enabled' => $notificationsEnabled,
+            ],
+            'permissions' => [
+                'can_join' => ! $isBanned
+                    && ! $isMember
+                    && $group->is_public
+                    && $group->usesCommunityJoinFlow(),
+                'can_leave' => $isMember && ! $group->isOwnedBy($currentUserId),
+                'can_toggle_notifications' => ! $isBanned && $isFollowing,
+                'can_follow' => ! $isBanned
+                    && ! $isMember
+                    && $group->is_public,
+            ],
+        ];
+    }
+
+    private function resolveCurrentFollow(Group $group, int $currentUserId): ?User
+    {
+        if ($group->relationLoaded('followers')) {
+            return $group->followers->firstWhere('id', $currentUserId);
+        }
+
+        return $group->followers()
+            ->where('users.id', $currentUserId)
+            ->first();
     }
 }

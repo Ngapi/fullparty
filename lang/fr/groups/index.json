@@ -98,6 +98,15 @@
     "detail": {
       "title": "Group Details",
       "loading": "Loading group details...",
+      "actions": {
+        "follow": "Follow Group",
+        "unfollow": "Unfollow",
+        "join": "Join Group",
+        "leave": "Leave Group",
+        "dashboard": "Dashboard",
+        "mute_notifications": "Mute Notifications",
+        "unmute_notifications": "Unmute Notifications"
+      },
       "tabs": {
         "about": "Info",
         "activity": "Activity",

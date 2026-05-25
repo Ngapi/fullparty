@@ -53,34 +53,34 @@ const compact_logo = "/logos/compact.png";
 const currentUrl = computed(() => page.url)
 const isAdmin = computed(() => Boolean(page.props.auth?.user?.is_admin))
 const groupQuickLinks = computed(() => page.props.navigation?.group_quick_links ?? {
-	owned: [],
-	moderated: [],
-	member: [],
+	my: [],
+	joined: [],
+	followed: [],
 })
 const groupDrawerOpen = ref({
-	owned: false,
-	moderated: false,
-	member: false,
+	my: false,
+	joined: false,
+	followed: false,
 })
 
 const groupQuickLinkSections = computed(() => [
 	{
-		key: 'owned',
-		label: t('navigation.sidebar.owned_groups'),
+		key: 'my',
+		label: t('navigation.sidebar.my_groups'),
 		icon: 'i-lucide-crown',
-		items: groupQuickLinks.value.owned,
+		items: groupQuickLinks.value.my,
 	},
 	{
-		key: 'moderated',
-		label: t('navigation.sidebar.moderated_groups'),
-		icon: 'i-lucide-shield-check',
-		items: groupQuickLinks.value.moderated,
-	},
-	{
-		key: 'member',
-		label: t('navigation.sidebar.member_groups'),
+		key: 'joined',
+		label: t('navigation.sidebar.joined_groups'),
 		icon: 'i-lucide-users',
-		items: groupQuickLinks.value.member,
+		items: groupQuickLinks.value.joined,
+	},
+	{
+		key: 'followed',
+		label: t('navigation.sidebar.followed_groups'),
+		icon: 'i-lucide-heart',
+		items: groupQuickLinks.value.followed,
 	},
 ].filter((section) => section.items.length > 0))
 

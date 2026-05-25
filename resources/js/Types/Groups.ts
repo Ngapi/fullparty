@@ -131,6 +131,16 @@ export type GroupIndexRecord = {
 		dashboard: string | null
 	}
 	current_user_role: string | null
+	follow: {
+		is_following: boolean
+		notifications_enabled: boolean
+	}
+	permissions: {
+		can_join: boolean
+		can_leave: boolean
+		can_toggle_notifications: boolean
+		can_follow: boolean
+	}
 	stats: {
 		member_count: number
 		upcoming_run_count: number

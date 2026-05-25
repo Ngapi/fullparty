@@ -104,6 +104,11 @@ const loadGroupDetails = async (groupSlug: string) => {
 	}
 };
 
+const refreshGroupDetails = async (groupSlug: string) => {
+	groupDetailsCache.delete(groupSlug);
+	await loadGroupDetails(groupSlug);
+};
+
 const openGroupDetails = (group: FeaturedGroupRecord | GroupIndexRecord) => {
 	activeGroupSlug.value = group.slug;
 	isGroupDetailsOpen.value = true;
@@ -201,6 +206,7 @@ watch(isGroupDetailsOpen, (isOpen) => {
 			v-model:open="isGroupDetailsOpen"
 			:group="selectedGroup"
 			:loading="isGroupDetailsLoading"
+			@refresh-group="refreshGroupDetails"
 		/>
 	</div>
 </template>

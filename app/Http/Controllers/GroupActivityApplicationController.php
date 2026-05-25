@@ -488,7 +488,6 @@ class GroupActivityApplicationController extends Controller
             abort(404);
         }
 
-        // TODO: Add the non-application self-assignment/direct-join flow for activities that do not use applications.
         if (! $activity->needs_application) {
             abort(404);
         }

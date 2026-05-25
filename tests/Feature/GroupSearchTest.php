@@ -109,6 +109,55 @@ it('uses the owner primary character in the initial discovery page payload', fun
         );
 });
 
+it('shares the sidebar group quick links as my, joined, and follower-only buckets', function () {
+    $user = User::factory()->create();
+
+    $ownedGroup = Group::factory()->public()->create([
+        'owner_id' => $user->id,
+        'name' => 'Owned Sidebar Group',
+        'slug' => 'ownedsidebar',
+    ]);
+
+    $adminGroup = Group::factory()->public()->create([
+        'name' => 'Admin Sidebar Group',
+        'slug' => 'adminsidebar',
+    ]);
+    $adminGroup->memberships()->create([
+        'user_id' => $user->id,
+        'role' => GroupMembership::ROLE_ADMIN,
+        'joined_at' => now(),
+    ]);
+
+    $memberGroup = Group::factory()->public()->create([
+        'name' => 'Member Sidebar Group',
+        'slug' => 'membersidebar',
+    ]);
+    $memberGroup->memberships()->create([
+        'user_id' => $user->id,
+        'role' => GroupMembership::ROLE_MEMBER,
+        'joined_at' => now(),
+    ]);
+
+    $followedOnlyGroup = Group::factory()->public()->create([
+        'name' => 'Followed Sidebar Group',
+        'slug' => 'followedsidebar',
+    ]);
+    $followedOnlyGroup->followers()->attach($user->id, [
+        'notifications_enabled' => true,
+    ]);
+
+    $this->actingAs($user)
+        ->get(route('groups.index'))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->component('Dashboard/Groups/Index')
+            ->where('navigation.group_quick_links.my.0.slug', 'adminsidebar')
+            ->where('navigation.group_quick_links.my.1.slug', 'ownedsidebar')
+            ->where('navigation.group_quick_links.joined.0.slug', 'membersidebar')
+            ->where('navigation.group_quick_links.followed.0.slug', 'followedsidebar')
+        );
+});
+
 it('includes groups the current user already belongs to in discovery results', function () {
     $user = User::factory()->create();
 

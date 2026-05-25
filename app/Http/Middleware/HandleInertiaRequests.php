@@ -3,6 +3,7 @@
 namespace App\Http\Middleware;
 
 use App\Models\Group;
+use App\Models\GroupMembership;
 use App\Services\Notifications\NotificationInboxService;
 use App\Services\SystemBannerService;
 use App\Support\Groups\GroupDiscoveryBadgePalette;
@@ -65,20 +66,28 @@ class HandleInertiaRequests extends Middleware
             'navigation' => [
                 'group_quick_links' => fn () => $request->user()
                     ? [
-                        'owned' => $this->serializeGroupQuickLinks(
-                            $request->user()->ownedGroups()->get(['id', 'name', 'slug'])
+                        'my' => $this->serializeGroupQuickLinks(
+                            $request->user()->groups()
+                                ->wherePivotIn('role', [
+                                    GroupMembership::ROLE_OWNER,
+                                    GroupMembership::ROLE_ADMIN,
+                                    GroupMembership::ROLE_MODERATOR,
+                                ])
+                                ->get(['groups.id', 'groups.name', 'groups.slug'])
                         ),
-                        'moderated' => $this->serializeGroupQuickLinks(
-                            $request->user()->moderatedGroups()->get(['groups.id', 'groups.name', 'groups.slug'])
-                        ),
-                        'member' => $this->serializeGroupQuickLinks(
+                        'joined' => $this->serializeGroupQuickLinks(
                             $request->user()->memberGroups()->get(['groups.id', 'groups.name', 'groups.slug'])
+                        ),
+                        'followed' => $this->serializeGroupQuickLinks(
+                            $request->user()->followedGroups()
+                                ->whereDoesntHave('memberships', fn ($query) => $query->where('user_id', $request->user()->id))
+                                ->get(['groups.id', 'groups.name', 'groups.slug'])
                         ),
                     ]
                     : [
-                        'owned' => [],
-                        'moderated' => [],
-                        'member' => [],
+                        'my' => [],
+                        'joined' => [],
+                        'followed' => [],
                     ],
             ],
             'notifications' => [
