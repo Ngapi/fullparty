@@ -14,7 +14,7 @@ it('returns discovery details for visible groups', function () {
     $user = User::factory()->create();
     $group = Group::factory()->public()->create([
         'name' => 'Detail Group',
-        'slug' => 'detailgrp',
+        'slug' => 'detailgp',
         'description' => 'Detailed description',
         'recruiting_status' => 'applications_open',
         'primary_focuses' => ['progression', 'maps'],
@@ -118,7 +118,7 @@ it('returns discovery details for visible groups', function () {
 it('does not expose discovery details for hidden groups', function () {
     $user = User::factory()->create();
     $group = Group::factory()->hidden()->create([
-        'slug' => 'hiddenone',
+        'slug' => 'hiddenon',
     ]);
 
     $this->actingAs($user)
@@ -129,7 +129,7 @@ it('does not expose discovery details for hidden groups', function () {
 it('derives turnout from filled slots even before assignment snapshots are materialized', function () {
     $user = User::factory()->create();
     $group = Group::factory()->public()->create([
-        'slug' => 'turnoutgrp',
+        'slug' => 'turnoutg',
     ]);
     $activity = Activity::factory()->complete()->create([
         'group_id' => $group->id,
@@ -160,7 +160,7 @@ it('derives turnout from filled slots even before assignment snapshots are mater
 it('only exposes public runs in discovery activity details', function () {
     $user = User::factory()->create();
     $group = Group::factory()->public()->create([
-        'slug' => 'publicruns',
+        'slug' => 'pubruns',
     ]);
     $publicActivity = Activity::factory()->complete()->create([
         'group_id' => $group->id,
@@ -189,7 +189,7 @@ it('only exposes public runs in discovery activity details', function () {
 it('only exposes owner and moderators in discovery team details', function () {
     $viewer = User::factory()->create();
     $group = Group::factory()->public()->create([
-        'slug' => 'teamdetail',
+        'slug' => 'teamdtl',
     ]);
     $admin = User::factory()->create([
         'name' => 'Helpful Admin',
@@ -251,7 +251,7 @@ it('returns member interaction state for discovery details', function () {
         ->public()
         ->withMember($member)
         ->create([
-            'slug' => 'memberstate',
+            'slug' => 'memstate',
         ]);
 
     $this->actingAs($member)

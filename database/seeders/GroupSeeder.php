@@ -2,6 +2,8 @@
 
 namespace Database\Seeders;
 
+require_once __DIR__.'/SeederFaker.php';
+
 use App\Models\Group;
 use App\Models\GroupMembership;
 use App\Models\ScheduledRun;

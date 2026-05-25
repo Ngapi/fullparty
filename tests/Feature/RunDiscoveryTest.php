@@ -21,7 +21,7 @@ beforeEach(function () {
 it('renders the run discovery scaffold with lookup data', function () {
     Group::factory()->public()->create([
         'name' => 'Test Group',
-        'slug' => 'test-group',
+        'slug' => 'testgrup',
     ]);
 
     createRunDiscoveryClass([
@@ -60,7 +60,7 @@ it('renders the run discovery scaffold with lookup data', function () {
             ->where('lookups.regions.0.value', 'NA')
             ->where('lookups.regions.0.label', 'North America')
             ->where('lookups.datacenters.0.value', 'Aether')
-            ->where('lookups.groups.0.value', 'test-group'));
+            ->where('lookups.groups.0.value', 'testgrup'));
 });
 
 it('returns matching discoverable run ids for the filter payload', function () {

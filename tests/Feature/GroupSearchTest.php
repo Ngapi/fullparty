@@ -27,13 +27,13 @@ it('returns the initial discovery results when the query is empty', function () 
 
     Group::factory()->public()->withMember($user)->create([
         'name' => 'Joined Group',
-        'slug' => 'joinedgrp',
+        'slug' => 'joingrp',
         'created_at' => now()->subDay(),
     ]);
 
     Group::factory()->hidden()->create([
         'name' => 'Hidden Group',
-        'slug' => 'hiddengrp',
+        'slug' => 'hiddengp',
     ]);
 
     $groups = Group::factory()->count(7)->public()->create()->values();
@@ -115,12 +115,12 @@ it('shares the sidebar group quick links as my, joined, and follower-only bucket
     $ownedGroup = Group::factory()->public()->create([
         'owner_id' => $user->id,
         'name' => 'Owned Sidebar Group',
-        'slug' => 'ownedsidebar',
+        'slug' => 'ownedsb',
     ]);
 
     $adminGroup = Group::factory()->public()->create([
         'name' => 'Admin Sidebar Group',
-        'slug' => 'adminsidebar',
+        'slug' => 'adminsb',
     ]);
     $adminGroup->memberships()->create([
         'user_id' => $user->id,
@@ -130,7 +130,7 @@ it('shares the sidebar group quick links as my, joined, and follower-only bucket
 
     $memberGroup = Group::factory()->public()->create([
         'name' => 'Member Sidebar Group',
-        'slug' => 'membersidebar',
+        'slug' => 'membersb',
     ]);
     $memberGroup->memberships()->create([
         'user_id' => $user->id,
@@ -140,7 +140,7 @@ it('shares the sidebar group quick links as my, joined, and follower-only bucket
 
     $followedOnlyGroup = Group::factory()->public()->create([
         'name' => 'Followed Sidebar Group',
-        'slug' => 'followedsidebar',
+        'slug' => 'followsb',
     ]);
     $followedOnlyGroup->followers()->attach($user->id, [
         'notifications_enabled' => true,
@@ -151,10 +151,10 @@ it('shares the sidebar group quick links as my, joined, and follower-only bucket
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
             ->component('Dashboard/Groups/Index')
-            ->where('navigation.group_quick_links.my.0.slug', 'adminsidebar')
-            ->where('navigation.group_quick_links.my.1.slug', 'ownedsidebar')
-            ->where('navigation.group_quick_links.joined.0.slug', 'membersidebar')
-            ->where('navigation.group_quick_links.followed.0.slug', 'followedsidebar')
+            ->where('navigation.group_quick_links.my.0.slug', 'adminsb')
+            ->where('navigation.group_quick_links.my.1.slug', 'ownedsb')
+            ->where('navigation.group_quick_links.joined.0.slug', 'membersb')
+            ->where('navigation.group_quick_links.followed.0.slug', 'followsb')
         );
 });
 
@@ -163,7 +163,7 @@ it('includes groups the current user already belongs to in discovery results', f
 
     Group::factory()->public()->withMember($user)->create([
         'name' => 'Joined Group',
-        'slug' => 'joinedgrp',
+        'slug' => 'joingrp',
         'group_type' => Group::TYPE_STATIC,
     ]);
 
@@ -174,7 +174,7 @@ it('includes groups the current user already belongs to in discovery results', f
         ->assertOk()
         ->assertJsonFragment([
             'name' => 'Joined Group',
-            'slug' => 'joinedgrp',
+            'slug' => 'joingrp',
         ]);
 });
 

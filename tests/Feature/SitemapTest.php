@@ -8,7 +8,7 @@ uses(RefreshDatabase::class);
 
 it('renders localized public urls in the sitemap and excludes non-indexable activity urls', function () {
     $publicGroup = Group::factory()->public()->create([
-        'slug' => 'publicgrp',
+        'slug' => 'publicgp',
     ]);
 
     $publicActivity = Activity::factory()->create([

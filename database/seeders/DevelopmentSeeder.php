@@ -2,6 +2,8 @@
 
 namespace Database\Seeders;
 
+require_once __DIR__.'/SeederFaker.php';
+
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;

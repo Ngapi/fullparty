@@ -2,6 +2,8 @@
 
 namespace Database\Seeders;
 
+require_once __DIR__.'/SeederFaker.php';
+
 use App\Models\Activity;
 use App\Models\ActivityApplication;
 use App\Models\ActivityType;
