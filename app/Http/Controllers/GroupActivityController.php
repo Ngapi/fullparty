@@ -175,11 +175,15 @@ class GroupActivityController extends Controller
             'activities.progressMilestones',
         ]);
 
-        if (! $group->hasMember(auth()->id())) {
+        $currentUserId = auth()->id();
+        $isMember = $group->hasMember($currentUserId);
+        $isFollower = $group->hasFollower($currentUserId);
+
+        if (! $isMember && ! $isFollower) {
             abort(403);
         }
 
-        $canManageActivities = $group->hasModeratorAccess(auth()->id());
+        $canManageActivities = $group->hasModeratorAccess($currentUserId);
         $visibleActivities = $canManageActivities
             ? $group->activities
             : $group->activities
@@ -953,7 +957,9 @@ class GroupActivityController extends Controller
      */
     private function buildDashboardGroupPayload(Group $group, ?bool $canManageActivities = null): array
     {
-        $canModerateGroup = $group->hasModeratorAccess(auth()->id());
+        $currentUserId = auth()->id();
+        $canModerateGroup = $group->hasModeratorAccess($currentUserId);
+        $isMember = $group->hasMember($currentUserId);
 
         return [
             'id' => $group->id,
@@ -961,12 +967,13 @@ class GroupActivityController extends Controller
             'slug' => $group->slug,
             'datacenter' => $group->datacenter,
             'current_user_role' => $group->memberships
-                ->firstWhere('user_id', auth()->id())
+                ->firstWhere('user_id', $currentUserId)
                 ?->role,
             'permissions' => [
-                'can_manage_group' => $group->isOwnedBy(auth()->id()),
+                'can_manage_group' => $group->isOwnedBy($currentUserId),
                 'can_manage_members' => $canModerateGroup,
                 'can_manage_activities' => $canManageActivities ?? $canModerateGroup,
+                'can_view_members' => $isMember,
             ],
         ];
     }

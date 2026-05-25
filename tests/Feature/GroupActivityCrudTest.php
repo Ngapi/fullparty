@@ -382,6 +382,61 @@ it('hides planned activities from non moderators on the dashboard runs page', fu
             ->has('activities', 2));
 });
 
+it('allows followers to view only public non-moderator activities on the dashboard runs page', function () {
+    $owner = User::factory()->create();
+    $follower = User::factory()->create();
+    $group = Group::factory()->public()->create([
+        'owner_id' => $owner->id,
+    ]);
+    $group->followers()->syncWithoutDetaching([
+        $follower->id => ['notifications_enabled' => true],
+    ]);
+    $activityType = createCrudActivityType($owner);
+
+    $scheduledActivity = Activity::factory()->create([
+        'group_id' => $group->id,
+        'activity_type_id' => $activityType->id,
+        'activity_type_version_id' => $activityType->current_published_version_id,
+        'organized_by_user_id' => $owner->id,
+        'status' => Activity::STATUS_SCHEDULED,
+        'title' => 'Public Scheduled Run',
+        'is_public' => true,
+        'updated_at' => now()->subMinutes(10),
+    ]);
+
+    Activity::factory()->create([
+        'group_id' => $group->id,
+        'activity_type_id' => $activityType->id,
+        'activity_type_version_id' => $activityType->current_published_version_id,
+        'organized_by_user_id' => $owner->id,
+        'status' => Activity::STATUS_PLANNED,
+        'title' => 'Moderator Planning Run',
+        'is_public' => true,
+    ]);
+
+    Activity::factory()->private()->create([
+        'group_id' => $group->id,
+        'activity_type_id' => $activityType->id,
+        'activity_type_version_id' => $activityType->current_published_version_id,
+        'organized_by_user_id' => $owner->id,
+        'status' => Activity::STATUS_ASSIGNED,
+        'title' => 'Private Roster Run',
+    ]);
+
+    $this->actingAs($follower)
+        ->get(route('groups.dashboard.activities.index', $group))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('group.current_user_role', null)
+            ->where('group.permissions.can_manage_activities', false)
+            ->where('group.permissions.can_view_members', false)
+            ->has('activities', 1)
+            ->where('activities.0.id', $scheduledActivity->id)
+            ->where('activities.0.status', Activity::STATUS_SCHEDULED)
+            ->where('activities.0.is_public', true)
+            ->where('activities.0.secret_key', null));
+});
+
 it('rejects organizer characters that do not belong to the organizer user', function () {
     $owner = User::factory()->create();
     $otherUser = User::factory()->create();

@@ -1,5 +1,5 @@
 {
-  "subtitle": "A live operator view for {datacenter} group health, runs, and member momentum.",
+  "subtitle": "A shared home for {datacenter} group details, runs, and activity.",
   "actions": {
     "view_runs": "View Runs",
     "view_members": "View Members",
@@ -8,6 +8,12 @@
     "mute_notifications": "Mute Notifications",
     "unmute_notifications": "Unmute Notifications",
     "leave_group": "Leave Group"
+  },
+  "leave_group_modal": {
+    "title": "Leave {name}?",
+    "description": "You will lose member access to this group until you join again or receive a new invite.",
+    "warning": "Any group-specific access, moderation privileges, and member-only dashboard actions will no longer be available after you leave.",
+    "confirm": "Leave Group"
   },
   "labels": {
     "just_now": "just now",
@@ -22,6 +28,8 @@
     "hidden_group": "Hidden from Discovery",
     "no_description": "This group has not added a description yet. Use this space to clarify what you run, who it is for, and how people should approach joining.",
     "owner": "Owner",
+    "discord": "Discord",
+    "activity_window": "Activity Window",
     "last_activity": "Last Run Activity",
     "latest_member": "Latest Member Join",
     "reach": "Reach",
@@ -43,16 +51,48 @@
     "completed_runs_hint": "{count} cancelled total"
   },
   "upcoming_runs": {
-    "title": "Upcoming Runs",
+    "title": "Coming Up",
+    "subtitle": "See what this group has lined up next.",
     "accepting_applications": "Accepting Applications",
     "public": "Public",
     "private": "Invite Only",
     "guest_welcome": "Guests Welcome",
     "starts": "Starts {time}",
+    "view_more": "View More",
+    "apply": "Apply",
     "view_overview": "View Overview",
     "open_board": "Open Board",
     "empty_title": "No upcoming runs are scheduled.",
     "empty_description": "Once this group has future runs on the calendar, they will appear here in start-time order."
+  },
+  "week_overview": {
+    "title": "This Week",
+    "subtitle": "A simple week-at-a-glance look at what is on the schedule.",
+    "count": "{count} runs",
+    "empty": "No runs are scheduled for this week."
+  },
+  "content": {
+    "title": "What This Group Runs",
+    "subtitle": "See the kinds of content this group keeps coming back to, along with their history for each one.",
+    "total_runs": "{count} visible runs",
+    "visible_runs": "Visible Runs",
+    "visible_runs_hint": "This reflects the run history visible to the current viewer, including the group's status mix.",
+    "library": "Activity Types",
+    "library_hint": "Grouped by the kinds of content this group has actually been running.",
+    "completed": "Completed: {count}",
+    "active": "Active: {count}",
+    "last_run": "Last Run",
+    "next_run": "Next Run",
+    "run_singular": "run",
+    "run_plural": "runs",
+    "empty": "No visible run history yet.",
+    "statuses": {
+      "planned": "Planned",
+      "scheduled": "Scheduled",
+      "active": "Active",
+      "complete": "Completed",
+      "cancelled": "Cancelled"
+    }
   },
   "history_runs": {
     "title": "Run History",

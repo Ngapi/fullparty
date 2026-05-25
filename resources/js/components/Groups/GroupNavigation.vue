@@ -10,6 +10,7 @@ const props = defineProps<{
 		name?: string
 		permissions?: {
 			can_manage_members?: boolean
+			can_view_members?: boolean
 		}
 	}
 }>()
@@ -30,12 +31,12 @@ const leftitems = computed(() => [
 		href: route('groups.dashboard.activities.index', props.group.slug),
 		active: page.url.startsWith(route('groups.dashboard.activities.index', props.group.slug, false)),
 	},
-	{
+	...(props.group.permissions?.can_view_members ? [{
 		label: t('groups.index.navigation.members'),
 		icon: 'i-lucide-users',
 		href: route('groups.dashboard.members', props.group.slug),
 		active: page.url.startsWith(route('groups.dashboard.members', props.group.slug, false)),
-	}
+	}] : []),
 ])
 
 const rightitems = computed(() => {

@@ -5,21 +5,29 @@ namespace App\Http\Controllers;
 use App\Models\Activity;
 use App\Models\Group;
 use App\Models\GroupMembership;
+use App\Models\User;
+use App\Support\Groups\GroupDiscoveryBadgePalette;
+use Illuminate\Support\Collection;
 use Inertia\Inertia;
 use Inertia\Response;
 
 class GroupDashboardController extends Controller
 {
+    public function __construct(
+        private readonly GroupDiscoveryBadgePalette $groupDiscoveryBadgePalette,
+    ) {}
+
     public function show(Group $group): Response
     {
         $group->load([
-            'owner',
+            'owner.primaryCharacter',
             'memberships.user',
             'activities' => fn ($query) => $query
                 ->with([
                     'organizer',
                     'organizerCharacter',
                     'activityType',
+                    'activityTypeVersion.activityType',
                 ])
                 ->withCount([
                     'slots',
@@ -27,11 +35,14 @@ class GroupDashboardController extends Controller
                 ]),
         ]);
 
-        if (! $group->hasMember(auth()->id())) {
+        $currentUserId = auth()->id();
+        $isMember = $group->hasMember($currentUserId);
+        $isFollower = $group->hasFollower($currentUserId);
+
+        if (! $isMember && ! $isFollower) {
             abort(403);
         }
 
-        $currentUserId = auth()->id();
         $currentMembership = $group->memberships->firstWhere('user_id', $currentUserId);
         $currentFollow = $group->followers()
             ->where('users.id', $currentUserId)
@@ -39,12 +50,18 @@ class GroupDashboardController extends Controller
         $notificationsEnabled = $currentFollow
             ? (bool) $currentFollow->pivot->notifications_enabled
             : true;
-        $canManageActivities = $group->hasModeratorAccess(auth()->id());
+        $canManageActivities = $group->hasModeratorAccess($currentUserId);
         $now = now();
+        $weekStart = $now->copy()->startOfWeek();
+        $weekEnd = $now->copy()->endOfWeek();
         $activities = $group->activities
             ->when(
                 ! $canManageActivities,
                 fn ($activities) => $activities->reject(fn (Activity $activity) => Activity::isModeratorOnlyStatus($activity->status))
+            )
+            ->when(
+                ! $isMember,
+                fn ($activities) => $activities->where('is_public', true)
             )
             ->sortByDesc('updated_at')
             ->values();
@@ -66,6 +83,21 @@ class GroupDashboardController extends Controller
         $historyActivities = $activities
             ->filter(fn (Activity $activity) => Activity::isArchivedStatus($activity->status))
             ->sortByDesc(fn (Activity $activity) => $this->activityHistoryTimestamp($activity))
+            ->values();
+        $currentWeekActivities = $activities
+            ->filter(fn (Activity $activity) => $activity->starts_at !== null
+                && $activity->starts_at->gte($weekStart)
+                && $activity->starts_at->lte($weekEnd))
+            ->sort(function (Activity $left, Activity $right) {
+                $startsAtComparison = $left->starts_at->getTimestamp()
+                    <=> $right->starts_at->getTimestamp();
+
+                if ($startsAtComparison !== 0) {
+                    return $startsAtComparison;
+                }
+
+                return $left->id <=> $right->id;
+            })
             ->values();
         $statusCounts = collect(Activity::STATUSES)
             ->mapWithKeys(fn (string $status) => [$status => $activities->where('status', $status)->count()]);
@@ -94,37 +126,49 @@ class GroupDashboardController extends Controller
                 'name' => $group->name,
                 'description' => $group->description,
                 'profile_picture_url' => $group->profile_picture_url,
+                'banner_image_url' => $group->banner_image_url,
                 'discord_invite_url' => $group->discord_invite_url,
                 'datacenter' => $group->datacenter,
+                'region' => $group->inferredRegion(),
                 'is_public' => $group->is_public,
                 'is_visible' => $group->is_visible,
                 'slug' => $group->slug,
                 'group_type' => $group->group_type,
-                'owner' => [
-                    'id' => $group->owner?->id,
-                    'name' => $group->owner?->name,
-                    'avatar_url' => $group->owner?->avatar_url,
-                ],
+                'recruiting_status' => $group->recruiting_status,
+                'primary_focuses' => $group->primary_focuses ?? [],
+                'experience_expectation' => $group->experience_expectation,
+                'voice_expectation' => $group->voice_expectation,
+                'preferred_languages' => $group->preferred_languages ?? [],
+                'tags' => $group->tags ?? [],
+                'active_timezone' => $group->active_timezone,
+                'active_days' => $group->active_days ?? [],
+                'active_start_time' => $group->active_start_time,
+                'active_end_time' => $group->active_end_time,
+                'badge_meta' => $this->groupDiscoveryBadgePalette->badgeMetaForGroup($group),
+                'owner' => $this->serializeGroupUserIdentity($group->owner),
                 'current_user_role' => $group->memberships
-                    ->firstWhere('user_id', auth()->id())
+                    ->firstWhere('user_id', $currentUserId)
                     ?->role,
                 'follow' => [
-                    'is_following' => true,
+                    'is_following' => $isMember || $currentFollow !== null,
                     'notifications_enabled' => $notificationsEnabled,
                 ],
                 'permissions' => [
-                    'can_manage_group' => $group->isOwnedBy(auth()->id()),
+                    'can_manage_group' => $group->isOwnedBy($currentUserId),
                     'can_manage_members' => $canManageActivities,
                     'can_manage_activities' => $canManageActivities,
+                    'can_view_members' => $isMember,
                     'can_leave' => $currentMembership instanceof GroupMembership
                         && ! $group->isOwnedBy($currentUserId),
-                    'can_toggle_notifications' => $currentMembership instanceof GroupMembership,
+                    'can_toggle_notifications' => $currentMembership instanceof GroupMembership || $currentFollow !== null,
                 ],
                 'stats' => [
                     'member_count' => $group->memberships->count(),
-                    'moderator_count' => $group->memberships
-                        ->where('role', GroupMembership::ROLE_MODERATOR)
-                        ->count(),
+                    'moderator_count' => $isMember
+                        ? $group->memberships
+                            ->where('role', GroupMembership::ROLE_MODERATOR)
+                            ->count()
+                        : 0,
                     'activity_count' => $activities->count(),
                     'planned_count' => (int) $statusCounts->get(Activity::STATUS_PLANNED, 0),
                     'scheduled_count' => (int) $statusCounts->get(Activity::STATUS_SCHEDULED, 0),
@@ -143,33 +187,43 @@ class GroupDashboardController extends Controller
                         ->where('is_public', true)
                         ->count(),
                     'last_activity_at' => $lastActivityAt,
-                    'latest_member_join_at' => $latestMemberJoinAt,
+                    'latest_member_join_at' => $isMember ? $latestMemberJoinAt : null,
                 ],
                 'member_role_breakdown' => [
-                    'owner' => $memberRoleBreakdown[GroupMembership::ROLE_OWNER],
-                    'admin' => $memberRoleBreakdown[GroupMembership::ROLE_ADMIN],
-                    'moderator' => $memberRoleBreakdown[GroupMembership::ROLE_MODERATOR],
-                    'member' => $memberRoleBreakdown[GroupMembership::ROLE_MEMBER],
+                    'owner' => $isMember ? $memberRoleBreakdown[GroupMembership::ROLE_OWNER] : 0,
+                    'admin' => $isMember ? $memberRoleBreakdown[GroupMembership::ROLE_ADMIN] : 0,
+                    'moderator' => $isMember ? $memberRoleBreakdown[GroupMembership::ROLE_MODERATOR] : 0,
+                    'member' => $isMember ? $memberRoleBreakdown[GroupMembership::ROLE_MEMBER] : 0,
                 ],
-                'members_preview' => $group->memberships
-                    ->sortBy(function (GroupMembership $membership) {
-                        return array_search($membership->role, GroupMembership::ROLES, true);
-                    })
-                    ->take(6)
-                    ->values()
-                    ->map(fn (GroupMembership $membership) => [
-                        'id' => $membership->user->id,
-                        'name' => $membership->user->name,
-                        'avatar_url' => $membership->user->avatar_url,
-                        'role' => $membership->role,
-                        'joined_at' => $membership->joined_at?->toIso8601String(),
-                    ]),
+                'members_preview' => $isMember
+                    ? $group->memberships
+                        ->sortBy(function (GroupMembership $membership) {
+                            return array_search($membership->role, GroupMembership::ROLES, true);
+                        })
+                        ->take(6)
+                        ->values()
+                        ->map(fn (GroupMembership $membership) => [
+                            'id' => $membership->user->id,
+                            'name' => $membership->user->name,
+                            'avatar_url' => $membership->user->avatar_url,
+                            'role' => $membership->role,
+                            'joined_at' => $membership->joined_at?->toIso8601String(),
+                        ])
+                    : [],
                 'activity_status_breakdown' => collect(Activity::STATUSES)
                     ->map(fn (string $status) => [
                         'status' => $status,
                         'count' => (int) $statusCounts->get($status, 0),
                     ])
                     ->values(),
+                'content_summary' => $this->serializeDashboardContentSummary($activities),
+                'content_items' => $this->serializeDashboardContentItems($activities),
+                'current_week' => [
+                    'start_date' => $weekStart->toDateString(),
+                    'end_date' => $weekEnd->toDateString(),
+                ],
+                'current_week_activities' => $currentWeekActivities
+                    ->map(fn (Activity $activity) => $this->serializeDashboardActivity($activity, $group, $canManageActivities)),
                 'upcoming_activities' => $upcomingActivities
                     ->take(8)
                     ->map(fn (Activity $activity) => $this->serializeDashboardActivity($activity, $group, $canManageActivities)),
@@ -197,10 +251,129 @@ class GroupDashboardController extends Controller
     }
 
     /**
+     * @return array{total_runs: int, status_breakdown: array<int, array{status: string, count: int}>}
+     */
+    private function serializeDashboardContentSummary(Collection $visibleActivities): array
+    {
+        return [
+            'total_runs' => (int) $visibleActivities->count(),
+            'status_breakdown' => [
+                [
+                    'status' => 'planned',
+                    'count' => (int) $visibleActivities->where('status', Activity::STATUS_PLANNED)->count(),
+                ],
+                [
+                    'status' => 'scheduled',
+                    'count' => (int) $visibleActivities->where('status', Activity::STATUS_SCHEDULED)->count(),
+                ],
+                [
+                    'status' => 'active',
+                    'count' => (int) $visibleActivities->whereIn('status', [
+                        Activity::STATUS_ASSIGNED,
+                        Activity::STATUS_UPCOMING,
+                        Activity::STATUS_ONGOING,
+                    ])->count(),
+                ],
+                [
+                    'status' => 'complete',
+                    'count' => (int) $visibleActivities->where('status', Activity::STATUS_COMPLETE)->count(),
+                ],
+                [
+                    'status' => 'cancelled',
+                    'count' => (int) $visibleActivities->where('status', Activity::STATUS_CANCELLED)->count(),
+                ],
+            ],
+        ];
+    }
+
+    /**
+     * @return array<int, array{
+     *     key: string,
+     *     activity_name: string,
+     *     activity_image_url: string|null,
+     *     total_runs: int,
+     *     completed_runs: int,
+     *     active_runs: int,
+     *     last_run_at: string|null,
+     *     next_run_at: string|null
+     * }>
+     */
+    private function serializeDashboardContentItems(Collection $visibleActivities): array
+    {
+        $now = now();
+
+        return $visibleActivities
+            ->groupBy(function (Activity $activity) {
+                if ($activity->activity_type_version_id !== null) {
+                    return 'version:'.$activity->activity_type_version_id;
+                }
+
+                return 'name:'.$this->resolveDashboardActivityDisplayName($activity);
+            })
+            ->map(function (Collection $runs, string $key) use ($now) {
+                /** @var Activity $representativeRun */
+                $representativeRun = $runs->first();
+
+                return [
+                    'key' => $key,
+                    'activity_name' => $this->resolveDashboardActivityDisplayName($representativeRun),
+                    'activity_image_url' => $representativeRun->activityTypeVersion?->small_image_url,
+                    'total_runs' => (int) $runs->count(),
+                    'completed_runs' => (int) $runs->where('status', Activity::STATUS_COMPLETE)->count(),
+                    'active_runs' => (int) $runs->whereIn('status', [
+                        Activity::STATUS_PLANNED,
+                        Activity::STATUS_SCHEDULED,
+                        Activity::STATUS_ASSIGNED,
+                        Activity::STATUS_UPCOMING,
+                        Activity::STATUS_ONGOING,
+                    ])->count(),
+                    'last_run_at' => $runs
+                        ->filter(fn (Activity $run) => $run->starts_at !== null && $run->starts_at->lte($now))
+                        ->pluck('starts_at')
+                        ->filter()
+                        ->sortDesc()
+                        ->first()?->toIso8601String(),
+                    'next_run_at' => $runs
+                        ->filter(fn (Activity $run) => $run->starts_at !== null
+                            && $run->starts_at->gt($now)
+                            && in_array($run->status, [
+                                Activity::STATUS_PLANNED,
+                                Activity::STATUS_SCHEDULED,
+                                Activity::STATUS_ASSIGNED,
+                                Activity::STATUS_UPCOMING,
+                                Activity::STATUS_ONGOING,
+                            ], true))
+                        ->pluck('starts_at')
+                        ->filter()
+                        ->sort()
+                        ->first()?->toIso8601String(),
+                ];
+            })
+            ->sortByDesc(fn (array $item) => $item['next_run_at'] ?? $item['last_run_at'] ?? '')
+            ->values()
+            ->all();
+    }
+
+    /**
      * @return array<string, mixed>
      */
     private function serializeDashboardActivity(Activity $activity, Group $group, bool $canManageActivities): array
     {
+        $canViewOverview = $this->canViewActivityOverview($activity, $group, $canManageActivities);
+        $viewLink = $canManageActivities
+            ? route('groups.dashboard.activities.show', [
+                'group' => $group,
+                'activity' => $activity,
+            ], false)
+            : ($canViewOverview
+                ? route('groups.activities.overview', $this->activityAttendeeRouteParameters($group, $activity), false)
+                : route('groups.dashboard.activities.index', [
+                    'group' => $group,
+                ], false));
+        $canApply = $activity->needs_application
+            && $activity->acceptsApplications()
+            && $canViewOverview;
+
         return [
             'id' => $activity->id,
             'activity_type' => [
@@ -208,13 +381,16 @@ class GroupDashboardController extends Controller
                 'slug' => $activity->activityType?->slug,
                 'draft_name' => $activity->activityType?->draft_name,
             ],
+            'small_image_url' => $activity->activityTypeVersion?->small_image_url,
+            'banner_image_url' => $activity->activityTypeVersion?->banner_image_url,
             'title' => $activity->title,
             'status' => $activity->status,
             'starts_at' => $activity->starts_at?->toIso8601String(),
             'duration_hours' => $activity->duration_hours,
             'is_public' => $activity->is_public,
             'secret_key' => $canManageActivities ? $activity->secret_key : null,
-            'can_view_overview' => $this->canViewActivityOverview($activity, $group, $canManageActivities),
+            'can_view_overview' => $canViewOverview,
+            'can_apply' => $canApply,
             'needs_application' => $activity->needs_application,
             'allow_guest_applications' => $activity->allow_guest_applications,
             'organized_by' => $activity->organizer ? [
@@ -232,7 +408,30 @@ class GroupDashboardController extends Controller
             'application_count' => (int) ($activity->applications_count ?? 0),
             'created_at' => $activity->created_at?->toIso8601String(),
             'updated_at' => $activity->updated_at?->toIso8601String(),
+            'links' => [
+                'view' => $viewLink,
+                'apply' => $canApply
+                    ? route('groups.activities.application', $this->activityAttendeeRouteParameters($group, $activity), false)
+                    : null,
+            ],
         ];
+    }
+
+    /**
+     * @return array{group: Group, activity: Activity, secretKey?: string}
+     */
+    private function activityAttendeeRouteParameters(Group $group, Activity $activity): array
+    {
+        $parameters = [
+            'group' => $group,
+            'activity' => $activity,
+        ];
+
+        if (filled($activity->secret_key)) {
+            $parameters['secretKey'] = $activity->secret_key;
+        }
+
+        return $parameters;
     }
 
     private function canViewActivityOverview(Activity $activity, Group $group, bool $canManageActivities): bool
@@ -246,5 +445,51 @@ class GroupDashboardController extends Controller
         }
 
         return $canManageActivities && filled($activity->secret_key);
+    }
+
+    private function resolveDashboardActivityDisplayName(Activity $activity): string
+    {
+        $activityTypeVersionName = $this->resolveDashboardLocalizedText($activity->activityTypeVersion?->name);
+
+        if ($activityTypeVersionName !== null) {
+            return $activityTypeVersionName;
+        }
+
+        if (filled($activity->title)) {
+            return (string) $activity->title;
+        }
+
+        return 'Run';
+    }
+
+    private function resolveDashboardLocalizedText(mixed $value): ?string
+    {
+        if (! is_array($value)) {
+            return null;
+        }
+
+        foreach (['en', 'de', 'fr', 'ja'] as $locale) {
+            $candidate = $value[$locale] ?? null;
+
+            if (filled($candidate)) {
+                return (string) $candidate;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * @return array{id: int|null, name: string|null, avatar_url: string|null}
+     */
+    private function serializeGroupUserIdentity(?User $user): array
+    {
+        $primaryCharacter = $user?->primaryCharacter;
+
+        return [
+            'id' => $user?->id,
+            'name' => $primaryCharacter?->name ?? $user?->name,
+            'avatar_url' => $primaryCharacter?->avatar_url ?? $user?->avatar_url,
+        ];
     }
 }

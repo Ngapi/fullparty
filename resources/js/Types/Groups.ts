@@ -216,6 +216,8 @@ export type GroupDashboardActivity = {
 		slug: string | null
 		draft_name: LocalizedText
 	}
+	small_image_url: string | null
+	banner_image_url: string | null
 	title: string | null
 	status: string
 	starts_at: string | null
@@ -223,6 +225,7 @@ export type GroupDashboardActivity = {
 	is_public: boolean
 	secret_key: string | null
 	can_view_overview: boolean
+	can_apply: boolean
 	needs_application: boolean
 	allow_guest_applications: boolean
 	organized_by: {
@@ -240,6 +243,10 @@ export type GroupDashboardActivity = {
 	application_count: number
 	created_at: string | null
 	updated_at: string | null
+	links: {
+		view: string
+		apply: string | null
+	}
 }
 
 export type GroupDashboardMemberPreview = {
@@ -255,12 +262,25 @@ export type GroupDashboardGroup = {
 	name: string
 	description: string | null
 	profile_picture_url: string | null
+	banner_image_url: string | null
 	discord_invite_url: string | null
 	datacenter: string
+	region: string | null
 	is_public: boolean
 	is_visible: boolean
 	slug: string
 	group_type: GroupType
+	recruiting_status: string | null
+	primary_focuses: string[]
+	experience_expectation: string | null
+	voice_expectation: string | null
+	preferred_languages: string[]
+	tags: string[]
+	active_timezone: string | null
+	active_days: string[]
+	active_start_time: string | null
+	active_end_time: string | null
+	badge_meta: GroupDiscoveryBadgeMeta
 	owner: {
 		id: number | null
 		name: string | null
@@ -275,6 +295,7 @@ export type GroupDashboardGroup = {
 		can_manage_group: boolean
 		can_manage_members: boolean
 		can_manage_activities: boolean
+		can_view_members: boolean
 		can_leave: boolean
 		can_toggle_notifications: boolean
 	}
@@ -306,6 +327,13 @@ export type GroupDashboardGroup = {
 		status: string
 		count: number
 	}>
+	content_summary: GroupDiscoveryContentSummary
+	content_items: GroupDiscoveryContentItem[]
+	current_week: {
+		start_date: string
+		end_date: string
+	}
+	current_week_activities: GroupDashboardActivity[]
 	upcoming_activities: GroupDashboardActivity[]
 	history_activities: GroupDashboardActivity[]
 }

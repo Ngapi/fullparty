@@ -152,6 +152,22 @@ class Group extends Model
             ->contains(fn (GroupMembership $membership) => $membership->user_id === $userId);
     }
 
+    public function hasFollower(?int $userId): bool
+    {
+        if ($userId === null) {
+            return false;
+        }
+
+        if ($this->relationLoaded('followers')) {
+            return $this->followers
+                ->contains(fn (User $user) => $user->id === $userId);
+        }
+
+        return $this->followers()
+            ->where('users.id', $userId)
+            ->exists();
+    }
+
     public function isBanned(?int $userId): bool
     {
         if ($userId === null) {

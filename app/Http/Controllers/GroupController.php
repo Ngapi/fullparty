@@ -880,7 +880,7 @@ class GroupController extends Controller
 
         return [
             'links' => [
-                'dashboard' => $isMember
+                'dashboard' => $isFollowing
                     ? route('groups.dashboard', $group, false)
                     : null,
             ],

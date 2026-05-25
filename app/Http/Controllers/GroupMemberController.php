@@ -72,6 +72,7 @@ class GroupMemberController extends Controller
                 'can_manage_members' => $group->hasModeratorAccess($currentUserId),
                 'can_manage_roles' => $group->isOwnedBy($currentUserId),
                 'can_view_bans' => $group->hasModeratorAccess($currentUserId),
+                'can_view_members' => $group->hasMember($currentUserId),
             ],
         ];
     }

@@ -49,6 +49,7 @@ class GroupAuditLogController extends Controller
                     'can_manage_members' => $group->hasModeratorAccess(auth()->id()),
                     'can_manage_roles' => $group->isOwnedBy(auth()->id()),
                     'can_view_bans' => $group->hasModeratorAccess(auth()->id()),
+                    'can_view_members' => $group->hasMember(auth()->id()),
                 ],
             ],
             'auditLogs' => $auditLogs
@@ -64,11 +65,11 @@ class GroupAuditLogController extends Controller
                     ],
                     'subject' => [
                         'type' => $auditLog->subject_type,
-						'id' => $auditLog->subject?->id,
-						'name' => $auditLog->subject?->name ?? __('audit_log.defaults.system'),
-						'avatar_url' => $auditLog->subject?->avatar_url,
-						'is_system' => $auditLog->subject === null,
-					],
+                        'id' => $auditLog->subject?->id,
+                        'name' => $auditLog->subject?->name ?? __('audit_log.defaults.system'),
+                        'avatar_url' => $auditLog->subject?->avatar_url,
+                        'is_system' => $auditLog->subject === null,
+                    ],
                     'title' => __($auditLog->message),
                     'summary' => $this->resolveSummary($auditLog),
                     'changes' => $this->resolveChanges($auditLog->metadata['changes'] ?? null),
@@ -123,7 +124,7 @@ class GroupAuditLogController extends Controller
 
         $metadata = $auditLog->metadata ?? [];
 
-        if (!is_array($metadata) || $metadata === []) {
+        if (! is_array($metadata) || $metadata === []) {
             return __('audit_log.defaults.no_metadata');
         }
 
@@ -140,13 +141,13 @@ class GroupAuditLogController extends Controller
      */
     private function resolveChanges(mixed $changes): array
     {
-        if (!is_array($changes) || $changes === []) {
+        if (! is_array($changes) || $changes === []) {
             return [];
         }
 
         return collect($changes)
             ->map(function ($change, $field) {
-                if (!is_array($change) || !array_key_exists('old', $change) || !array_key_exists('new', $change)) {
+                if (! is_array($change) || ! array_key_exists('old', $change) || ! array_key_exists('new', $change)) {
                     return null;
                 }
 
@@ -187,10 +188,6 @@ class GroupAuditLogController extends Controller
             ->all();
     }
 
-    /**
-     * @param  AuditLog  $auditLog
-     * @return string
-     */
     private function buildSearchText(AuditLog $auditLog): string
     {
         $metadata = is_array($auditLog->metadata) ? $auditLog->metadata : [];
@@ -244,7 +241,7 @@ class GroupAuditLogController extends Controller
 
     private function authorizeModeratorAccess(Group $group): void
     {
-        if (!$group->hasModeratorAccess(auth()->id())) {
+        if (! $group->hasModeratorAccess(auth()->id())) {
             abort(403);
         }
     }

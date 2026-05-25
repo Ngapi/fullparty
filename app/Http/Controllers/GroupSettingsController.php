@@ -75,6 +75,7 @@ class GroupSettingsController extends Controller
                     'can_manage_invites' => $group->usesCommunityJoinFlow()
                         && $group->hasModeratorAccess(auth()->id()),
                     'can_transfer_ownership' => $group->isOwnedBy(auth()->id()),
+                    'can_view_members' => $group->hasMember(auth()->id()),
                 ],
                 'members' => $group->memberships
                     ->sortBy(function (GroupMembership $membership) {
