@@ -20,6 +20,14 @@ use RuntimeException;
 
 class ActivitySeeder extends Seeder
 {
+    private const MIN_TOTAL_ACTIVITIES_PER_GROUP = 75;
+
+    private const MAX_TOTAL_ACTIVITIES_PER_GROUP = 100;
+
+    private const HISTORICAL_ACTIVITY_RATIO = 0.4;
+
+    private const ACTIVITY_WINDOW_DAYS = 90;
+
     /**
      * @var array<string, bool>
      */
@@ -105,9 +113,12 @@ class ActivitySeeder extends Seeder
                 continue;
             }
 
-            $futureActivityCount = $group->slug === 'ftel'
-                ? 24
-                : fake()->numberBetween(5, 50);
+            $totalActivityCount = fake()->numberBetween(
+                self::MIN_TOTAL_ACTIVITIES_PER_GROUP,
+                self::MAX_TOTAL_ACTIVITIES_PER_GROUP,
+            );
+            $historicalActivityCount = (int) round($totalActivityCount * self::HISTORICAL_ACTIVITY_RATIO);
+            $futureActivityCount = $totalActivityCount - $historicalActivityCount;
 
             foreach (range(1, $futureActivityCount) as $activityIndex) {
                 $context = $group->slug === 'ftel'
@@ -118,7 +129,12 @@ class ActivitySeeder extends Seeder
                 $organizerMembership = $organizerPool->random();
                 $organizer = $organizerMembership->user;
                 $startsAt = $this->futureStartsAt($activityIndex);
-                $durationHours = fake()->randomElement([2.0, 2.5, 3.0, 3.5, 6.0]);
+                $runStyle = $this->seededRunStyle($context['activity_type']->slug, false);
+                $intensity = $this->seededIntensity($context['activity_type']->slug, $runStyle, false);
+                $beginnerFriendly = $this->seededBeginnerFriendly($runStyle, $intensity, false);
+                $durationHours = $this->seededDurationHours($runStyle);
+                $minItemLevel = $this->seededMinimumItemLevel($context['activity_type']->slug, $runStyle, $intensity);
+                $allowGuestApplications = $this->seededGuestApplicationsAllowed($group, $runStyle, false);
                 $status = $this->resolveFutureStatus($startsAt);
                 $slotGroups = $context['layout_groups'];
                 $minAssignedSlots = $this->minimumAssignedSlotCount($slotGroups);
@@ -137,14 +153,14 @@ class ActivitySeeder extends Seeder
                     'starts_at' => $startsAt,
                     'duration_hours' => $durationHours,
                     'datacenter' => $group->datacenter,
-                    'intensity' => Activity::INTENSITY_CASUAL,
-                    'min_item_level' => null,
-                    'beginner_friendly' => false,
-                    'run_style' => Activity::RUN_STYLE_PROGRESSION,
-                    'target_prog_point_key' => $this->pickTargetProgPointKey($context['prog_points']),
+                    'intensity' => $intensity,
+                    'min_item_level' => $minItemLevel,
+                    'beginner_friendly' => $beginnerFriendly,
+                    'run_style' => $runStyle,
+                    'target_prog_point_key' => $this->pickTargetProgPointKey($context['prog_points'], $runStyle),
                     'is_public' => $group->is_public ? fake()->boolean(80) : fake()->boolean(35),
                     'needs_application' => true,
-                    'allow_guest_applications' => false,
+                    'allow_guest_applications' => $allowGuestApplications,
                     'created_at' => $startsAt->copy()->subDays(fake()->numberBetween(3, 14)),
                     'updated_at' => $startsAt->copy()->subHours(fake()->numberBetween(1, 48)),
                 ]);
@@ -170,10 +186,6 @@ class ActivitySeeder extends Seeder
                 );
             }
 
-            $historicalActivityCount = $group->slug === 'ftel'
-                ? 12
-                : fake()->numberBetween(4, 6);
-
             foreach (range(1, $historicalActivityCount) as $activityIndex) {
                 $context = $group->slug === 'ftel'
                     ? $activityTypeContexts['forked-tower']
@@ -183,7 +195,11 @@ class ActivitySeeder extends Seeder
                 $organizerMembership = $organizerPool->random();
                 $organizer = $organizerMembership->user;
                 $startsAt = $this->historicalStartsAt($referenceDate, $activityIndex);
-                $durationHours = fake()->randomElement([2.0, 2.5, 3.0, 3.5, 6.0]);
+                $runStyle = $this->seededRunStyle($context['activity_type']->slug, true);
+                $intensity = $this->seededIntensity($context['activity_type']->slug, $runStyle, true);
+                $beginnerFriendly = $this->seededBeginnerFriendly($runStyle, $intensity, true);
+                $durationHours = $this->seededDurationHours($runStyle);
+                $minItemLevel = $this->seededMinimumItemLevel($context['activity_type']->slug, $runStyle, $intensity);
                 $slotGroups = $context['layout_groups'];
                 $minAssignedSlots = $this->historicalMinimumAssignedSlotCount($slotGroups);
                 $maxAssignedSlots = $this->historicalMaximumAssignedSlotCount($slotGroups, $minAssignedSlots);
@@ -201,11 +217,11 @@ class ActivitySeeder extends Seeder
                     'starts_at' => $startsAt,
                     'duration_hours' => $durationHours,
                     'datacenter' => $group->datacenter,
-                    'intensity' => Activity::INTENSITY_CASUAL,
-                    'min_item_level' => null,
-                    'beginner_friendly' => false,
-                    'run_style' => Activity::RUN_STYLE_PROGRESSION,
-                    'target_prog_point_key' => $this->pickTargetProgPointKey($context['prog_points']),
+                    'intensity' => $intensity,
+                    'min_item_level' => $minItemLevel,
+                    'beginner_friendly' => $beginnerFriendly,
+                    'run_style' => $runStyle,
+                    'target_prog_point_key' => $this->pickTargetProgPointKey($context['prog_points'], $runStyle),
                     'is_public' => $group->is_public ? fake()->boolean(80) : fake()->boolean(35),
                     'needs_application' => true,
                     'allow_guest_applications' => false,
@@ -907,26 +923,25 @@ class ActivitySeeder extends Seeder
 
     private function futureStartsAt(int $activityIndex): Carbon
     {
-        $base = now()->startOfDay()->addDays(fake()->numberBetween(1, 90));
-        $hour = fake()->randomElement([18, 19, 20, 21, 22]);
-        $minute = fake()->randomElement([0, 15, 30, 45]);
+        $base = now()->startOfDay()->addDays(fake()->numberBetween(1, self::ACTIVITY_WINDOW_DAYS));
+        [$hour, $minute] = $this->seededStartTimeForDate($base);
 
         return $base
             ->copy()
             ->setTime($hour, $minute)
-            ->addDays(intdiv($activityIndex, 4));
+            ->addMinutes((($activityIndex - 1) % 6) * 15);
     }
 
     private function historicalStartsAt(Carbon $referenceDate, int $activityIndex): Carbon
     {
-        $daysBack = fake()->numberBetween(5, 150) + intdiv($activityIndex, 3);
-        $hour = fake()->randomElement([18, 19, 20, 21, 22]);
-        $minute = fake()->randomElement([0, 15, 30, 45]);
+        $daysBack = fake()->numberBetween(1, self::ACTIVITY_WINDOW_DAYS);
+        $base = $referenceDate->copy()->subDays($daysBack);
+        [$hour, $minute] = $this->seededStartTimeForDate($base);
 
-        return $referenceDate
+        return $base
             ->copy()
-            ->subDays($daysBack)
-            ->setTime($hour, $minute);
+            ->setTime($hour, $minute)
+            ->addMinutes((($activityIndex - 1) % 6) * 15);
     }
 
     private function resolveFutureStatus(Carbon $startsAt): string
@@ -947,15 +962,240 @@ class ActivitySeeder extends Seeder
     /**
      * @param  array<int, array<string, mixed>>  $progPoints
      */
-    private function pickTargetProgPointKey(array $progPoints): ?string
+    private function pickTargetProgPointKey(array $progPoints, string $runStyle): ?string
     {
         if ($progPoints === []) {
             return null;
         }
 
-        $point = collect($progPoints)->random();
+        $points = collect($progPoints)
+            ->filter(fn ($point): bool => is_array($point) && filled($point['key'] ?? null))
+            ->values();
+
+        if ($points->isEmpty()) {
+            return null;
+        }
+
+        if (in_array($runStyle, [
+            Activity::RUN_STYLE_RECLEAR,
+            Activity::RUN_STYLE_FARM,
+            Activity::RUN_STYLE_SPEEDRUN,
+            Activity::RUN_STYLE_MARATHON,
+        ], true)) {
+            return null;
+        }
+
+        if ($runStyle === Activity::RUN_STYLE_CLEAR) {
+            $latePoints = $points->slice(max(0, $points->count() - 3))->values();
+
+            return $latePoints->random()['key'] ?? null;
+        }
+
+        $point = $points->random();
 
         return $point['key'] ?? null;
+    }
+
+    private function seededRunStyle(string $slug, bool $isHistorical): string
+    {
+        $weightedStyles = match ($slug) {
+            'forked-tower' => $isHistorical
+                ? [
+                    Activity::RUN_STYLE_RECLEAR,
+                    Activity::RUN_STYLE_RECLEAR,
+                    Activity::RUN_STYLE_FARM,
+                    Activity::RUN_STYLE_FARM,
+                    Activity::RUN_STYLE_CLEAR,
+                    Activity::RUN_STYLE_PROGRESSION,
+                    Activity::RUN_STYLE_MARATHON,
+                ]
+                : [
+                    Activity::RUN_STYLE_PROGRESSION,
+                    Activity::RUN_STYLE_PROGRESSION,
+                    Activity::RUN_STYLE_PROGRESSION,
+                    Activity::RUN_STYLE_CLEAR,
+                    Activity::RUN_STYLE_RECLEAR,
+                    Activity::RUN_STYLE_BLIND,
+                    Activity::RUN_STYLE_PRACTICE,
+                    Activity::RUN_STYLE_MARATHON,
+                    Activity::RUN_STYLE_FARM,
+                ],
+            'cloud-of-darkness-chaotic' => $isHistorical
+                ? [
+                    Activity::RUN_STYLE_RECLEAR,
+                    Activity::RUN_STYLE_RECLEAR,
+                    Activity::RUN_STYLE_FARM,
+                    Activity::RUN_STYLE_CLEAR,
+                    Activity::RUN_STYLE_CLEAR,
+                    Activity::RUN_STYLE_PROGRESSION,
+                ]
+                : [
+                    Activity::RUN_STYLE_PROGRESSION,
+                    Activity::RUN_STYLE_PROGRESSION,
+                    Activity::RUN_STYLE_CLEAR,
+                    Activity::RUN_STYLE_RECLEAR,
+                    Activity::RUN_STYLE_PRACTICE,
+                    Activity::RUN_STYLE_BLIND,
+                    Activity::RUN_STYLE_FARM,
+                ],
+            default => $isHistorical
+                ? [
+                    Activity::RUN_STYLE_RECLEAR,
+                    Activity::RUN_STYLE_RECLEAR,
+                    Activity::RUN_STYLE_FARM,
+                    Activity::RUN_STYLE_FARM,
+                    Activity::RUN_STYLE_CLEAR,
+                    Activity::RUN_STYLE_PROGRESSION,
+                    Activity::RUN_STYLE_SPEEDRUN,
+                ]
+                : [
+                    Activity::RUN_STYLE_PROGRESSION,
+                    Activity::RUN_STYLE_PROGRESSION,
+                    Activity::RUN_STYLE_PROGRESSION,
+                    Activity::RUN_STYLE_CLEAR,
+                    Activity::RUN_STYLE_RECLEAR,
+                    Activity::RUN_STYLE_PRACTICE,
+                    Activity::RUN_STYLE_BLIND,
+                    Activity::RUN_STYLE_FARM,
+                    Activity::RUN_STYLE_SPEEDRUN,
+                    Activity::RUN_STYLE_MARATHON,
+                ],
+        };
+
+        return fake()->randomElement($weightedStyles);
+    }
+
+    private function seededIntensity(string $slug, string $runStyle, bool $isHistorical): string
+    {
+        $weightedIntensities = match ($runStyle) {
+            Activity::RUN_STYLE_BLIND,
+            Activity::RUN_STYLE_SPEEDRUN => [
+                Activity::INTENSITY_MIDCORE,
+                Activity::INTENSITY_HARDCORE,
+                Activity::INTENSITY_HARDCORE,
+            ],
+            Activity::RUN_STYLE_MARATHON => [
+                Activity::INTENSITY_MIDCORE,
+                Activity::INTENSITY_MIDCORE,
+                Activity::INTENSITY_HARDCORE,
+            ],
+            Activity::RUN_STYLE_RECLEAR,
+            Activity::RUN_STYLE_FARM => [
+                Activity::INTENSITY_CASUAL,
+                Activity::INTENSITY_MIDCORE,
+                Activity::INTENSITY_MIDCORE,
+            ],
+            Activity::RUN_STYLE_CLEAR => [
+                Activity::INTENSITY_CASUAL,
+                Activity::INTENSITY_MIDCORE,
+                Activity::INTENSITY_HARDCORE,
+            ],
+            default => [
+                Activity::INTENSITY_CASUAL,
+                Activity::INTENSITY_CASUAL,
+                Activity::INTENSITY_MIDCORE,
+                Activity::INTENSITY_HARDCORE,
+            ],
+        };
+
+        if (! $isHistorical && in_array($slug, ['forked-tower', 'savage-raids'], true)) {
+            $weightedIntensities[] = Activity::INTENSITY_MIDCORE;
+            $weightedIntensities[] = Activity::INTENSITY_HARDCORE;
+        }
+
+        return fake()->randomElement($weightedIntensities);
+    }
+
+    private function seededBeginnerFriendly(string $runStyle, string $intensity, bool $isHistorical): bool
+    {
+        if ($runStyle === Activity::RUN_STYLE_PRACTICE) {
+            return fake()->boolean($isHistorical ? 25 : 60);
+        }
+
+        if ($runStyle === Activity::RUN_STYLE_BLIND) {
+            return fake()->boolean($isHistorical ? 15 : 35);
+        }
+
+        if ($intensity === Activity::INTENSITY_HARDCORE) {
+            return fake()->boolean(5);
+        }
+
+        if (in_array($runStyle, [Activity::RUN_STYLE_CLEAR, Activity::RUN_STYLE_PROGRESSION], true)) {
+            return fake()->boolean($intensity === Activity::INTENSITY_CASUAL ? 40 : 18);
+        }
+
+        return fake()->boolean(10);
+    }
+
+    private function seededDurationHours(string $runStyle): float
+    {
+        return fake()->randomElement(match ($runStyle) {
+            Activity::RUN_STYLE_SPEEDRUN => [1.5, 2.0, 2.5],
+            Activity::RUN_STYLE_FARM,
+            Activity::RUN_STYLE_RECLEAR,
+            Activity::RUN_STYLE_CLEAR => [2.0, 2.5, 3.0],
+            Activity::RUN_STYLE_MARATHON => [4.0, 5.0, 6.0],
+            default => [2.5, 3.0, 3.5, 4.0],
+        });
+    }
+
+    private function seededMinimumItemLevel(string $slug, string $runStyle, string $intensity): ?int
+    {
+        if ($runStyle === Activity::RUN_STYLE_PRACTICE && fake()->boolean(65)) {
+            return null;
+        }
+
+        if ($intensity === Activity::INTENSITY_CASUAL && fake()->boolean(55)) {
+            return null;
+        }
+
+        if (fake()->boolean(35)) {
+            return null;
+        }
+
+        return fake()->randomElement(match ($slug) {
+            'forked-tower' => [720, 725, 730, 735],
+            'cloud-of-darkness-chaotic' => [710, 715, 720, 725],
+            default => [710, 715, 720, 725, 730],
+        });
+    }
+
+    private function seededGuestApplicationsAllowed(Group $group, string $runStyle, bool $isHistorical): bool
+    {
+        if ($isHistorical || ! $group->is_public) {
+            return false;
+        }
+
+        return match ($runStyle) {
+            Activity::RUN_STYLE_PRACTICE,
+            Activity::RUN_STYLE_BLIND,
+            Activity::RUN_STYLE_PROGRESSION => fake()->boolean(25),
+            Activity::RUN_STYLE_CLEAR,
+            Activity::RUN_STYLE_RECLEAR,
+            Activity::RUN_STYLE_FARM => fake()->boolean(15),
+            default => fake()->boolean(10),
+        };
+    }
+
+    /**
+     * @return array{0: int, 1: int}
+     */
+    private function seededStartTimeForDate(Carbon $date): array
+    {
+        $timeBucket = fake()->randomElement(
+            $date->isWeekend()
+                ? ['morning', 'afternoon', 'afternoon', 'evening', 'evening', 'night']
+                : ['afternoon', 'afternoon', 'evening', 'evening', 'evening', 'night']
+        );
+
+        $hour = fake()->randomElement(match ($timeBucket) {
+            'morning' => [9, 10, 11],
+            'afternoon' => [13, 14, 15, 16],
+            'night' => [21, 22],
+            default => [18, 19, 20],
+        });
+
+        return [$hour, fake()->randomElement([0, 15, 30, 45])];
     }
 
     private function activityTitleForType(string $slug): string

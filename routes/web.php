@@ -265,6 +265,7 @@ Route::prefix('{locale?}')
 
             Route::get('/dashboard', [DashboardController::class, 'show'])->name('dashboard');
             Route::get('/dashboard/runs', [RunDiscoveryController::class, 'index'])->name('dashboard.runs.index');
+            Route::get('/dashboard/runs/discovery', [RunDiscoveryController::class, 'discover'])->name('dashboard.runs.discover');
 
             /*
             |--------------------------------------------------------------------------

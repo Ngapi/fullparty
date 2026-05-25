@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { GroupIndexRecord, PaginatedGroups } from "@/Types/Groups";
 import GroupSearchItem from "@/components/Groups/GroupSearchItem.vue";
+import GroupSearchItemSkeleton from "@/components/Groups/GroupSearchItemSkeleton.vue";
 import GroupSearchPagination from "@/components/Groups/GroupSearchPagination.vue";
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
@@ -32,15 +33,24 @@ function onOpenGroup(group: GroupIndexRecord) {
 <template>
 	<div class="flex flex-col gap-4">
 		<div class="flex flex-col gap-3">
-			<GroupSearchItem
-				v-for="group in results.data"
-				:key="group.id"
-				:group="group"
-				@open-group="onOpenGroup"
-			/>
+			<template v-if="loading">
+				<GroupSearchItemSkeleton
+					v-for="index in 4"
+					:key="`group-search-skeleton-${index}`"
+				/>
+			</template>
+
+			<template v-else>
+				<GroupSearchItem
+					v-for="group in results.data"
+					:key="group.id"
+					:group="group"
+					@open-group="onOpenGroup"
+				/>
+			</template>
 
 			<div
-				v-if="!hasResults"
+				v-if="!loading && !hasResults"
 				class="border border-neutral-900 bg-neutral-900/50 px-4 py-8 text-sm text-muted"
 			>
 				{{ t("general.no_results") }}
@@ -48,7 +58,7 @@ function onOpenGroup(group: GroupIndexRecord) {
 		</div>
 
 		<GroupSearchPagination
-			v-if="hasResults"
+			v-if="!loading && hasResults"
 			:current-page="results.meta.current_page"
 			:total-pages="totalPages"
 			:disabled="loading"

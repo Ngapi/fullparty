@@ -2,13 +2,32 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\RunDiscoveryFilterRequest;
+use App\Services\Runs\RunDiscoveryService;
+use Illuminate\Http\JsonResponse;
 use Inertia\Inertia;
 use Inertia\Response;
 
 class RunDiscoveryController extends Controller
 {
+    public function __construct(
+        private readonly RunDiscoveryService $runDiscoveryService,
+    ) {}
+
     public function index(): Response
     {
-        return Inertia::render('Dashboard/Runs/Index');
+        return Inertia::render('Dashboard/Runs/Index', [
+            'lookups' => $this->runDiscoveryService->buildLookups(),
+        ]);
+    }
+
+    public function discover(RunDiscoveryFilterRequest $request): JsonResponse
+    {
+        return response()->json(
+            $this->runDiscoveryService->discoverResultsForUser(
+                $request->user(),
+                $request->validated(),
+            )
+        );
     }
 }

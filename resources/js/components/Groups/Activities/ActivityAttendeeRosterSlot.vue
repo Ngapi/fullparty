@@ -3,6 +3,7 @@ import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 import { usePage } from "@inertiajs/vue3";
 import { localizedValue } from "@/utils/localizedValue";
+import { emptyCompositionSlotToneClass } from "@/utils/activityCompositionHints";
 import type { ActivityApplicationFieldGroup, ActivitySlot, ActivitySlotFieldValue } from "@/Types/ActivityRoster";
 import type { LocalizedText } from "@/Types/Common";
 
@@ -115,6 +116,14 @@ const slotToneClass = computed(() => {
 
 	if (props.slot.assigned_character_id !== null) {
 		return "border-primary/40 bg-primary/10";
+	}
+
+	const emptyHintToneClass = !props.slot.is_bench && props.slot.assigned_character_id === null
+		? emptyCompositionSlotToneClass(props.slot)
+		: null;
+
+	if (emptyHintToneClass) {
+		return emptyHintToneClass;
 	}
 
 	return "border-dashed border-default bg-elevated/50";
