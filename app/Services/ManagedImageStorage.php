@@ -162,7 +162,7 @@ class ManagedImageStorage
 
     private function storeUploadedFile(UploadedFile $file, string $directory): string
     {
-        $extension = strtolower($file->getClientOriginalExtension() ?: $file->extension() ?: 'png');
+        $extension = $this->resolveUploadedImageExtension($file);
         $path = trim($directory, '/').'/'.Str::uuid().'.'.$extension;
 
         Storage::disk('public')->put($path, file_get_contents($file->getRealPath()));
@@ -251,16 +251,52 @@ class ManagedImageStorage
     {
         $contentType = strtolower((string) $response->header('Content-Type'));
 
-        $extension = match ($contentType) {
+        $extension = $this->extensionFromMimeType($contentType)
+            ?? $this->sanitizeImageExtension(pathinfo(parse_url($sourceUrl, PHP_URL_PATH) ?? '', PATHINFO_EXTENSION))
+            ?? 'png';
+
+        return $extension;
+    }
+
+    private function resolveUploadedImageExtension(UploadedFile $file): string
+    {
+        return $this->extensionFromMimeType((string) $file->getMimeType())
+            ?? $this->sanitizeImageExtension($file->extension())
+            ?? 'png';
+    }
+
+    private function extensionFromMimeType(string $mimeType): ?string
+    {
+        return match (strtolower(trim($mimeType))) {
             'image/jpeg', 'image/jpg' => 'jpg',
             'image/png' => 'png',
             'image/gif' => 'gif',
             'image/webp' => 'webp',
             'image/svg+xml' => 'svg',
-            default => pathinfo(parse_url($sourceUrl, PHP_URL_PATH) ?? '', PATHINFO_EXTENSION),
+            'image/bmp', 'image/x-ms-bmp' => 'bmp',
+            'image/avif' => 'avif',
+            default => null,
         };
+    }
 
-        return filled($extension) ? strtolower($extension) : 'png';
+    private function sanitizeImageExtension(?string $extension): ?string
+    {
+        $normalized = strtolower(trim((string) $extension));
+
+        if ($normalized === '') {
+            return null;
+        }
+
+        return match ($normalized) {
+            'jpeg', 'jpg' => 'jpg',
+            'png' => 'png',
+            'gif' => 'gif',
+            'webp' => 'webp',
+            'svg' => 'svg',
+            'bmp' => 'bmp',
+            'avif' => 'avif',
+            default => null,
+        };
     }
 
     private function storagePathFromUrl(string $url, string $directory): ?string

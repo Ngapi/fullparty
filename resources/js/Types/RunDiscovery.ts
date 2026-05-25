@@ -94,6 +94,7 @@ export type RunDiscoveryResultItemData = {
 	role_slots: RunDiscoveryResultRoleSlot[]
 	filled_slots: number
 	total_slots: number
+	has_existing_application: boolean
 	can_apply: boolean
 	links: {
 		view: string

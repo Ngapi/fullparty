@@ -179,3 +179,33 @@ it('preserves existing discovery metadata when omitted from a settings update', 
         ->and($group->active_start_time)->toBe('19:00')
         ->and($group->active_end_time)->toBe('22:00');
 });
+
+it('allows overnight active schedule windows when updating group settings', function () {
+    $owner = User::factory()->create();
+    $group = Group::factory()->create([
+        'owner_id' => $owner->id,
+        'group_type' => Group::TYPE_COMMUNITY,
+    ]);
+
+    $this->actingAs($owner)
+        ->put(route('groups.dashboard.settings.update', $group), [
+            'name' => $group->name,
+            'description' => $group->description,
+            'discord_invite_url' => $group->discord_invite_url,
+            'datacenter' => $group->datacenter,
+            'is_public' => $group->is_public,
+            'is_visible' => $group->is_visible,
+            'active_timezone' => 'Europe/London',
+            'active_days' => ['fri', 'sat'],
+            'active_start_time' => '22:00',
+            'active_end_time' => '05:00',
+        ])
+        ->assertRedirect();
+
+    $group->refresh();
+
+    expect($group->active_timezone)->toBe('Europe/London')
+        ->and($group->active_days)->toBe(['fri', 'sat'])
+        ->and($group->active_start_time)->toBe('22:00')
+        ->and($group->active_end_time)->toBe('05:00');
+});

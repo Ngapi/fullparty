@@ -151,7 +151,8 @@
         },
         "actions": {
           "view_details": "Details ansehen",
-          "apply_now": "Jetzt bewerben"
+          "apply_now": "Jetzt bewerben",
+          "view_application": "Bewerbung ansehen"
         }
       },
       "sort_options": {

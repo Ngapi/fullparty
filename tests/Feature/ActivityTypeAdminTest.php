@@ -4,6 +4,7 @@ use App\Models\ActivityType;
 use App\Models\CharacterClass;
 use App\Models\PhantomJob;
 use App\Models\User;
+use App\Services\ManagedImageStorage;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
@@ -300,6 +301,21 @@ it('stores activity type images and snapshots copies into published versions', f
 
     Storage::disk('public')->assertExists($publishedSmallImagePath);
     Storage::disk('public')->assertExists($publishedBannerImagePath);
+});
+
+it('stores uploaded admin images with a server-detected image extension instead of the client filename extension', function () {
+    Storage::fake('public');
+
+    $storedUrl = app(ManagedImageStorage::class)->uploadImageIfPresent(
+        UploadedFile::fake()->image('shell.php', 600, 600),
+        'activity-types',
+    );
+    $draftSmallImagePath = activityTypePublicStoragePath($storedUrl);
+
+    expect($draftSmallImagePath)->toEndWith('.png')
+        ->not->toEndWith('.php');
+
+    Storage::disk('public')->assertExists($draftSmallImagePath);
 });
 
 it('publishes roster summary presets into the activity type version snapshot', function () {

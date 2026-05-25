@@ -117,12 +117,6 @@ abstract class GroupDetailsRequest extends FormRequest
                 );
             }
 
-            if ($hasActiveStart && $hasActiveEnd && strcmp((string) $this->input('active_start_time'), (string) $this->input('active_end_time')) >= 0) {
-                $validator->errors()->add(
-                    'active_end_time',
-                    __('groups.common.validation.active_end_time_after_start')
-                );
-            }
         });
     }
 

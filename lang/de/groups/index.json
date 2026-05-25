@@ -127,7 +127,7 @@
         "run_plural": "runs",
         "empty": "No public run history yet.",
         "statuses": {
-          "planned": "Planned",
+          "planned": "Entwurf",
           "scheduled": "Scheduled",
           "active": "Active",
           "complete": "Completed",

@@ -148,8 +148,8 @@
   },
   "groups": {
     "run_planned": {
-      "title": "Run planning updated",
-      "body": "{activity} is being planned for {group}."
+      "title": "Run draft updated",
+      "body": "{activity} is currently in draft for {group}."
     },
     "run_scheduled": {
       "title": "New run scheduled",

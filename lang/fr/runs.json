@@ -151,7 +151,8 @@
         },
         "actions": {
           "view_details": "Voir les détails",
-          "apply_now": "Postuler"
+          "apply_now": "Postuler",
+          "view_application": "Voir la candidature"
         }
       },
       "sort_options": {

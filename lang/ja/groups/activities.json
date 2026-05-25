@@ -3,7 +3,7 @@
     "subtitle": "{group}'s upcoming schedule and monthly calendar at a glance.",
     "header_badge": "{count} upcoming",
     "statuses": {
-        "planned": "Planned",
+        "planned": "下書き",
         "scheduled": "Scheduled",
         "assigned": "Assigned",
         "upcoming": "Upcoming",

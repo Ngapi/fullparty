@@ -225,6 +225,7 @@ export type GroupDashboardActivity = {
 	is_public: boolean
 	secret_key: string | null
 	can_view_overview: boolean
+	has_existing_application: boolean
 	can_apply: boolean
 	needs_application: boolean
 	allow_guest_applications: boolean

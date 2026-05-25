@@ -140,8 +140,8 @@
   },
   "groups": {
     "run_planned": {
-      "title": "Run planning updated",
-      "body": "{activity} is being planned for {group}."
+      "title": "Brouillon de run mis à jour",
+      "body": "{activity} est actuellement à l'état de brouillon pour {group}."
     },
     "run_scheduled": {
       "title": "New run scheduled",

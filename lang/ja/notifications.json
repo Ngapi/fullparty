@@ -140,8 +140,8 @@
   },
   "groups": {
     "run_planned": {
-      "title": "Run planning updated",
-      "body": "{activity} is being planned for {group}."
+      "title": "ランの下書きが更新されました",
+      "body": "{activity} は {group} 用の下書き状態です。"
     },
     "run_scheduled": {
       "title": "New run scheduled",

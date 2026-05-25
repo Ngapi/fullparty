@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Activity;
+use App\Models\ActivityApplication;
 use App\Models\Group;
 use App\Models\GroupMembership;
 use App\Models\User;
@@ -26,6 +27,10 @@ class GroupDashboardController extends Controller
                 ->with([
                     'organizer',
                     'organizerCharacter',
+                    'applications' => fn ($applicationQuery) => $applicationQuery
+                        ->select(['id', 'activity_id', 'user_id', 'status'])
+                        ->where('user_id', auth()->id())
+                        ->where('status', '!=', ActivityApplication::STATUS_WITHDRAWN),
                     'activityType',
                     'activityTypeVersion.activityType',
                 ])
@@ -360,6 +365,7 @@ class GroupDashboardController extends Controller
     private function serializeDashboardActivity(Activity $activity, Group $group, bool $canManageActivities): array
     {
         $canViewOverview = $this->canViewActivityOverview($activity, $group, $canManageActivities);
+        $hasExistingApplication = $activity->applications->isNotEmpty();
         $viewLink = $canManageActivities
             ? route('groups.dashboard.activities.show', [
                 'group' => $group,
@@ -370,7 +376,8 @@ class GroupDashboardController extends Controller
                 : route('groups.dashboard.activities.index', [
                     'group' => $group,
                 ], false));
-        $canApply = $activity->needs_application
+        $canApply = ! $hasExistingApplication
+            && $activity->needs_application
             && $activity->acceptsApplications()
             && $canViewOverview;
 
@@ -390,6 +397,7 @@ class GroupDashboardController extends Controller
             'is_public' => $activity->is_public,
             'secret_key' => $canManageActivities ? $activity->secret_key : null,
             'can_view_overview' => $canViewOverview,
+            'has_existing_application' => $hasExistingApplication,
             'can_apply' => $canApply,
             'needs_application' => $activity->needs_application,
             'allow_guest_applications' => $activity->allow_guest_applications,
@@ -410,7 +418,7 @@ class GroupDashboardController extends Controller
             'updated_at' => $activity->updated_at?->toIso8601String(),
             'links' => [
                 'view' => $viewLink,
-                'apply' => $canApply
+                'apply' => ($canApply || $hasExistingApplication)
                     ? route('groups.activities.application', $this->activityAttendeeRouteParameters($group, $activity), false)
                     : null,
             ],

@@ -419,8 +419,14 @@ final class RunDiscoveryService
 
     private function canUserTakeDiscoveryAction(Activity $activity, User $user): bool
     {
-        return $this->canUserApplyToActivity($activity, $user)
+        return $this->userHasExistingApplication($activity)
+            || $this->canUserApplyToActivity($activity, $user)
             || $this->canUserSelfAssignToActivity($activity, $user);
+    }
+
+    private function userHasExistingApplication(Activity $activity): bool
+    {
+        return $activity->applications->isNotEmpty();
     }
 
     private function canUserApplyToActivity(Activity $activity, User $user): bool
@@ -494,6 +500,7 @@ final class RunDiscoveryService
         $filledMainSlots = $mainSlots
             ->filter(fn (ActivitySlot $slot) => $slot->assigned_character_id !== null);
         $canManage = $group?->hasModeratorAccess($user->id) ?? false;
+        $hasExistingApplication = $this->userHasExistingApplication($activity);
         $canApply = $this->canUserApplyToActivity($activity, $user);
         $region = Group::regionForDatacenter($activity->datacenter ?: $group?->datacenter);
 
@@ -539,6 +546,7 @@ final class RunDiscoveryService
             ],
             'filled_slots' => $filledMainSlots->count(),
             'total_slots' => $mainSlots->count(),
+            'has_existing_application' => $hasExistingApplication,
             'can_apply' => $canApply,
             'links' => [
                 'view' => $canManage
@@ -552,7 +560,7 @@ final class RunDiscoveryService
                         'group' => $group?->slug,
                         'activity' => $activity->id,
                     ]),
-                'apply' => $canApply
+                'apply' => ($canApply || $hasExistingApplication)
                     ? route('groups.activities.application', [
                         'locale' => app()->getLocale(),
                         'group' => $group?->slug,

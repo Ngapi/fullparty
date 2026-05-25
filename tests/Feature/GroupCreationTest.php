@@ -219,6 +219,29 @@ it('requires a timezone and complete time pair when active schedule metadata is 
         ->assertSessionHasErrors(['active_end_time', 'active_timezone']);
 });
 
+it('allows overnight active schedule windows when creating a group', function () {
+    $user = User::factory()->create();
+
+    $this->actingAs($user)
+        ->post(route('groups.store'), validCreateGroupPayload([
+            'name' => 'Night Group',
+            'slug' => 'nightgrp',
+            'group_type' => Group::TYPE_COMMUNITY,
+            'active_timezone' => 'Europe/London',
+            'active_days' => ['fri', 'sat'],
+            'active_start_time' => '22:00',
+            'active_end_time' => '05:00',
+        ]))
+        ->assertRedirect(route('groups.dashboard', 'nightgrp'));
+
+    $group = Group::query()->where('slug', 'nightgrp')->firstOrFail();
+
+    expect($group->active_timezone)->toBe('Europe/London')
+        ->and($group->active_days)->toBe(['fri', 'sat'])
+        ->and($group->active_start_time)->toBe('22:00')
+        ->and($group->active_end_time)->toBe('05:00');
+});
+
 it('requires the discovery and group fit fields when creating a group', function () {
     $user = User::factory()->create();
 

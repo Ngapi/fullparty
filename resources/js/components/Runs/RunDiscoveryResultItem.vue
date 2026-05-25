@@ -112,7 +112,10 @@ const goToApply = () => {
 </script>
 
 <template>
-	<article class="h-38 overflow-hidden border border-white/10 bg-neutral-950/72 shadow-[0_20px_40px_rgba(0,0,0,0.2)]">
+	<article
+		class="h-38 overflow-hidden border border-white/10 bg-neutral-950/72 shadow-[0_20px_40px_rgba(0,0,0,0.2)]"
+		:class="props.item.has_existing_application ? 'border-l-4 border-l-brand-400' : ''"
+	>
 		<div class="grid gap-4 xl:grid-cols-[7rem_minmax(0,1.6fr)_11rem_10rem_11rem] xl:items-center">
 			<div class="border border-white/8 bg-neutral-900/70">
 				<img
@@ -242,11 +245,13 @@ const goToApply = () => {
 							@click="goToViewDetails"
 						/>
 						<UButton
-							v-if="item.can_apply && item.links.apply"
+							v-if="item.links.apply && (item.can_apply || item.has_existing_application)"
 							color="neutral"
 							variant="outline"
 							class="w-full justify-center rounded-none border-brand-400/45 text-white hover:bg-brand-500/10"
-							:label="t('runs.discovery.results.placeholder_item.actions.apply_now')"
+							:label="item.has_existing_application
+								? t('runs.discovery.results.placeholder_item.actions.view_application')
+								: t('runs.discovery.results.placeholder_item.actions.apply_now')"
 							@click="goToApply"
 						/>
 					</div>

@@ -281,7 +281,7 @@ it('only exposes private moderator-visible runs to moderators of that group', fu
         ->assertJsonPath('items.0.can_apply', true);
 });
 
-it('only returns runs the viewer can actually act on', function () {
+it('shows runs the viewer can apply to, self-assign to, or already has an application for', function () {
     $viewer = User::factory()->create();
     $viewerCharacter = Character::factory()->primary()->create([
         'user_id' => $viewer->id,
@@ -383,11 +383,16 @@ it('only returns runs the viewer can actually act on', function () {
             'group_type' => Group::TYPE_COMMUNITY,
         ]))
         ->assertOk()
-        ->assertJsonPath('ids', [$applicationRun->id, $directJoinRun->id])
+        ->assertJsonPath('ids', [$applicationRun->id, $directJoinRun->id, $alreadyAppliedRun->id])
         ->assertJsonPath('items.0.id', $applicationRun->id)
+        ->assertJsonPath('items.0.has_existing_application', false)
         ->assertJsonPath('items.0.can_apply', true)
         ->assertJsonPath('items.1.id', $directJoinRun->id)
-        ->assertJsonPath('items.1.can_apply', false);
+        ->assertJsonPath('items.1.has_existing_application', false)
+        ->assertJsonPath('items.1.can_apply', false)
+        ->assertJsonPath('items.2.id', $alreadyAppliedRun->id)
+        ->assertJsonPath('items.2.has_existing_application', true)
+        ->assertJsonPath('items.2.can_apply', false);
 });
 
 it('matches time-of-day filters in the user timezone instead of the app timezone', function () {

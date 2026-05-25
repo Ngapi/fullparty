@@ -4,7 +4,7 @@
     "header_badge": "{count} upcoming",
     "back": "Go Back to Runs",
     "statuses": {
-        "planned": "Planned",
+        "planned": "Draft",
         "scheduled": "Scheduled",
         "assigned": "Assigned",
         "upcoming": "Upcoming",

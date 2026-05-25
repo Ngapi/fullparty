@@ -24,7 +24,7 @@ it('renders the group dashboard with activity-driven overview data', function ()
         'discord_invite_url' => 'https://discord.gg/fullparty',
     ]);
 
-    Character::factory()->primary()->create([
+    $ownerCharacter = Character::factory()->primary()->create([
         'user_id' => $owner->id,
     ]);
 
@@ -84,6 +84,12 @@ it('renders the group dashboard with activity-driven overview data', function ()
         'is_public' => true,
         'starts_at' => now()->addDays(3),
         'updated_at' => now()->subHours(2),
+    ]);
+
+    ActivityApplication::factory()->create([
+        'activity_id' => $plannedActivity->id,
+        'user_id' => $owner->id,
+        'selected_character_id' => $ownerCharacter->id,
     ]);
 
     $assignedActivity = Activity::factory()->create([
@@ -203,10 +209,11 @@ it('renders the group dashboard with activity-driven overview data', function ()
                 ->where('group.upcoming_activities.1.can_view_overview', true)
                 ->where('group.upcoming_activities.1.secret_key', $assignedActivity->secret_key)
                 ->where('group.upcoming_activities.2.id', $plannedActivity->id)
-                ->where('group.upcoming_activities.2.can_apply', true)
+                ->where('group.upcoming_activities.2.has_existing_application', true)
+                ->where('group.upcoming_activities.2.can_apply', false)
                 ->where('group.upcoming_activities.2.can_view_overview', true)
                 ->where('group.upcoming_activities.2.activity_type.slug', 'chaotic-alliance')
-                ->where('group.upcoming_activities.2.application_count', 1)
+                ->where('group.upcoming_activities.2.application_count', 2)
                 ->where('group.upcoming_activities.2.slot_count', 4)
                 ->where('group.upcoming_activities.2.links.apply', route('groups.activities.application', [
                     'group' => $group->slug,

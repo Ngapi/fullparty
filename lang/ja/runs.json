@@ -151,7 +151,8 @@
         },
         "actions": {
           "view_details": "View Details",
-          "apply_now": "Apply Now"
+          "apply_now": "Apply Now",
+          "view_application": "View Application"
         }
       },
       "sort_options": {

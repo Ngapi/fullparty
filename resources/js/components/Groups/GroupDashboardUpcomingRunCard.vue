@@ -145,7 +145,9 @@ const goToApply = () => {
 					color="primary"
 					variant="solid"
 					icon="i-lucide-file-pen-line"
-					:label="t('groups.dashboard.upcoming_runs.apply')"
+					:label="activity.has_existing_application
+						? t('groups.dashboard.upcoming_runs.view_application')
+						: t('groups.dashboard.upcoming_runs.apply')"
 					class="flex-1 justify-center"
 					@click="goToApply"
 				/>
