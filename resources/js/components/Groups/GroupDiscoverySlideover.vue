@@ -32,10 +32,10 @@ const selectedDetailTab = ref("about");
 
 const groupTypeLabel = computed(() => {
 	if (!props.group?.group_type) {
-		return t("groups.index.discovery.detail.not_shared");
+		return t("groups.common.states.not_shared");
 	}
 
-	return t(`groups.index.create_modal.fields.group_type.options.${props.group.group_type}`);
+	return t(`groups.common.group_types.${props.group.group_type}`);
 });
 
 const bannerUrl = computed(() => props.group?.banner_image_url ?? "/prereqimages/forked.jpg");
@@ -226,7 +226,7 @@ const toggleNotifications = () => {
 											<div class="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-white/78">
 												<span class="inline-flex items-center gap-1">
 													<UIcon name="i-lucide-server" class="size-4" />
-													{{ group.datacenter || t('groups.index.discovery.detail.not_shared') }}
+													{{ group.datacenter || t('groups.common.states.not_shared') }}
 												</span>
 												<span v-if="group.region" class="inline-flex items-center gap-1">
 													<UIcon name="i-lucide-globe" class="size-4" />

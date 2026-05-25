@@ -1,4 +1,55 @@
 {
+  "roles": {
+    "owner": "Propriétaire",
+    "admin": "Admin",
+    "moderator": "Modérateur",
+    "member": "Membre"
+  },
+  "group_types": {
+    "community": "Communauté",
+    "static": "Static"
+  },
+  "voice_expectations": {
+    "required": "Voice Required",
+    "preferred": "Voice Preferred",
+    "optional": "Voice Optional"
+  },
+  "active_days": {
+    "mon": "Lundi",
+    "tue": "Mardi",
+    "wed": "Mercredi",
+    "thu": "Jeudi",
+    "fri": "Vendredi",
+    "sat": "Samedi",
+    "sun": "Dimanche"
+  },
+  "labels": {
+    "about_us": "About Us",
+    "owner": "Owner",
+    "members": "Members",
+    "role": "Role",
+    "discord": "Discord",
+    "languages": "Languages",
+    "metadata_tags": "Metadata Tags",
+    "extra_tags": "Extra Tags",
+    "activity_window": "Activity Window",
+    "recent_activity": "Recent Activity",
+    "region": "Region",
+    "group_type": "Group Type",
+    "timezone": "Timezone",
+    "active_days": "Active Days",
+    "active_hours": "Active Hours"
+  },
+  "states": {
+    "public_group": "Public Group",
+    "private_group": "Private Group",
+    "visible_in_discovery": "Visible in Discovery",
+    "hidden_from_discovery": "Hidden from Discovery",
+    "not_shared": "Not shared",
+    "no_description_short": "This group has not added a description yet.",
+    "no_description_long": "This group has not added a description yet. Use this space to clarify what you run, who it is for, and how people should approach joining.",
+    "no_recent_activity": "No recent activity yet"
+  },
   "validation": {
     "active_time_pair_required": "Les heures de début et de fin d'activité doivent être fournies ensemble.",
     "active_timezone_required": "Un fuseau horaire actif est requis lorsque des jours ou des heures d'activité sont fournis.",

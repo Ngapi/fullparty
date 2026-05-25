@@ -9,8 +9,7 @@ const props = defineProps<{
 }>();
 
 const { t } = useI18n();
-const groupTypeLabel = computed(() => t(`groups.index.create_modal.fields.group_type.options.${props.group.group_type}`));
-const subtitle = computed(() => t("groups.dashboard.subtitle", { datacenter: props.group.datacenter }));
+const groupTypeLabel = computed(() => t(`groups.common.group_types.${props.group.group_type}`));
 </script>
 
 <template>

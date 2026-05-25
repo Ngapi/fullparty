@@ -45,7 +45,7 @@ const activityTypeDefinitions = computed<RunDiscoveryActivityTypeOption[]>(() =>
 const classOptions = computed<RunDiscoveryClassOption[]>(() => props.lookups.class_options ?? []);
 
 const activityTypeOptions = computed<RunDiscoveryLookupOption[]>(() => [
-	{ label: t("runs.discovery.filters.placeholders.activity_type"), value: "any" },
+	{ label: t("runs.discovery.filters.options.any.activity_type"), value: "any" },
 	...activityTypeDefinitions.value.map(({ label, value }) => ({ label, value })),
 ]);
 
@@ -57,7 +57,7 @@ const progPointOptions = computed<RunDiscoveryLookupOption[]>(() => {
 	}
 
 	return [
-		{ label: t("runs.discovery.filters.options.prog_points.any"), value: "any" },
+		{ label: t("runs.discovery.filters.options.any.prog_point"), value: "any" },
 		...(selectedActivityTypeDefinition.value?.prog_points ?? []),
 	];
 });
@@ -89,17 +89,17 @@ const applicationStatusOptions = computed<RunDiscoveryLookupOption[]>(() => [
 const datacenterLookups = computed(() => props.lookups.datacenters ?? []);
 
 const regionOptions = computed<RunDiscoveryLookupOption[]>(() => [
-	{ label: t("runs.discovery.filters.placeholders.region"), value: "any" },
+	{ label: t("runs.discovery.filters.options.any.region"), value: "any" },
 	...(props.lookups.regions ?? []),
 ]);
 
 const datacenterOptions = computed<RunDiscoveryLookupOption[]>(() => [
-	{ label: t("runs.discovery.filters.placeholders.data_center"), value: "all" },
+	{ label: t("runs.discovery.filters.options.any.data_center"), value: "all" },
 	...datacenterLookups.value.map(({ label, value }) => ({ label, value })),
 ]);
 
 const groupOptions = computed<RunDiscoveryLookupOption[]>(() => [
-	{ label: t("runs.discovery.filters.placeholders.group"), value: "any" },
+	{ label: t("runs.discovery.filters.options.any.group"), value: "any" },
 	...(props.lookups.groups ?? []),
 ]);
 
@@ -299,22 +299,22 @@ const resetFilters = () => {
 						</p>
 					</div>
 
-					<USelectMenu
-						v-model="selectedActivityType"
-						class="w-full"
-						:items="activityTypeOptions"
-						value-key="value"
-						:placeholder="t('runs.discovery.filters.placeholders.activity_type')"
-					/>
+						<USelectMenu
+							v-model="selectedActivityType"
+							class="w-full"
+							:items="activityTypeOptions"
+							value-key="value"
+							:placeholder="t('runs.discovery.filters.options.any.activity_type')"
+						/>
 
-					<USelectMenu
-						v-if="selectedActivityTypeHasProgPoints"
-						v-model="selectedProgPoint"
-						class="w-full"
-						:items="progPointOptions"
-						value-key="value"
-						:placeholder="t('runs.discovery.filters.placeholders.prog_point')"
-					/>
+						<USelectMenu
+							v-if="selectedActivityTypeHasProgPoints"
+							v-model="selectedProgPoint"
+							class="w-full"
+							:items="progPointOptions"
+							value-key="value"
+							:placeholder="t('runs.discovery.filters.options.any.prog_point')"
+						/>
 				</section>
 
 				<section class="space-y-3">

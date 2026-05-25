@@ -49,22 +49,22 @@ const roleBadge = (role: string | null | undefined) => {
 
 		return {
 			owner: {
-				label: t('groups.index.roles.owner'),
+				label: t('groups.common.roles.owner'),
 				color: 'warning',
 				icon: 'i-lucide-crown'
 			},
 			admin: {
-				label: t('groups.index.roles.admin'),
+				label: t('groups.common.roles.admin'),
 				color: 'secondary',
 				icon: 'i-lucide-shield-check'
 			},
 			moderator: {
-				label: t('groups.index.roles.moderator'),
+				label: t('groups.common.roles.moderator'),
 				color: 'primary',
 				icon: 'i-lucide-shield'
 			},
 		member: {
-			label: t('groups.index.roles.member'),
+			label: t('groups.common.roles.member'),
 			color: 'neutral',
 			icon: 'i-lucide-user'
 		}

@@ -40,16 +40,15 @@
         }
       },
       "placeholders": {
-        "activity_type": "Any Activity Type",
-        "prog_point": "Any Prog Point",
-        "region": "Any Region",
-        "data_center": "All Data Centers",
-        "group": "Any Group",
-        "language": "Any Language",
         "timezone": "Your Timezone"
       },
       "options": {
         "any": {
+          "activity_type": "Any Activity Type",
+          "prog_point": "Any Prog Point",
+          "region": "Any Region",
+          "data_center": "All Data Centers",
+          "group": "Any Group",
           "language": "Any Language",
           "run_style": "Any Run Style"
         },
@@ -121,11 +120,11 @@
       }
     },
     "results": {
-        "title": "Runs",
-        "subtitle": "Browse what groups currently have on the calendar.",
-        "count": "{count} runs found",
-        "page_status": "Page {current} of {total}",
-        "sort_by": "Sort by",
+      "title": "Runs",
+      "subtitle": "Browse what groups currently have on the calendar.",
+      "count": "{count} runs found",
+      "page_status": "Page {current} of {total}",
+      "sort_by": "Sort by",
       "sort_label": "Sort By",
       "preview_badge": "Preview",
       "placeholder_title": "No runs found",

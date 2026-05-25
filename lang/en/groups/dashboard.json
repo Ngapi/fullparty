@@ -1,5 +1,4 @@
 {
-  "subtitle": "A shared home for {datacenter} group details, runs, and activity.",
   "actions": {
     "view_runs": "View Runs",
     "view_members": "View Members",
@@ -22,14 +21,6 @@
     "no_member_joins": "No member joins recorded"
   },
   "hero": {
-    "public_group": "Public Group",
-    "private_group": "Private Group",
-    "visible_group": "Visible in Discovery",
-    "hidden_group": "Hidden from Discovery",
-    "no_description": "This group has not added a description yet. Use this space to clarify what you run, who it is for, and how people should approach joining.",
-    "owner": "Owner",
-    "discord": "Discord",
-    "activity_window": "Activity Window",
     "last_activity": "Last Run Activity",
     "latest_member": "Latest Member Join",
     "reach": "Reach",

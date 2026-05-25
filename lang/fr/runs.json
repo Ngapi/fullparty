@@ -50,6 +50,11 @@
       },
       "options": {
         "any": {
+          "activity_type": "Any Activity Type",
+          "prog_point": "Any Prog Point",
+          "region": "Any Region",
+          "data_center": "All Data Centers",
+          "group": "Any Group",
           "language": "Any Language",
           "run_style": "Any Run Style"
         },

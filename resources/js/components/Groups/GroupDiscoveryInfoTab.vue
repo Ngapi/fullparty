@@ -23,7 +23,7 @@ const languagesText = computed(() => (props.group.preferred_languages ?? [])
 
 const activeHoursText = computed(() => {
 	if (!props.group.active_start_time || !props.group.active_end_time) {
-		return t("groups.index.discovery.detail.not_shared");
+		return t("groups.common.states.not_shared");
 	}
 
 	return `${formatTime(props.group.active_start_time)} - ${formatTime(props.group.active_end_time)}`;
@@ -36,7 +36,7 @@ const weeklyActivityRows = computed(() => activityDayValues.map((day) => {
 
 	return {
 		value: day,
-		label: t(`groups.index.create_modal.fields.active_days.options.${day}`),
+		label: t(`groups.common.active_days.${day}`),
 		isActive,
 		hours: isActive ? activeHoursText.value : "",
 	};
@@ -46,10 +46,10 @@ const lastActivityText = computed(() => formatRelativeTime(
 	props.group.stats.last_activity_at ?? null,
 	locale.value,
 	t("notifications.ui.just_now"),
-	t("groups.index.table.no_activity"),
+	t("groups.common.states.no_recent_activity"),
 ));
 
-const descriptionText = computed(() => props.group.description || t("groups.index.discovery.detail.description_fallback"));
+const descriptionText = computed(() => props.group.description || t("groups.common.states.no_description_short"));
 
 function resolveLanguageLabel(value: string) {
 	const languageLabels: Record<string, string> = {
@@ -71,7 +71,7 @@ function formatTime(value: string) {
 	<div class="space-y-5">
 		<section class="space-y-2">
 			<p class="text-[11px] font-semibold uppercase tracking-[0.16em] text-dimmed">
-				{{ t('groups.index.discovery.detail.description') }}
+				{{ t('groups.common.labels.about_us') }}
 			</p>
 			<p class="text-sm leading-7 text-toned break-words [overflow-wrap:anywhere]">
 				{{ descriptionText }}
@@ -83,7 +83,7 @@ function formatTime(value: string) {
 		<section class="flex flex-wrap items-start justify-between gap-4">
 			<div class="min-w-0 flex-1">
 				<p class="text-[11px] font-semibold uppercase tracking-[0.16em] text-dimmed">
-					{{ t('groups.index.discovery.detail.owner') }}
+					{{ t('groups.common.labels.owner') }}
 				</p>
 				<div class="mt-2">
 					<UUser
@@ -96,7 +96,7 @@ function formatTime(value: string) {
 
 			<div class="min-w-32 shrink-0 text-left sm:text-right">
 				<p class="text-[11px] font-semibold uppercase tracking-[0.16em] text-dimmed">
-					{{ t('groups.index.discovery.detail.members') }}
+					{{ t('groups.common.labels.members') }}
 				</p>
 				<p class="mt-2 text-2xl font-semibold text-highlighted">
 					{{ group.stats.member_count }}
@@ -113,7 +113,7 @@ function formatTime(value: string) {
 				</div>
 				<div class="min-w-0">
 					<p class="text-[11px] font-semibold uppercase tracking-[0.16em] text-dimmed">
-						{{ t('groups.index.discovery.detail.recent_activity') }}
+						{{ t('groups.common.labels.recent_activity') }}
 					</p>
 					<p class="mt-1 text-sm text-toned">
 						{{ lastActivityText }}
@@ -127,7 +127,7 @@ function formatTime(value: string) {
 				</div>
 				<div class="min-w-0">
 					<p class="text-[11px] font-semibold uppercase tracking-[0.16em] text-dimmed">
-						{{ t('groups.index.discovery.detail.discord') }}
+						{{ t('groups.common.labels.discord') }}
 					</p>
 					<a
 						v-if="group.discord_invite_url"
@@ -140,7 +140,7 @@ function formatTime(value: string) {
 						<span class="truncate">{{ group.discord_invite_url }}</span>
 					</a>
 					<p v-else class="mt-1 text-sm text-muted">
-						{{ t('groups.index.discovery.detail.not_shared') }}
+						{{ t('groups.common.states.not_shared') }}
 					</p>
 				</div>
 			</div>
@@ -151,10 +151,10 @@ function formatTime(value: string) {
 				</div>
 				<div class="min-w-0">
 					<p class="text-[11px] font-semibold uppercase tracking-[0.16em] text-dimmed">
-						{{ t('groups.index.discovery.detail.languages') }}
+						{{ t('groups.common.labels.languages') }}
 					</p>
 					<p class="mt-1 text-sm text-toned">
-						{{ languagesText || t('groups.index.discovery.detail.not_shared') }}
+						{{ languagesText || t('groups.common.states.not_shared') }}
 					</p>
 				</div>
 			</div>
@@ -164,7 +164,7 @@ function formatTime(value: string) {
 
 		<section class="space-y-3">
 			<p class="text-[11px] font-semibold uppercase tracking-[0.16em] text-dimmed">
-				{{ t('groups.index.discovery.detail.metadata_tags') }}
+				{{ t('groups.common.labels.metadata_tags') }}
 			</p>
 			<div class="flex flex-wrap gap-2">
 				<GroupDiscoveryBadge
@@ -180,7 +180,7 @@ function formatTime(value: string) {
 				<GroupDiscoveryBadge
 					v-if="voiceBadge"
 					:color="voiceBadge.color"
-					:label="t(`groups.index.create_modal.fields.voice_expectation.options.${voiceBadge.value}`)"
+					:label="t(`groups.common.voice_expectations.${voiceBadge.value}`)"
 				/>
 				<GroupDiscoveryBadge
 					v-for="focus in focusBadges"
@@ -195,7 +195,7 @@ function formatTime(value: string) {
 
 		<section class="space-y-3">
 			<p class="text-[11px] font-semibold uppercase tracking-[0.16em] text-dimmed">
-				{{ t('groups.index.discovery.detail.extra_tags') }}
+				{{ t('groups.common.labels.extra_tags') }}
 			</p>
 			<div v-if="tagBadges.length > 0" class="flex flex-wrap gap-2">
 				<GroupDiscoveryBadge
@@ -206,7 +206,7 @@ function formatTime(value: string) {
 				/>
 			</div>
 			<p v-else class="text-sm text-muted">
-				{{ t('groups.index.discovery.detail.not_shared') }}
+				{{ t('groups.common.states.not_shared') }}
 			</p>
 		</section>
 
@@ -214,15 +214,15 @@ function formatTime(value: string) {
 
 		<section class="space-y-3">
 			<p class="text-[11px] font-semibold uppercase tracking-[0.16em] text-dimmed">
-				{{ t('groups.index.discovery.detail.schedule') }}
+				{{ t('groups.common.labels.activity_window') }}
 			</p>
 			<div class="overflow-hidden border border-default bg-muted/20">
 				<div class="border-b border-default/80 px-4 py-3">
 					<p class="text-[11px] font-semibold uppercase tracking-[0.14em] text-dimmed">
-						{{ t('groups.index.discovery.detail.timezone') }}
+						{{ t('groups.common.labels.timezone') }}
 					</p>
 					<p class="mt-1 text-sm text-toned break-words">
-						{{ group.active_timezone || t('groups.index.discovery.detail.not_shared') }}
+						{{ group.active_timezone || t('groups.common.states.not_shared') }}
 					</p>
 				</div>
 

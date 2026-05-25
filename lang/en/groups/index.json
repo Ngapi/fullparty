@@ -24,15 +24,9 @@
     "member": "Groups you're part of and can participate in",
     "discover": "Visible groups ordered by their latest activity"
   },
-  "roles": {
-    "owner": "Owner",
-    "admin": "Admin",
-    "moderator": "Moderator",
-    "member": "Member"
-  },
   "navigation": {
     "general": "General",
-        "activities": "Runs",
+    "activities": "Runs",
     "members": "Members",
     "audit_log": "Audit Log",
     "settings": "Settings"
@@ -137,55 +131,24 @@
       "team": {
         "core_leadership": "Owner & Admins",
         "core_leadership_hint": "The people leading the group at the highest level and keeping it moving forward.",
-        "owner_copy": "This player owns the group, handles the big calls, and sets the overall direction.",
         "moderation_team": "Moderation Team",
         "moderation_hint": "The people helping organize, moderate, and keep the group healthy.",
-        "role": "Role",
         "no_moderation": "No moderators are listed for this group yet."
       },
-      "description": "About Us",
-      "metadata_tags": "Metadata Tags",
-      "extra_tags": "Extra Tags",
       "activity_summary": "Activity Summary",
-      "owner": "Owner",
-      "members": "Members",
-      "recent_activity": "Recent Activity",
       "recent_runs": "Recent Runs",
       "recent_runs_hint": "A quick look at what this group has been running lately.",
       "no_recent_runs": "No completed or archived runs yet.",
-      "runs_total": "Total Runs",
-      "runs_upcoming": "Upcoming Runs",
       "completed_runs": "Completed Runs",
       "total_runs": "Total Runs",
       "runs_per_week": "Runs / Week",
       "average_turnout": "Avg. Turnout",
-      "latest_member": "Latest Member Join",
-      "about": "About",
-      "discord": "Discord",
-      "languages": "Languages",
-      "discovery_fit": "Discovery & Group Fit",
-      "core_metadata": "Core Metadata",
-      "tags": "Extra Tags",
-      "schedule": "Activity Window",
-      "access": "Access & Presence",
-      "region": "Region",
-      "type": "Group Type",
-      "timezone": "Timezone",
-      "active_days": "Active Days",
-      "active_hours": "Active Hours",
       "progress": "Progress",
-      "public_group": "Public Group",
-      "visible_in_discovery": "Visible in Discovery",
-      "description_fallback": "This group has not added a description yet.",
-      "not_shared": "Not shared",
-      "closed": "Closed",
       "showed_up": "{count} showed up",
       "statuses": {
         "complete": "Completed",
         "cancelled": "Cancelled"
-      },
-      "yes": "Yes",
-      "no": "No"
+      }
     }
   },
   "create_modal": {
@@ -248,11 +211,7 @@
       },
       "group_type": {
         "label": "Group Type",
-        "placeholder": "Select a group type",
-        "options": {
-          "community": "Community",
-          "static": "Static"
-        }
+        "placeholder": "Select a group type"
       },
       "description": {
         "placeholder": "Tell people what your group focuses on and who it is for."
@@ -323,12 +282,7 @@
       "voice_expectation": {
         "label": "Voice / Discord Expectation",
         "placeholder": "Select a voice expectation",
-        "help": "Tell people whether voice chat is required, encouraged, or optional.",
-        "options": {
-          "required": "Voice Required",
-          "preferred": "Voice Preferred",
-          "optional": "Voice Optional"
-        }
+        "help": "Tell people whether voice chat is required, encouraged, or optional."
       },
       "preferred_languages": {
         "label": "Preferred Languages",
@@ -361,16 +315,7 @@
       "active_days": {
         "label": "Active Days",
         "placeholder": "Select one or more active days",
-        "help": "Optional. Pick the days when your group most often runs or recruits.",
-        "options": {
-          "mon": "Monday",
-          "tue": "Tuesday",
-          "wed": "Wednesday",
-          "thu": "Thursday",
-          "fri": "Friday",
-          "sat": "Saturday",
-          "sun": "Sunday"
-        }
+        "help": "Optional. Pick the days when your group most often runs or recruits."
       },
       "active_start_time": {
         "label": "Active Start Time",

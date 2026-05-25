@@ -43,7 +43,7 @@ const activityWindowText = computed(() => {
 	}
 
 	const days = activeDays
-		.map((day) => t(`groups.index.create_modal.fields.active_days.options.${day}`))
+		.map((day) => t(`groups.common.active_days.${day}`))
 		.join(", ");
 
 	if (props.group.active_start_time && props.group.active_end_time) {
@@ -53,7 +53,7 @@ const activityWindowText = computed(() => {
 	return `${days} · ${props.group.active_timezone}`;
 });
 
-const descriptionText = computed(() => props.group.description || t("groups.dashboard.hero.no_description"));
+const descriptionText = computed(() => props.group.description || t("groups.common.states.no_description_long"));
 
 const primaryBadges = computed(() => [
 	recruitingBadge.value,
@@ -74,7 +74,7 @@ const resolveBadgeLabel = (value: string) => {
 	}
 
 	if (value === props.group.voice_expectation) {
-		return t(`groups.index.create_modal.fields.voice_expectation.options.${value}`);
+		return t(`groups.common.voice_expectations.${value}`);
 	}
 
 	if (primaryFocusValues.value.has(value)) {
@@ -144,11 +144,11 @@ const resolveBadgeLabel = (value: string) => {
 
 		<div class="mt-5 grid gap-3 border-t border-white/10 pt-4 text-sm text-white/74">
 			<div class="flex items-start gap-2">
-				<UIcon name="i-lucide-user-round" class="mt-0.5 size-4 shrink-0" />
-				<div class="min-w-0">
-					<p class="text-[11px] uppercase tracking-[0.18em] text-white/50">
-						{{ t("groups.dashboard.hero.owner") }}
-					</p>
+						<UIcon name="i-lucide-user-round" class="mt-0.5 size-4 shrink-0" />
+						<div class="min-w-0">
+							<p class="text-[11px] uppercase tracking-[0.18em] text-white/50">
+								{{ t("groups.common.labels.owner") }}
+							</p>
 					<p class="mt-1 text-white break-words [overflow-wrap:anywhere]">
 						{{ group.owner.name || t("groups.dashboard.labels.not_available") }}
 					</p>
@@ -157,13 +157,13 @@ const resolveBadgeLabel = (value: string) => {
 
 			<div
 				v-if="group.discord_invite_url"
-				class="flex items-start gap-2"
-			>
-				<UIcon name="i-lucide-link-2" class="mt-0.5 size-4 shrink-0" />
-				<div class="min-w-0">
-					<p class="text-[11px] uppercase tracking-[0.18em] text-white/50">
-						{{ t("groups.dashboard.hero.discord") }}
-					</p>
+					class="flex items-start gap-2"
+				>
+					<UIcon name="i-lucide-link-2" class="mt-0.5 size-4 shrink-0" />
+					<div class="min-w-0">
+						<p class="text-[11px] uppercase tracking-[0.18em] text-white/50">
+							{{ t("groups.common.labels.discord") }}
+						</p>
 					<p class="mt-1 truncate text-white">
 						{{ group.discord_invite_url }}
 					</p>
@@ -172,13 +172,13 @@ const resolveBadgeLabel = (value: string) => {
 
 			<div
 				v-if="activityWindowText"
-				class="flex items-start gap-2"
-			>
-				<UIcon name="i-lucide-clock-3" class="mt-0.5 size-4 shrink-0" />
-				<div class="min-w-0">
-					<p class="text-[11px] uppercase tracking-[0.18em] text-white/50">
-						{{ t("groups.dashboard.hero.activity_window") }}
-					</p>
+					class="flex items-start gap-2"
+				>
+					<UIcon name="i-lucide-clock-3" class="mt-0.5 size-4 shrink-0" />
+					<div class="min-w-0">
+						<p class="text-[11px] uppercase tracking-[0.18em] text-white/50">
+							{{ t("groups.common.labels.activity_window") }}
+						</p>
 					<p class="mt-1 break-words [overflow-wrap:anywhere] text-white">
 						{{ activityWindowText }}
 					</p>

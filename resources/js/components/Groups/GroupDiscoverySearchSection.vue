@@ -129,7 +129,7 @@ const primaryFocusOptions = computed(() => (groupDiscoveryLookups.value.primary_
 })));
 
 const voiceExpectationOptions = computed(() => (groupDiscoveryLookups.value.voice_expectations ?? []).map((value) => ({
-	label: t(`groups.index.create_modal.fields.voice_expectation.options.${value}`),
+	label: t(`groups.common.voice_expectations.${value}`),
 	value,
 })));
 
@@ -139,7 +139,7 @@ const preferredLanguageOptions = computed(() => (groupDiscoveryLookups.value.pre
 })));
 
 const activeDayOptions = computed(() => (groupDiscoveryLookups.value.active_days ?? []).map((value) => ({
-	label: t(`groups.index.create_modal.fields.active_days.options.${value}`),
+	label: t(`groups.common.active_days.${value}`),
 	value,
 })));
 

@@ -60,11 +60,11 @@ const datacenterOptions = computed<DatacenterOption[]>(() => page.props.lookups?
 const groupDiscoveryLookups = computed<GroupDiscoveryLookups>(() => page.props.lookups?.group_discovery ?? {});
 const groupTypeOptions = computed(() => [
 	{
-		label: t('groups.index.create_modal.fields.group_type.options.community'),
+		label: t('groups.common.group_types.community'),
 		value: 'community',
 	},
 	{
-		label: t('groups.index.create_modal.fields.group_type.options.static'),
+		label: t('groups.common.group_types.static'),
 		value: 'static',
 	},
 ]);
@@ -102,11 +102,11 @@ const experienceExpectationOptions = computed(() => (groupDiscoveryLookups.value
 })));
 const voiceExpectationOptions = computed(() => (groupDiscoveryLookups.value.voice_expectations ?? []).map((value) => ({
 	value,
-	label: t(`groups.index.create_modal.fields.voice_expectation.options.${value}`),
+	label: t(`groups.common.voice_expectations.${value}`),
 })));
 const activeDayOptions = computed(() => (groupDiscoveryLookups.value.active_days ?? []).map((value) => ({
 	value,
-	label: t(`groups.index.create_modal.fields.active_days.options.${value}`),
+	label: t(`groups.common.active_days.${value}`),
 })));
 const timeZoneOptions = computed(() => {
 	const supportedValuesOf = (Intl as typeof Intl & {

@@ -1,4 +1,55 @@
 {
+  "roles": {
+    "owner": "オーナー",
+    "admin": "管理者",
+    "moderator": "モデレーター",
+    "member": "メンバー"
+  },
+  "group_types": {
+    "community": "コミュニティ",
+    "static": "固定"
+  },
+  "voice_expectations": {
+    "required": "Voice Required",
+    "preferred": "Voice Preferred",
+    "optional": "Voice Optional"
+  },
+  "active_days": {
+    "mon": "月曜日",
+    "tue": "火曜日",
+    "wed": "水曜日",
+    "thu": "木曜日",
+    "fri": "金曜日",
+    "sat": "土曜日",
+    "sun": "日曜日"
+  },
+  "labels": {
+    "about_us": "About Us",
+    "owner": "Owner",
+    "members": "Members",
+    "role": "Role",
+    "discord": "Discord",
+    "languages": "Languages",
+    "metadata_tags": "Metadata Tags",
+    "extra_tags": "Extra Tags",
+    "activity_window": "Activity Window",
+    "recent_activity": "Recent Activity",
+    "region": "Region",
+    "group_type": "Group Type",
+    "timezone": "Timezone",
+    "active_days": "Active Days",
+    "active_hours": "Active Hours"
+  },
+  "states": {
+    "public_group": "Public Group",
+    "private_group": "Private Group",
+    "visible_in_discovery": "Visible in Discovery",
+    "hidden_from_discovery": "Hidden from Discovery",
+    "not_shared": "Not shared",
+    "no_description_short": "This group has not added a description yet.",
+    "no_description_long": "This group has not added a description yet. Use this space to clarify what you run, who it is for, and how people should approach joining.",
+    "no_recent_activity": "No recent activity yet"
+  },
   "validation": {
     "active_time_pair_required": "活動開始時刻と終了時刻は両方とも指定してください。",
     "active_timezone_required": "活動日または活動時間を設定する場合は、活動タイムゾーンが必要です。",

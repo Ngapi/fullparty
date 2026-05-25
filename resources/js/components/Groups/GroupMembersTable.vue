@@ -32,22 +32,22 @@ const notAvailableLabel = computed(() => t('groups.members.roster.not_available'
 
 const roleBadge = (role: string) => ({
 	owner: {
-		label: t('groups.index.roles.owner'),
+		label: t('groups.common.roles.owner'),
 		color: 'warning',
 		icon: 'i-lucide-crown',
 	},
 	moderator: {
-		label: t('groups.index.roles.moderator'),
+		label: t('groups.common.roles.moderator'),
 		color: 'primary',
 		icon: 'i-lucide-shield',
 	},
 	admin: {
-		label: t('groups.index.roles.admin'),
+		label: t('groups.common.roles.admin'),
 		color: 'secondary',
 		icon: 'i-lucide-shield-check',
 	},
 	member: {
-		label: t('groups.index.roles.member'),
+		label: t('groups.common.roles.member'),
 		color: 'neutral',
 		icon: 'i-lucide-user',
 	},

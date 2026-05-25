@@ -14,7 +14,7 @@ const adminMembers = computed(() => props.group.team_members.filter((member) => 
 const moderatorMembers = computed(() => props.group.team_members.filter((member) => member.role === "moderator"));
 
 function roleLabel(role: "owner" | "admin" | "moderator") {
-	return t(`groups.index.roles.${role}`);
+	return t(`groups.common.roles.${role}`);
 }
 </script>
 
@@ -48,7 +48,7 @@ function roleLabel(role: "owner" | "admin" | "moderator") {
 
 						<div class="shrink-0 text-left sm:text-right">
 							<p class="text-[11px] font-semibold uppercase tracking-[0.14em] text-dimmed">
-								{{ t('groups.index.discovery.detail.team.role') }}
+								{{ t('groups.common.labels.role') }}
 							</p>
 							<p class="mt-1 text-sm font-medium text-highlighted">
 								{{ roleLabel(ownerMember.role) }}
@@ -72,7 +72,7 @@ function roleLabel(role: "owner" | "admin" | "moderator") {
 
 					<div class="shrink-0 text-left sm:text-right">
 						<p class="text-[11px] font-semibold uppercase tracking-[0.14em] text-dimmed">
-							{{ t('groups.index.discovery.detail.team.role') }}
+							{{ t('groups.common.labels.role') }}
 						</p>
 						<p class="mt-1 text-sm text-toned">
 							{{ roleLabel(member.role) }}
@@ -115,7 +115,7 @@ function roleLabel(role: "owner" | "admin" | "moderator") {
 
 					<div class="shrink-0 text-left sm:text-right">
 						<p class="text-[11px] font-semibold uppercase tracking-[0.14em] text-dimmed">
-							{{ t('groups.index.discovery.detail.team.role') }}
+							{{ t('groups.common.labels.role') }}
 						</p>
 						<p class="mt-1 text-sm text-toned">
 							{{ roleLabel(member.role) }}
