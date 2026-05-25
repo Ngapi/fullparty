@@ -31,8 +31,14 @@ export default defineConfig({
                 },
                 input: {
                     slots: {
-                        base: 'rounded-none'
-                    }
+                        base: 'rounded-none bg-neutral-950 placeholder:text-neutral-600 ring-neutral-800',
+                        leadingIcon: 'text-neutral-600'
+                    },
+                    // variants: {
+                    //     variant: {
+                    //         outline: 'border-red-500'
+                    //     }
+                    // }
                 },
                 button: {
                   slots: {
@@ -51,12 +57,14 @@ export default defineConfig({
                 },
                 selectMenu: {
                     slots: {
-                        base: 'rounded-none'
+                        base: 'rounded-none bg-neutral-950 placeholder:text-neutral-600 border-neutral-800',
+                        leadingIcon: 'text-neutral-600',
                     }
                 },
                 select: {
                     slots: {
-                        base: 'rounded-none'
+                        base: 'rounded-none bg-neutral-950 placeholder:text-neutral-600 ring-neutral-800',
+                        leadingIcon: 'text-neutral-600'
                     }
                 },
                 modal: {

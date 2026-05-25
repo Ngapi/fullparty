@@ -193,12 +193,6 @@ const initialCharacterId = computed(() => props.selfAssignmentCharacters[0]?.id 
 const assignmentModeLabel = computed(() => t("groups.activities.create.summary.assignment_self_assign"));
 
 const goBack = () => {
-	if (props.group.is_public) {
-		router.get(route("groups.show", props.group.slug));
-
-		return;
-	}
-
 	if (typeof window !== "undefined" && window.history.length > 1) {
 		window.history.back();
 
@@ -207,7 +201,11 @@ const goBack = () => {
 
 	if (props.permissions.can_manage) {
 		goToManagementPage();
+
+		return;
 	}
+
+	router.get(route("home"));
 };
 
 const goToManagementPage = () => {

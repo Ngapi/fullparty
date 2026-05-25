@@ -72,7 +72,7 @@ class GroupMembershipController extends Controller
             );
         }
 
-        return redirect()->route('groups.show', $group)->with('success', 'group_joined');
+        return redirect()->route('groups.dashboard', $group)->with('success', 'group_joined');
     }
 
     public function leave(Request $request, Group $group): RedirectResponse
@@ -135,9 +135,7 @@ class GroupMembershipController extends Controller
         }
 
         if ($target === 'profile') {
-            return $group->is_visible
-                ? redirect()->route('groups.show', $group)
-                : redirect()->route('groups.index');
+            return redirect()->route('groups.dashboard', $group);
         }
 
         return redirect()->back();

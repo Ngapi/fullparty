@@ -19,18 +19,9 @@ it('does not expose or allow the public join action for static groups', function
     expect($group->invites()->exists())->toBeFalse();
 
     $this->actingAs($viewer)
-        ->get(route('groups.show', $group))
-        ->assertOk()
-        ->assertInertia(fn (Assert $page) => $page
-            ->where('group.group_type', Group::TYPE_STATIC)
-            ->where('group.permissions.can_join', false)
-            ->where('group.permissions.can_follow', true)
-        );
-
-    $this->actingAs($viewer)
-        ->from(route('groups.show', $group))
+        ->from(route('groups.index'))
         ->post(route('groups.join', $group))
-        ->assertRedirect(route('groups.show', $group))
+        ->assertRedirect(route('groups.index'))
         ->assertSessionHasErrors('error');
 
     expect($group->memberships()->where('user_id', $viewer->id)->exists())->toBeFalse();

@@ -166,12 +166,6 @@ const applicationRouteParameters = computed(() => ({
 }));
 
 const goBack = () => {
-	if (props.group.is_public) {
-		router.get(route("groups.show", props.group.slug));
-
-		return;
-	}
-
 	if (typeof window !== "undefined" && window.history.length > 1) {
 		window.history.back();
 
@@ -186,7 +180,11 @@ const goBack = () => {
 
 	if (showApplicationButton.value) {
 		goToApplicationPage();
+
+		return;
 	}
+
+	router.get(route("home"));
 };
 
 const goToApplicationPage = () => {

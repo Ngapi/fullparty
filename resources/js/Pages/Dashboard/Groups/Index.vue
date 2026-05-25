@@ -1,122 +1,110 @@
 <script setup lang="ts">
-// Group management page: show groups the user owns, moderates, belongs to, and public groups they can discover or join.
+import axios from "axios";
 import PageHeader from "@/components/PageHeader.vue";
 import CreateGroupModal from "@/components/Groups/CreateGroupModal.vue";
-import GroupIndexTable from "@/components/Groups/GroupIndexTable.vue";
-import GroupSearchBox from "@/components/Groups/GroupSearchBox.vue";
-import { router } from "@inertiajs/vue3";
+import FeaturedGroupsCarousel from "@/components/Groups/FeaturedGroupsCarousel.vue";
+import GroupDiscoverySearchSection from "@/components/Groups/GroupDiscoverySearchSection.vue";
+import GroupDiscoverySlideover from "@/components/Groups/GroupDiscoverySlideover.vue";
+import type { FeaturedGroupRecord, GroupDiscoveryDetailRecord, GroupIndexRecord } from "@/Types/Groups";
+import { onMounted, ref } from "vue";
 import { route } from "ziggy-js";
-import {useI18n} from "vue-i18n";
-import {computed, ref} from "vue";
+import { useI18n } from "vue-i18n";
 
-const {t} = useI18n();
+const { t } = useI18n();
+const featuredGroups = ref<FeaturedGroupRecord[]>([]);
+const isFeaturedGroupsLoading = ref(true);
+const isGroupDetailsOpen = ref(false);
+const isGroupDetailsLoading = ref(false);
+const selectedGroup = ref<GroupDiscoveryDetailRecord | null>(null);
 
-const props = defineProps<{
-	ownedGroups: Array<any>
-	moderatedGroups: Array<any>
-	memberGroups: Array<any>
-	discoverGroups: {
-		data: Array<any>
-		meta: {
-			current_page: number
-			last_page: number
-			per_page: number
-			total: number
+const groupDetailsCache = new Map<string, GroupDiscoveryDetailRecord>();
+let groupDetailsRequestCounter = 0;
+
+const loadFeaturedGroups = async () => {
+	isFeaturedGroupsLoading.value = true;
+
+	try {
+		const response = await axios.get<{ data: FeaturedGroupRecord[] }>(route("groups.featured"));
+
+		featuredGroups.value = response.data.data;
+	} finally {
+		isFeaturedGroupsLoading.value = false;
+	}
+};
+
+const isSearchResultGroup = (group: FeaturedGroupRecord | GroupIndexRecord): group is GroupIndexRecord => "badge_meta" in group;
+
+const loadGroupDetails = async (groupSlug: string) => {
+	const requestId = ++groupDetailsRequestCounter;
+
+	isGroupDetailsLoading.value = true;
+
+	try {
+		const response = await axios.get<{ data: GroupDiscoveryDetailRecord }>(route("groups.details", {
+			group: groupSlug,
+		}));
+
+		if (requestId !== groupDetailsRequestCounter) {
+			return;
+		}
+
+		selectedGroup.value = response.data.data;
+		groupDetailsCache.set(groupSlug, response.data.data);
+	} finally {
+		if (requestId === groupDetailsRequestCounter) {
+			isGroupDetailsLoading.value = false;
 		}
 	}
-}>();
-
-const tabs = computed(() => [
-	{
-		label: t('groups.index.tabs.my_groups'),
-		value: 'my-groups',
-		slot: 'my-groups',
-	},
-	{
-		label: t('groups.index.tabs.discover'),
-		value: 'discover',
-		slot: 'discover',
-	},
-]);
-
-const active_tab = ref('my-groups');
-const isSearchActive = ref(false);
-
-const setSearchState = (value: boolean) => {
-	isSearchActive.value = value;
 };
 
-const goToDiscoverPage = (page: number) => {
-	router.get(route('groups.index'), {
-		discover_page: page,
-	}, {
-		only: ['discoverGroups'],
-		preserveState: true,
-		preserveScroll: true,
-		replace: true,
-	});
+const openGroupDetails = (group: FeaturedGroupRecord | GroupIndexRecord) => {
+	isGroupDetailsOpen.value = true;
+
+	if (isSearchResultGroup(group)) {
+		selectedGroup.value = group;
+		groupDetailsCache.set(group.slug, group);
+		isGroupDetailsLoading.value = false;
+
+		return;
+	}
+
+	const cachedGroup = groupDetailsCache.get(group.slug);
+
+	if (cachedGroup) {
+		selectedGroup.value = cachedGroup;
+		isGroupDetailsLoading.value = false;
+
+		return;
+	}
+
+	selectedGroup.value = null;
+	void loadGroupDetails(group.slug);
 };
+
+onMounted(() => {
+	void loadFeaturedGroups();
+});
 </script>
 
 <template>
-	<div class="w-full ">
-		<PageHeader :title="t('groups.index.title')" :subtitle="t('groups.index.subtitle')">
+	<div class="w-full">
+		<PageHeader :title="t('groups.index.featured.title')" :subtitle="t('groups.index.featured.subtitle')">
 			<CreateGroupModal />
 		</PageHeader>
 
-		<div class="w-full flex flex-col items-start mt-4 gap-8">
-			<GroupSearchBox
-				@search-started="setSearchState"
-			/>
+		<FeaturedGroupsCarousel
+			:groups="featuredGroups"
+			:is-loading="isFeaturedGroupsLoading"
+			@open-group="openGroupDetails"
+		/>
 
-			<UTabs
-				v-if="!isSearchActive"
-				v-model="active_tab"
-				:items="tabs"
-				class="w-full"
-				:ui="{ list: 'w-auto mr-auto mb-4' }"
-			>
-				<template #my-groups>
-					<div class="flex w-full flex-col gap-6">
-						<div id="owned-groups" class="w-full scroll-mt-6">
-							<GroupIndexTable
-								:title="t('groups.index.sections.owned')"
-								:subtitle="t('groups.index.section_subtitles.owned')"
-								:groups="ownedGroups"
-							/>
-						</div>
-						<div id="moderated-groups" class="w-full scroll-mt-6">
-							<GroupIndexTable
-								:title="t('groups.index.sections.moderated')"
-								:subtitle="t('groups.index.section_subtitles.moderated')"
-								:groups="moderatedGroups"
-							/>
-						</div>
-						<div id="member-groups" class="w-full scroll-mt-6">
-							<GroupIndexTable
-								:title="t('groups.index.sections.member')"
-								:subtitle="t('groups.index.section_subtitles.member')"
-								:groups="memberGroups"
-							/>
-						</div>
-					</div>
-				</template>
+		<GroupDiscoverySearchSection @open-group="openGroupDetails" />
 
-				<template #discover>
-					<GroupIndexTable
-						:title="t('groups.index.sections.discover')"
-						:subtitle="t('groups.index.section_subtitles.discover')"
-						:groups="discoverGroups.data"
-						paginated
-						server-side-pagination
-						:page-size="discoverGroups.meta.per_page"
-						:current-page="discoverGroups.meta.current_page"
-						:total="discoverGroups.meta.total"
-						@page-change="goToDiscoverPage"
-					/>
-				</template>
-			</UTabs>
-		</div>
+		<GroupDiscoverySlideover
+			v-model:open="isGroupDetailsOpen"
+			:group="selectedGroup"
+			:loading="isGroupDetailsLoading"
+		/>
 	</div>
 </template>
 

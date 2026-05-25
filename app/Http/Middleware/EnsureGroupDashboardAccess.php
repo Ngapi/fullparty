@@ -15,7 +15,7 @@ class EnsureGroupDashboardAccess
         /** @var Group|null $group */
         $group = $request->route('group');
 
-        if (!$group instanceof Group) {
+        if (! $group instanceof Group) {
             abort(404);
         }
 
@@ -24,7 +24,7 @@ class EnsureGroupDashboardAccess
         }
 
         if ($group->is_visible && $request->isMethodSafe()) {
-            return redirect()->route('groups.show', $group);
+            return redirect()->route('groups.index');
         }
 
         abort(404);

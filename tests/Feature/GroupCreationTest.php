@@ -3,6 +3,7 @@
 use App\Models\Group;
 use App\Models\GroupMembership;
 use App\Models\User;
+use App\Support\Groups\GroupDiscoveryBadgePalette;
 use App\Support\Input\TextInputSanitizer;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
@@ -31,15 +32,19 @@ function validCreateGroupPayload(array $overrides = []): array
 }
 
 it('stores the selected group type when creating a group', function () {
+    Storage::fake('public');
+
     $user = User::factory()->create();
 
     $this->actingAs($user)
         ->post(route('groups.store'), validCreateGroupPayload())
-        ->assertRedirect(route('groups.show', 'staticfp'));
+        ->assertRedirect(route('groups.dashboard', 'staticfp'));
 
     $group = Group::query()->where('slug', 'staticfp')->firstOrFail();
 
     expect($group->group_type)->toBe(Group::TYPE_STATIC)
+        ->and($group->profile_picture_url)->toContain('/storage/groups/generated-profiles/staticfp.')
+        ->and($group->banner_image_url)->toContain('/storage/groups/generated-banners/staticfp.')
         ->and($group->memberships()
             ->where('user_id', $user->id)
             ->where('role', GroupMembership::ROLE_OWNER)
@@ -94,7 +99,7 @@ it('sanitizes group name and description when creating a group', function () {
             'slug' => 'langraid',
             'group_type' => Group::TYPE_COMMUNITY,
         ]))
-        ->assertRedirect(route('groups.show', 'langraid'));
+        ->assertRedirect(route('groups.dashboard', 'langraid'));
 
     $group = Group::query()->where('slug', 'langraid')->firstOrFail();
 
@@ -102,7 +107,7 @@ it('sanitizes group name and description when creating a group', function () {
         ->and($group->description)->toBe($sanitizer->sanitizeMultiline($rawDescription));
 });
 
-it('stores discovery metadata and exposes inferred region on the group profile', function () {
+it('stores discovery metadata and exposes inferred region on the group dashboard settings page', function () {
     Storage::fake('public');
 
     $user = User::factory()->create();
@@ -126,7 +131,7 @@ it('stores discovery metadata and exposes inferred region on the group profile',
             'active_start_time' => '19:00',
             'active_end_time' => '22:30',
         ]))
-        ->assertRedirect(route('groups.show', 'chaospro'));
+        ->assertRedirect(route('groups.dashboard', 'chaospro'));
 
     $group = Group::query()->where('slug', 'chaospro')->firstOrFail();
 
@@ -145,7 +150,7 @@ it('stores discovery metadata and exposes inferred region on the group profile',
         ->and($group->inferredRegion())->toBe('EU');
 
     $this->actingAs($user)
-        ->get(route('groups.show', $group))
+        ->get(route('groups.dashboard.settings', $group))
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
             ->where('group.banner_image_url', $group->banner_image_url)
@@ -160,7 +165,41 @@ it('stores discovery metadata and exposes inferred region on the group profile',
             ->where('group.active_days', ['fri', 'sat'])
             ->where('group.active_start_time', '19:00')
             ->where('group.active_end_time', '22:30')
+            ->where('group.badge_meta.recruiting_status.color', '#4C7DFF')
+            ->where('group.badge_meta.primary_focuses.0.color', '#7A5AF8')
+            ->where('group.badge_meta.experience_expectation.color', '#64748B')
+            ->where('group.badge_meta.voice_expectation.color', '#6FA7E8')
+            ->where('group.badge_meta.preferred_languages.0.color', '#4C7DFF')
+            ->where('group.badge_meta.active_days.0.color', '#8B5CF6')
+            ->where('group.badge_meta.region.color', '#38BDF8')
+            ->where('group.badge_meta.tags.0.color', app(GroupDiscoveryBadgePalette::class)->tagColor('Late Night'))
         );
+});
+
+it('generates default group profile and banner images when none are uploaded', function () {
+    Storage::fake('public');
+
+    $user = User::factory()->create();
+
+    $this->actingAs($user)
+        ->post(route('groups.store'), validCreateGroupPayload([
+            'name' => 'Generated Assets',
+            'slug' => 'genasset',
+        ]))
+        ->assertRedirect(route('groups.dashboard', 'genasset'));
+
+    $group = Group::query()->where('slug', 'genasset')->firstOrFail();
+
+    expect($group->profile_picture_url)->not->toBeNull()
+        ->and($group->banner_image_url)->not->toBeNull()
+        ->and($group->profile_picture_url)->toContain('/storage/groups/generated-profiles/genasset.')
+        ->and($group->banner_image_url)->toContain('/storage/groups/generated-banners/genasset.');
+
+    $profilePath = ltrim((string) parse_url($group->profile_picture_url, PHP_URL_PATH), '/');
+    $bannerPath = ltrim((string) parse_url($group->banner_image_url, PHP_URL_PATH), '/');
+
+    Storage::disk('public')->assertExists(str_replace('storage/', '', $profilePath));
+    Storage::disk('public')->assertExists(str_replace('storage/', '', $bannerPath));
 });
 
 it('requires a timezone and complete time pair when active schedule metadata is provided', function () {

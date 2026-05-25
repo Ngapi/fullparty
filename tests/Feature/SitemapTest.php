@@ -11,11 +11,6 @@ it('renders localized public urls in the sitemap and excludes non-indexable acti
         'slug' => 'publicgrp',
     ]);
 
-    $visiblePrivateGroup = Group::factory()->private()->create([
-        'slug' => 'privgrp1',
-        'is_visible' => true,
-    ]);
-
     $publicActivity = Activity::factory()->create([
         'group_id' => $publicGroup->id,
         'status' => Activity::STATUS_SCHEDULED,
@@ -40,8 +35,6 @@ it('renders localized public urls in the sitemap and excludes non-indexable acti
         ->assertHeader('Content-Type', 'application/xml; charset=UTF-8')
         ->assertSee(route('home', ['locale' => 'en']), false)
         ->assertSee(route('legal.privacy', ['locale' => 'en']), false)
-        ->assertSee(route('groups.show', ['locale' => 'en', 'group' => $publicGroup]), false)
-        ->assertSee(route('groups.show', ['locale' => 'en', 'group' => $visiblePrivateGroup]), false)
         ->assertSee(route('groups.activities.overview', [
             'locale' => 'en',
             'group' => $publicGroup,

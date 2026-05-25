@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Http\Middleware\ApplyLocale;
 use App\Models\Activity;
-use App\Models\Group;
 use Illuminate\Http\Response;
 
 class SitemapController extends Controller
@@ -13,7 +12,6 @@ class SitemapController extends Controller
     {
         $entries = [
             ...$this->staticEntries(),
-            ...$this->groupEntries(),
             ...$this->activityEntries(),
         ];
 
@@ -34,26 +32,6 @@ class SitemapController extends Controller
             $this->localizedEntry('legal.privacy', ['locale' => null]),
             $this->localizedEntry('legal.cookies', ['locale' => null]),
         ];
-    }
-
-    /**
-     * @return array<int, array<string, mixed>>
-     */
-    private function groupEntries(): array
-    {
-        return Group::query()
-            ->visible()
-            ->orderBy('updated_at', 'desc')
-            ->get(['id', 'slug', 'updated_at'])
-            ->map(fn (Group $group) => $this->localizedEntry(
-                'groups.show',
-                [
-                    'locale' => null,
-                    'group' => $group,
-                ],
-                $group->updated_at?->toAtomString(),
-            ))
-            ->all();
     }
 
     /**

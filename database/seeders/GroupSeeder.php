@@ -6,24 +6,13 @@ use App\Models\Group;
 use App\Models\GroupMembership;
 use App\Models\ScheduledRun;
 use App\Models\User;
+use App\Services\Groups\GeneratedGroupImageService;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\Storage;
 
 class GroupSeeder extends Seeder
 {
     private const TARGET_GROUP_COUNT = 20;
-
-    private const FALLBACK_REGION_BANNERS = [
-        'EU' => '/prereqimages/forked.jpg',
-        'NA' => '/ft.jpg',
-        'JP' => '/prereqimages/chaotic.webp',
-        'OCE' => '/prereqimages/chaotic_small.png',
-    ];
-
-    private const BANNER_WIDTH = 1500;
-
-    private const BANNER_HEIGHT = 400;
 
     /**
      * Seed the application's database.
@@ -52,6 +41,7 @@ class GroupSeeder extends Seeder
                 'owner_id' => $owner->id,
                 'name' => $blueprint['name'],
                 'description' => $blueprint['description'],
+                'profile_picture_url' => $blueprint['profile_picture_url'],
                 'banner_image_url' => $blueprint['banner_image_url'],
                 'discord_invite_url' => $blueprint['discord_invite_url'],
                 'datacenter' => $blueprint['datacenter'],
@@ -86,7 +76,7 @@ class GroupSeeder extends Seeder
             'owner_id' => $owner->id,
             'name' => 'Forked Tower Enjoyers',
             'description' => 'A chill but focused static for Forked Tower clears and progression nights.',
-            'profile_picture_url' => null,
+            'profile_picture_url' => $this->seededProfileUrl('ftel', 'Forked Tower Enjoyers', 'Light'),
             'banner_image_url' => $this->seededBannerUrl('ftel', 'Forked Tower Enjoyers', 'Light'),
             'discord_invite_url' => 'https://discord.gg/ftel',
             'datacenter' => 'Light',
@@ -337,6 +327,7 @@ class GroupSeeder extends Seeder
         $region = Group::regionForDatacenter($datacenter);
 
         return [
+            'profile_picture_url' => $this->seededProfileUrl($slug, $name, $datacenter),
             'banner_image_url' => $this->seededBannerUrl($slug, $name, $datacenter),
             'recruiting_status' => 'looking_for_members',
             'primary_focuses' => ['clears'],
@@ -406,83 +397,19 @@ class GroupSeeder extends Seeder
         };
     }
 
+    private function seededProfileUrl(string $slug, string $name, string $datacenter): string
+    {
+        return $this->generatedGroupImageService()->generateProfileImage($slug, $name, $datacenter);
+    }
+
     private function seededBannerUrl(string $slug, string $name, string $datacenter): string
     {
-        $region = Group::regionForDatacenter($datacenter);
-
-        if (! function_exists('imagecreatetruecolor')) {
-            return self::FALLBACK_REGION_BANNERS[$region ?? 'NA'] ?? '/ft.jpg';
-        }
-
-        $canvas = imagecreatetruecolor(self::BANNER_WIDTH, self::BANNER_HEIGHT);
-
-        if (! $canvas) {
-            return self::FALLBACK_REGION_BANNERS[$region ?? 'NA'] ?? '/ft.jpg';
-        }
-
-        imagealphablending($canvas, true);
-        imagesavealpha($canvas, true);
-
-        [$baseRed, $baseGreen, $baseBlue] = $this->bannerPalette($slug.'-base', 24, 78);
-        [$accentRed, $accentGreen, $accentBlue] = $this->bannerPalette($slug.'-accent', 90, 190);
-        [$softRed, $softGreen, $softBlue] = $this->bannerPalette($slug.'-soft', 150, 235);
-
-        $background = imagecolorallocate($canvas, $baseRed, $baseGreen, $baseBlue);
-        imagefill($canvas, 0, 0, $background);
-
-        $accentOne = imagecolorallocatealpha($canvas, $accentRed, $accentGreen, $accentBlue, 70);
-        $accentTwo = imagecolorallocatealpha($canvas, $softRed, $softGreen, $softBlue, 88);
-        $panelShade = imagecolorallocatealpha($canvas, 8, 10, 18, 48);
-        $lineShade = imagecolorallocatealpha($canvas, 255, 255, 255, 108);
-        $headline = imagecolorallocate($canvas, 248, 250, 252);
-        $subhead = imagecolorallocate($canvas, 203, 213, 225);
-
-        imagefilledellipse($canvas, 260, 120, 540, 540, $accentOne);
-        imagefilledellipse($canvas, 1230, 300, 720, 720, $accentTwo);
-        imagefilledrectangle($canvas, 0, 300, self::BANNER_WIDTH, self::BANNER_HEIGHT, $panelShade);
-
-        foreach ([120, 260, 400, 540, 680, 820, 960, 1100, 1240, 1380] as $lineX) {
-            imageline($canvas, $lineX, 0, $lineX - 140, self::BANNER_HEIGHT, $lineShade);
-        }
-
-        imagestring($canvas, 5, 48, 286, strtoupper($name), $headline);
-        imagestring($canvas, 3, 50, 330, sprintf('%s  |  %s', strtoupper($datacenter), strtoupper($region ?? 'GLOBAL')), $subhead);
-
-        ob_start();
-        imagepng($canvas);
-        $binary = ob_get_clean();
-        imagedestroy($canvas);
-
-        if (! is_string($binary) || $binary === '') {
-            return self::FALLBACK_REGION_BANNERS[$region ?? 'NA'] ?? '/ft.jpg';
-        }
-
-        $path = 'groups/seeded-banners/'.$slug.'.png';
-        Storage::disk('public')->put($path, $binary);
-
-        return Storage::disk('public')->url($path);
+        return $this->generatedGroupImageService()->generateBannerImage($slug, $name, $datacenter);
     }
 
-    /**
-     * @return array{0: int, 1: int, 2: int}
-     */
-    private function bannerPalette(string $seed, int $min, int $max): array
+    private function generatedGroupImageService(): GeneratedGroupImageService
     {
-        $hash = md5($seed);
-
-        return [
-            $this->bannerColorComponent(substr($hash, 0, 2), $min, $max),
-            $this->bannerColorComponent(substr($hash, 2, 2), $min, $max),
-            $this->bannerColorComponent(substr($hash, 4, 2), $min, $max),
-        ];
-    }
-
-    private function bannerColorComponent(string $hex, int $min, int $max): int
-    {
-        $raw = hexdec($hex);
-        $range = max(1, $max - $min);
-
-        return $min + ($raw % ($range + 1));
+        return app(GeneratedGroupImageService::class);
     }
 
     private function seedLegacyRunsForGroup(Group $group, int $ownerId): void

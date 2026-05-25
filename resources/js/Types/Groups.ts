@@ -103,14 +103,99 @@ export type GroupIndexRecord = {
 	name: string
 	description: string | null
 	profile_picture_url: string | null
+	banner_image_url: string | null
+	discord_invite_url: string | null
+	datacenter: string | null
+	region: string | null
 	group_type: GroupType
 	is_public: boolean
+	is_visible: boolean
+	recruiting_status: string | null
+	primary_focuses: string[]
+	experience_expectation: string | null
+	voice_expectation: string | null
+	preferred_languages: string[]
+	tags: string[]
+	active_timezone: string | null
+	active_days: string[]
+	active_start_time: string | null
+	active_end_time: string | null
+	badge_meta: GroupDiscoveryBadgeMeta
+	owner: {
+		id: number | null
+		name: string | null
+		avatar_url: string | null
+	}
+	links: {
+		dashboard: string | null
+	}
 	current_user_role: string | null
 	stats: {
 		member_count: number
 		upcoming_run_count: number
+		run_count?: number
+		completed_run_count?: number
+		latest_member_join_at?: string | null
 		last_activity_at: string | null
 	}
+}
+
+export type FeaturedGroupRecord = {
+	id: number
+	slug: string
+	name: string
+	banner_image_url: string | null
+	experience_expectation: string | null
+	experience_badge: GroupDiscoveryBadgeEntry | null
+	preferred_languages: string[]
+	tags: string[]
+	tag_badges: Array<{
+		value: string
+		label: string
+		color: string
+	}>
+	stats: {
+		member_count: number
+	}
+}
+
+export type DatacenterLookup = {
+	label: string
+	value: string
+	region: string | null
+}
+
+export type GroupDiscoveryLookups = {
+	recruiting_statuses?: string[]
+	primary_focuses?: string[]
+	experience_expectations?: string[]
+	voice_expectations?: string[]
+	active_days?: string[]
+	preferred_languages?: string[]
+	max_tags?: number
+	badge_colors?: Record<string, unknown>
+}
+
+export type GroupDiscoveryBadgeEntry = {
+	value: string
+	color: string | null
+}
+
+export type GroupDiscoveryTagBadge = {
+	value: string
+	label: string
+	color: string
+}
+
+export type GroupDiscoveryBadgeMeta = {
+	recruiting_status: GroupDiscoveryBadgeEntry | null
+	primary_focuses: GroupDiscoveryBadgeEntry[]
+	experience_expectation: GroupDiscoveryBadgeEntry | null
+	voice_expectation: GroupDiscoveryBadgeEntry | null
+	preferred_languages: GroupDiscoveryBadgeEntry[]
+	active_days: GroupDiscoveryBadgeEntry[]
+	tags: GroupDiscoveryTagBadge[]
+	region: GroupDiscoveryBadgeEntry | null
 }
 
 export type GroupDashboardActivity = {
@@ -152,87 +237,6 @@ export type GroupDashboardMemberPreview = {
 	avatar_url: string | null
 	role: string
 	joined_at: string | null
-}
-
-export type GroupProfileStaffMember = {
-	id: number
-	name: string
-	avatar_url: string | null
-	role: string
-	joined_at: string | null
-}
-
-export type GroupProfileActivity = {
-	id: number
-	activity_type: {
-		id: number | null
-		slug: string | null
-		draft_name: LocalizedText
-	}
-	title: string | null
-	status: string
-	starts_at: string | null
-	duration_hours: number | null
-	needs_application: boolean
-	allow_guest_applications: boolean
-	organized_by: {
-		id: number
-		name: string
-		avatar_url: string | null
-	} | null
-	organized_by_character: {
-		id: number
-		user_id: number
-		name: string | null
-		avatar_url: string | null
-	} | null
-	slot_count: number
-	application_count: number
-	created_at: string | null
-	updated_at: string | null
-}
-
-export type GroupProfileGroup = {
-	id: number
-	name: string
-	description: string | null
-	profile_picture_url: string | null
-	discord_invite_url: string | null
-	datacenter: string
-	is_public: boolean
-	is_visible: boolean
-	slug: string
-	group_type: GroupType
-	owner: {
-		id: number | null
-		name: string | null
-		avatar_url: string | null
-	}
-	current_user_role: string | null
-	follow: {
-		is_following: boolean
-		notifications_enabled: boolean
-	}
-	permissions: {
-		can_join: boolean
-		can_follow: boolean
-		can_unfollow: boolean
-		can_leave: boolean
-		can_toggle_notifications: boolean
-		can_access_dashboard: boolean
-	}
-	stats: {
-		member_count: number
-		moderator_count: number
-		activity_count: number
-		current_activity_count: number
-		completed_activity_count: number
-	}
-	staff_members: GroupProfileStaffMember[]
-	activities: {
-		current: GroupProfileActivity[]
-		recent: GroupProfileActivity[]
-	}
 }
 
 export type GroupDashboardGroup = {
@@ -303,6 +307,8 @@ export type PaginatedGroups = {
 		total: number
 	}
 }
+
+export type GroupDiscoveryDetailRecord = GroupIndexRecord
 
 export type GroupMemberManagementGroup = {
 	slug: string

@@ -46,6 +46,84 @@
     "no_activity": "No activity yet.",
     "empty": "Nothing to show here yet."
   },
+  "featured": {
+    "title": "Featured Groups",
+    "subtitle": "Handpicked groups that are active, welcoming, and ready to raid.",
+    "badge": "Featured",
+    "previous": "Previous featured groups",
+    "next": "Next featured groups",
+    "empty_title": "No featured groups yet",
+    "empty_description": "Featured groups will appear here once discovery data is available."
+  },
+  "discovery": {
+    "title": "Search & Filter",
+    "subtitle": "Narrow the field by group type, experience level, region, size, and the discovery metadata each group chose to share.",
+    "tabs": {
+      "all": "All Groups",
+      "communities": "Communities",
+      "statics": "Statics"
+    },
+    "filters": {
+      "search_placeholder": "Search by group name, vibe, or notable tag",
+      "experience_placeholder": "Experience",
+      "region_placeholder": "Region",
+      "size_placeholder": "Size",
+      "sort_placeholder": "Sort By",
+      "more_filters_open": "More Filters",
+      "more_filters_close": "Hide Extra Filters",
+      "tags_placeholder": "Search by extra tag",
+      "tags_help": "Use this for optional freeform tags such as Late Night or Blind Prog.",
+      "size_options": {
+        "1": "1+ Members",
+        "50": "50+ Members",
+        "100": "100+ Members",
+        "500": "500+ Members"
+      },
+      "sort_options": {
+        "created_at_desc": "Created Recently (Newest First)",
+        "created_at_asc": "Created Recently (Oldest First)",
+        "active_at_desc": "Active Recently (Most Recent First)",
+        "active_at_asc": "Active Recently (Least Recent First)",
+        "member_count_desc": "Member Count (High to Low)",
+        "member_count_asc": "Member Count (Low to High)"
+      }
+    },
+    "placeholder": {
+      "owner_label": "Verified Leader",
+      "schedule_label": "Active Schedule",
+      "activity_label": "Recent Activity",
+      "page_status": "Page {current} out of {total}"
+    },
+    "detail": {
+      "title": "Group Details",
+      "loading": "Loading group details...",
+      "owner": "Owner",
+      "members": "Members",
+      "recent_activity": "Recent Activity",
+      "runs_total": "Total Runs",
+      "runs_upcoming": "Upcoming Runs",
+      "latest_member": "Latest Member Join",
+      "about": "About",
+      "discord": "Discord",
+      "languages": "Languages",
+      "discovery_fit": "Discovery & Group Fit",
+      "core_metadata": "Core Metadata",
+      "tags": "Extra Tags",
+      "schedule": "Activity Window",
+      "access": "Access & Presence",
+      "region": "Region",
+      "type": "Group Type",
+      "timezone": "Timezone",
+      "active_days": "Active Days",
+      "active_hours": "Active Hours",
+      "public_group": "Public Group",
+      "visible_in_discovery": "Visible in Discovery",
+      "description_fallback": "This group has not added a description yet.",
+      "not_shared": "Not shared",
+      "yes": "Yes",
+      "no": "No"
+    }
+  },
   "create_modal": {
     "title": "Create Group",
     "subtitle": "Set up your group's identity, presence, discovery details, and activity window before you start organizing runs.",
@@ -132,7 +210,7 @@
       "banner_image": {
         "label": "Banner Image",
         "placeholder": "Choose a wide banner image",
-        "help": "Optional. Upload a wide banner for the top of the group profile and discovery surfaces.",
+        "help": "Optional. Upload a wide banner for discovery cards and the internal group dashboard.",
         "preview_alt": "Group banner preview",
         "preview_label": "Banner Preview",
         "preview_help": "This preview shows the wide banner crop used for the group header and discovery cards."
@@ -183,9 +261,9 @@
         "placeholder": "Select a voice expectation",
         "help": "Tell people whether voice chat is required, encouraged, or optional.",
         "options": {
-          "required": "Required",
-          "preferred": "Preferred",
-          "optional": "Optional"
+          "required": "Voice Required",
+          "preferred": "Voice Preferred",
+          "optional": "Voice Optional"
         }
       },
       "preferred_languages": {

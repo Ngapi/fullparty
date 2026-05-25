@@ -2,6 +2,7 @@
 
 use App\Models\Group;
 use App\Models\User;
+use App\Support\Groups\GroupDiscoveryBadgePalette;
 use App\Support\Input\TextInputSanitizer;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
@@ -125,6 +126,14 @@ it('stores discovery metadata when updating group settings', function () {
             ->where('group.active_days', ['sat', 'sun'])
             ->where('group.active_start_time', '18:00')
             ->where('group.active_end_time', '23:00')
+            ->where('group.badge_meta.recruiting_status.color', '#7A5AF8')
+            ->where('group.badge_meta.primary_focuses.0.color', '#6366F1')
+            ->where('group.badge_meta.experience_expectation.color', '#8CCB7A')
+            ->where('group.badge_meta.voice_expectation.color', '#62C98F')
+            ->where('group.badge_meta.preferred_languages.0.color', '#8B5CF6')
+            ->where('group.badge_meta.active_days.0.color', '#A855F7')
+            ->where('group.badge_meta.region.color', '#38BDF8')
+            ->where('group.badge_meta.tags.0.color', app(GroupDiscoveryBadgePalette::class)->tagColor('Weekend'))
         );
 });
 

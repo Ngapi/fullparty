@@ -205,7 +205,7 @@ class GroupInviteController extends Controller
             );
         }
 
-        return redirect()->route('groups.show', $result['group'])->with('success', 'group_joined');
+        return redirect()->route('groups.dashboard', $result['group'])->with('success', 'group_joined');
     }
 
     public function destroy(Group $group, GroupInvite $invite): RedirectResponse

@@ -5,6 +5,7 @@ namespace App\Http\Middleware;
 use App\Models\Group;
 use App\Services\Notifications\NotificationInboxService;
 use App\Services\SystemBannerService;
+use App\Support\Groups\GroupDiscoveryBadgePalette;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Inertia\Middleware;
@@ -14,6 +15,7 @@ class HandleInertiaRequests extends Middleware
     public function __construct(
         private readonly NotificationInboxService $notificationInboxService,
         private readonly SystemBannerService $systemBannerService,
+        private readonly GroupDiscoveryBadgePalette $groupDiscoveryBadgePalette,
     ) {}
 
     /**
@@ -113,6 +115,7 @@ class HandleInertiaRequests extends Middleware
                     'active_days' => config('group_discovery.active_days', []),
                     'preferred_languages' => config('group_discovery.preferred_languages', []),
                     'max_tags' => config('group_discovery.max_tags', 12),
+                    'badge_colors' => $this->groupDiscoveryBadgePalette->lookupColors(),
                 ],
             ],
             'locale' => [

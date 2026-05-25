@@ -42,7 +42,10 @@ class GroupUpdateNotificationService
                 'group' => $activity->group?->name,
                 'activity' => $this->activityTitle($activity),
             ],
-            actionUrl: route('groups.show', $activity->group),
+            actionUrl: route('groups.activities.overview', [
+                'group' => $activity->group,
+                'activity' => $activity,
+            ]),
             actor: $actor instanceof User ? $actor : null,
             subject: $activity,
             payload: [
@@ -76,7 +79,10 @@ class GroupUpdateNotificationService
                 'group' => $activity->group?->name,
                 'activity' => $this->activityTitle($activity),
             ],
-            actionUrl: route('groups.show', $activity->group),
+            actionUrl: route('groups.activities.overview', [
+                'group' => $activity->group,
+                'activity' => $activity,
+            ]),
             actor: $actor instanceof User ? $actor : null,
             subject: $activity,
             payload: [
@@ -127,7 +133,7 @@ class GroupUpdateNotificationService
                     'group' => $group->name,
                     'user' => $newOwner->name,
                 ],
-                actionUrl: route('groups.show', $group),
+                actionUrl: route('groups.dashboard', $group),
                 actor: $actor instanceof User ? $actor : null,
                 subject: $group,
                 payload: [
@@ -150,7 +156,7 @@ class GroupUpdateNotificationService
                     'group' => $group->name,
                     'user' => $previousOwner->name,
                 ],
-                actionUrl: route('groups.show', $group),
+                actionUrl: route('groups.dashboard', $group),
                 actor: $actor instanceof User ? $actor : null,
                 subject: $group,
                 payload: [
@@ -221,7 +227,9 @@ class GroupUpdateNotificationService
                 'group' => $group->name,
                 'user' => $member->name,
             ],
-            actionUrl: route('groups.show', $group),
+            actionUrl: $type === 'groups.member_banned'
+                ? route('groups.index')
+                : route('groups.dashboard', $group),
             actor: $actor instanceof User ? $actor : null,
             subject: $group,
             payload: [

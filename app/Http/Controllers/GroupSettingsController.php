@@ -9,6 +9,7 @@ use App\Services\AuditLogger;
 use App\Services\ManagedImageStorage;
 use App\Support\Audit\AuditScope;
 use App\Support\Audit\AuditSeverity;
+use App\Support\Groups\GroupDiscoveryBadgePalette;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
@@ -22,6 +23,7 @@ class GroupSettingsController extends Controller
     public function __construct(
         private readonly ManagedImageStorage $managedImageStorage,
         private readonly AuditLogger $auditLogger,
+        private readonly GroupDiscoveryBadgePalette $groupDiscoveryBadgePalette,
     ) {}
 
     public function show(Group $group): Response
@@ -58,6 +60,7 @@ class GroupSettingsController extends Controller
                 'active_days' => $group->active_days ?? [],
                 'active_start_time' => $group->active_start_time,
                 'active_end_time' => $group->active_end_time,
+                'badge_meta' => $this->groupDiscoveryBadgePalette->badgeMetaForGroup($group),
                 'owner' => [
                     'id' => $group->owner?->id,
                     'name' => $group->owner?->name,

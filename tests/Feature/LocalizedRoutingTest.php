@@ -1,7 +1,5 @@
 <?php
 
-use App\Models\Group;
-use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Inertia\Testing\AssertableInertia as Assert;
 
@@ -26,15 +24,5 @@ it('renders the localized login route with the requested locale and ziggy defaul
             ->component('auth/Login')
             ->where('locale.current', 'de')
         )
-        ->assertSee('<html lang="de">', false);
-});
-
-it('redirects naked public group profile routes to the localized canonical url', function () {
-    $owner = User::factory()->create();
-    $group = Group::factory()->public()->create([
-        'owner_id' => $owner->id,
-    ]);
-
-    $this->get("/groups/{$group->slug}")
-        ->assertRedirect("/en/groups/{$group->slug}");
+        ->assertSee('<html lang="de" class="dark">', false);
 });

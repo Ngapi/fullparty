@@ -127,9 +127,6 @@ Route::prefix('{locale?}')
         |
         */
 
-        // Group profile pages.
-        Route::get('/groups/{group:slug}', [GroupController::class, 'show'])->name('groups.show');
-
         // Activity application entry points and guest application flows.
         Route::get('/groups/{group:slug}/activities/{activity}/application/{secretKey?}', [GroupActivityApplicationController::class, 'show'])
             ->where('secretKey', '[A-Za-z0-9]{40}')
@@ -276,6 +273,8 @@ Route::prefix('{locale?}')
             */
 
             Route::get('/groups', [GroupController::class, 'index'])->name('groups.index');
+            Route::get('/groups/featured', [GroupController::class, 'featured'])->name('groups.featured');
+            Route::get('/groups/{group:slug}/details', [GroupController::class, 'details'])->name('groups.details');
             Route::get('/group-search-results', [GroupController::class, 'search'])->name('groups.search');
             Route::post('/groups', [GroupController::class, 'store'])->name('groups.store');
             Route::delete('/groups/{group:slug}', [GroupController::class, 'destroy'])->name('groups.destroy');

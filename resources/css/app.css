@@ -65,6 +65,45 @@
     --color-neutral-950: #171419;
 }
 
+@layer theme {
+    :root,
+    .light {
+        --ui-text-dimmed: var(--color-neutral-500);
+        --ui-text-muted: var(--color-neutral-600);
+        --ui-text-toned: var(--color-neutral-700);
+        --ui-text: var(--color-neutral-800);
+        --ui-text-highlighted: var(--color-neutral-950);
+        --ui-text-inverted: #ffffff;
+        --ui-bg: #fcfbfe;
+        --ui-bg-muted: var(--color-neutral-100);
+        --ui-bg-elevated: #f4f0f9;
+        --ui-bg-accented: var(--color-neutral-200);
+        --ui-bg-inverted: var(--color-neutral-950);
+        --ui-border: #e4deec;
+        --ui-border-muted: #d8d1e3;
+        --ui-border-accented: var(--color-neutral-300);
+        --ui-border-inverted: var(--color-neutral-950);
+    }
+
+    .dark {
+        --ui-text-dimmed: var(--color-neutral-500);
+        --ui-text-muted: var(--color-neutral-400);
+        --ui-text-toned: var(--color-neutral-300);
+        --ui-text: #ece6f4;
+        --ui-text-highlighted: var(--color-neutral-50);
+        --ui-text-inverted: var(--color-neutral-950);
+        --ui-bg: #141116;
+        --ui-bg-muted: #201c24;
+        --ui-bg-elevated: #29242d;
+        --ui-bg-accented: #38323e;
+        --ui-bg-inverted: #ffffff;
+        --ui-border: #312b37;
+        --ui-border-muted: #433b49;
+        --ui-border-accented: #5a5163;
+        --ui-border-inverted: #ffffff;
+    }
+}
+
 @layer base {
     button:not(:disabled),
     [role="button"]:not([aria-disabled="true"]) {

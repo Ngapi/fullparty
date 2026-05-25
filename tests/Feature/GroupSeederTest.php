@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\Storage;
 
 uses(RefreshDatabase::class);
 
-it('seeds groups with populated discovery metadata and banner images', function () {
+it('seeds groups with populated discovery metadata and generated images', function () {
     Storage::fake('public');
 
     $this->seed(UserSeeder::class);
@@ -20,6 +20,7 @@ it('seeds groups with populated discovery metadata and banner images', function 
     $developmentOwner = User::query()->findOrFail($forkedTowerGroup->owner_id);
 
     expect($groups)->toHaveCount(20)
+        ->and($groups->every(fn (Group $group) => filled($group->profile_picture_url)))->toBeTrue()
         ->and($groups->every(fn (Group $group) => filled($group->banner_image_url)))->toBeTrue()
         ->and($groups->every(fn (Group $group) => filled($group->recruiting_status)))->toBeTrue()
         ->and($groups->every(fn (Group $group) => ($group->primary_focuses ?? []) !== []))->toBeTrue()
@@ -38,10 +39,12 @@ it('seeds groups with populated discovery metadata and banner images', function 
         ->and($forkedTowerGroup->preferred_languages)->toBe(['en', 'de', 'fr'])
         ->and($developmentOwner->is_admin)->toBeFalse();
 
-    if (function_exists('imagecreatetruecolor')) {
-        expect($forkedTowerGroup->banner_image_url)->toContain('/storage/groups/seeded-banners/ftel.png');
-        Storage::disk('public')->assertExists('groups/seeded-banners/ftel.png');
-    } else {
-        expect($forkedTowerGroup->banner_image_url)->toBe('/prereqimages/forked.jpg');
-    }
+    expect($forkedTowerGroup->profile_picture_url)->toContain('/storage/groups/generated-profiles/ftel.')
+        ->and($forkedTowerGroup->banner_image_url)->toContain('/storage/groups/generated-banners/ftel.');
+
+    $profilePath = ltrim((string) parse_url($forkedTowerGroup->profile_picture_url, PHP_URL_PATH), '/');
+    $bannerPath = ltrim((string) parse_url($forkedTowerGroup->banner_image_url, PHP_URL_PATH), '/');
+
+    Storage::disk('public')->assertExists(str_replace('storage/', '', $profilePath));
+    Storage::disk('public')->assertExists(str_replace('storage/', '', $bannerPath));
 });

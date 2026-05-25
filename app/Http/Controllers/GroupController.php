@@ -3,22 +3,23 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreGroupRequest;
-use App\Models\Activity;
 use App\Models\Group;
 use App\Models\GroupMembership;
 use App\Models\ScheduledRun;
-use App\Models\User;
 use App\Services\AuditLogger;
+use App\Services\Groups\GeneratedGroupImageService;
 use App\Services\ManagedImageStorage;
 use App\Support\Audit\AuditScope;
 use App\Support\Audit\AuditSeverity;
+use App\Support\Groups\GroupDiscoveryBadgePalette;
 use App\Support\Input\RequestTextInputSanitizer;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
-use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -26,10 +27,14 @@ class GroupController extends Controller
 {
     private const IMAGE_DIRECTORY = 'groups';
 
+    private const DISCOVERY_PER_PAGE = 6;
+
     public function __construct(
         private readonly ManagedImageStorage $managedImageStorage,
         private readonly AuditLogger $auditLogger,
         private readonly RequestTextInputSanitizer $requestTextInputSanitizer,
+        private readonly GroupDiscoveryBadgePalette $groupDiscoveryBadgePalette,
+        private readonly GeneratedGroupImageService $generatedGroupImageService,
     ) {}
 
     public function index(Request $request): Response
@@ -58,8 +63,8 @@ class GroupController extends Controller
             ->map(fn (Group $group) => $this->serializeGroupListItem($group, $user->id));
 
         $discoverGroups = $this->serializePaginatedGroups(
-            $this->discoverGroupsQuery($user->id)->paginate(
-                perPage: 20,
+            $this->discoverGroupsQuery($user->id, 'created_at_desc')->paginate(
+                perPage: self::DISCOVERY_PER_PAGE,
                 pageName: 'discover_page',
                 page: (int) $request->integer('discover_page', 1)
             ),
@@ -76,92 +81,95 @@ class GroupController extends Controller
 
     public function search(Request $request): JsonResponse
     {
-        $this->requestTextInputSanitizer->sanitize($request, ['query']);
+        $this->requestTextInputSanitizer->sanitize($request, ['query', 'extra_tags']);
 
         $validated = $request->validate([
             'query' => ['nullable', 'string', 'max:255'],
+            'group_type' => ['nullable', Rule::in(['all', ...Group::TYPES])],
+            'experience_expectation' => ['nullable', Rule::in(config('group_discovery.experience_expectations', []))],
+            'region' => ['nullable', 'string', Rule::in(array_values(array_unique(array_filter(config('datacenters.regions', [])))))],
+            'size' => ['nullable', Rule::in(['1', '50', '100', '500'])],
+            'sort_by' => ['nullable', Rule::in([
+                'created_at_desc',
+                'created_at_asc',
+                'active_at_desc',
+                'active_at_asc',
+                'member_count_desc',
+                'member_count_asc',
+            ])],
+            'recruiting_status' => ['nullable', Rule::in(config('group_discovery.recruiting_statuses', []))],
+            'primary_focuses' => ['nullable', 'array', 'max:'.count(config('group_discovery.primary_focuses', []))],
+            'primary_focuses.*' => [Rule::in(config('group_discovery.primary_focuses', []))],
+            'voice_expectation' => ['nullable', Rule::in(config('group_discovery.voice_expectations', []))],
+            'preferred_languages' => ['nullable', 'array', 'max:'.count(config('group_discovery.preferred_languages', []))],
+            'preferred_languages.*' => [Rule::in(config('group_discovery.preferred_languages', []))],
+            'active_days' => ['nullable', 'array', 'max:'.count(config('group_discovery.active_days', []))],
+            'active_days.*' => [Rule::in(config('group_discovery.active_days', []))],
+            'extra_tags' => ['nullable', 'string', 'max:255'],
             'page' => ['nullable', 'integer', 'min:1'],
         ]);
 
         $user = $request->user();
-        $query = trim((string) ($validated['query'] ?? ''));
+        $paginator = $this->discoverGroupsQuery($user->id, (string) ($validated['sort_by'] ?? 'created_at_desc'));
+        $this->applyDiscoverySearchFilters($paginator, $validated);
 
-        if ($query === '') {
-            return response()->json([
-                'data' => [],
-                'meta' => [
-                    'current_page' => 1,
-                    'last_page' => 1,
-                    'per_page' => 10,
-                    'total' => 0,
-                ],
-            ]);
-        }
-
-        $like = '%'.$query.'%';
-
-        $paginator = Group::query()
-            ->select('groups.*')
-            ->selectRaw(
-                'CASE
-                    WHEN groups.owner_id = ? THEN 0
-                    WHEN current_membership.role = ? THEN 1
-                    WHEN current_membership.role = ? THEN 2
-                    ELSE 3
-                END as search_priority',
-                [
-                    $user->id,
-                    GroupMembership::ROLE_MODERATOR,
-                    GroupMembership::ROLE_MEMBER,
-                ]
-            )
-            ->leftJoin('group_memberships as current_membership', function ($join) use ($user) {
-                $join->on('current_membership.group_id', '=', 'groups.id')
-                    ->where('current_membership.user_id', '=', $user->id);
-            })
-            ->with(['memberships', 'scheduledRuns'])
-            ->where(function ($queryBuilder) use ($user) {
-                $queryBuilder
-                    ->where('groups.owner_id', $user->id)
-                    ->orWhereNotNull('current_membership.user_id')
-                    ->orWhere('groups.is_visible', true);
-            })
-            ->where(function ($queryBuilder) use ($like) {
-                $queryBuilder
-                    ->where('groups.name', 'like', $like)
-                    ->orWhere('groups.description', 'like', $like)
-                    ->orWhere('groups.slug', 'like', $like);
-            })
-            ->orderBy('search_priority')
-            ->orderBy('groups.name')
-            ->paginate(
-                perPage: 10,
-                page: (int) ($validated['page'] ?? 1)
-            );
+        $paginator = $paginator->paginate(
+            perPage: self::DISCOVERY_PER_PAGE,
+            page: (int) ($validated['page'] ?? 1)
+        );
 
         return response()->json($this->serializePaginatedGroups($paginator, $user->id));
+    }
+
+    public function featured(Request $request): JsonResponse
+    {
+        // TODO: Replace this placeholder latest-visible-groups query with a real featured-group selection algorithm.
+        $groups = Group::query()
+            ->visible()
+            ->withCount('memberships')
+            ->latest('created_at')
+            ->limit(8)
+            ->get();
+
+        return response()->json([
+            'data' => $groups
+                ->map(fn (Group $group) => $this->serializeFeaturedGroupItem($group))
+                ->values()
+                ->all(),
+        ]);
+    }
+
+    public function details(Request $request, Group $group): JsonResponse
+    {
+        abort_unless($group->is_visible, 404);
+
+        $group->loadMissing(['owner', 'memberships', 'scheduledRuns']);
+
+        return response()->json([
+            'data' => $this->serializeGroupListItem($group, (int) $request->user()->id),
+        ]);
     }
 
     public function store(StoreGroupRequest $request): RedirectResponse
     {
         $validated = $request->validated();
-        $profilePictureUrl = $this->managedImageStorage->uploadImageIfPresent(
+        $uploadedProfilePictureUrl = $this->managedImageStorage->uploadImageIfPresent(
             $request->file('profile_picture'),
             self::IMAGE_DIRECTORY,
             true
         );
-        $bannerImageUrl = $this->managedImageStorage->uploadImageIfPresent(
+        $uploadedBannerImageUrl = $this->managedImageStorage->uploadImageIfPresent(
             $request->file('banner_image'),
             self::IMAGE_DIRECTORY,
         );
 
-        $group = DB::transaction(function () use ($validated, $profilePictureUrl, $bannerImageUrl) {
+        $group = DB::transaction(function () use ($validated, $uploadedProfilePictureUrl, $uploadedBannerImageUrl) {
             $group = Group::create([
                 'owner_id' => auth()->id(),
                 'name' => $validated['name'],
                 'description' => $validated['description'] ?? null,
-                'profile_picture_url' => $profilePictureUrl,
-                'banner_image_url' => $bannerImageUrl,
+                'profile_picture_url' => $uploadedProfilePictureUrl,
+                'banner_image_url' => $uploadedBannerImageUrl,
                 'discord_invite_url' => $validated['discord_invite_url'] ?? null,
                 'datacenter' => $validated['datacenter'],
                 'is_public' => $validated['is_public'],
@@ -179,6 +187,24 @@ class GroupController extends Controller
                 'active_start_time' => $validated['active_start_time'] ?? null,
                 'active_end_time' => $validated['active_end_time'] ?? null,
             ]);
+
+            if (blank($group->profile_picture_url)) {
+                $group->profile_picture_url = $this->generatedGroupImageService->generateProfileImage(
+                    $group->slug,
+                    $group->name,
+                    $group->datacenter,
+                );
+            }
+
+            if (blank($group->banner_image_url)) {
+                $group->banner_image_url = $this->generatedGroupImageService->generateBannerImage(
+                    $group->slug,
+                    $group->name,
+                    $group->datacenter,
+                );
+            }
+
+            $group->save();
 
             $group->memberships()->create([
                 'user_id' => auth()->id(),
@@ -204,30 +230,7 @@ class GroupController extends Controller
             metadata: $this->groupAuditSnapshot($group),
         );
 
-        return redirect()->route('groups.show', $group)->with('success', 'group_created');
-    }
-
-    public function show(Group $group): Response
-    {
-        $group->load([
-            'owner',
-            'memberships.user',
-            'activities.organizer',
-            'activities.organizerCharacter',
-            'activities.activityType',
-            'activities.slots',
-            'activities.applications',
-        ]);
-
-        $currentUserId = auth()->id();
-
-        if (! $group->is_visible && ! $group->hasMember($currentUserId)) {
-            abort(404);
-        }
-
-        return Inertia::render('Groups/Profile', [
-            'group' => $this->serializeGroupProfile($group, $currentUserId),
-        ]);
+        return redirect()->route('groups.dashboard', $group)->with('success', 'group_created');
     }
 
     public function destroy(Group $group): RedirectResponse
@@ -288,6 +291,17 @@ class GroupController extends Controller
             'active_days' => $group->active_days ?? [],
             'active_start_time' => $group->active_start_time,
             'active_end_time' => $group->active_end_time,
+            'badge_meta' => $this->groupDiscoveryBadgePalette->badgeMetaForGroup($group),
+            'owner' => [
+                'id' => $group->owner?->id,
+                'name' => $group->owner?->name,
+                'avatar_url' => $group->owner?->avatar_url,
+            ],
+            'links' => [
+                'dashboard' => $group->hasMember($currentUserId)
+                    ? route('groups.dashboard', $group, false)
+                    : null,
+            ],
             'current_user_role' => $group->memberships
                 ->firstWhere('user_id', $currentUserId)
                 ?->role,
@@ -304,6 +318,7 @@ class GroupController extends Controller
                 'completed_run_count' => $group->scheduledRuns
                     ->where('status', ScheduledRun::STATUS_COMPLETE)
                     ->count(),
+                'latest_member_join_at' => $group->memberships->max('joined_at'),
                 'last_activity_at' => $this->resolveLastActivityAt($group),
             ],
         ];
@@ -322,30 +337,24 @@ class GroupController extends Controller
             : $runActivity;
     }
 
-    private function discoverGroupsQuery(int $currentUserId)
+    private function discoverGroupsQuery(int $currentUserId, string $sortBy = 'created_at_desc'): Builder
     {
         $latestRunActivity = ScheduledRun::query()
             ->selectRaw('group_id, MAX(updated_at) as latest_run_activity_at')
             ->groupBy('group_id');
 
-        return Group::query()
+        $query = Group::query()
             ->select('groups.*')
             ->leftJoinSub($latestRunActivity, 'latest_run_activity', function ($join) {
                 $join->on('latest_run_activity.group_id', '=', 'groups.id');
             })
-            ->with(['memberships', 'scheduledRuns'])
-            ->visible()
-            ->whereDoesntHave('memberships', function ($query) use ($currentUserId) {
-                $query->where('user_id', $currentUserId);
-            })
-            ->orderByRaw(
-                'CASE
-                    WHEN latest_run_activity.latest_run_activity_at IS NOT NULL
-                        AND latest_run_activity.latest_run_activity_at > groups.updated_at
-                        THEN latest_run_activity.latest_run_activity_at
-                    ELSE groups.updated_at
-                END DESC'
-            );
+            ->with(['owner', 'memberships', 'scheduledRuns'])
+            ->withCount('memberships')
+            ->visible();
+
+        $this->applyDiscoverySorting($query, $sortBy);
+
+        return $query;
     }
 
     private function serializePaginatedGroups(LengthAwarePaginator $paginator, int $currentUserId): array
@@ -364,105 +373,146 @@ class GroupController extends Controller
         ];
     }
 
-    private function serializeGroupProfile(Group $group, ?int $currentUserId): array
+    private function serializeFeaturedGroupItem(Group $group): array
     {
-        $visibleActivities = $this->visibleProfileActivities($group, $currentUserId);
-        [$currentActivities, $recentActivities] = $this->partitionProfileActivities($visibleActivities);
-        $currentMembership = $currentUserId
-            ? $group->memberships->firstWhere('user_id', $currentUserId)
-            : null;
-        $currentFollow = $this->currentFollowForUser($group, $currentUserId);
-        $isMember = $currentMembership instanceof GroupMembership;
-        $isFollowing = $currentFollow instanceof User || $isMember;
-        $notificationsEnabled = $currentFollow instanceof User
-            ? (bool) $currentFollow->pivot->notifications_enabled
-            : $isMember;
-        $isBanned = $group->isBanned($currentUserId);
-
         return [
             'id' => $group->id,
-            'name' => $group->name,
-            'description' => $group->description,
-            'profile_picture_url' => $group->profile_picture_url,
-            'banner_image_url' => $group->banner_image_url,
-            'discord_invite_url' => $group->discord_invite_url,
-            'datacenter' => $group->datacenter,
-            'region' => $group->inferredRegion(),
-            'is_public' => $group->is_public,
-            'is_visible' => $group->is_visible,
             'slug' => $group->slug,
-            'group_type' => $group->group_type,
-            'recruiting_status' => $group->recruiting_status,
-            'primary_focuses' => $group->primary_focuses ?? [],
+            'name' => $group->name,
+            'banner_image_url' => $group->banner_image_url,
             'experience_expectation' => $group->experience_expectation,
-            'voice_expectation' => $group->voice_expectation,
+            'experience_badge' => $group->experience_expectation !== null
+                ? [
+                    'value' => $group->experience_expectation,
+                    'color' => $this->groupDiscoveryBadgePalette->colorFor('experience_expectations', $group->experience_expectation),
+                ]
+                : null,
             'preferred_languages' => $group->preferred_languages ?? [],
             'tags' => $group->tags ?? [],
-            'active_timezone' => $group->active_timezone,
-            'active_days' => $group->active_days ?? [],
-            'active_start_time' => $group->active_start_time,
-            'active_end_time' => $group->active_end_time,
-            'owner' => [
-                'id' => $group->owner?->id,
-                'name' => $group->owner?->name,
-                'avatar_url' => $group->owner?->avatar_url,
-            ],
-            'current_user_role' => $currentMembership?->role,
-            'follow' => [
-                'is_following' => $isFollowing,
-                'notifications_enabled' => $notificationsEnabled,
-            ],
-            'permissions' => [
-                'can_join' => $group->is_public
-                    && $group->usesCommunityJoinFlow()
-                    && ! $isMember
-                    && ! $isBanned,
-                'can_follow' => $group->is_public
-                    && ! $isMember
-                    && ! $isFollowing
-                    && ! $isBanned,
-                'can_unfollow' => $currentFollow instanceof User
-                    && ! $isMember,
-                'can_leave' => $isMember
-                    && ! $group->isOwnedBy($currentUserId),
-                'can_toggle_notifications' => $currentUserId !== null
-                    && $isFollowing,
-                'can_access_dashboard' => $isMember,
-            ],
+            'tag_badges' => $this->groupDiscoveryBadgePalette->tagBadges($group->tags ?? []),
             'stats' => [
-                'member_count' => $group->memberships->count(),
-                'moderator_count' => $group->memberships
-                    ->where('role', GroupMembership::ROLE_MODERATOR)
-                    ->count(),
-                'activity_count' => $visibleActivities->count(),
-                'current_activity_count' => $visibleActivities
-                    ->reject(fn (Activity $activity) => Activity::isArchivedStatus($activity->status))
-                    ->count(),
-                'completed_activity_count' => $visibleActivities
-                    ->where('status', Activity::STATUS_COMPLETE)
-                    ->count(),
-            ],
-            'staff_members' => $group->memberships
-                ->filter(fn (GroupMembership $membership) => in_array($membership->role, [
-                    GroupMembership::ROLE_OWNER,
-                    GroupMembership::ROLE_MODERATOR,
-                ], true))
-                ->sortBy(function (GroupMembership $membership) {
-                    return array_search($membership->role, GroupMembership::ROLES, true) ?: 0;
-                })
-                ->values()
-                ->map(fn (GroupMembership $membership) => [
-                    'id' => $membership->user->id,
-                    'name' => $membership->user->name,
-                    'avatar_url' => $membership->user->avatar_url,
-                    'role' => $membership->role,
-                    'joined_at' => $membership->joined_at?->toIso8601String(),
-                ]),
-            'activities' => [
-                'current' => $currentActivities,
-                'recent' => $recentActivities,
+                'member_count' => (int) ($group->memberships_count ?? 0),
             ],
         ];
+    }
+
+    /**
+     * @param  array<string, mixed>  $filters
+     */
+    private function applyDiscoverySearchFilters(Builder $query, array $filters): void
+    {
+        $searchQuery = trim((string) ($filters['query'] ?? ''));
+        $groupType = (string) ($filters['group_type'] ?? 'all');
+        $experienceExpectation = $filters['experience_expectation'] ?? null;
+        $region = $filters['region'] ?? null;
+        $size = $filters['size'] ?? null;
+        $recruitingStatus = $filters['recruiting_status'] ?? null;
+        $primaryFocuses = array_values(array_filter($filters['primary_focuses'] ?? [], fn ($value) => is_string($value) && $value !== ''));
+        $voiceExpectation = $filters['voice_expectation'] ?? null;
+        $preferredLanguages = array_values(array_filter($filters['preferred_languages'] ?? [], fn ($value) => is_string($value) && $value !== ''));
+        $activeDays = array_values(array_filter($filters['active_days'] ?? [], fn ($value) => is_string($value) && $value !== ''));
+        $extraTags = trim((string) ($filters['extra_tags'] ?? ''));
+
+        if ($groupType !== '' && $groupType !== 'all') {
+            $query->where('groups.group_type', $groupType);
+        }
+
+        if ($searchQuery !== '') {
+            $like = '%'.mb_strtolower($searchQuery).'%';
+
+            $query->where(function (Builder $queryBuilder) use ($like) {
+                $queryBuilder
+                    ->whereRaw('LOWER(groups.name) LIKE ?', [$like])
+                    ->orWhereRaw('LOWER(COALESCE(groups.description, \'\')) LIKE ?', [$like])
+                    ->orWhereRaw('LOWER(groups.slug) LIKE ?', [$like])
+                    ->orWhereRaw('LOWER(CAST(groups.tags AS TEXT)) LIKE ?', [$like])
+                    ->orWhereRaw('LOWER(CAST(groups.primary_focuses AS TEXT)) LIKE ?', [$like]);
+            });
+        }
+
+        if (is_string($experienceExpectation) && $experienceExpectation !== '') {
+            $query->where('groups.experience_expectation', $experienceExpectation);
+        }
+
+        if (is_string($region) && $region !== '') {
+            $datacenters = collect(config('datacenters.regions', []))
+                ->filter(fn (?string $mappedRegion) => $mappedRegion === $region)
+                ->keys()
+                ->values()
+                ->all();
+
+            if ($datacenters !== []) {
+                $query->whereIn('groups.datacenter', $datacenters);
+            }
+        }
+
+        if (is_string($size) && $size !== '') {
+            $query->has('memberships', '>=', (int) $size);
+        }
+
+        if (is_string($recruitingStatus) && $recruitingStatus !== '') {
+            $query->where('groups.recruiting_status', $recruitingStatus);
+        }
+
+        $this->applyJsonArrayAnyMatchFilter($query, 'groups.primary_focuses', $primaryFocuses);
+
+        if (is_string($voiceExpectation) && $voiceExpectation !== '') {
+            $query->where('groups.voice_expectation', $voiceExpectation);
+        }
+
+        $this->applyJsonArrayAnyMatchFilter($query, 'groups.preferred_languages', $preferredLanguages);
+        $this->applyJsonArrayAnyMatchFilter($query, 'groups.active_days', $activeDays);
+
+        if ($extraTags !== '') {
+            $query->whereRaw('LOWER(CAST(groups.tags AS TEXT)) LIKE ?', ['%'.mb_strtolower($extraTags).'%']);
+        }
+    }
+
+    /**
+     * @param  array<int, string>  $values
+     */
+    private function applyJsonArrayAnyMatchFilter(Builder $query, string $column, array $values): void
+    {
+        if ($values === []) {
+            return;
+        }
+
+        $query->where(function (Builder $queryBuilder) use ($column, $values) {
+            foreach ($values as $value) {
+                $queryBuilder->orWhereJsonContains($column, $value);
+            }
+        });
+    }
+
+    private function applyDiscoverySorting(Builder $query, string $sortBy): void
+    {
+        $activityExpression = 'CASE
+            WHEN latest_run_activity.latest_run_activity_at IS NOT NULL
+                AND latest_run_activity.latest_run_activity_at > groups.updated_at
+                THEN latest_run_activity.latest_run_activity_at
+            ELSE groups.updated_at
+        END';
+
+        match ($sortBy) {
+            'created_at_asc' => $query
+                ->orderBy('groups.created_at')
+                ->orderBy('groups.name'),
+            'active_at_desc' => $query
+                ->orderByRaw($activityExpression.' DESC')
+                ->orderBy('groups.name'),
+            'active_at_asc' => $query
+                ->orderByRaw($activityExpression.' ASC')
+                ->orderBy('groups.name'),
+            'member_count_desc' => $query
+                ->orderByDesc('memberships_count')
+                ->orderBy('groups.name'),
+            'member_count_asc' => $query
+                ->orderBy('memberships_count')
+                ->orderBy('groups.name'),
+            default => $query
+                ->orderByDesc('groups.created_at')
+                ->orderBy('groups.name'),
+        };
     }
 
     /**
@@ -490,100 +540,6 @@ class GroupController extends Controller
             'active_days' => $group->active_days ?? [],
             'active_start_time' => $group->active_start_time,
             'active_end_time' => $group->active_end_time,
-        ];
-    }
-
-    private function currentFollowForUser(Group $group, ?int $currentUserId): ?User
-    {
-        if ($currentUserId === null) {
-            return null;
-        }
-
-        return $group->followers()
-            ->where('users.id', $currentUserId)
-            ->first();
-    }
-
-    private function visibleProfileActivities(Group $group, ?int $currentUserId): Collection
-    {
-        $canSeePublicActivities = $group->is_public || $group->hasMember($currentUserId);
-        $canSeeModeratorOnlyActivities = $group->hasModeratorAccess($currentUserId);
-
-        if (! $canSeePublicActivities) {
-            return collect();
-        }
-
-        return $group->activities
-            ->filter(function (Activity $activity) use ($canSeeModeratorOnlyActivities) {
-                if (Activity::isModeratorOnlyStatus($activity->status)) {
-                    return $canSeeModeratorOnlyActivities;
-                }
-
-                return $activity->is_public;
-            })
-            ->values();
-    }
-
-    private function partitionProfileActivities(Collection $activities): array
-    {
-        $currentActivities = $activities
-            ->reject(fn (Activity $activity) => Activity::isArchivedStatus($activity->status))
-            ->sort(function (Activity $left, Activity $right) {
-                $startsAtComparison = ($left->starts_at?->getTimestamp() ?? PHP_INT_MAX)
-                    <=> ($right->starts_at?->getTimestamp() ?? PHP_INT_MAX);
-
-                if ($startsAtComparison !== 0) {
-                    return $startsAtComparison;
-                }
-
-                return ($right->updated_at?->getTimestamp() ?? 0)
-                    <=> ($left->updated_at?->getTimestamp() ?? 0);
-            })
-            ->take(6)
-            ->values()
-            ->map(fn (Activity $activity) => $this->serializeProfileActivity($activity))
-            ->all();
-
-        $recentActivities = $activities
-            ->sortByDesc(fn (Activity $activity) => $activity->updated_at?->getTimestamp() ?? 0)
-            ->take(6)
-            ->values()
-            ->map(fn (Activity $activity) => $this->serializeProfileActivity($activity))
-            ->all();
-
-        return [$currentActivities, $recentActivities];
-    }
-
-    private function serializeProfileActivity(Activity $activity): array
-    {
-        return [
-            'id' => $activity->id,
-            'activity_type' => [
-                'id' => $activity->activityType?->id,
-                'slug' => $activity->activityType?->slug,
-                'draft_name' => $activity->activityType?->draft_name,
-            ],
-            'title' => $activity->title,
-            'status' => $activity->status,
-            'starts_at' => $activity->starts_at?->toIso8601String(),
-            'duration_hours' => $activity->duration_hours,
-            'needs_application' => $activity->needs_application,
-            'allow_guest_applications' => $activity->allow_guest_applications,
-            'organized_by' => $activity->organizer ? [
-                'id' => $activity->organizer->id,
-                'name' => $activity->organizer->name,
-                'avatar_url' => $activity->organizer->avatar_url,
-            ] : null,
-            'organized_by_character' => $activity->organizerCharacter ? [
-                'id' => $activity->organizerCharacter->id,
-                'user_id' => $activity->organizerCharacter->user_id,
-                'name' => $activity->organizerCharacter->name,
-                'avatar_url' => $activity->organizerCharacter->avatar_url,
-            ] : null,
-            'slot_count' => $activity->slots->count(),
-            'application_count' => $activity->applications->count(),
-            'created_at' => $activity->created_at?->toIso8601String(),
-            'updated_at' => $activity->updated_at?->toIso8601String(),
         ];
     }
 }

@@ -9,7 +9,6 @@ use App\Models\Group;
 use App\Models\GroupMembership;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Inertia\Testing\AssertableInertia as Assert;
 
 uses(RefreshDatabase::class);
 
@@ -88,7 +87,7 @@ it('redirects non members away from visible group dashboards', function () {
         'group' => $group->slug,
     ]));
 
-    $response->assertRedirect(route('groups.show', $group));
+    $response->assertRedirect(route('groups.index'));
 });
 
 it('returns not found for non member writes to dashboard endpoints', function () {
@@ -124,17 +123,6 @@ it('returns not found for non member writes to dashboard endpoints', function ()
     $response->assertNotFound();
     expect($slot->fresh()->assigned_character_id)->toBe($character->id);
     expect($application->fresh()->status)->toBe(ActivityApplication::STATUS_APPROVED);
-});
-
-it('does not expose hidden group profiles to outsiders', function () {
-    $owner = User::factory()->create();
-    $group = Group::factory()->hidden()->create([
-        'owner_id' => $owner->id,
-    ]);
-
-    $response = $this->get(route('groups.show', $group));
-
-    $response->assertNotFound();
 });
 
 it('requires membership to view public activities that belong to private groups', function () {
@@ -216,74 +204,6 @@ it('keeps complete and cancelled public activity overviews visible', function (s
     'complete' => [Activity::STATUS_COMPLETE],
     'cancelled' => [Activity::STATUS_CANCELLED],
 ]);
-
-it('keeps planned activities off the group profile for non moderators', function () {
-    extract(createAccessControlActivity([], [
-        'status' => Activity::STATUS_SCHEDULED,
-        'is_public' => true,
-    ]));
-
-    Activity::factory()->create([
-        'group_id' => $group->id,
-        'activity_type_id' => $activity->activity_type_id,
-        'activity_type_version_id' => $activity->activity_type_version_id,
-        'organized_by_user_id' => $owner->id,
-        'status' => Activity::STATUS_PLANNED,
-        'is_public' => true,
-    ]);
-
-    $member = User::factory()->create();
-    $group->memberships()->create([
-        'user_id' => $member->id,
-        'role' => GroupMembership::ROLE_MEMBER,
-        'joined_at' => now(),
-    ]);
-
-    $this->get(route('groups.show', $group))
-        ->assertOk()
-        ->assertInertia(fn (Assert $page) => $page
-            ->has('group.activities.current', 1)
-            ->where('group.activities.current.0.status', Activity::STATUS_SCHEDULED));
-
-    $this->actingAs($member)
-        ->get(route('groups.show', $group))
-        ->assertOk()
-        ->assertInertia(fn (Assert $page) => $page
-            ->has('group.activities.current', 1)
-            ->where('group.activities.current.0.status', Activity::STATUS_SCHEDULED));
-
-    $this->actingAs($owner)
-        ->get(route('groups.show', $group))
-        ->assertOk()
-        ->assertInertia(fn (Assert $page) => $page
-            ->has('group.activities.current', 2));
-});
-
-it('keeps complete and cancelled public activities on the group profile recent list', function () {
-    extract(createAccessControlActivity([], [
-        'status' => Activity::STATUS_COMPLETE,
-        'is_public' => true,
-        'updated_at' => now()->subHour(),
-    ]));
-
-    Activity::factory()->create([
-        'group_id' => $group->id,
-        'activity_type_id' => $activity->activity_type_id,
-        'activity_type_version_id' => $activity->activity_type_version_id,
-        'organized_by_user_id' => $owner->id,
-        'status' => Activity::STATUS_CANCELLED,
-        'is_public' => true,
-        'updated_at' => now(),
-    ]);
-
-    $this->get(route('groups.show', $group))
-        ->assertOk()
-        ->assertInertia(fn (Assert $page) => $page
-            ->has('group.activities.current', 0)
-            ->has('group.activities.recent', 2)
-            ->where('group.activities.recent.0.status', Activity::STATUS_CANCELLED)
-            ->where('group.activities.recent.1.status', Activity::STATUS_COMPLETE));
-});
 
 it('requires the correct secret key to access private activity overview pages', function () {
     extract(createAccessControlActivity([], [
