@@ -369,13 +369,6 @@ class ActivityTypeSeeder extends Seeder
                             'ja' => '予定メンバーが欠席したり離脱した場合に、ベンチ待機や呼び出し対応が可能であれば選択してください。',
                         ],
                     ),
-                    $this->schemaField(
-                        key: 'notes',
-                        label: ['en' => 'Notes', 'de' => 'Notizen', 'fr' => 'Notes', 'ja' => 'メモ'],
-                        type: 'textarea',
-                        source: null,
-                        required: false,
-                    ),
                 ],
                 'draft_progress_schema' => [
                     'milestones' => [],

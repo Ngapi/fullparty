@@ -6,6 +6,7 @@ use App\Models\ActivityApplicationAnswer;
 use App\Models\ActivityProgressMilestone;
 use App\Models\ActivitySlot;
 use App\Models\ActivitySlotFieldValue;
+use App\Models\ActivityType;
 use Database\Seeders\ActivitySeeder;
 use Database\Seeders\GroupSeeder;
 use Database\Seeders\ProductionSeeder;
@@ -66,4 +67,21 @@ it('seeds activities with slots, field values, milestones, and applications', fu
                 ->exists()
         )->toBeTrue();
     }
+});
+
+it('does not seed a duplicate custom notes application field for chaotic activities', function () {
+    $this->seed(ProductionSeeder::class);
+
+    $chaotic = ActivityType::query()
+        ->where('slug', 'cloud-of-darkness-chaotic')
+        ->with('currentPublishedVersion')
+        ->firstOrFail();
+
+    $applicationFieldKeys = collect($chaotic->currentPublishedVersion?->application_schema ?? [])
+        ->pluck('key')
+        ->filter()
+        ->values()
+        ->all();
+
+    expect($applicationFieldKeys)->not->toContain('notes');
 });
