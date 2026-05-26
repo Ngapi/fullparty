@@ -202,6 +202,38 @@ it('defaults activity discovery metadata from the group and activity type versio
         ->and($activity->run_style)->toBe(Activity::RUN_STYLE_PROGRESSION);
 });
 
+it('shows only non-bench slot counts on the group runs page', function () {
+    $owner = User::factory()->create();
+    $group = Group::factory()->public()->create([
+        'owner_id' => $owner->id,
+    ]);
+    $activityType = createCrudActivityType($owner);
+
+    $this->actingAs($owner);
+
+    $this->post(route('groups.dashboard.activities.store', [
+        'group' => $group->slug,
+    ]), [
+        'activity_type_id' => $activityType->id,
+        'status' => Activity::STATUS_SCHEDULED,
+        'title' => 'Bench Count Check',
+    ])->assertRedirect(route('groups.dashboard.activities.index', [
+        'group' => $group->slug,
+    ]));
+
+    $activity = $group->activities()->latest('id')->firstOrFail();
+
+    expect($activity->slots()->count())->toBe(3)
+        ->and($activity->slots()->where('group_key', '!=', 'bench')->count())->toBe(2);
+
+    $this->actingAs($owner)
+        ->get(route('groups.dashboard.activities.index', $group))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('activities.0.id', $activity->id)
+            ->where('activities.0.slot_count', 2));
+});
+
 it('sanitizes activity free-text fields when creating and updating activities', function () {
     $owner = User::factory()->create();
     $group = Group::factory()->public()->create([

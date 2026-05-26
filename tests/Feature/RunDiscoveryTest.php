@@ -541,6 +541,102 @@ it('uses the updated evening and night boundaries for time-of-day filtering', fu
         ->assertJsonPath('ids', [$morningRun->id]);
 });
 
+it('lets users save and unsave discoverable runs and filter to saved runs only', function () {
+    $viewer = User::factory()->create();
+
+    $activityType = createRunDiscoveryActivityType([
+        'slug' => 'saved-run-check',
+        'draft_name' => ['en' => 'Saved Run Check'],
+    ]);
+
+    $group = Group::factory()
+        ->public()
+        ->create([
+            'datacenter' => 'Light',
+            'group_type' => Group::TYPE_COMMUNITY,
+            'preferred_languages' => ['en'],
+        ]);
+
+    $savedRun = Activity::factory()->create([
+        'group_id' => $group->id,
+        'activity_type_id' => $activityType->id,
+        'activity_type_version_id' => $activityType->current_published_version_id,
+        'status' => Activity::STATUS_SCHEDULED,
+        'title' => 'Save Me',
+        'starts_at' => now()->addWeek()->startOfWeek()->addDays(2)->setTime(18, 0),
+        'datacenter' => 'Light',
+        'is_public' => true,
+        'needs_application' => true,
+    ]);
+
+    $otherRun = Activity::factory()->create([
+        'group_id' => $group->id,
+        'activity_type_id' => $activityType->id,
+        'activity_type_version_id' => $activityType->current_published_version_id,
+        'status' => Activity::STATUS_SCHEDULED,
+        'title' => 'Leave Me',
+        'starts_at' => now()->addWeek()->startOfWeek()->addDays(3)->setTime(18, 0),
+        'datacenter' => 'Light',
+        'is_public' => true,
+        'needs_application' => true,
+    ]);
+
+    $params = [
+        'timezone' => 'Europe/London',
+        'date_range' => 'next_week',
+        'group_type' => Group::TYPE_COMMUNITY,
+    ];
+
+    $this->actingAs($viewer)
+        ->postJson(route('dashboard.runs.save', [
+            'activity' => $savedRun->id,
+        ]))
+        ->assertOk()
+        ->assertJsonPath('saved', true);
+
+    $this->assertDatabaseHas('activity_saves', [
+        'activity_id' => $savedRun->id,
+        'user_id' => $viewer->id,
+    ]);
+
+    $this->actingAs($viewer)
+        ->getJson(route('dashboard.runs.discover', array_merge($params, [
+            'saved_only' => true,
+        ])))
+        ->assertOk()
+        ->assertJsonPath('ids', [$savedRun->id])
+        ->assertJsonPath('items.0.id', $savedRun->id)
+        ->assertJsonPath('items.0.is_saved', true);
+
+    $this->actingAs($viewer)
+        ->getJson(route('dashboard.runs.discover', $params))
+        ->assertOk()
+        ->assertJsonPath('items.0.id', $savedRun->id)
+        ->assertJsonPath('items.0.is_saved', true)
+        ->assertJsonPath('items.1.id', $otherRun->id)
+        ->assertJsonPath('items.1.is_saved', false);
+
+    $this->actingAs($viewer)
+        ->deleteJson(route('dashboard.runs.unsave', [
+            'activity' => $savedRun->id,
+        ]))
+        ->assertOk()
+        ->assertJsonPath('saved', false);
+
+    $this->assertDatabaseMissing('activity_saves', [
+        'activity_id' => $savedRun->id,
+        'user_id' => $viewer->id,
+    ]);
+
+    $this->actingAs($viewer)
+        ->getJson(route('dashboard.runs.discover', array_merge($params, [
+            'saved_only' => true,
+        ])))
+        ->assertOk()
+        ->assertJsonPath('ids', [])
+        ->assertJsonPath('items', []);
+});
+
 it('paginates discovery results at ten runs per page', function () {
     $viewer = User::factory()->create();
 

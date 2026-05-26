@@ -161,6 +161,7 @@ class GroupDashboardController extends Controller
                 'permissions' => [
                     'can_manage_group' => $group->isOwnedBy($currentUserId),
                     'can_manage_members' => $canManageActivities,
+                    'can_manage_discovery' => $group->hasAdminAccess($currentUserId),
                     'can_manage_activities' => $canManageActivities,
                     'can_view_members' => $isMember,
                     'can_leave' => $currentMembership instanceof GroupMembership

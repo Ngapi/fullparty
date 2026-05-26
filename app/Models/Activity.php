@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Str;
 
@@ -229,6 +230,12 @@ class Activity extends Model
     public function slotAssignments(): HasMany
     {
         return $this->hasMany(ActivitySlotAssignment::class)->latest('assigned_at');
+    }
+
+    public function savedByUsers(): BelongsToMany
+    {
+        return $this->belongsToMany(User::class, 'activity_saves')
+            ->withTimestamps();
     }
 
     public function isArchived(): bool

@@ -43,6 +43,13 @@
     },
     "toasts": { "updated": "Gruppeneinstellungen wurden aktualisiert." }
   },
+  "discovery": {
+    "title": "Discovery-Einstellungen",
+    "subtitle": "Aktualisiere, wie deine Gruppe in der Discovery erscheint und wann sie normalerweise aktiv ist.",
+    "active_window_title": "Aktivitätsfenster",
+    "active_window_subtitle": "Halte Zeitzone, aktive Tage und typische Spielzeiten aktuell, damit andere wissen, wann deine Gruppe meistens online ist.",
+    "toasts": { "updated": "Discovery-Einstellungen wurden aktualisiert." }
+  },
   "invites": {
     "title": "Einladungslinks",
     "subtitle": "Verwalte Einladungslinks für neue Mitglieder.",

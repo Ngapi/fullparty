@@ -120,7 +120,7 @@ const resolveBadgeLabel = (value: string) => {
 			</div>
 		</div>
 
-		<p class="mt-5 text-sm leading-7 text-white/84 break-words [overflow-wrap:anywhere]">
+		<p class="mt-5 max-h-18 overflow-y-scroll text-sm leading-7 text-white/84 break-words [overflow-wrap:anywhere]">
 			{{ descriptionText }}
 		</p>
 
@@ -157,16 +157,21 @@ const resolveBadgeLabel = (value: string) => {
 
 			<div
 				v-if="group.discord_invite_url"
-					class="flex items-start gap-2"
+					class="flex min-w-0 items-start gap-2"
 				>
 					<UIcon name="i-lucide-link-2" class="mt-0.5 size-4 shrink-0" />
-					<div class="min-w-0">
+					<div class="min-w-0 flex-1">
 						<p class="text-[11px] uppercase tracking-[0.18em] text-white/50">
 							{{ t("groups.common.labels.discord") }}
 						</p>
-					<p class="mt-1 truncate text-white">
+					<a
+						:href="group.discord_invite_url"
+						target="_blank"
+						rel="noopener noreferrer"
+						class="mt-1 block w-full overflow-hidden text-ellipsis whitespace-nowrap text-white underline decoration-white/20 underline-offset-2 transition-colors hover:text-brand-300 hover:decoration-brand-300/50"
+					>
 						{{ group.discord_invite_url }}
-					</p>
+					</a>
 				</div>
 			</div>
 

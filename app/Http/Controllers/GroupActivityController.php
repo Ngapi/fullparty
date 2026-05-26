@@ -233,7 +233,9 @@ class GroupActivityController extends Controller
                         'name' => $activity->organizerCharacter->name,
                         'avatar_url' => $activity->organizerCharacter->avatar_url,
                     ] : null,
-                    'slot_count' => $activity->slots->count(),
+                    'slot_count' => $activity->slots
+                        ->where('group_key', '!=', ActivitySlotBench::GROUP_KEY)
+                        ->count(),
                     'application_count' => $activity->applications->count(),
                     'progress_milestone_count' => $activity->progressMilestones->count(),
                     'created_at' => $activity->created_at?->toIso8601String(),
@@ -972,6 +974,7 @@ class GroupActivityController extends Controller
             'permissions' => [
                 'can_manage_group' => $group->isOwnedBy($currentUserId),
                 'can_manage_members' => $canModerateGroup,
+                'can_manage_discovery' => $group->hasAdminAccess($currentUserId),
                 'can_manage_activities' => $canManageActivities ?? $canModerateGroup,
                 'can_view_members' => $isMember,
             ],

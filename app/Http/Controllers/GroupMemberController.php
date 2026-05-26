@@ -70,6 +70,7 @@ class GroupMemberController extends Controller
             'permissions' => [
                 'can_manage_group' => $group->isOwnedBy($currentUserId),
                 'can_manage_members' => $group->hasModeratorAccess($currentUserId),
+                'can_manage_discovery' => $group->hasAdminAccess($currentUserId),
                 'can_manage_roles' => $group->isOwnedBy($currentUserId),
                 'can_view_bans' => $group->hasModeratorAccess($currentUserId),
                 'can_view_members' => $group->hasMember($currentUserId),

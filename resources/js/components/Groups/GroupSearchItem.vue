@@ -46,6 +46,10 @@ const ownerName = computed(() => props.group.owner.name ?? "—");
 const descriptionText = computed(() => props.group.description || t("groups.index.table.no_description"));
 
 function badgeLabel(value: string, group: "experience_expectation" | "voice_expectation" | "primary_focuses") {
+	if (group === "voice_expectation") {
+		return t(`groups.common.voice_expectations.${value}`);
+	}
+
 	return t(`groups.index.create_modal.fields.${group}.options.${value}`);
 }
 

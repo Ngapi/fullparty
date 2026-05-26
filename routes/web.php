@@ -268,6 +268,8 @@ Route::prefix('{locale?}')
             Route::get('/dashboard', [DashboardController::class, 'show'])->name('dashboard');
             Route::get('/dashboard/runs', [RunDiscoveryController::class, 'index'])->name('dashboard.runs.index');
             Route::get('/dashboard/runs/discovery', [RunDiscoveryController::class, 'discover'])->name('dashboard.runs.discover');
+            Route::post('/dashboard/runs/{activity}/save', [RunDiscoveryController::class, 'save'])->name('dashboard.runs.save');
+            Route::delete('/dashboard/runs/{activity}/save', [RunDiscoveryController::class, 'unsave'])->name('dashboard.runs.unsave');
 
             /*
             |--------------------------------------------------------------------------
@@ -340,6 +342,8 @@ Route::prefix('{locale?}')
                 Route::get('/', [GroupDashboardController::class, 'show'])->name('groups.dashboard');
                 Route::get('/members', [GroupMemberController::class, 'index'])->name('groups.dashboard.members');
                 Route::get('/audit-log', [GroupAuditLogController::class, 'index'])->name('groups.dashboard.audit-log');
+                Route::get('/discovery-settings', [GroupSettingsController::class, 'showDiscovery'])->name('groups.dashboard.discovery-settings');
+                Route::put('/discovery-settings', [GroupSettingsController::class, 'updateDiscovery'])->name('groups.dashboard.discovery-settings.update');
                 Route::get('/settings', [GroupSettingsController::class, 'show'])->name('groups.dashboard.settings');
                 Route::put('/settings', [GroupSettingsController::class, 'update'])->name('groups.dashboard.settings.update');
 

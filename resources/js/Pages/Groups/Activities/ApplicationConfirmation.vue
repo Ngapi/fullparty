@@ -116,6 +116,16 @@ const organizerLabel = computed(() => {
 		|| t("groups.activities.cards.no_organizer");
 });
 
+const displayGroupName = computed(() => props.group.name || "—");
+
+const truncateInlineText = (value: string, maxLength = 96) => {
+	if (value.length <= maxLength) {
+		return value;
+	}
+
+	return `${value.slice(0, maxLength - 1).trimEnd()}…`;
+};
+
 const submittedAtLabel = computed(() => {
 	if (!props.application?.submitted_at) {
 		return null;
@@ -156,7 +166,7 @@ const confirmationDescription = computed(() => t(
 			? "groups.activities.application.confirmation.updated_description"
 			: "groups.activities.application.confirmation.submitted_description",
 	{
-		group: props.group.name,
+		group: truncateInlineText(displayGroupName.value),
 		type: activityTypeName.value,
 	},
 ));
@@ -437,7 +447,7 @@ const copyStatusLink = async () => {
 				<div class="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm">
 					<div class="inline-flex items-center gap-2">
 						<span class="text-muted">{{ t('groups.activities.management.overview.group') }}:</span>
-						<span class="font-medium text-toned">{{ group.name }}</span>
+						<span class="block max-w-128 truncate font-medium text-toned">{{ displayGroupName }}</span>
 					</div>
 
 					<div class="hidden h-4 w-px bg-default md:block"></div>

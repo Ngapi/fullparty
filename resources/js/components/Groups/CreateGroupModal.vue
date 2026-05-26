@@ -8,6 +8,7 @@ import {
 	sanitizeSingleLineText,
 	sanitizeSingleLineTextForInput,
 } from '@/utils/textInputSanitizer';
+import { buildGroupTimeZoneOptions } from '@/utils/groupTimeZoneOptions';
 import { de, en, fr, ja } from '@nuxt/ui/locale';
 import { useToast } from '@nuxt/ui/composables';
 import { useForm, usePage } from '@inertiajs/vue3';
@@ -30,18 +31,6 @@ type GroupDiscoveryLookups = {
 	preferred_languages?: string[]
 	max_tags?: number
 }
-
-const fallbackTimeZones = [
-	'America/Los_Angeles',
-	'America/Denver',
-	'America/Chicago',
-	'America/New_York',
-	'Europe/London',
-	'Europe/Berlin',
-	'Europe/Paris',
-	'Asia/Tokyo',
-	'Australia/Sydney',
-];
 
 const uiLocales = { en, de, fr, ja };
 
@@ -108,19 +97,7 @@ const activeDayOptions = computed(() => (groupDiscoveryLookups.value.active_days
 	value,
 	label: t(`groups.common.active_days.${value}`),
 })));
-const timeZoneOptions = computed(() => {
-	const supportedValuesOf = (Intl as typeof Intl & {
-		supportedValuesOf?: (key: 'timeZone') => string[]
-	}).supportedValuesOf;
-	const values = supportedValuesOf
-		? supportedValuesOf('timeZone')
-		: fallbackTimeZones;
-
-	return values.map((value) => ({
-		value,
-		label: value,
-	}));
-});
+const timeZoneOptions = computed(() => buildGroupTimeZoneOptions());
 
 const form = useForm<GroupCreateFormData>({
 	name: '',
@@ -740,6 +717,8 @@ defineExpose({
 								v-model="form.active_start_time"
 								class="w-full"
 								type="time"
+								lang="en-GB"
+								step="60"
 								:ui="{ base: 'rounded-none' }"
 								@update:model-value="clearFieldError('active_start_time')"
 							/>
@@ -754,6 +733,8 @@ defineExpose({
 								v-model="form.active_end_time"
 								class="w-full"
 								type="time"
+								lang="en-GB"
+								step="60"
 								:ui="{ base: 'rounded-none' }"
 								@update:model-value="clearFieldError('active_end_time')"
 							/>

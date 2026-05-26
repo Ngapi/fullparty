@@ -142,6 +142,21 @@ class Group extends Model
                 ], true));
     }
 
+    public function hasAdminAccess(?int $userId): bool
+    {
+        if ($this->isOwnedBy($userId)) {
+            return true;
+        }
+
+        if ($userId === null) {
+            return false;
+        }
+
+        return $this->memberships
+            ->contains(fn (GroupMembership $membership) => $membership->user_id === $userId
+                && $membership->role === GroupMembership::ROLE_ADMIN);
+    }
+
     public function hasMember(?int $userId): bool
     {
         if ($userId === null) {

@@ -9,6 +9,7 @@
       "reset": "Reset Filters",
       "all": "All",
       "sections": {
+        "saved_runs": "保存した募集",
         "search": "Search",
         "activity_type": "Activity Type",
         "datacenter_world": "Data Center / Region",
@@ -152,7 +153,9 @@
         "actions": {
           "view_details": "View Details",
           "apply_now": "Apply Now",
-          "view_application": "View Application"
+          "view_application": "View Application",
+          "save_run": "Save Run",
+          "unsave_run": "Unsave Run"
         }
       },
       "sort_options": {

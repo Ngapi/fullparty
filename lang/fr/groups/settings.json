@@ -43,6 +43,13 @@
     },
     "toasts": { "updated": "Les paramètres du groupe ont été mis à jour." }
   },
+  "discovery": {
+    "title": "Paramètres Discovery",
+    "subtitle": "Mettez à jour la façon dont votre groupe apparaît dans la discovery et les créneaux où il est généralement actif.",
+    "active_window_title": "Créneau d'activité",
+    "active_window_subtitle": "Gardez le fuseau horaire, les jours actifs et les heures de jeu habituelles à jour pour que les gens sachent quand votre groupe est le plus souvent présent.",
+    "toasts": { "updated": "Les paramètres Discovery ont été mis à jour." }
+  },
   "invites": {
     "title": "Liens d'invitation",
     "subtitle": "Gérez les liens d'invitation pour les nouveaux membres.",

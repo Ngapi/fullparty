@@ -89,6 +89,14 @@ final class RunDiscoveryService
         ];
     }
 
+    public function canUserInteractWithDiscoveryActivity(Activity $activity, User $user): bool
+    {
+        $activity->loadMissing($this->discoveryRelationsForUser($user->id));
+
+        return $this->canUserDiscoverActivity($activity, $user->id)
+            && $this->canUserTakeDiscoveryAction($activity, $user);
+    }
+
     /**
      * @return array<int, array<string, mixed>>
      */
@@ -129,78 +137,7 @@ final class RunDiscoveryService
     private function discoverActivitiesForUser(User $user, array $filters): Collection
     {
         $activities = Activity::query()
-            ->with([
-                'group' => fn ($query) => $query->select([
-                    'id',
-                    'owner_id',
-                    'name',
-                    'slug',
-                    'datacenter',
-                    'is_public',
-                    'is_visible',
-                    'group_type',
-                    'voice_expectation',
-                    'preferred_languages',
-                ]),
-                'group.memberships' => fn ($query) => $query
-                    ->select(['id', 'group_id', 'user_id', 'role'])
-                    ->where('user_id', $user->id),
-                'group.bans' => fn ($query) => $query
-                    ->select(['id', 'group_id', 'user_id'])
-                    ->where('user_id', $user->id),
-                'applications' => fn ($query) => $query
-                    ->select(['id', 'activity_id', 'user_id', 'status'])
-                    ->where('user_id', $user->id)
-                    ->where('status', '!=', ActivityApplication::STATUS_WITHDRAWN),
-                'activityType' => fn ($query) => $query->select(['id', 'slug', 'current_published_version_id']),
-                'activityType.currentPublishedVersion' => fn ($query) => $query->select([
-                    'id',
-                    'activity_type_id',
-                    'name',
-                    'small_image_url',
-                    'banner_image_url',
-                    'difficulty',
-                    'prog_points',
-                ]),
-                'activityTypeVersion' => fn ($query) => $query->select([
-                    'id',
-                    'activity_type_id',
-                    'name',
-                    'small_image_url',
-                    'banner_image_url',
-                    'difficulty',
-                    'prog_points',
-                ]),
-                'organizerCharacter' => fn ($query) => $query->select([
-                    'id',
-                    'name',
-                    'world',
-                    'avatar_url',
-                ]),
-                'slots' => fn ($query) => $query->select([
-                    'id',
-                    'activity_id',
-                    'group_key',
-                    'assigned_character_id',
-                ]),
-                'slots.compositionHints' => fn ($query) => $query->select([
-                    'id',
-                    'activity_slot_id',
-                    'hint_type',
-                    'hint_key',
-                    'role_key',
-                    'character_class_id',
-                ]),
-                'slots.compositionHints.characterClass' => fn ($query) => $query->select([
-                    'id',
-                    'shorthand',
-                    'role',
-                ]),
-                'slots.assignedCharacter' => fn ($query) => $query->select([
-                    'id',
-                    'user_id',
-                ]),
-            ])
+            ->with($this->discoveryRelationsForUser($user->id))
             ->whereHas('group', fn (Builder $query) => $query->where('is_visible', true))
             ->whereNotNull('starts_at')
             ->whereNotIn('status', Activity::ARCHIVED_STATUSES)
@@ -213,6 +150,88 @@ final class RunDiscoveryService
             ->filter(fn (Activity $activity) => $this->matchesFilters($activity, $filters))
             ->filter(fn (Activity $activity) => $this->canUserTakeDiscoveryAction($activity, $user))
             ->values();
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function discoveryRelationsForUser(int $userId): array
+    {
+        return [
+            'group' => fn ($query) => $query->select([
+                'id',
+                'owner_id',
+                'name',
+                'slug',
+                'datacenter',
+                'is_public',
+                'is_visible',
+                'group_type',
+                'voice_expectation',
+                'preferred_languages',
+            ]),
+            'group.memberships' => fn ($query) => $query
+                ->select(['id', 'group_id', 'user_id', 'role'])
+                ->where('user_id', $userId),
+            'group.bans' => fn ($query) => $query
+                ->select(['id', 'group_id', 'user_id'])
+                ->where('user_id', $userId),
+            'applications' => fn ($query) => $query
+                ->select(['id', 'activity_id', 'user_id', 'status'])
+                ->where('user_id', $userId)
+                ->where('status', '!=', ActivityApplication::STATUS_WITHDRAWN),
+            'savedByUsers' => fn ($query) => $query
+                ->select(['users.id'])
+                ->where('users.id', $userId),
+            'activityType' => fn ($query) => $query->select(['id', 'slug', 'current_published_version_id']),
+            'activityType.currentPublishedVersion' => fn ($query) => $query->select([
+                'id',
+                'activity_type_id',
+                'name',
+                'small_image_url',
+                'banner_image_url',
+                'difficulty',
+                'prog_points',
+            ]),
+            'activityTypeVersion' => fn ($query) => $query->select([
+                'id',
+                'activity_type_id',
+                'name',
+                'small_image_url',
+                'banner_image_url',
+                'difficulty',
+                'prog_points',
+            ]),
+            'organizerCharacter' => fn ($query) => $query->select([
+                'id',
+                'name',
+                'world',
+                'avatar_url',
+            ]),
+            'slots' => fn ($query) => $query->select([
+                'id',
+                'activity_id',
+                'group_key',
+                'assigned_character_id',
+            ]),
+            'slots.compositionHints' => fn ($query) => $query->select([
+                'id',
+                'activity_slot_id',
+                'hint_type',
+                'hint_key',
+                'role_key',
+                'character_class_id',
+            ]),
+            'slots.compositionHints.characterClass' => fn ($query) => $query->select([
+                'id',
+                'shorthand',
+                'role',
+            ]),
+            'slots.assignedCharacter' => fn ($query) => $query->select([
+                'id',
+                'user_id',
+            ]),
+        ];
     }
 
     /**
@@ -339,6 +358,10 @@ final class RunDiscoveryService
             return false;
         }
 
+        if (($filters['saved_only'] ?? false) && ! $this->userHasSavedActivity($activity)) {
+            return false;
+        }
+
         if (! $this->matchesActivityType($activity, $filters['activity_type'] ?? null)) {
             return false;
         }
@@ -427,6 +450,11 @@ final class RunDiscoveryService
     private function userHasExistingApplication(Activity $activity): bool
     {
         return $activity->applications->isNotEmpty();
+    }
+
+    private function userHasSavedActivity(Activity $activity): bool
+    {
+        return $activity->savedByUsers->isNotEmpty();
     }
 
     private function canUserApplyToActivity(Activity $activity, User $user): bool
@@ -547,6 +575,7 @@ final class RunDiscoveryService
             ],
             'filled_slots' => $filledMainSlots->count(),
             'total_slots' => $mainSlots->count(),
+            'is_saved' => $this->userHasSavedActivity($activity),
             'has_existing_application' => $hasExistingApplication,
             'can_apply' => $canApply,
             'links' => [

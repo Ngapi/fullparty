@@ -215,7 +215,7 @@ const declineApplication = async () => {
 	isDeclining.value = true;
 
 	try {
-		await axios.post(route('groups.dashboard.activities.application-declines.store', {
+		const response = await axios.post(route('groups.dashboard.activities.application-declines.store', {
 			group: props.groupSlug,
 			activity: props.activityId,
 			application: props.application.id,
@@ -228,6 +228,13 @@ const declineApplication = async () => {
 			description: t('groups.activities.management.queue.decline_success_description'),
 			color: 'success',
 		});
+
+		window.dispatchEvent(new CustomEvent('fullparty:activity-application-declined', {
+			detail: {
+				applicationId: props.application.id,
+				pendingApplicationCount: response.data?.pending_application_count,
+			},
+		}));
 
 		emit('declined', props.application.id);
 		isDeclineModalOpen.value = false;

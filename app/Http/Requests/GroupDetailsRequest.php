@@ -10,6 +10,8 @@ use Illuminate\Validation\Validator;
 
 abstract class GroupDetailsRequest extends FormRequest
 {
+    public const DESCRIPTION_MAX_LENGTH = 1000;
+
     public function authorize(): bool
     {
         return true;
@@ -22,10 +24,23 @@ abstract class GroupDetailsRequest extends FormRequest
     {
         return [
             'name' => ['required', 'string', 'max:255'],
-            'description' => ['nullable', 'string'],
+            'description' => ['nullable', 'string', 'max:'.self::DESCRIPTION_MAX_LENGTH],
             'profile_picture' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5120'],
             'banner_image' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5120'],
-            'discord_invite_url' => ['nullable', 'url', 'max:500'],
+            'discord_invite_url' => [
+                'nullable',
+                'url',
+                'max:500',
+                function (string $attribute, mixed $value, \Closure $fail): void {
+                    if (! is_string($value) || $value === '') {
+                        return;
+                    }
+
+                    if (! $this->isValidDiscordInviteUrl($value)) {
+                        $fail('The discord invite must be a valid Discord invite URL.');
+                    }
+                },
+            ],
             'datacenter' => ['required', 'string', Rule::in(config('datacenters.values', []))],
             'is_public' => ['required', 'boolean'],
             'is_visible' => ['required', 'boolean'],
@@ -167,5 +182,31 @@ abstract class GroupDetailsRequest extends FormRequest
         $value = $this->input($field);
 
         return is_array($value) && $value !== [];
+    }
+
+    private function isValidDiscordInviteUrl(string $value): bool
+    {
+        $parts = parse_url($value);
+
+        if (! is_array($parts)) {
+            return false;
+        }
+
+        $host = isset($parts['host']) ? mb_strtolower($parts['host']) : null;
+        $path = isset($parts['path']) ? trim($parts['path'], '/') : '';
+
+        if (! $host || $path === '') {
+            return false;
+        }
+
+        if (in_array($host, ['discord.gg', 'www.discord.gg'], true)) {
+            return preg_match('/^[A-Za-z0-9-]+$/', $path) === 1;
+        }
+
+        if (in_array($host, ['discord.com', 'www.discord.com', 'discordapp.com', 'www.discordapp.com', 'ptb.discord.com', 'canary.discord.com'], true)) {
+            return preg_match('/^invite\/[A-Za-z0-9-]+$/', $path) === 1;
+        }
+
+        return false;
     }
 }

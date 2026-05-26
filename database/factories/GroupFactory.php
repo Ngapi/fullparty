@@ -25,7 +25,7 @@ class GroupFactory extends Factory
             'description' => fake()->sentence(),
             'profile_picture_url' => null,
             'banner_image_url' => null,
-            'discord_invite_url' => fake()->boolean(60) ? fake()->url() : null,
+            'discord_invite_url' => fake()->boolean(60) ? 'https://discord.gg/'.fake()->lexify('????????') : null,
             'datacenter' => fake()->randomElement(['Light', 'Chaos', 'Aether', 'Crystal', 'Primal', 'Dynamis']),
             'is_public' => fake()->boolean(70),
             'is_visible' => true,

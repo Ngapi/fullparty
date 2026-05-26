@@ -26,6 +26,7 @@ class RunDiscoveryFilterRequest extends FormRequest
     {
         return [
             'query' => ['nullable', 'string', 'max:255'],
+            'saved_only' => ['nullable', 'boolean'],
             'activity_type' => ['nullable', 'string', Rule::in($this->availableActivityTypeSlugs())],
             'prog_point' => ['nullable', 'string', 'max:255'],
             'region' => ['nullable', 'string', Rule::in($this->availableRegions())],
@@ -99,6 +100,10 @@ class RunDiscoveryFilterRequest extends FormRequest
 
         if ($this->exists('beginner_friendly')) {
             $normalized['beginner_friendly'] = $this->boolean('beginner_friendly');
+        }
+
+        if ($this->exists('saved_only')) {
+            $normalized['saved_only'] = $this->boolean('saved_only');
         }
 
         $this->merge($normalized);

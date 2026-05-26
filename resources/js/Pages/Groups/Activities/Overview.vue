@@ -166,25 +166,9 @@ const applicationRouteParameters = computed(() => ({
 }));
 
 const goBack = () => {
-	if (typeof window !== "undefined" && window.history.length > 1) {
-		window.history.back();
-
-		return;
-	}
-
-	if (props.permissions.can_manage) {
-		goToManagementPage();
-
-		return;
-	}
-
-	if (showApplicationButton.value) {
-		goToApplicationPage();
-
-		return;
-	}
-
-	router.get(route("home"));
+	router.get(route("groups.dashboard.activities.index", {
+		group: props.group.slug,
+	}));
 };
 
 const goToApplicationPage = () => {

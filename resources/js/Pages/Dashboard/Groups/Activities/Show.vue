@@ -62,10 +62,12 @@ const isDeletingActivity = ref(false);
 const isCancelConfirmOpen = ref(false);
 const pendingMissingUndoIds = ref<number[]>([]);
 const completionErrors = ref<Record<string, string[]>>({});
+const assignmentModalVisible = ref(false);
 const assignmentModalApplication = ref<QueueApplication | null>(null);
 const assignmentModalSlotId = ref<number | null>(null);
 const assignmentModalSourceSlotId = ref<number | null>(null);
 const assignmentModalMode = ref<'assign' | 'edit'>('assign');
+const assignmentModalResetTimeoutId = ref<number | null>(null);
 const manualAssignmentModalOpen = ref(false);
 const manualAssignmentSlotId = ref<number | null>(null);
 const manualAssignmentSourceSlotId = ref<number | null>(null);
@@ -117,7 +119,7 @@ const cancellationAlertDescription = computed(() => (
 		|| t('groups.activities.management.cancelled_alert.description')
 ));
 const assignmentModalOpen = computed({
-	get: () => Boolean(assignmentModalApplication.value && assignmentModalSlot.value),
+	get: () => assignmentModalVisible.value,
 	set: (value: boolean) => {
 		if (!value) {
 			closeAssignmentModal();
@@ -614,17 +616,33 @@ const openAssignmentModal = (payload: { slotId: number, application: QueueApplic
 		return;
 	}
 
+	cancelPendingAssignmentModalReset();
 	assignmentModalMode.value = 'assign';
 	assignmentModalSlotId.value = payload.slotId;
 	assignmentModalSourceSlotId.value = null;
 	assignmentModalApplication.value = payload.application;
+	assignmentModalVisible.value = true;
+};
+
+const cancelPendingAssignmentModalReset = () => {
+	if (assignmentModalResetTimeoutId.value === null) {
+		return;
+	}
+
+	window.clearTimeout(assignmentModalResetTimeoutId.value);
+	assignmentModalResetTimeoutId.value = null;
 };
 
 const closeAssignmentModal = () => {
-	assignmentModalMode.value = 'assign';
-	assignmentModalSlotId.value = null;
-	assignmentModalSourceSlotId.value = null;
-	assignmentModalApplication.value = null;
+	assignmentModalVisible.value = false;
+	cancelPendingAssignmentModalReset();
+	assignmentModalResetTimeoutId.value = window.setTimeout(() => {
+		assignmentModalMode.value = 'assign';
+		assignmentModalSlotId.value = null;
+		assignmentModalSourceSlotId.value = null;
+		assignmentModalApplication.value = null;
+		assignmentModalResetTimeoutId.value = null;
+	}, 200);
 };
 
 const closeManualAssignmentModal = () => {
@@ -711,10 +729,12 @@ const openAssignmentModalFromSlot = async (targetSlotId: number, sourceSlotId: n
 			return;
 		}
 
+		cancelPendingAssignmentModalReset();
 		assignmentModalMode.value = 'assign';
 		assignmentModalSlotId.value = targetSlotId;
 		assignmentModalSourceSlotId.value = sourceSlotId;
 		assignmentModalApplication.value = application;
+		assignmentModalVisible.value = true;
 	} catch (error) {
 		console.error(error);
 		toast.add({
@@ -756,10 +776,12 @@ const openSlotEditModal = async (slotId: number) => {
 	}
 
 	try {
+		cancelPendingAssignmentModalReset();
 		assignmentModalMode.value = 'edit';
 		assignmentModalSlotId.value = slotId;
 		assignmentModalSourceSlotId.value = null;
 		assignmentModalApplication.value = await fetchSlotAssignmentContext(slotId);
+		assignmentModalVisible.value = true;
 	} catch (error) {
 		console.error(error);
 		toast.add({
@@ -789,6 +811,22 @@ const handleSlotReturnedToQueue = (event: Event) => {
 			? pendingApplicationCount
 			: currentActivity.value.pending_application_count,
 		slots: currentActivity.value.slots.map((slot) => slot.id === updatedSlot.id ? updatedSlot : slot),
+	};
+};
+
+const handleApplicationDeclined = (event: Event) => {
+	const customEvent = event as CustomEvent<{
+		pendingApplicationCount?: number
+	}>;
+	const pendingApplicationCount = customEvent.detail?.pendingApplicationCount;
+
+	if (!currentActivity.value || typeof pendingApplicationCount !== 'number') {
+		return;
+	}
+
+	activityData.value = {
+		...currentActivity.value,
+		pending_application_count: pendingApplicationCount,
 	};
 };
 
@@ -1316,6 +1354,7 @@ onMounted(() => {
 	void fetchManagementData();
 	subscribeToManagementChannel();
 	window.addEventListener('fullparty:activity-slot-returned-to-queue', handleSlotReturnedToQueue as EventListener);
+	window.addEventListener('fullparty:activity-application-declined', handleApplicationDeclined as EventListener);
 });
 
 onBeforeUnmount(() => {
@@ -1329,12 +1368,14 @@ onBeforeUnmount(() => {
 		echo.leave(subscribedManagementChannelName.value);
 	}
 
+	cancelPendingAssignmentModalReset();
 	window.removeEventListener('fullparty:activity-slot-returned-to-queue', handleSlotReturnedToQueue as EventListener);
+	window.removeEventListener('fullparty:activity-application-declined', handleApplicationDeclined as EventListener);
 });
 </script>
 
 <template>
-	<div class="w-full overflow-x-hidden">
+	<div class="w-full">
 		<UButton
 			:label="t('groups.activities.back')"
 			icon="i-lucide-arrow-left"
@@ -1579,7 +1620,7 @@ onBeforeUnmount(() => {
 
 			<div
 				v-if="hasApplicantQueue"
-				class="sticky top-4 self-start overflow-hidden transition-all duration-300 ease-in-out"
+				class="self-start overflow-hidden transition-all duration-300 ease-in-out xl:sticky xl:top-4"
 				:class="showApplicantQueue
 					? 'xl:w-96 xl:opacity-100'
 					: 'xl:w-0 xl:opacity-0 xl:pointer-events-none'"

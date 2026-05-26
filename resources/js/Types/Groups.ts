@@ -295,6 +295,7 @@ export type GroupDashboardGroup = {
 	permissions: {
 		can_manage_group: boolean
 		can_manage_members: boolean
+		can_manage_discovery: boolean
 		can_manage_activities: boolean
 		can_view_members: boolean
 		can_leave: boolean
@@ -410,6 +411,7 @@ export type GroupMemberManagementGroup = {
 	current_user_role: string
 	permissions: {
 		can_manage_members: boolean
+		can_manage_discovery?: boolean
 		can_manage_roles: boolean
 		can_view_bans: boolean
 	}

@@ -326,3 +326,59 @@ it('exports a styled excel-compatible roster sheet', function () {
     $archive->close();
     @unlink($temporaryFile);
 });
+
+it('exports a roster even when the activity type has no requirements summary rows', function () {
+    $owner = User::factory()->create();
+    $group = Group::factory()->public()->create([
+        'owner_id' => $owner->id,
+        'name' => 'Simple Group',
+    ]);
+
+    CharacterClass::query()->create([
+        'name' => 'Warrior',
+        'shorthand' => 'WAR',
+        'icon_url' => '/role-icons/tank.png',
+        'flaticon_url' => '/role-icons/tank.png',
+        'role' => 'tank',
+    ]);
+
+    $version = ActivityTypeVersion::factory()->create([
+        'layout_schema' => [
+            'groups' => [
+                ['key' => 'party-a', 'label' => ['en' => 'A'], 'size' => 1],
+            ],
+        ],
+        'roster_summary_presets' => [],
+    ]);
+
+    $activity = Activity::factory()->create([
+        'group_id' => $group->id,
+        'organized_by_user_id' => $owner->id,
+        'activity_type_version_id' => $version->id,
+        'activity_type_id' => $version->activity_type_id,
+        'title' => 'NoReqs',
+        'starts_at' => now()->setDate(2026, 5, 24)->setTime(19, 0),
+        'duration_hours' => 2,
+    ]);
+
+    $activity->slots()->delete();
+
+    ActivitySlot::factory()
+        ->for($activity)
+        ->create([
+            'group_key' => 'party-a',
+            'group_label' => ['en' => 'Party A'],
+            'slot_key' => 'tank-1',
+            'slot_label' => ['en' => 'Tank (1)'],
+            'position_in_group' => 1,
+            'sort_order' => 1,
+        ]);
+
+    $response = $this->actingAs($owner)->get(route('groups.dashboard.activities.export-roster', [
+        'group' => $group->slug,
+        'activity' => $activity->id,
+    ]));
+
+    $response->assertOk();
+    $response->assertHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+});

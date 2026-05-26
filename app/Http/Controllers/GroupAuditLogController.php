@@ -47,6 +47,7 @@ class GroupAuditLogController extends Controller
                 'permissions' => [
                     'can_manage_group' => $group->isOwnedBy(auth()->id()),
                     'can_manage_members' => $group->hasModeratorAccess(auth()->id()),
+                    'can_manage_discovery' => $group->hasAdminAccess(auth()->id()),
                     'can_manage_roles' => $group->isOwnedBy(auth()->id()),
                     'can_view_bans' => $group->hasModeratorAccess(auth()->id()),
                     'can_view_members' => $group->hasMember(auth()->id()),

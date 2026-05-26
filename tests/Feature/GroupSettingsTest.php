@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Requests\GroupDetailsRequest;
 use App\Models\Group;
 use App\Models\User;
 use App\Support\Groups\GroupDiscoveryBadgePalette;
@@ -61,7 +62,82 @@ it('sanitizes group name and description when updating group settings', function
         ->and($group->description)->toBe($sanitizer->sanitizeMultiline($rawDescription));
 });
 
-it('stores discovery metadata when updating group settings', function () {
+it('rejects group descriptions longer than the supported limit when updating group settings', function () {
+    $owner = User::factory()->create();
+    $group = Group::factory()->create([
+        'owner_id' => $owner->id,
+        'group_type' => Group::TYPE_COMMUNITY,
+    ]);
+
+    $this->actingAs($owner)
+        ->from(route('groups.dashboard.settings', $group))
+        ->put(route('groups.dashboard.settings.update', $group), [
+            'name' => $group->name,
+            'description' => str_repeat('a', GroupDetailsRequest::DESCRIPTION_MAX_LENGTH + 1),
+            'discord_invite_url' => $group->discord_invite_url,
+            'datacenter' => $group->datacenter,
+            'is_public' => $group->is_public,
+            'is_visible' => $group->is_visible,
+        ])
+        ->assertRedirect(route('groups.dashboard.settings', $group))
+        ->assertSessionHasErrors('description');
+});
+
+it('rejects non-discord invite links when updating group settings', function () {
+    $owner = User::factory()->create();
+    $group = Group::factory()->create([
+        'owner_id' => $owner->id,
+        'group_type' => Group::TYPE_COMMUNITY,
+    ]);
+
+    $this->actingAs($owner)
+        ->from(route('groups.dashboard.settings', $group))
+        ->put(route('groups.dashboard.settings.update', $group), [
+            'name' => $group->name,
+            'description' => $group->description,
+            'discord_invite_url' => 'https://example.com/not-a-discord-invite',
+            'datacenter' => $group->datacenter,
+            'is_public' => $group->is_public,
+            'is_visible' => $group->is_visible,
+        ])
+        ->assertRedirect(route('groups.dashboard.settings', $group))
+        ->assertSessionHasErrors('discord_invite_url');
+});
+
+it('allows owners and admins to view the discovery settings page', function () {
+    $owner = User::factory()->create();
+    $admin = User::factory()->create();
+    $moderator = User::factory()->create();
+    $group = Group::factory()->create([
+        'owner_id' => $owner->id,
+        'group_type' => Group::TYPE_COMMUNITY,
+    ]);
+
+    $group->memberships()->create([
+        'user_id' => $admin->id,
+        'role' => 'admin',
+        'joined_at' => now(),
+    ]);
+    $group->memberships()->create([
+        'user_id' => $moderator->id,
+        'role' => 'moderator',
+        'joined_at' => now(),
+    ]);
+
+    $this->actingAs($owner)
+        ->get(route('groups.dashboard.discovery-settings', $group))
+        ->assertOk();
+
+    $this->actingAs($admin)
+        ->get(route('groups.dashboard.discovery-settings', $group))
+        ->assertOk();
+
+    $this->actingAs($moderator)
+        ->get(route('groups.dashboard.discovery-settings', $group))
+        ->assertForbidden();
+});
+
+it('stores discovery metadata when updating discovery settings', function () {
     Storage::fake('public');
 
     $owner = User::factory()->create();
@@ -72,14 +148,7 @@ it('stores discovery metadata when updating group settings', function () {
     ]);
 
     $this->actingAs($owner)
-        ->put(route('groups.dashboard.settings.update', $group), [
-            'name' => $group->name,
-            'description' => $group->description,
-            'discord_invite_url' => $group->discord_invite_url,
-            'datacenter' => 'Chaos',
-            'is_public' => $group->is_public,
-            'is_visible' => $group->is_visible,
-            'banner_image' => UploadedFile::fake()->image('banner.png', 1500, 500),
+        ->put(route('groups.dashboard.discovery-settings.update', $group), [
             'recruiting_status' => 'applications_open',
             'primary_focuses' => ['maps'],
             'experience_expectation' => 'casual',
@@ -95,10 +164,7 @@ it('stores discovery metadata when updating group settings', function () {
 
     $group->refresh();
 
-    expect($group->banner_image_url)->not->toBeNull()
-        ->and($group->banner_image_url)->toContain('/storage/groups/')
-        ->and($group->datacenter)->toBe('Chaos')
-        ->and($group->inferredRegion())->toBe('EU')
+    expect($group->datacenter)->toBe('Aether')
         ->and($group->recruiting_status)->toBe('applications_open')
         ->and($group->primary_focuses)->toBe(['maps'])
         ->and($group->experience_expectation)->toBe('casual')
@@ -111,11 +177,10 @@ it('stores discovery metadata when updating group settings', function () {
         ->and($group->active_end_time)->toBe('23:00');
 
     $this->actingAs($owner)
-        ->get(route('groups.dashboard.settings', $group))
+        ->get(route('groups.dashboard.discovery-settings', $group))
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
-            ->where('group.region', 'EU')
-            ->where('group.banner_image_url', $group->banner_image_url)
+            ->where('group.region', 'NA')
             ->where('group.recruiting_status', 'applications_open')
             ->where('group.primary_focuses', ['maps'])
             ->where('group.experience_expectation', 'casual')
@@ -132,9 +197,57 @@ it('stores discovery metadata when updating group settings', function () {
             ->where('group.badge_meta.voice_expectation.color', '#62C98F')
             ->where('group.badge_meta.preferred_languages.0.color', '#8B5CF6')
             ->where('group.badge_meta.active_days.0.color', '#A855F7')
-            ->where('group.badge_meta.region.color', '#38BDF8')
+            ->where('group.badge_meta.region.color', app(GroupDiscoveryBadgePalette::class)->badgeMetaForGroup($group)['region']['color'])
             ->where('group.badge_meta.tags.0.color', app(GroupDiscoveryBadgePalette::class)->tagColor('Weekend'))
         );
+});
+
+it('allows admins to update discovery settings but forbids moderators', function () {
+    $owner = User::factory()->create();
+    $admin = User::factory()->create();
+    $moderator = User::factory()->create();
+    $group = Group::factory()->create([
+        'owner_id' => $owner->id,
+        'group_type' => Group::TYPE_COMMUNITY,
+    ]);
+
+    $group->memberships()->create([
+        'user_id' => $admin->id,
+        'role' => 'admin',
+        'joined_at' => now(),
+    ]);
+    $group->memberships()->create([
+        'user_id' => $moderator->id,
+        'role' => 'moderator',
+        'joined_at' => now(),
+    ]);
+
+    $this->actingAs($admin)
+        ->put(route('groups.dashboard.discovery-settings.update', $group), [
+            'recruiting_status' => 'looking_for_members',
+            'primary_focuses' => ['progression', 'reclears'],
+            'experience_expectation' => 'mixed',
+            'voice_expectation' => 'preferred',
+            'preferred_languages' => ['en', 'ja'],
+            'tags' => ['Weekend Focus'],
+            'active_timezone' => 'Europe/London',
+            'active_days' => ['fri'],
+            'active_start_time' => '21:00',
+            'active_end_time' => '01:00',
+        ])
+        ->assertRedirect();
+
+    $group->refresh();
+
+    expect($group->recruiting_status)->toBe('looking_for_members')
+        ->and($group->primary_focuses)->toBe(['progression', 'reclears'])
+        ->and($group->active_end_time)->toBe('01:00');
+
+    $this->actingAs($moderator)
+        ->put(route('groups.dashboard.discovery-settings.update', $group), [
+            'recruiting_status' => 'closed',
+        ])
+        ->assertForbidden();
 });
 
 it('preserves existing discovery metadata when omitted from a settings update', function () {
@@ -180,7 +293,7 @@ it('preserves existing discovery metadata when omitted from a settings update', 
         ->and($group->active_end_time)->toBe('22:00');
 });
 
-it('allows overnight active schedule windows when updating group settings', function () {
+it('allows overnight active schedule windows when updating discovery settings', function () {
     $owner = User::factory()->create();
     $group = Group::factory()->create([
         'owner_id' => $owner->id,
@@ -188,13 +301,7 @@ it('allows overnight active schedule windows when updating group settings', func
     ]);
 
     $this->actingAs($owner)
-        ->put(route('groups.dashboard.settings.update', $group), [
-            'name' => $group->name,
-            'description' => $group->description,
-            'discord_invite_url' => $group->discord_invite_url,
-            'datacenter' => $group->datacenter,
-            'is_public' => $group->is_public,
-            'is_visible' => $group->is_visible,
+        ->put(route('groups.dashboard.discovery-settings.update', $group), [
             'active_timezone' => 'Europe/London',
             'active_days' => ['fri', 'sat'],
             'active_start_time' => '22:00',

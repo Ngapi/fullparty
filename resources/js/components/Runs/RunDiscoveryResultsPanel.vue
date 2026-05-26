@@ -11,10 +11,12 @@ const props = defineProps<{
 	currentPage: number
 	totalPages: number
 	loading?: boolean
+	pendingSavedItemIds?: number[]
 }>();
 
 const emit = defineEmits<{
 	pageChange: [page: number]
+	toggleSaved: [item: RunDiscoveryResultItemData]
 }>();
 
 const { t } = useI18n();
@@ -137,6 +139,8 @@ const sortOptions = computed(() => [
 						v-for="item in props.items"
 						:key="item.id"
 						:item="item"
+						:save-pending="props.pendingSavedItemIds?.includes(item.id) ?? false"
+						@toggle-saved="(resultItem) => emit('toggleSaved', resultItem)"
 					/>
 				</template>
 			</div>

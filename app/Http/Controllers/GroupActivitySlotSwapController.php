@@ -6,9 +6,9 @@ use App\Models\Activity;
 use App\Models\ActivityApplication;
 use App\Models\ActivitySlot;
 use App\Models\Group;
-use App\Services\Groups\ActivitySlotBench;
 use App\Services\Groups\ActivityManagementRealtimeService;
 use App\Services\Groups\ActivitySlotAttendanceService;
+use App\Services\Groups\ActivitySlotBench;
 use App\Services\Groups\ActivitySlotDesignationService;
 use App\Services\Groups\ActivitySlotSerializer;
 use App\Services\Groups\ActivitySlotStateTokenService;
@@ -61,14 +61,14 @@ class GroupActivitySlotSwapController extends Controller
         /** @var ActivitySlot|null $targetSlot */
         $targetSlot = $slots->get((int) $validated['target_slot_id']);
 
-        if (!$sourceSlot || !$targetSlot) {
+        if (! $sourceSlot || ! $targetSlot) {
             abort(404);
         }
 
         $slotStateTokenService->assertMatches($sourceSlot, $validated['expected_source_slot_state_token']);
         $slotStateTokenService->assertMatches($targetSlot, $validated['expected_target_slot_state_token']);
 
-        if (!$sourceSlot->assigned_character_id) {
+        if (! $sourceSlot->assigned_character_id) {
             throw ValidationException::withMessages([
                 'source_slot_id' => 'Only filled slots can be dragged.',
             ]);
@@ -83,13 +83,13 @@ class GroupActivitySlotSwapController extends Controller
             $targetSlot->assigned_character_id,
         ]));
 
-        if ($sourceIsBench && !$targetIsBench) {
+        if ($sourceIsBench && ! $targetIsBench) {
             throw ValidationException::withMessages([
                 'target_slot_id' => 'Moving a bench player onto the main roster requires reassignment so slot fields can be chosen.',
             ]);
         }
 
-        if (!$sourceIsBench && $targetIsBench && $targetSlot->assigned_character_id) {
+        if (! $sourceIsBench && $targetIsBench && $targetSlot->assigned_character_id) {
             throw ValidationException::withMessages([
                 'target_slot_id' => 'Replacing a benched player from the main roster requires reassignment so the promoted player can be configured.',
             ]);
@@ -123,18 +123,18 @@ class GroupActivitySlotSwapController extends Controller
             $sourceSlot->update($targetAssignment);
             $targetSlot->update($sourceAssignment);
             $sourceSlot->update([
-                'is_host' => $targetAssignment['assigned_character_id'] !== null && !$sourceIsBench
+                'is_host' => $targetAssignment['assigned_character_id'] !== null && ! $sourceIsBench
                     ? $targetDesignationState['is_host']
                     : false,
-                'is_raid_leader' => $targetAssignment['assigned_character_id'] !== null && !$sourceIsBench
+                'is_raid_leader' => $targetAssignment['assigned_character_id'] !== null && ! $sourceIsBench
                     ? $targetDesignationState['is_raid_leader']
                     : false,
             ]);
             $targetSlot->update([
-                'is_host' => $sourceAssignment['assigned_character_id'] !== null && !$targetIsBench
+                'is_host' => $sourceAssignment['assigned_character_id'] !== null && ! $targetIsBench
                     ? $sourceDesignationState['is_host']
                     : false,
-                'is_raid_leader' => $sourceAssignment['assigned_character_id'] !== null && !$targetIsBench
+                'is_raid_leader' => $sourceAssignment['assigned_character_id'] !== null && ! $targetIsBench
                     ? $sourceDesignationState['is_raid_leader']
                     : false,
             ]);
@@ -147,6 +147,7 @@ class GroupActivitySlotSwapController extends Controller
                     $sourceAssignment['assigned_character_id'],
                     $targetAssignment['assigned_character_id'],
                 ]))
+                ->whereIn('status', ActivityApplication::ACTIVE_STATUSES)
                 ->get()
                 ->keyBy('selected_character_id') ?? collect();
 
@@ -189,7 +190,7 @@ class GroupActivitySlotSwapController extends Controller
                 ->keyBy('selected_character_id');
 
             foreach ([$sourceSlot, $targetSlot] as $slot) {
-                if (!$slot->assigned_character_id) {
+                if (! $slot->assigned_character_id) {
                     continue;
                 }
 
@@ -254,7 +255,7 @@ class GroupActivitySlotSwapController extends Controller
     ): void {
         $activity = $sourceSlot->activity;
 
-        if (!$activity) {
+        if (! $activity) {
             return;
         }
 

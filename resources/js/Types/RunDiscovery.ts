@@ -5,6 +5,7 @@ export type RunDiscoveryClassRoleGroup = "tank" | "healer" | "melee" | "phys" | 
 
 export type RunDiscoveryFilterState = {
 	query: string
+	saved_only: boolean
 	activity_type: string
 	prog_point: string
 	region: string
@@ -95,6 +96,7 @@ export type RunDiscoveryResultItemData = {
 	role_slots: RunDiscoveryResultRoleSlot[]
 	filled_slots: number
 	total_slots: number
+	is_saved: boolean
 	has_existing_application: boolean
 	can_apply: boolean
 	links: {

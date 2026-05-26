@@ -29,6 +29,7 @@
     "activities": "Runs",
     "members": "Members",
     "audit_log": "Audit Log",
+    "discovery_settings": "Discovery Settings",
     "settings": "Settings"
   },
   "table": {

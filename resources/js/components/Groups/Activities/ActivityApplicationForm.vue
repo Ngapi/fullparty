@@ -537,6 +537,16 @@ const submit = () => {
 					:disabled="!canSubmit"
 					:loading="form.processing"
 				/>
+				<UButton
+					v-if="application && canWithdrawApplication && !applicationLocked"
+					type="button"
+					color="error"
+					variant="soft"
+					size="lg"
+					icon="i-lucide-trash-2"
+					:label="application.is_rostered ? t('applications.withdraw.action_run') : t('applications.withdraw.action_application')"
+					@click.prevent="emit('withdraw')"
+				/>
 			</div>
 		</form>
 	</UCard>

@@ -32,9 +32,10 @@
   },
   "navigation": {
     "general": "Général",
-        "activities": "Runs",
+    "activities": "Runs",
     "members": "Membres",
     "audit_log": "Journal d'audit",
+    "discovery_settings": "Paramètres Discovery",
     "settings": "Paramètres"
   },
   "table": {

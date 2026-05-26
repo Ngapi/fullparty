@@ -304,6 +304,18 @@ class ActivitySlotAssignmentService
             ]);
         }
 
+        $missingAssignmentExists = ActivitySlotAssignment::query()
+            ->where('activity_id', $activity->id)
+            ->where('character_id', $character->id)
+            ->where('attendance_status', ActivitySlotAssignment::STATUS_MISSING)
+            ->exists();
+
+        if ($missingAssignmentExists) {
+            throw ValidationException::withMessages([
+                'character_id' => 'This character is currently marked missing for this run and must be restored before being assigned again.',
+            ]);
+        }
+
         $targetPreviousCharacterId = $targetSlot->assigned_character_id;
         $originalTargetFieldValueSnapshot = $this->attendanceService->buildFieldValueSnapshot($targetSlot);
         $isTargetBench = $this->slotBench->isBench($targetSlot);

@@ -170,6 +170,7 @@ const organizerLabel = computed(() => {
 		|| props.activity.organized_by?.name
 		|| t('groups.activities.cards.no_organizer');
 });
+const displayGroupName = computed(() => props.group.name || "—");
 
 const applicationPageSubtitle = computed(() => {
 	return props.permissions.has_existing_application
@@ -324,7 +325,7 @@ const withdrawApplication = () => {
 					<div class="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm">
 						<div class="inline-flex items-center gap-2">
 							<span class="text-muted">{{ t('groups.activities.management.overview.group') }}:</span>
-							<span class="font-medium text-toned">{{ group.name }}</span>
+							<span class="block max-w-128 truncate font-medium text-toned">{{ displayGroupName }}</span>
 						</div>
 
 						<div class="hidden h-4 w-px bg-default md:block"></div>

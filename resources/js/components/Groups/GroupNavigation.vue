@@ -10,6 +10,7 @@ const props = defineProps<{
 		name?: string
 		permissions?: {
 			can_manage_members?: boolean
+			can_manage_discovery?: boolean
 			can_view_members?: boolean
 		}
 	}
@@ -51,6 +52,12 @@ const rightitems = computed(() => {
 			href: route('groups.dashboard.audit-log', props.group.slug),
 			active: page.url.startsWith(route('groups.dashboard.audit-log', props.group.slug, false)),
 		},
+		...(props.group.permissions?.can_manage_discovery ? [{
+			label: t('groups.index.navigation.discovery_settings'),
+			icon: 'i-lucide-radar',
+			href: route('groups.dashboard.discovery-settings', props.group.slug),
+			active: page.url.startsWith(route('groups.dashboard.discovery-settings', props.group.slug, false)),
+		}] : []),
 		{
 			label: t('groups.index.navigation.settings'),
 			icon: 'i-lucide-settings-2',

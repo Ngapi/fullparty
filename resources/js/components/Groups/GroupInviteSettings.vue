@@ -35,6 +35,12 @@ const form = ref({
 const isCreating = ref(false);
 const deletingInviteId = ref<number | null>(null);
 
+const sanitizeMaxUsesInput = (value: string | number | null | undefined) => {
+	return String(value ?? '')
+		.replace(/\D+/g, '')
+		.slice(0, 5);
+};
+
 const expiryOptions = computed(() => [
 	{ label: t('groups.settings.invites.create_modal.expires_in.options.12_hours'), value: '12h' },
 	{ label: t('groups.settings.invites.create_modal.expires_in.options.24_hours'), value: '24h' },
@@ -103,6 +109,13 @@ const resetForm = () => {
 	form.value.max_uses = '';
 	form.value.expires_in = 'unlimited';
 };
+
+const maxUsesFieldValue = computed({
+	get: () => form.value.max_uses,
+	set: (value: string | number | null | undefined) => {
+		form.value.max_uses = sanitizeMaxUsesInput(value);
+	},
+});
 
 const resolveExpiresAt = (value: string) => {
 	if (value === 'unlimited') {
@@ -211,9 +224,12 @@ const revokeInvite = (inviteId: number) => {
 						<form class="flex flex-col gap-4" @submit.prevent="createInvite">
 							<UFormField :label="t('groups.settings.invites.create_modal.max_uses.label')">
 								<UInput
-									v-model="form.max_uses"
+									v-model="maxUsesFieldValue"
 									type="number"
 									min="1"
+									max="99999"
+									step="1"
+									maxlength="5"
 									class="w-full"
 									:placeholder="t('groups.settings.invites.create_modal.max_uses.placeholder')"
 								/>

@@ -23,8 +23,37 @@ const paginationMeta = ref<RunDiscoveryDiscoverResponse["meta"]>({
 const activeFilters = ref<RunDiscoveryFilterState | null>(null);
 const isLoading = ref(true);
 const currentPage = ref(1);
+const pendingSavedItemIds = ref<number[]>([]);
 let discoveryRequestCounter = 0;
 let scheduledDiscoveryTimeout: ReturnType<typeof setTimeout> | null = null;
+
+function syncSavedStateLocally(itemId: number, isSaved: boolean) {
+	const savedOnly = activeFilters.value?.saved_only ?? false;
+
+	if (!isSaved && savedOnly) {
+		discoveredRunItems.value = discoveredRunItems.value.filter((item) => item.id !== itemId);
+		discoveredRunIds.value = discoveredRunIds.value.filter((id) => id !== itemId);
+
+		const nextTotal = Math.max(0, paginationMeta.value.total - 1);
+		const nextLastPage = Math.max(1, Math.ceil(nextTotal / paginationMeta.value.per_page));
+
+		paginationMeta.value = {
+			...paginationMeta.value,
+			total: nextTotal,
+			last_page: nextLastPage,
+			current_page: Math.min(paginationMeta.value.current_page, nextLastPage),
+		};
+		currentPage.value = paginationMeta.value.current_page;
+
+		return;
+	}
+
+	discoveredRunItems.value = discoveredRunItems.value.map((item) => (
+		item.id === itemId
+			? { ...item, is_saved: isSaved }
+			: item
+	));
+}
 
 async function fetchRunIds() {
 	if (activeFilters.value === null) {
@@ -85,6 +114,32 @@ function handlePageChange(page: number) {
 	void fetchRunIds();
 }
 
+async function handleToggleSaved(item: RunDiscoveryDiscoverResponse["items"][number]) {
+	if (pendingSavedItemIds.value.includes(item.id)) {
+		return;
+	}
+
+	pendingSavedItemIds.value = [...pendingSavedItemIds.value, item.id];
+
+	try {
+		if (item.is_saved) {
+			await axios.delete(route("dashboard.runs.unsave", {
+				activity: item.id,
+			}));
+
+			syncSavedStateLocally(item.id, false);
+		} else {
+			await axios.post(route("dashboard.runs.save", {
+				activity: item.id,
+			}));
+
+			syncSavedStateLocally(item.id, true);
+		}
+	} finally {
+		pendingSavedItemIds.value = pendingSavedItemIds.value.filter((pendingId) => pendingId !== item.id);
+	}
+}
+
 onBeforeUnmount(() => {
 	if (scheduledDiscoveryTimeout !== null) {
 		clearTimeout(scheduledDiscoveryTimeout);
@@ -106,7 +161,9 @@ onBeforeUnmount(() => {
 			:current-page="paginationMeta.current_page"
 			:total-pages="paginationMeta.last_page"
 			:loading="isLoading"
+			:pending-saved-item-ids="pendingSavedItemIds"
 			@page-change="handlePageChange"
+			@toggle-saved="handleToggleSaved"
 		/>
 	</div>
 </template>

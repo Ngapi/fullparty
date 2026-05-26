@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Requests\GroupDetailsRequest;
 use App\Models\Group;
 use App\Models\GroupMembership;
 use App\Models\User;
@@ -105,6 +106,34 @@ it('sanitizes group name and description when creating a group', function () {
 
     expect($group->name)->toBe($sanitizer->sanitizeSingleLine($rawName))
         ->and($group->description)->toBe($sanitizer->sanitizeMultiline($rawDescription));
+});
+
+it('rejects group descriptions longer than the supported limit when creating a group', function () {
+    $user = User::factory()->create();
+
+    $this->actingAs($user)
+        ->from(route('groups.index'))
+        ->post(route('groups.store'), validCreateGroupPayload([
+            'slug' => 'longdesc',
+            'group_type' => Group::TYPE_COMMUNITY,
+            'description' => str_repeat('a', GroupDetailsRequest::DESCRIPTION_MAX_LENGTH + 1),
+        ]))
+        ->assertRedirect(route('groups.index'))
+        ->assertSessionHasErrors('description');
+});
+
+it('rejects non-discord invite links when creating a group', function () {
+    $user = User::factory()->create();
+
+    $this->actingAs($user)
+        ->from(route('groups.index'))
+        ->post(route('groups.store'), validCreateGroupPayload([
+            'slug' => 'badlinkg',
+            'group_type' => Group::TYPE_COMMUNITY,
+            'discord_invite_url' => 'https://example.com/not-a-discord-invite',
+        ]))
+        ->assertRedirect(route('groups.index'))
+        ->assertSessionHasErrors('discord_invite_url');
 });
 
 it('stores discovery metadata and exposes inferred region on the group dashboard settings page', function () {

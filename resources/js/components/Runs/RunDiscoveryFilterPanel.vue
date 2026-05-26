@@ -22,6 +22,7 @@ const emit = defineEmits<{
 const { t } = useI18n();
 
 const searchQuery = ref("");
+const savedOnly = ref(false);
 const selectedActivityType = ref("any");
 const selectedProgPoint = ref("any");
 const selectedRunStyle = ref("any");
@@ -175,6 +176,7 @@ const selectRoleCategory = (value: RunDiscoveryRoleCategory) => {
 
 const filterState = computed<RunDiscoveryFilterState>(() => ({
 	query: searchQuery.value,
+	saved_only: savedOnly.value,
 	activity_type: selectedActivityType.value,
 	prog_point: selectedProgPoint.value,
 	region: selectedRegion.value,
@@ -253,6 +255,7 @@ onMounted(() => {
 
 const resetFilters = () => {
 	searchQuery.value = "";
+	savedOnly.value = false;
 	selectedActivityType.value = "any";
 	selectedProgPoint.value = "any";
 	selectedRunStyle.value = "any";
@@ -276,6 +279,15 @@ const resetFilters = () => {
 	<aside class="h-full w-full lg:max-w-[22rem] lg:shrink-0">
 		<div class="flex h-full min-h-0 flex-col overflow-hidden border border-white/10 bg-neutral-950/82 shadow-[0_24px_48px_rgba(0,0,0,0.32)]">
 			<div class="min-h-0 flex-1 space-y-6 overflow-y-auto px-5 py-5">
+				<section class="space-y-3">
+					<div class="flex items-center justify-between gap-3">
+						<p class="text-sm font-semibold text-white">
+							{{ t("runs.discovery.filters.sections.saved_runs") }}
+						</p>
+						<USwitch v-model="savedOnly" />
+					</div>
+				</section>
+
 				<section class="space-y-3">
 					<div class="flex items-center justify-between gap-3">
 						<p class="text-sm font-semibold text-white">

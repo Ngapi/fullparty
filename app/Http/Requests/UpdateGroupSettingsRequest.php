@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use Illuminate\Contracts\Validation\ValidationRule;
+use Illuminate\Support\Arr;
 
 class UpdateGroupSettingsRequest extends GroupDetailsRequest
 {
@@ -11,6 +12,15 @@ class UpdateGroupSettingsRequest extends GroupDetailsRequest
      */
     public function rules(): array
     {
-        return $this->baseRules();
+        return Arr::only($this->baseRules(), [
+            'name',
+            'description',
+            'profile_picture',
+            'banner_image',
+            'discord_invite_url',
+            'datacenter',
+            'is_public',
+            'is_visible',
+        ]);
     }
 }

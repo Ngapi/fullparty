@@ -281,12 +281,16 @@ class ActivityRosterSpreadsheetExportService
 
         $leftSectionWidth = max($topGroupCount, $bottomGroupCount) * $groupSpan;
         $benchWidth = $payload['has_phantom_jobs'] ? 4 : 3;
+        $requirementItemCounts = array_map(
+            fn (array $row) => count($row['items']),
+            $payload['requirements']
+        );
+        $maxRequirementItems = $requirementItemCounts === []
+            ? 0
+            : max($requirementItemCounts);
         $requirementsWidth = max(
             1,
-            1 + max(
-                0,
-                ...array_map(fn (array $row) => count($row['items']), $payload['requirements'])
-            )
+            1 + $maxRequirementItems
         );
         $rightSectionWidth = max($benchWidth, $requirementsWidth);
         $rightStartColumn = $leftSectionWidth + 2;

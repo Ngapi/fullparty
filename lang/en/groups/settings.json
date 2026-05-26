@@ -51,6 +51,15 @@
       "updated": "Group settings have been updated."
     }
   },
+  "discovery": {
+    "title": "Discovery Settings",
+    "subtitle": "Update how your group appears in discovery and the windows when your group is usually active.",
+    "active_window_title": "Active Window",
+    "active_window_subtitle": "Keep your usual timezone, days, and play hours up to date so people know when your group tends to be around.",
+    "toasts": {
+      "updated": "Discovery settings have been updated."
+    }
+  },
   "invites": {
     "title": "Invite Links",
     "subtitle": "Manage invite links for new members.",

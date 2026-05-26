@@ -77,7 +77,17 @@ class GroupInviteController extends Controller
         }
 
         $validated = $request->validate([
-            'max_uses' => ['nullable', 'integer', 'min:1'],
+            'max_uses' => [
+                'nullable',
+                'integer',
+                'min:1',
+                'max:99999',
+                function (string $attribute, mixed $value, \Closure $fail): void {
+                    if (is_string($value) && ! preg_match('/^\d+$/', $value)) {
+                        $fail(__('validation.integer', ['attribute' => $attribute]));
+                    }
+                },
+            ],
             'expires_at' => ['nullable', 'date', 'after:now'],
         ]);
 

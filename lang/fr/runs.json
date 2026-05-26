@@ -9,6 +9,7 @@
       "reset": "Reset Filters",
       "all": "All",
       "sections": {
+        "saved_runs": "Runs enregistrés",
         "search": "Search",
         "activity_type": "Activity Type",
         "datacenter_world": "Data Center / Region",
@@ -152,7 +153,9 @@
         "actions": {
           "view_details": "Voir les détails",
           "apply_now": "Postuler",
-          "view_application": "Voir la candidature"
+          "view_application": "Voir la candidature",
+          "save_run": "Enregistrer le run",
+          "unsave_run": "Retirer le run"
         }
       },
       "sort_options": {

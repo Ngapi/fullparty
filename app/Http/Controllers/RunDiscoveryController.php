@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\RunDiscoveryFilterRequest;
+use App\Models\Activity;
 use App\Services\Runs\RunDiscoveryService;
 use Illuminate\Http\JsonResponse;
 use Inertia\Inertia;
@@ -29,5 +30,35 @@ class RunDiscoveryController extends Controller
                 $request->validated(),
             )
         );
+    }
+
+    public function save(Activity $activity): JsonResponse
+    {
+        $user = request()->user();
+
+        if (! $this->runDiscoveryService->canUserInteractWithDiscoveryActivity($activity, $user)) {
+            abort(404);
+        }
+
+        $user->savedActivities()->syncWithoutDetaching([$activity->id]);
+
+        return response()->json([
+            'saved' => true,
+        ]);
+    }
+
+    public function unsave(Activity $activity): JsonResponse
+    {
+        $user = request()->user();
+
+        if (! $this->runDiscoveryService->canUserInteractWithDiscoveryActivity($activity, $user)) {
+            abort(404);
+        }
+
+        $user->savedActivities()->detach($activity->id);
+
+        return response()->json([
+            'saved' => false,
+        ]);
     }
 }

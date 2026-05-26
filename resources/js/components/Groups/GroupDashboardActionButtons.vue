@@ -119,7 +119,7 @@ const openDiscordInvite = () => {
 				v-if="group.permissions.can_toggle_notifications"
 				color="neutral"
 				variant="ghost"
-				:icon="group.follow.notifications_enabled ? 'i-lucide-bell-off' : 'i-lucide-bell'"
+				:icon="group.follow.notifications_enabled ? 'i-lucide-bell' : 'i-lucide-bell-off'"
 				class="justify-center sm:col-span-2"
 				@click="toggleNotifications"
 				size="xl"

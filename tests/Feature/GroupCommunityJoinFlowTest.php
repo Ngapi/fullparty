@@ -87,3 +87,41 @@ it('does not allow static group invite links to be viewed or accepted', function
     expect($group->memberships()->where('user_id', $viewer->id)->exists())->toBeFalse()
         ->and($invite->fresh()->uses)->toBe(0);
 });
+
+it('rejects invite max uses above the supported limit', function () {
+    $owner = User::factory()->create();
+    $group = Group::factory()->public()->create([
+        'owner_id' => $owner->id,
+        'group_type' => Group::TYPE_COMMUNITY,
+    ]);
+
+    $this->actingAs($owner)
+        ->from(route('groups.dashboard.settings', $group))
+        ->post(route('groups.invites.store', $group), [
+            'max_uses' => 100000,
+            'expires_at' => null,
+        ])
+        ->assertRedirect(route('groups.dashboard.settings', $group))
+        ->assertSessionHasErrors(['max_uses']);
+
+    expect($group->invites()->count())->toBe(1);
+});
+
+it('rejects invite max uses values that contain non-digit characters', function () {
+    $owner = User::factory()->create();
+    $group = Group::factory()->public()->create([
+        'owner_id' => $owner->id,
+        'group_type' => Group::TYPE_COMMUNITY,
+    ]);
+
+    $this->actingAs($owner)
+        ->from(route('groups.dashboard.settings', $group))
+        ->post(route('groups.invites.store', $group), [
+            'max_uses' => '1e3',
+            'expires_at' => null,
+        ])
+        ->assertRedirect(route('groups.dashboard.settings', $group))
+        ->assertSessionHasErrors(['max_uses']);
+
+    expect($group->invites()->count())->toBe(1);
+});

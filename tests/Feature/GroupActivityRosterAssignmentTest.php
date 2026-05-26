@@ -1002,6 +1002,67 @@ it('does not allow manual assignment when the character already has an active ap
     expect($mainSlot->fresh()->assigned_character_id)->toBeNull();
 });
 
+it('does not allow manually reassigning a character while they are still marked missing for the run', function () {
+    extract(createRosterAssignmentSetup());
+    extract(createGroupMemberCharacterForManualAssignment($group));
+
+    $character->classes()->attach($tankClass->id, [
+        'level' => 100,
+        'is_preferred' => true,
+    ]);
+    $character->phantomJobs()->attach($phantomKnight->id, [
+        'current_level' => $phantomKnight->max_level,
+        'is_preferred' => true,
+    ]);
+
+    $this->actingAs($owner);
+
+    $this->postJson(route('groups.dashboard.activities.slot-assignments.store', [
+        'group' => $group->slug,
+        'activity' => $activity->id,
+        'slot' => $mainSlot->id,
+    ]), [
+        'character_id' => $character->id,
+        'expected_slot_state_token' => activity_slot_state_token($mainSlot),
+        'field_values' => [
+            'character_class' => (string) $tankClass->id,
+            'phantom_job' => (string) $phantomKnight->id,
+        ],
+    ])->assertOk();
+
+    $this->postJson(route('groups.dashboard.activities.slot-missing.store', [
+        'group' => $group->slug,
+        'activity' => $activity->id,
+        'slot' => $mainSlot->id,
+    ]), [
+        'expected_slot_state_token' => activity_slot_state_token($mainSlot->fresh(['fieldValues', 'assignments'])),
+    ])->assertOk();
+
+    $response = $this->postJson(route('groups.dashboard.activities.slot-assignments.store', [
+        'group' => $group->slug,
+        'activity' => $activity->id,
+        'slot' => $mainSlot->id,
+    ]), [
+        'character_id' => $character->id,
+        'expected_slot_state_token' => activity_slot_state_token($mainSlot->fresh(['fieldValues', 'assignments'])),
+        'field_values' => [
+            'character_class' => (string) $tankClass->id,
+            'phantom_job' => (string) $phantomKnight->id,
+        ],
+    ]);
+
+    $response
+        ->assertStatus(422)
+        ->assertJsonValidationErrors(['character_id']);
+
+    expect($mainSlot->fresh()->assigned_character_id)->toBeNull()
+        ->and(ActivitySlotAssignment::query()
+            ->where('activity_id', $activity->id)
+            ->where('character_id', $character->id)
+            ->where('attendance_status', ActivitySlotAssignment::STATUS_MISSING)
+            ->count())->toBe(1);
+});
+
 it('does not allow assigning an application when the character is already in another slot', function () {
     extract(createRosterAssignmentSetup());
     extract(createGroupMemberCharacterForManualAssignment($group));
@@ -1220,4 +1281,98 @@ it('allows manual assignments to use the full slot field option list', function 
             'id' => $phantomBard->id,
             'name' => 'Phantom Bard',
         ]);
+});
+
+it('keeps manually assigned bench moves manual even when the character has a withdrawn application history', function () {
+    extract(createRosterAssignmentSetup());
+    extract(createGroupMemberCharacterForManualAssignment($group));
+
+    $character->classes()->attach($tankClass->id, [
+        'level' => 100,
+        'is_preferred' => true,
+    ]);
+    $character->phantomJobs()->attach($phantomKnight->id, [
+        'current_level' => $phantomKnight->max_level,
+        'is_preferred' => true,
+    ]);
+
+    ActivityApplication::factory()->create([
+        'activity_id' => $activity->id,
+        'user_id' => $character->user_id,
+        'selected_character_id' => $character->id,
+        'status' => ActivityApplication::STATUS_WITHDRAWN,
+        'reviewed_at' => now(),
+        'applicant_lodestone_id' => $character->lodestone_id,
+        'applicant_character_name' => $character->name,
+        'applicant_world' => $character->world,
+        'applicant_datacenter' => $character->datacenter,
+    ]);
+
+    $this->actingAs($owner);
+
+    $this->postJson(route('groups.dashboard.activities.slot-assignments.store', [
+        'group' => $group->slug,
+        'activity' => $activity->id,
+        'slot' => $mainSlot->id,
+    ]), [
+        'character_id' => $character->id,
+        'expected_slot_state_token' => activity_slot_state_token($mainSlot),
+        'field_values' => [
+            'character_class' => (string) $tankClass->id,
+            'phantom_job' => (string) $phantomKnight->id,
+        ],
+    ])->assertOk();
+
+    $this->postJson(route('groups.dashboard.activities.slot-swaps.store', [
+        'group' => $group->slug,
+        'activity' => $activity->id,
+    ]), [
+        'source_slot_id' => $mainSlot->id,
+        'target_slot_id' => $benchSlot->id,
+        'expected_source_slot_state_token' => activity_slot_state_token($mainSlot->fresh(['assignments'])),
+        'expected_target_slot_state_token' => activity_slot_state_token($benchSlot->fresh(['assignments'])),
+    ])->assertOk();
+
+    $benchSlot->refresh()->load(['assignments']);
+
+    $activeBenchAssignment = ActivitySlotAssignment::query()
+        ->where('activity_id', $activity->id)
+        ->where('character_id', $character->id)
+        ->whereNull('ended_at')
+        ->latest('assigned_at')
+        ->first();
+
+    expect($benchSlot->assigned_character_id)->toBe($character->id)
+        ->and($activeBenchAssignment)->not->toBeNull()
+        ->and($activeBenchAssignment?->application_id)->toBeNull()
+        ->and($activeBenchAssignment?->assignment_source)->toBe(ActivitySlotAssignment::SOURCE_MANUAL);
+
+    $this->getJson(route('groups.dashboard.activities.slot-manual-assignment-options.show', [
+        'group' => $group->slug,
+        'activity' => $activity->id,
+        'slot' => $mainSlot->id,
+    ], false).'?source_slot_id='.$benchSlot->id)
+        ->assertOk()
+        ->assertJsonFragment([
+            'id' => $character->id,
+            'name' => $character->name,
+        ]);
+
+    $this->postJson(route('groups.dashboard.activities.slot-assignments.store', [
+        'group' => $group->slug,
+        'activity' => $activity->id,
+        'slot' => $mainSlot->id,
+    ]), [
+        'character_id' => $character->id,
+        'source_slot_id' => $benchSlot->id,
+        'expected_slot_state_token' => activity_slot_state_token($mainSlot->fresh(['assignments'])),
+        'expected_source_slot_state_token' => activity_slot_state_token($benchSlot->fresh(['assignments'])),
+        'field_values' => [
+            'character_class' => (string) $tankClass->id,
+            'phantom_job' => (string) $phantomKnight->id,
+        ],
+    ])->assertOk();
+
+    expect($mainSlot->fresh()->assigned_character_id)->toBe($character->id)
+        ->and($benchSlot->fresh()->assigned_character_id)->toBeNull();
 });

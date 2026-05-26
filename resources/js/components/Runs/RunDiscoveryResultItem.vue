@@ -6,6 +6,11 @@ import { useI18n } from "vue-i18n";
 
 const props = defineProps<{
 	item: RunDiscoveryResultItemData
+	savePending?: boolean
+}>();
+
+const emit = defineEmits<{
+	toggleSaved: [item: RunDiscoveryResultItemData]
 }>();
 
 const { t, locale } = useI18n();
@@ -17,7 +22,7 @@ const roleSlotIconUrls: Record<string, string> = {
 };
 
 const contentName = computed(() => props.item.activity_type_name);
-const showContentName = computed(() => contentName.value !== "" && contentName.value !== props.item.title);
+const showContentName = computed(() => contentName.value !== "");
 
 const descriptionLabel = computed(() => props.item.description || t("groups.activities.overview.details.no_description"));
 
@@ -120,6 +125,10 @@ const goToGroup = () => {
 		group: props.item.group_slug,
 	}));
 };
+
+const toggleSaved = () => {
+	emit("toggleSaved", props.item);
+};
 </script>
 
 <template>
@@ -128,7 +137,7 @@ const goToGroup = () => {
 		:class="props.item.has_existing_application ? 'border-l-4 border-l-brand-400' : ''"
 	>
 		<div class="grid gap-4 xl:grid-cols-[7rem_minmax(0,1.6fr)_11rem_10rem_11rem] xl:items-center">
-			<div class="border border-white/8 bg-neutral-900/70">
+			<div class="relative border border-white/8 bg-neutral-900/70">
 				<img
 					v-if="item.image_url"
 					:src="item.image_url"
@@ -139,6 +148,9 @@ const goToGroup = () => {
 					v-else
 					class="h-38 w-34 bg-[radial-gradient(circle_at_top_left,rgba(123,97,153,0.34),transparent_46%),radial-gradient(circle_at_center_right,rgba(84,136,184,0.28),transparent_38%),linear-gradient(180deg,#201c24_0%,#151217_100%)]"
 				/>
+				<div v-if="showContentName" class="pointer-events-none absolute inset-x-0 bottom-0 p-2 bg-neutral-950/70">
+					<p class="block text-center font-semibold uppercase text-xs">{{ contentName }}</p>
+				</div>
 			</div>
 
 			<div class="min-w-0 space-y-3 xl:pr-2 py-4">
@@ -151,23 +163,18 @@ const goToGroup = () => {
 						</div>
 
 						<div class="flex flex-wrap items-center gap-x-3 gap-y-2 text-sm text-white/70">
-							<div v-if="showContentName" class="flex items-center gap-2">
-								<UIcon name="i-lucide-shield" class="size-4 text-brand-300" />
-								<span>{{ contentName }}</span>
-							</div>
-
 							<button
 								v-if="item.group_name && item.group_slug"
 								type="button"
-								class="flex cursor-pointer items-center gap-2 text-left transition-colors hover:text-white"
+								class="flex max-w-96 min-w-0 cursor-pointer items-center gap-2 text-left transition-colors hover:text-white"
 								@click="goToGroup"
 							>
-								<UIcon name="i-lucide-users" class="size-4 text-white/50" />
-								<span>{{ item.group_name }}</span>
+								<UIcon name="i-lucide-users" class="size-4 shrink-0 text-white/50" />
+								<span class="truncate">{{ item.group_name }}</span>
 							</button>
-							<div v-else-if="item.group_name" class="flex items-center gap-2">
-								<UIcon name="i-lucide-users" class="size-4 text-white/50" />
-								<span>{{ item.group_name }}</span>
+							<div v-else-if="item.group_name" class="flex max-w-96 min-w-0 items-center gap-2">
+								<UIcon name="i-lucide-users" class="size-4 shrink-0 text-white/50" />
+								<span class="truncate">{{ item.group_name }}</span>
 							</div>
 						</div>
 					</div>
@@ -175,8 +182,15 @@ const goToGroup = () => {
 					<UButton
 						color="neutral"
 						variant="ghost"
-						icon="i-lucide-bookmark"
-						class="shrink-0 rounded-none text-white/50 hover:text-white"
+						:icon="item.is_saved ? 'material-symbols:bookmark' : 'material-symbols:bookmark-outline'"
+						class="shrink-0 rounded-none hover:text-white"
+						:class="item.is_saved ? 'text-brand-300' : 'text-white/50'"
+						:loading="savePending"
+						:disabled="savePending"
+						:aria-label="item.is_saved
+							? t('runs.discovery.results.placeholder_item.actions.unsave_run')
+							: t('runs.discovery.results.placeholder_item.actions.save_run')"
+						@click="toggleSaved"
 					/>
 				</div>
 

@@ -150,4 +150,10 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         return $this->hasMany(UserActivityApplicationDefault::class);
     }
+
+    public function savedActivities(): BelongsToMany
+    {
+        return $this->belongsToMany(Activity::class, 'activity_saves')
+            ->withTimestamps();
+    }
 }
