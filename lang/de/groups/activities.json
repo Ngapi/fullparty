@@ -55,6 +55,7 @@
         "next": "Next",
         "day_count": "{count} items",
         "more": "+{count} more",
+        "member_count": "Mitglieder {assigned}/{total}",
         "context_menu": {
             "create_run_18": "Create Run at 18 ST",
             "create_run_20": "Create Run at 20 ST",
@@ -77,6 +78,8 @@
         "copy_application_link_success_description": "The application link is ready to share.",
         "copy_application_link_error_title": "Unable to copy application link",
         "copy_application_link_error_description": "Please try copying the application link again.",
+        "open_management": "Management oeffnen",
+        "open_overview": "Uebersicht oeffnen",
         "edit_run": "Edit Run",
         "export_excel": "Export Excel",
         "copy_info": "Copy Info",
@@ -310,6 +313,9 @@
             "check_in_action": "Check-in",
             "mark_late_action": "Mark late",
             "remove_from_slot_action": "Remove from slot",
+            "cut_assignment_action": "Zuweisung ausschneiden",
+            "cancel_cut_assignment_action": "Ausschneiden abbrechen",
+            "paste_assignment_action": "Zuweisung hier einfügen",
             "undo_check_in": "Undo Checkin",
             "roles": {
                 "tank": "Tank",

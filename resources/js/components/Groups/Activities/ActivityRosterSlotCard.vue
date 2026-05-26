@@ -18,6 +18,8 @@ const props = defineProps<{
 	dropTargetSlotId?: number | null
 	isSwapPending?: boolean
 	isPendingSwap?: boolean
+	cutSlotId?: number | null
+	cutSlotIsBench?: boolean | null
 	canReturnToQueue?: boolean
 	canMoveToBench?: boolean
 	canMarkMissing?: boolean
@@ -39,6 +41,9 @@ const emit = defineEmits<{
 	markSlotLate: [slotId: number]
 	markSlotHost: [slotId: number]
 	markSlotRaidLeader: [slotId: number]
+	cutSlot: [slotId: number]
+	pasteCutSlot: [slotId: number]
+	clearCutSlot: []
 	replaceCompositionHints: [payload: { slotId: number, compositionHints: ActivitySlotCompositionHintInput[] }]
 	customizeCompositionHints: [slot: ActivitySlot]
 }>();
@@ -146,6 +151,16 @@ const canDrag = computed(() => Boolean(props.slot.assigned_character_id) && !pro
 const canShowContextMenu = computed(() => Boolean(props.slot.assigned_character_id));
 const isDraggedSource = computed(() => props.draggedSlotId === props.slot.id);
 const isDropTarget = computed(() => props.dropTargetSlotId === props.slot.id && props.draggedSlotId !== props.slot.id);
+const isCutSource = computed(() => props.cutSlotId === props.slot.id && Boolean(props.slot.assigned_character_id));
+const canPasteCutSlot = computed(() => (
+	props.cutSlotId !== null
+	&& props.cutSlotId !== undefined
+	&& props.cutSlotId !== props.slot.id
+	&& props.cutSlotIsBench !== null
+	&& props.cutSlotIsBench !== undefined
+	&& (!props.slot.assigned_character_id || props.cutSlotIsBench === props.slot.is_bench)
+	&& !props.isSwapPending
+));
 const statusBadge = computed(() => {
 	if (props.slot.attendance_status === 'checked_in') {
 		return {
@@ -166,6 +181,44 @@ const statusBadge = computed(() => {
 		label: t('groups.activities.management.roster.assigned'),
 	};
 });
+const cutContextMenuItems = computed<ContextMenuItem[]>(() => {
+	if (!props.slot.assigned_character_id) {
+		return [];
+	}
+
+	if (isCutSource.value) {
+		return [
+			{
+				label: t('groups.activities.management.roster.cancel_cut_assignment_action'),
+				icon: 'i-lucide-x',
+				disabled: props.isSwapPending,
+				onSelect: () => emit('clearCutSlot'),
+			},
+		];
+	}
+
+	return [
+		{
+			label: t('groups.activities.management.roster.cut_assignment_action'),
+			icon: 'i-lucide-scissors',
+			disabled: props.isSwapPending,
+			onSelect: () => emit('cutSlot', props.slot.id),
+		},
+	];
+});
+const emptySlotContextMenuItems = computed<ContextMenuItem[][]>(() => (
+	canPasteCutSlot.value
+		? [
+			[
+				{
+					label: t('groups.activities.management.roster.paste_assignment_action'),
+					icon: 'i-lucide-clipboard-paste',
+					onSelect: () => emit('pasteCutSlot', props.slot.id),
+				},
+			],
+		]
+		: []
+));
 const contextMenuItems = computed<ContextMenuItem[][]>(() => [
 	[
 		{
@@ -234,7 +287,19 @@ const contextMenuItems = computed<ContextMenuItem[][]>(() => [
 			onSelect: () => emit('returnSlotToQueue', props.slot.id),
 		},
 	],
-]);
+	cutContextMenuItems.value,
+	...(canPasteCutSlot.value
+		? [
+			[
+				{
+					label: t('groups.activities.management.roster.paste_assignment_action'),
+					icon: 'i-lucide-clipboard-paste',
+					onSelect: () => emit('pasteCutSlot', props.slot.id),
+				},
+			],
+		]
+		: []),
+].filter((group) => group.length > 0));
 
 const removeDragPreview = () => {
 	if (!dragPreviewElement) {
@@ -374,6 +439,7 @@ const handleClick = () => {
 			:class="[
 				roleToneClass,
 				canDrag ? 'cursor-grab hover:scale-[1.02]' : 'cursor-pointer',
+				isCutSource ? 'ring-2 ring-primary/70 ring-offset-2 ring-offset-background' : '',
 				isDraggedSource ? 'scale-[0.98] opacity-35 saturate-75' : '',
 				isDropTarget ? 'border-white shadow-[0_0_0_2px_rgba(255,255,255,0.95),0_0_0_6px_rgba(255,255,255,0.22)]' : '',
 				props.isPendingSwap ? 'overflow-hidden' : '',
@@ -506,6 +572,7 @@ const handleClick = () => {
 		v-else
 		:slot="slot"
 		:disabled="isSwapPending"
+		:extra-items="emptySlotContextMenuItems"
 		@replace-hints="emit('replaceCompositionHints', $event)"
 		@customize="emit('customizeCompositionHints', $event)"
 	>
@@ -515,6 +582,7 @@ const handleClick = () => {
 			:class="[
 				roleToneClass,
 				canDrag ? 'cursor-grab hover:scale-[1.02]' : 'cursor-pointer',
+				isCutSource ? 'ring-2 ring-primary/70 ring-offset-2 ring-offset-background' : '',
 				isDraggedSource ? 'scale-[0.98] opacity-35 saturate-75' : '',
 				isDropTarget ? 'border-white shadow-[0_0_0_2px_rgba(255,255,255,0.95),0_0_0_6px_rgba(255,255,255,0.22)]' : '',
 				props.isPendingSwap ? 'overflow-hidden' : '',

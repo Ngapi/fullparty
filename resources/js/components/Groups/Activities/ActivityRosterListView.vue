@@ -15,6 +15,8 @@ const props = defineProps<{
 	dropTargetSlotId?: number | null
 	isSwapPending?: boolean
 	pendingSwapSlotIds?: number[]
+	cutSlotId?: number | null
+	cutSlotIsBench?: boolean | null
 	canReturnToQueue?: boolean
 	canMoveToBench?: boolean
 	canMarkMissing?: boolean
@@ -36,6 +38,9 @@ const emit = defineEmits<{
 	markSlotLate: [slotId: number]
 	markSlotHost: [slotId: number]
 	markSlotRaidLeader: [slotId: number]
+	cutSlot: [slotId: number]
+	pasteCutSlot: [slotId: number]
+	clearCutSlot: []
 }>();
 
 const { t, locale } = useI18n();
@@ -118,6 +123,140 @@ const handleRowClick = (slot: ActivitySlot) => {
 	emit('clickSlot', slot.id);
 };
 
+const isCutSourceSlot = (slot: ActivitySlot) => (
+	props.cutSlotId === slot.id && Boolean(slot.assigned_character_id)
+);
+
+const canPasteCutSlotTo = (slot: ActivitySlot) => (
+	props.cutSlotId !== null
+	&& props.cutSlotId !== undefined
+	&& props.cutSlotId !== slot.id
+	&& props.cutSlotIsBench !== null
+	&& props.cutSlotIsBench !== undefined
+	&& (!slot.assigned_character_id || props.cutSlotIsBench === slot.is_bench)
+	&& !props.isSwapPending
+);
+
+const hasContextMenuItems = (items: ContextMenuItem[][]) => items.some((group) => group.length > 0);
+
+const cutContextMenuItems = (slot: ActivitySlot): ContextMenuItem[] => {
+	if (!slot.assigned_character_id) {
+		return [];
+	}
+
+	if (isCutSourceSlot(slot)) {
+		return [
+			{
+				label: t('groups.activities.management.roster.cancel_cut_assignment_action'),
+				icon: 'i-lucide-x',
+				disabled: props.isSwapPending,
+				onSelect: () => emit('clearCutSlot'),
+			},
+		];
+	}
+
+	return [
+		{
+			label: t('groups.activities.management.roster.cut_assignment_action'),
+			icon: 'i-lucide-scissors',
+			disabled: props.isSwapPending,
+			onSelect: () => emit('cutSlot', slot.id),
+		},
+	];
+};
+
+const pasteContextMenuItems = (slot: ActivitySlot): ContextMenuItem[][] => (
+	canPasteCutSlotTo(slot)
+		? [
+			[
+				{
+					label: t('groups.activities.management.roster.paste_assignment_action'),
+					icon: 'i-lucide-clipboard-paste',
+					onSelect: () => emit('pasteCutSlot', slot.id),
+				},
+			],
+		]
+		: []
+);
+
+const buildSlotContextMenuItems = (slot: ActivitySlot): ContextMenuItem[][] => {
+	if (!slot.assigned_character_id) {
+		return pasteContextMenuItems(slot);
+	}
+
+	return [
+		[
+			{
+				label: ['checked_in', 'late'].includes(slot.attendance_status ?? '')
+					? t('groups.activities.management.roster.undo_check_in')
+					: t('groups.activities.management.roster.check_in_action'),
+				icon: 'i-lucide-user-check',
+				disabled: slot.is_bench || !props.canCheckIn || props.isSwapPending,
+				onSelect: () => emit('checkInSlot', slot.id),
+			},
+			{
+				label: t('groups.activities.management.roster.mark_late_action'),
+				icon: 'i-lucide-clock-alert',
+				disabled: slot.is_bench || !props.canCheckIn || props.isSwapPending || slot.attendance_status === 'late',
+				onSelect: () => emit('markSlotLate', slot.id),
+			},
+			{
+				label: 'Mark as missing / absent',
+				icon: 'i-lucide-user-x',
+				disabled: !props.canMarkMissing || props.isSwapPending,
+				onSelect: () => emit('markSlotMissing', slot.id),
+			},
+		],
+		[
+			{
+				label: slot.is_host
+					? t('groups.activities.management.roster.unmark_host_action')
+					: t('groups.activities.management.roster.mark_host_action'),
+				icon: 'i-lucide-badge-check',
+				color: 'info',
+				disabled: slot.is_bench || props.isSwapPending,
+				onSelect: () => emit('markSlotHost', slot.id),
+			},
+			{
+				label: slot.is_raid_leader
+					? t('groups.activities.management.roster.unmark_raid_leader_action')
+					: t('groups.activities.management.roster.mark_raid_leader_action'),
+				icon: 'i-lucide-crown',
+				color: 'warning',
+				disabled: slot.is_bench || props.isSwapPending,
+				onSelect: () => emit('markSlotRaidLeader', slot.id),
+			},
+		],
+		[
+			{
+				label: 'Move to bench',
+				icon: 'i-lucide-arrow-down-to-line',
+				disabled: slot.is_bench || !props.canMoveToBench || props.isSwapPending,
+				onSelect: () => emit('moveSlotToBench', slot.id),
+			},
+			{
+				label: 'Change assignments',
+				icon: 'i-lucide-pencil',
+				disabled: slot.is_bench || props.isSwapPending,
+				onSelect: () => emit('clickSlot', slot.id),
+			},
+			{
+				label: slot.assignment_source === 'manual'
+					? t('groups.activities.management.roster.remove_from_slot_action')
+					: 'Return to queue',
+				icon: slot.assignment_source === 'manual' ? 'i-lucide-user-minus' : 'i-lucide-undo-2',
+				color: 'error',
+				disabled: slot.assignment_source === 'manual'
+					? props.isSwapPending
+					: !props.canReturnToQueue || !slot.can_return_to_queue || props.isSwapPending,
+				onSelect: () => emit('returnSlotToQueue', slot.id),
+			},
+		],
+		cutContextMenuItems(slot),
+		...pasteContextMenuItems(slot),
+	].filter((group) => group.length > 0);
+};
+
 const rows = computed(() => [...props.slots]
 	.sort((left, right) => left.sort_order - right.sort_order)
 	.map((slot) => ({
@@ -154,75 +293,7 @@ const rows = computed(() => [...props.slots]
 			: slot.is_host
 				? 'border-sky-400/70 bg-sky-400/10 hover:bg-sky-400/15'
 				: 'border-default bg-muted hover:bg-background/70 dark:bg-elevated/50',
-		contextMenuItems: [
-			[
-				{
-					label: ['checked_in', 'late'].includes(slot.attendance_status ?? '')
-						? t('groups.activities.management.roster.undo_check_in')
-						: t('groups.activities.management.roster.check_in_action'),
-					icon: 'i-lucide-user-check',
-					disabled: slot.is_bench || !props.canCheckIn || props.isSwapPending,
-					onSelect: () => emit('checkInSlot', slot.id),
-				},
-				{
-					label: t('groups.activities.management.roster.mark_late_action'),
-					icon: 'i-lucide-clock-alert',
-					disabled: slot.is_bench || !props.canCheckIn || props.isSwapPending || slot.attendance_status === 'late',
-					onSelect: () => emit('markSlotLate', slot.id),
-				},
-				{
-					label: 'Mark as missing / absent',
-					icon: 'i-lucide-user-x',
-					disabled: !props.canMarkMissing || props.isSwapPending,
-					onSelect: () => emit('markSlotMissing', slot.id),
-				},
-			],
-			[
-				{
-					label: slot.is_host
-						? t('groups.activities.management.roster.unmark_host_action')
-						: t('groups.activities.management.roster.mark_host_action'),
-					icon: 'i-lucide-badge-check',
-					color: 'info',
-					disabled: slot.is_bench || props.isSwapPending,
-					onSelect: () => emit('markSlotHost', slot.id),
-				},
-				{
-					label: slot.is_raid_leader
-						? t('groups.activities.management.roster.unmark_raid_leader_action')
-						: t('groups.activities.management.roster.mark_raid_leader_action'),
-					icon: 'i-lucide-crown',
-					color: 'warning',
-					disabled: slot.is_bench || props.isSwapPending,
-					onSelect: () => emit('markSlotRaidLeader', slot.id),
-				},
-			],
-			[
-				{
-					label: 'Move to bench',
-					icon: 'i-lucide-arrow-down-to-line',
-					disabled: slot.is_bench || !props.canMoveToBench || props.isSwapPending,
-					onSelect: () => emit('moveSlotToBench', slot.id),
-				},
-				{
-					label: 'Change assignments',
-					icon: 'i-lucide-pencil',
-					disabled: slot.is_bench || props.isSwapPending,
-					onSelect: () => emit('clickSlot', slot.id),
-				},
-				{
-					label: slot.assignment_source === 'manual'
-						? t('groups.activities.management.roster.remove_from_slot_action')
-						: 'Return to queue',
-					icon: slot.assignment_source === 'manual' ? 'i-lucide-user-minus' : 'i-lucide-undo-2',
-					color: 'error',
-					disabled: slot.assignment_source === 'manual'
-						? props.isSwapPending
-						: !props.canReturnToQueue || !slot.can_return_to_queue || props.isSwapPending,
-					onSelect: () => emit('returnSlotToQueue', slot.id),
-				},
-			],
-		] as ContextMenuItem[][],
+		contextMenuItems: buildSlotContextMenuItems(slot),
 		fields: slot.assigned_character_id
 			? slot.field_values.map((field) => localizedText(field.field_label, field.field_key))
 			: [],
@@ -243,13 +314,14 @@ const rows = computed(() => [...props.slots]
 				v-for="row in rows"
 				:key="row.id"
 				:items="row.contextMenuItems"
-				:disabled="!row.slot.assigned_character_id"
+				:disabled="!hasContextMenuItems(row.contextMenuItems)"
 			>
 				<div
 					class="grid grid-cols-4 items-center gap-4 border px-5 py-4 transition-colors duration-200"
 					:class="[
 						row.rowToneClass,
 						row.slot.assigned_character_id ? 'cursor-grab' : '',
+						row.slot.id === cutSlotId && row.slot.assigned_character_id ? 'ring-2 ring-primary/70 ring-offset-2 ring-offset-background' : '',
 						draggedSlotId === row.id ? 'bg-primary/10 opacity-70' : '',
 						dropTargetSlotId === row.id && draggedSlotId !== row.id ? 'bg-white/8 shadow-[inset_0_0_0_2px_rgba(255,255,255,0.95)]' : '',
 						pendingSwapSlotIds?.includes(row.id) ? 'bg-elevated/80 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]' : '',

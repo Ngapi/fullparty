@@ -91,7 +91,7 @@ class GroupActivitySlotSwapController extends Controller
 
         if (! $sourceIsBench && $targetIsBench && $targetSlot->assigned_character_id) {
             throw ValidationException::withMessages([
-                'target_slot_id' => 'Replacing a benched player from the main roster requires reassignment so the promoted player can be configured.',
+                'target_slot_id' => 'Roster and bench slots cannot be swapped.',
             ]);
         }
 

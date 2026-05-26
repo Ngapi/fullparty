@@ -16,6 +16,7 @@ const props = defineProps<{
 	slots: ActivitySlot[]
 	isSwapPending?: boolean
 	pendingSwapSlotIds?: number[]
+	cutSlotId?: number | null
 	canReturnToQueue?: boolean
 	canMarkMissing?: boolean
 	canCheckIn?: boolean
@@ -37,6 +38,9 @@ const emit = defineEmits<{
 	markSlotRaidLeader: [slotId: number]
 	checkInGroup: [groupKey: string]
 	slotsUpdated: [slots: ActivitySlot[]]
+	cutSlot: [slotId: number]
+	pasteCutSlot: [slotId: number]
+	clearCutSlot: []
 }>();
 
 const { t } = useI18n();
@@ -48,6 +52,11 @@ const compositionHintModalOpen = ref(false);
 const compositionHintSlotId = ref<number | null>(null);
 const firstAvailableBenchSlotId = computed(() => (
 	props.slots.find((slot) => slot.is_bench && slot.assigned_character_id === null)?.id ?? null
+));
+const cutSlotIsBench = computed(() => (
+	props.cutSlotId === null || props.cutSlotId === undefined
+		? null
+		: props.slots.find((slot) => slot.id === props.cutSlotId)?.is_bench ?? null
 ));
 const compositionHintSlot = computed(() => (
 	compositionHintSlotId.value === null
@@ -85,8 +94,24 @@ const handleDragEnd = () => {
 	dropTargetSlotId.value = null;
 };
 
+const canMoveBetweenSlots = (sourceSlotId: number, targetSlotId: number) => {
+	const sourceSlot = props.slots.find((slot) => slot.id === sourceSlotId);
+	const targetSlot = props.slots.find((slot) => slot.id === targetSlotId);
+
+	return Boolean(
+		sourceSlot
+		&& targetSlot
+		&& !(sourceSlot.assigned_character_id && targetSlot.assigned_character_id && sourceSlot.is_bench !== targetSlot.is_bench),
+	);
+};
+
 const handleDragEnter = (slotId: number) => {
 	if (draggedSlotId.value === slotId) {
+		dropTargetSlotId.value = null;
+		return;
+	}
+
+	if (draggedSlotId.value !== null && !canMoveBetweenSlots(draggedSlotId.value, slotId)) {
 		dropTargetSlotId.value = null;
 		return;
 	}
@@ -101,7 +126,12 @@ const handleDragLeave = (slotId: number) => {
 };
 
 const handleDropSlot = (targetSlotId: number) => {
-	if (draggedSlotId.value === null || draggedSlotId.value === targetSlotId || props.isSwapPending) {
+	if (
+		draggedSlotId.value === null
+		|| draggedSlotId.value === targetSlotId
+		|| props.isSwapPending
+		|| !canMoveBetweenSlots(draggedSlotId.value, targetSlotId)
+	) {
 		handleDragEnd();
 		return;
 	}
@@ -172,6 +202,8 @@ const replaceSlotCompositionHints = async (payload: { slotId: number, compositio
 			:drop-target-slot-id="dropTargetSlotId"
 			:is-swap-pending="isSwapPending || isCompositionHintPending"
 			:pending-swap-slot-ids="pendingSwapSlotIds"
+			:cut-slot-id="cutSlotId"
+			:cut-slot-is-bench="cutSlotIsBench"
 			:can-return-to-queue="canReturnToQueue"
 			:can-move-to-bench="firstAvailableBenchSlotId !== null"
 			:can-mark-missing="canMarkMissing"
@@ -183,6 +215,9 @@ const replaceSlotCompositionHints = async (payload: { slotId: number, compositio
 			@drag-leave="handleDragLeave"
 			@drop-slot="handleDropSlot"
 			@drop-application="emit('assignApplicationToSlot', $event)"
+			@cut-slot="emit('cutSlot', $event)"
+			@paste-cut-slot="emit('pasteCutSlot', $event)"
+			@clear-cut-slot="emit('clearCutSlot')"
 			@click-slot="emit('clickSlot', $event)"
 			@return-slot-to-queue="emit('returnSlotToQueue', $event)"
 			@move-slot-to-bench="emit('moveSlotToBench', $event)"

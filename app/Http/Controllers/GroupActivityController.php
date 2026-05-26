@@ -235,6 +235,10 @@ class GroupActivityController extends Controller
                     'slot_count' => $activity->slots
                         ->where('group_key', '!=', ActivitySlotBench::GROUP_KEY)
                         ->count(),
+                    'assigned_slot_count' => $activity->slots
+                        ->where('group_key', '!=', ActivitySlotBench::GROUP_KEY)
+                        ->whereNotNull('assigned_character_id')
+                        ->count(),
                     'application_count' => $activity->applications->count(),
                     'progress_milestone_count' => $activity->progressMilestones->count(),
                     'created_at' => $activity->created_at?->toIso8601String(),

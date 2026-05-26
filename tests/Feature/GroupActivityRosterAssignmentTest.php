@@ -1323,14 +1323,16 @@ it('keeps manually assigned bench moves manual even when the character has a wit
         ],
     ])->assertOk();
 
-    $this->postJson(route('groups.dashboard.activities.slot-swaps.store', [
+    $this->postJson(route('groups.dashboard.activities.slot-assignments.store', [
         'group' => $group->slug,
         'activity' => $activity->id,
+        'slot' => $benchSlot->id,
     ]), [
+        'character_id' => $character->id,
         'source_slot_id' => $mainSlot->id,
-        'target_slot_id' => $benchSlot->id,
+        'expected_slot_state_token' => activity_slot_state_token($benchSlot->fresh(['assignments'])),
         'expected_source_slot_state_token' => activity_slot_state_token($mainSlot->fresh(['assignments'])),
-        'expected_target_slot_state_token' => activity_slot_state_token($benchSlot->fresh(['assignments'])),
+        'field_values' => [],
     ])->assertOk();
 
     $benchSlot->refresh()->load(['assignments']);
@@ -1375,4 +1377,126 @@ it('keeps manually assigned bench moves manual even when the character has a wit
 
     expect($mainSlot->fresh()->assigned_character_id)->toBe($character->id)
         ->and($benchSlot->fresh()->assigned_character_id)->toBeNull();
+});
+
+it('rejects filled roster and bench swaps while allowing empty-target moves without duplicating assignees', function () {
+    extract(createRosterAssignmentSetup());
+
+    $rosterApplicant = createApplicantForAssignment($activity, $tankClass, $phantomKnight);
+    $benchApplicant = createApplicantForAssignment($activity, $healerClass, $phantomBard);
+    $secondBenchApplicant = createApplicantForAssignment($activity, $tankClass, $phantomBard);
+    $secondBenchSlot = $activity->slots()->create([
+        'group_key' => 'bench',
+        'group_label' => ['en' => 'Bench'],
+        'slot_key' => 'bench-slot-2',
+        'slot_label' => ['en' => 'Bench 2'],
+        'position_in_group' => 2,
+        'sort_order' => 100,
+    ]);
+    $thirdBenchSlot = $activity->slots()->create([
+        'group_key' => 'bench',
+        'group_label' => ['en' => 'Bench'],
+        'slot_key' => 'bench-slot-3',
+        'slot_label' => ['en' => 'Bench 3'],
+        'position_in_group' => 3,
+        'sort_order' => 101,
+    ]);
+
+    $this->actingAs($owner);
+
+    $this->postJson(route('groups.dashboard.activities.slot-assignments.store', [
+        'group' => $group->slug,
+        'activity' => $activity->id,
+        'slot' => $mainSlot->id,
+    ]), [
+        'application_id' => $rosterApplicant['application']->id,
+        'expected_slot_state_token' => activity_slot_state_token($mainSlot),
+        'field_values' => [
+            'character_class' => (string) $tankClass->id,
+            'phantom_job' => (string) $phantomKnight->id,
+        ],
+    ])->assertOk();
+
+    $this->postJson(route('groups.dashboard.activities.slot-assignments.store', [
+        'group' => $group->slug,
+        'activity' => $activity->id,
+        'slot' => $benchSlot->id,
+    ]), [
+        'application_id' => $benchApplicant['application']->id,
+        'expected_slot_state_token' => activity_slot_state_token($benchSlot),
+        'field_values' => [],
+    ])->assertOk();
+
+    $this->postJson(route('groups.dashboard.activities.slot-assignments.store', [
+        'group' => $group->slug,
+        'activity' => $activity->id,
+        'slot' => $secondBenchSlot->id,
+    ]), [
+        'application_id' => $secondBenchApplicant['application']->id,
+        'expected_slot_state_token' => activity_slot_state_token($secondBenchSlot),
+        'field_values' => [],
+    ])->assertOk();
+
+    $this->postJson(route('groups.dashboard.activities.slot-swaps.store', [
+        'group' => $group->slug,
+        'activity' => $activity->id,
+    ]), [
+        'source_slot_id' => $mainSlot->id,
+        'target_slot_id' => $benchSlot->id,
+        'expected_source_slot_state_token' => activity_slot_state_token($mainSlot->fresh(['assignments'])),
+        'expected_target_slot_state_token' => activity_slot_state_token($benchSlot->fresh(['assignments'])),
+    ])->assertStatus(422);
+
+    $this->postJson(route('groups.dashboard.activities.slot-swaps.store', [
+        'group' => $group->slug,
+        'activity' => $activity->id,
+    ]), [
+        'source_slot_id' => $mainSlot->id,
+        'target_slot_id' => $thirdBenchSlot->id,
+        'expected_source_slot_state_token' => activity_slot_state_token($mainSlot->fresh(['assignments'])),
+        'expected_target_slot_state_token' => activity_slot_state_token($thirdBenchSlot->fresh(['assignments'])),
+    ])->assertOk();
+
+    $this->postJson(route('groups.dashboard.activities.slot-assignments.store', [
+        'group' => $group->slug,
+        'activity' => $activity->id,
+        'slot' => $mainSlot->id,
+    ]), [
+        'application_id' => $benchApplicant['application']->id,
+        'source_slot_id' => $benchSlot->id,
+        'expected_slot_state_token' => activity_slot_state_token($mainSlot->fresh(['assignments'])),
+        'expected_source_slot_state_token' => activity_slot_state_token($benchSlot->fresh(['assignments'])),
+        'field_values' => [
+            'character_class' => (string) $healerClass->id,
+            'phantom_job' => (string) $phantomBard->id,
+        ],
+    ])->assertOk();
+
+    $this->postJson(route('groups.dashboard.activities.slot-swaps.store', [
+        'group' => $group->slug,
+        'activity' => $activity->id,
+    ]), [
+        'source_slot_id' => $thirdBenchSlot->id,
+        'target_slot_id' => $secondBenchSlot->id,
+        'expected_source_slot_state_token' => activity_slot_state_token($thirdBenchSlot->fresh(['assignments'])),
+        'expected_target_slot_state_token' => activity_slot_state_token($secondBenchSlot->fresh(['assignments'])),
+    ])->assertOk();
+
+    $mainSlot->refresh();
+    $benchSlot->refresh();
+    $secondBenchSlot->refresh();
+    $thirdBenchSlot->refresh();
+    $assignedCharacterIds = $activity->slots()
+        ->whereNotNull('assigned_character_id')
+        ->pluck('assigned_character_id')
+        ->all();
+
+    expect($mainSlot->assigned_character_id)->toBe($benchApplicant['character']->id)
+        ->and($benchSlot->assigned_character_id)->toBeNull()
+        ->and($secondBenchSlot->assigned_character_id)->toBe($rosterApplicant['character']->id)
+        ->and($thirdBenchSlot->assigned_character_id)->toBe($secondBenchApplicant['character']->id)
+        ->and($rosterApplicant['application']->fresh()->status)->toBe(ActivityApplication::STATUS_ON_BENCH)
+        ->and($benchApplicant['application']->fresh()->status)->toBe(ActivityApplication::STATUS_APPROVED)
+        ->and($secondBenchApplicant['application']->fresh()->status)->toBe(ActivityApplication::STATUS_ON_BENCH)
+        ->and($assignedCharacterIds)->toHaveCount(count(array_unique($assignedCharacterIds)));
 });

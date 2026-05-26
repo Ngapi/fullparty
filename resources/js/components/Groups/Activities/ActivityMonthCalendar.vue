@@ -149,7 +149,7 @@ const selectDay = (dayKey: string) => {
 				/>
 			</div>
 
-			<div class="grid grid-cols-7 gap-px rounded-sm border border-default/70 bg-default/70 overflow-hidden">
+			<div class="grid grid-cols-7 gap-px rounded-sm border border-default/70 bg-default/70 overflow-visible">
 				<div
 					v-for="label in dayLabels"
 					:key="label"
@@ -159,12 +159,13 @@ const selectDay = (dayKey: string) => {
 				</div>
 
 				<ActivityCalendarDayCell
-					v-for="day in calendarDays"
+					v-for="(day, index) in calendarDays"
 					:key="day.key"
 					:group-slug="groupSlug"
 					:day="day"
 					:is-selected="selectedDateKey === day.key"
 					:can-manage-activities="canManageActivities"
+					:opens-upward="index >= 35"
 					@select="selectDay"
 				/>
 			</div>

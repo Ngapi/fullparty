@@ -52,6 +52,7 @@ const isLoading = ref(true);
 const isSlotSwapPending = ref(false);
 const pendingSwapSlotIds = ref<number[]>([]);
 const isSlotAssignmentPending = ref(false);
+const cutSlotId = ref<number | null>(null);
 const isCompleteModalOpen = ref(false);
 const isCompletingActivity = ref(false);
 const isScheduleConfirmOpen = ref(false);
@@ -532,26 +533,43 @@ const subscribeToManagementChannel = () => {
 	subscribedManagementChannelName.value = channelName;
 };
 
+const clearCutSlot = () => {
+	cutSlotId.value = null;
+};
+
+const cutSlot = (slotId: number) => {
+	if (isActivityArchived.value || isSlotSwapPending.value || isSlotAssignmentPending.value) {
+		return;
+	}
+
+	const slot = findSlotById(slotId);
+
+	if (!slot?.assigned_character_id) {
+		return;
+	}
+
+	cutSlotId.value = slotId;
+};
+
 const handleSlotSwap = async (payload: { sourceSlotId: number, targetSlotId: number }) => {
 	if (!currentActivity.value || isActivityArchived.value || isSlotSwapPending.value || isSlotAssignmentPending.value) {
-		return;
+		return false;
 	}
 
 	const sourceSlot = currentActivity.value.slots.find((slot) => slot.id === payload.sourceSlotId);
 	const targetSlot = currentActivity.value.slots.find((slot) => slot.id === payload.targetSlotId);
 
 	if (!sourceSlot || !targetSlot) {
-		return;
+		return false;
+	}
+
+	if (sourceSlot.is_bench !== targetSlot.is_bench && targetSlot.assigned_character_id) {
+		return false;
 	}
 
 	if (sourceSlot.is_bench && !targetSlot.is_bench) {
 		await openAssignmentModalFromSlot(targetSlot.id, sourceSlot.id);
-		return;
-	}
-
-	if (!sourceSlot.is_bench && targetSlot.is_bench && targetSlot.assigned_character_id) {
-		await openAssignmentModalFromSlot(sourceSlot.id, targetSlot.id);
-		return;
+		return false;
 	}
 
 	isSlotSwapPending.value = true;
@@ -578,11 +596,17 @@ const handleSlotSwap = async (payload: { sourceSlotId: number, targetSlotId: num
 				slots: currentActivity.value.slots.map((slot) => updatedSlotsById.get(slot.id) ?? slot),
 			};
 		}
+
+		if (cutSlotId.value !== null && [payload.sourceSlotId, payload.targetSlotId].includes(cutSlotId.value)) {
+			clearCutSlot();
+		}
+
+		return true;
 	} catch (error: any) {
 		console.error(error);
 
 		if (await handleSlotStateConflict(error)) {
-			return;
+			return false;
 		}
 
 		toast.add({
@@ -591,9 +615,40 @@ const handleSlotSwap = async (payload: { sourceSlotId: number, targetSlotId: num
 			color: 'error',
 			icon: 'i-lucide-octagon-alert',
 		});
+
+		return false;
 	} finally {
 		isSlotSwapPending.value = false;
 		pendingSwapSlotIds.value = [];
+	}
+};
+
+const pasteCutSlotToSlot = async (targetSlotId: number) => {
+	const sourceSlotId = cutSlotId.value;
+
+	if (sourceSlotId === null || isActivityArchived.value || isSlotSwapPending.value || isSlotAssignmentPending.value) {
+		return;
+	}
+
+	const sourceSlot = findSlotById(sourceSlotId);
+	const targetSlot = findSlotById(targetSlotId);
+
+	if (!sourceSlot?.assigned_character_id) {
+		clearCutSlot();
+		return;
+	}
+
+	if (!targetSlot || sourceSlot.id === targetSlot.id) {
+		return;
+	}
+
+	const didPaste = await handleSlotSwap({
+		sourceSlotId: sourceSlot.id,
+		targetSlotId: targetSlot.id,
+	});
+
+	if (didPaste) {
+		clearCutSlot();
 	}
 };
 
@@ -906,9 +961,28 @@ const moveSlotToBench = async (slotId: number) => {
 		return;
 	}
 
-	await handleSlotSwap({
+	if (sourceSlot.assignment_source === 'manual' && sourceSlot.assigned_character_id) {
+		await handleAssignCharacterToSlot({
+			characterId: sourceSlot.assigned_character_id,
+			slotId: targetBenchSlot.id,
+			fieldValues: {},
+			sourceSlotId: sourceSlot.id,
+		});
+
+		return;
+	}
+
+	const application = await fetchSlotAssignmentContext(sourceSlot.id);
+
+	if (!application) {
+		return;
+	}
+
+	await handleAssignApplicantToSlot({
+		applicationId: application.id,
+		slotId: targetBenchSlot.id,
+		fieldValues: {},
 		sourceSlotId: sourceSlot.id,
-		targetSlotId: targetBenchSlot.id,
 	});
 };
 
@@ -1210,12 +1284,14 @@ const handleAssignApplicantToSlot = async (payload: { applicationId: number, slo
 		return;
 	}
 
+	const sourceSlotId = payload.sourceSlotId ?? assignmentModalSourceSlotId.value ?? null;
+
 	isSlotAssignmentPending.value = true;
-	pendingSwapSlotIds.value = [payload.slotId, ...(payload.sourceSlotId ? [payload.sourceSlotId] : [])];
+	pendingSwapSlotIds.value = [payload.slotId, ...(sourceSlotId ? [sourceSlotId] : [])];
 
 	try {
 		const targetSlot = findSlotById(payload.slotId);
-		const sourceSlot = findSlotById(payload.sourceSlotId ?? assignmentModalSourceSlotId.value ?? null);
+		const sourceSlot = findSlotById(sourceSlotId);
 
 		if (!targetSlot) {
 			return;
@@ -1228,7 +1304,7 @@ const handleAssignApplicantToSlot = async (payload: { applicationId: number, slo
 		}), {
 			application_id: payload.applicationId,
 			field_values: payload.fieldValues,
-			source_slot_id: payload.sourceSlotId ?? assignmentModalSourceSlotId.value,
+			source_slot_id: sourceSlotId,
 			expected_slot_state_token: targetSlot.state_token,
 			expected_source_slot_state_token: sourceSlot?.state_token ?? null,
 		});
@@ -1266,6 +1342,10 @@ const handleAssignApplicantToSlot = async (payload: { applicationId: number, slo
 			}));
 		}
 
+		if (sourceSlotId !== null && sourceSlotId === cutSlotId.value) {
+			clearCutSlot();
+		}
+
 		closeAssignmentModal();
 	} catch (error: any) {
 		if (await handleSlotStateConflict(error)) {
@@ -1292,12 +1372,14 @@ const handleAssignCharacterToSlot = async (payload: { characterId: number, slotI
 		return;
 	}
 
+	const sourceSlotId = payload.sourceSlotId ?? manualAssignmentSourceSlotId.value ?? null;
+
 	isSlotAssignmentPending.value = true;
-	pendingSwapSlotIds.value = [payload.slotId, ...(payload.sourceSlotId ? [payload.sourceSlotId] : [])];
+	pendingSwapSlotIds.value = [payload.slotId, ...(sourceSlotId ? [sourceSlotId] : [])];
 
 	try {
 		const targetSlot = findSlotById(payload.slotId);
-		const sourceSlot = findSlotById(payload.sourceSlotId ?? manualAssignmentSourceSlotId.value ?? null);
+		const sourceSlot = findSlotById(sourceSlotId);
 
 		if (!targetSlot) {
 			return;
@@ -1310,7 +1392,7 @@ const handleAssignCharacterToSlot = async (payload: { characterId: number, slotI
 		}), {
 			character_id: payload.characterId,
 			field_values: payload.fieldValues,
-			source_slot_id: payload.sourceSlotId ?? manualAssignmentSourceSlotId.value,
+			source_slot_id: sourceSlotId,
 			expected_slot_state_token: targetSlot.state_token,
 			expected_source_slot_state_token: sourceSlot?.state_token ?? null,
 		});
@@ -1328,6 +1410,10 @@ const handleAssignCharacterToSlot = async (payload: { characterId: number, slotI
 					: currentActivity.value.pending_application_count,
 				slots: currentActivity.value.slots.map((slot) => updatedSlotsById.get(slot.id) ?? slot),
 			};
+		}
+
+		if (sourceSlotId !== null && sourceSlotId === cutSlotId.value) {
+			clearCutSlot();
 		}
 
 		closeManualAssignmentModal();
@@ -1514,10 +1600,14 @@ onBeforeUnmount(() => {
 					:composition-class-options="currentActivity.composition_class_options"
 					:is-swap-pending="isSlotSwapPending || isSlotAssignmentPending"
 					:pending-swap-slot-ids="pendingSwapSlotIds"
+					:cut-slot-id="cutSlotId"
 					:can-return-to-queue="!isActivityArchived"
 					:can-mark-missing="!isActivityArchived"
 					:can-check-in="!isActivityArchived"
 					@swap-slots="handleSlotSwap"
+					@cut-slot="cutSlot"
+					@paste-cut-slot="pasteCutSlotToSlot"
+					@clear-cut-slot="clearCutSlot"
 					@assign-application-to-slot="openAssignmentModal"
 					@click-slot="openSlotEditModal"
 					@return-slot-to-queue="returnSlotToQueue"

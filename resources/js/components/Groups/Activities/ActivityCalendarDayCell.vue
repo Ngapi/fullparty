@@ -15,6 +15,7 @@ const props = defineProps<{
 	day: ActivityCalendarDay
 	isSelected?: boolean
 	canManageActivities?: boolean
+	opensUpward?: boolean
 }>();
 
 const emit = defineEmits<{
@@ -35,6 +36,11 @@ const activityTypeName = (activity: ActivityIndexItem) => {
 };
 
 const activityLabel = (activity: ActivityIndexItem) => activity.title || activityTypeName(activity);
+
+const activityMemberCount = (activity: ActivityIndexItem) => t("groups.activities.calendar.member_count", {
+	assigned: activity.assigned_slot_count,
+	total: activity.slot_count,
+});
 
 const activityTime = (activity: ActivityIndexItem) => {
 	if (!activity.starts_at) {
@@ -126,7 +132,7 @@ const dayContextMenuItems = computed<ContextMenuItem[][]>(() => (
 					:activity="activity"
 				>
 					<div
-						class="rounded-sm border-t-2 bg-primary/15 px-2 py-1.5 text-xs"
+						class="group relative z-0 origin-top-left overflow-visible rounded-sm border-t-2 bg-primary/15 px-2 py-1.5 text-xs shadow-sm transition duration-150 ease-out hover:z-50 hover:scale-125 hover:bg-elevated hover:shadow-xl"
 						:class="activityStatusBorderClass(activity)"
 					>
 						<p class="font-medium text-toned">
@@ -135,6 +141,20 @@ const dayContextMenuItems = computed<ContextMenuItem[][]>(() => (
 						<p class="mt-0.5 line-clamp-2 text-muted">
 							{{ activityLabel(activity) }}
 						</p>
+
+						<div
+							class="pointer-events-none absolute inset-x-0 z-50 rounded-sm border border-default bg-elevated px-2 py-1.5 opacity-0 shadow-xl transition-opacity duration-150 group-hover:opacity-100"
+							:class="opensUpward ? 'bottom-full mb-1' : 'top-full mt-1'"
+						>
+							<div class="flex items-start gap-1.5 text-[0.68rem] font-medium text-toned">
+								<UIcon name="i-lucide-layers-3" class="size-3 shrink-0 text-primary" />
+								<span class="min-w-0 flex-1 whitespace-normal break-words leading-snug">{{ activityTypeName(activity) }}</span>
+							</div>
+							<div class="mt-1 flex items-center gap-1.5 text-[0.68rem] font-medium text-muted">
+								<UIcon name="i-lucide-users" class="size-3 shrink-0 text-primary" />
+								<span>{{ activityMemberCount(activity) }}</span>
+							</div>
+						</div>
 					</div>
 				</ActivityContextMenu>
 

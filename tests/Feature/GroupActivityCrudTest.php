@@ -222,6 +222,14 @@ it('shows only non-bench slot counts on the group runs page', function () {
     ]));
 
     $activity = $group->activities()->latest('id')->firstOrFail();
+    $assignedCharacter = Character::factory()->create();
+    $activity->slots()
+        ->where('group_key', '!=', 'bench')
+        ->firstOrFail()
+        ->update([
+            'assigned_character_id' => $assignedCharacter->id,
+            'assigned_by_user_id' => $owner->id,
+        ]);
 
     expect($activity->slots()->count())->toBe(3)
         ->and($activity->slots()->where('group_key', '!=', 'bench')->count())->toBe(2);
@@ -231,7 +239,8 @@ it('shows only non-bench slot counts on the group runs page', function () {
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
             ->where('activities.0.id', $activity->id)
-            ->where('activities.0.slot_count', 2));
+            ->where('activities.0.slot_count', 2)
+            ->where('activities.0.assigned_slot_count', 1));
 });
 
 it('sanitizes activity free-text fields when creating and updating activities', function () {

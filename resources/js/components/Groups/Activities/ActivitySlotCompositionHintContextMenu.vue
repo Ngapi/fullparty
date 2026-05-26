@@ -9,8 +9,10 @@ type RoleHintKey = "tank" | "healer" | "dps";
 const props = withDefaults(defineProps<{
 	slot: ActivitySlot
 	disabled?: boolean
+	extraItems?: ContextMenuItem[][]
 }>(), {
 	disabled: false,
+	extraItems: () => [],
 });
 
 const emit = defineEmits<{
@@ -35,14 +37,21 @@ const activeRoleHints = computed<RoleHintKey[]>(() => (
 			.map((hint) => hint.key)
 			.filter((key): key is RoleHintKey => key === "tank" || key === "healer" || key === "dps")
 ));
-const isDisabled = computed(() => (
+const canEditHints = computed(() => (
+	!props.disabled
+	&& !props.slot.is_bench
+	&& props.slot.assigned_character_id === null
+));
+const hasExtraItems = computed(() => props.extraItems.some((group) => group.length > 0));
+const isMenuDisabled = computed(() => !canEditHints.value && !hasExtraItems.value);
+const isHintActionDisabled = computed(() => (
 	props.disabled
 	|| props.slot.is_bench
 	|| props.slot.assigned_character_id !== null
 ));
 
 const toggleRoleHint = (roleKey: RoleHintKey) => {
-	if (isDisabled.value) {
+	if (isHintActionDisabled.value) {
 		return;
 	}
 
@@ -60,7 +69,7 @@ const toggleRoleHint = (roleKey: RoleHintKey) => {
 };
 
 const openCustomPicker = () => {
-	if (isDisabled.value) {
+	if (isHintActionDisabled.value) {
 		return;
 	}
 
@@ -68,31 +77,36 @@ const openCustomPicker = () => {
 };
 
 const contextMenuItems = computed<ContextMenuItem[][]>(() => [
-	roleOptions.map((role) => ({
-		type: "checkbox",
-		label: t(role.label),
-		icon: role.icon,
-		checked: activeRoleHints.value.includes(role.key),
-		disabled: isDisabled.value,
-		onSelect: () => toggleRoleHint(role.key),
-	})),
-	[
-		{
-			label: t("groups.activities.management.roster.composition_custom"),
-			icon: "i-lucide-sliders-horizontal",
-			disabled: isDisabled.value,
-			type: "checkbox",
-			checked: hasCustomHints.value,
-			onSelect: openCustomPicker,
-		},
-	],
+	...(props.slot.is_bench
+		? []
+		: [
+			roleOptions.map((role) => ({
+				type: "checkbox",
+				label: t(role.label),
+				icon: role.icon,
+				checked: activeRoleHints.value.includes(role.key),
+				disabled: isHintActionDisabled.value,
+				onSelect: () => toggleRoleHint(role.key),
+			})),
+			[
+				{
+					label: t("groups.activities.management.roster.composition_custom"),
+					icon: "i-lucide-sliders-horizontal",
+					disabled: isHintActionDisabled.value,
+					type: "checkbox",
+					checked: hasCustomHints.value,
+					onSelect: openCustomPicker,
+				},
+			],
+		]),
+	...props.extraItems,
 ]);
 </script>
 
 <template>
 	<UContextMenu
 		:items="contextMenuItems"
-		:disabled="isDisabled"
+		:disabled="isMenuDisabled"
 	>
 		<slot />
 	</UContextMenu>

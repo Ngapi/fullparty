@@ -16,6 +16,8 @@ const props = defineProps<{
 	dropTargetSlotId?: number | null
 	isSwapPending?: boolean
 	pendingSwapSlotIds?: number[]
+	cutSlotId?: number | null
+	cutSlotIsBench?: boolean | null
 	canReturnToQueue?: boolean
 	canMoveToBench?: boolean
 	canMarkMissing?: boolean
@@ -41,6 +43,9 @@ const emit = defineEmits<{
 	markSlotRaidLeader: [slotId: number]
 	checkInGroup: [groupKey: string]
 	slotsUpdated: [slots: ActivitySlot[]]
+	cutSlot: [slotId: number]
+	pasteCutSlot: [slotId: number]
+	clearCutSlot: []
 	replaceCompositionHints: [payload: { slotId: number, compositionHints: ActivitySlotCompositionHintInput[] }]
 	customizeCompositionHints: [slot: ActivitySlot]
 }>();
@@ -150,6 +155,8 @@ const hasMultipleMainSlotGroups = computed(() => mainSlotGroups.value.length > 1
 					:drop-target-slot-id="dropTargetSlotId"
 					:is-swap-pending="isSwapPending"
 					:is-pending-swap="pendingSwapSlotIds?.includes(slot.id)"
+					:cut-slot-id="cutSlotId"
+					:cut-slot-is-bench="cutSlotIsBench"
 					:can-return-to-queue="canReturnToQueue"
 					:can-move-to-bench="canMoveToBench"
 					:can-mark-missing="canMarkMissing"
@@ -160,6 +167,9 @@ const hasMultipleMainSlotGroups = computed(() => mainSlotGroups.value.length > 1
 					@drag-leave="emit('dragLeave', $event)"
 					@drop-slot="emit('dropSlot', $event)"
 					@drop-application="emit('dropApplication', $event)"
+					@cut-slot="emit('cutSlot', $event)"
+					@paste-cut-slot="emit('pasteCutSlot', $event)"
+					@clear-cut-slot="emit('clearCutSlot')"
 					@click-slot="emit('clickSlot', $event)"
 					@return-slot-to-queue="emit('returnSlotToQueue', $event)"
 					@move-slot-to-bench="emit('moveSlotToBench', $event)"

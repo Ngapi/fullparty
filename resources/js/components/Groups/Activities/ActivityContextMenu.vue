@@ -6,7 +6,7 @@ import { route } from "ziggy-js";
 import { useI18n } from "vue-i18n";
 import { useToast } from "@nuxt/ui/composables";
 import type { ActivityIndexItem } from "@/Types/ActivityCore";
-import { canAcceptActivityApplications } from "@/utils/activityLifecycle";
+import { canAcceptActivityApplications, isArchivedActivityStatus } from "@/utils/activityLifecycle";
 import { utcToDiscordTimestamp } from "@/utils/discordTimestamp";
 import { localizedValue } from "@/utils/localizedValue";
 import { createDateTimeFormatter } from "@/utils/dateTimeFormat";
@@ -31,6 +31,9 @@ const activityTypeName = computed(() => (
 const activityTitle = computed(() => props.activity.title || activityTypeName.value);
 const discordTimestamp = computed(() => props.activity.starts_at ? utcToDiscordTimestamp(props.activity.starts_at) : null);
 const canCopyRunLink = computed(() => props.activity.is_public || Boolean(props.activity.secret_key));
+const canOpenOverview = computed(() => canCopyRunLink.value);
+const canOpenManagement = computed(() => props.canManageActivities);
+const canEditRun = computed(() => props.canManageActivities && !isArchivedActivityStatus(props.activity.status));
 const canCopyApplicationLink = computed(() => (
 	props.activity.needs_application
 	&& canAcceptActivityApplications(props.activity.status)
@@ -171,8 +174,27 @@ const copyActivityInfo = async () => {
 	);
 };
 
+const goToManagementPage = () => {
+	if (!canOpenManagement.value) {
+		return;
+	}
+
+	router.get(route("groups.dashboard.activities.show", {
+		group: props.groupSlug,
+		activity: props.activity.id,
+	}));
+};
+
+const goToOverviewPage = () => {
+	if (!canOpenOverview.value) {
+		return;
+	}
+
+	router.get(route("groups.activities.overview", overviewRouteParameters.value));
+};
+
 const goToEditPage = () => {
-	if (!props.canManageActivities) {
+	if (!canEditRun.value) {
 		return;
 	}
 
@@ -194,6 +216,23 @@ const exportRoster = () => {
 };
 
 const contextMenuItems = computed<ContextMenuItem[][]>(() => {
+	const navigationItems: ContextMenuItem[] = [
+		...(canOpenManagement.value
+			? [{
+				label: t("groups.activities.context_menu.open_management"),
+				icon: "i-lucide-settings-2",
+				onSelect: goToManagementPage,
+			}]
+			: []),
+		...(canOpenOverview.value
+			? [{
+				label: t("groups.activities.context_menu.open_overview"),
+				icon: "i-lucide-external-link",
+				onSelect: goToOverviewPage,
+			}]
+			: []),
+	];
+
 	const copyItems: ContextMenuItem[] = [
 		{
 			label: t("groups.activities.context_menu.copy_discord_timestamp"),
@@ -224,11 +263,13 @@ const contextMenuItems = computed<ContextMenuItem[][]>(() => {
 
 	const managementItems: ContextMenuItem[] = props.canManageActivities
 		? [
-			{
-				label: t("groups.activities.context_menu.edit_run"),
-				icon: "i-lucide-pencil",
-				onSelect: goToEditPage,
-			},
+			...(canEditRun.value
+				? [{
+					label: t("groups.activities.context_menu.edit_run"),
+					icon: "i-lucide-pencil",
+					onSelect: goToEditPage,
+				}]
+				: []),
 			{
 				label: t("groups.activities.context_menu.export_excel"),
 				icon: "i-lucide-download",
@@ -238,6 +279,7 @@ const contextMenuItems = computed<ContextMenuItem[][]>(() => {
 		: [];
 
 	return [
+		...(navigationItems.length > 0 ? [navigationItems] : []),
 		copyItems,
 		...(applicationItems.length > 0 ? [applicationItems] : []),
 		...(managementItems.length > 0 ? [managementItems] : []),

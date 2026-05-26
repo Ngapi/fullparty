@@ -33,6 +33,7 @@ export interface ActivityIndexItem {
 	small_image_url: string | null
 	banner_image_url: string | null
 	starts_at: string | null
+	duration_hours: number | null
 	organized_by: {
 		id: number
 		name: string
@@ -44,7 +45,10 @@ export interface ActivityIndexItem {
 	beginner_friendly: boolean
 	run_style: ActivityRunStyle | string | null
 	slot_count: number
+	assigned_slot_count: number
 	application_count: number
+	is_public: boolean
+	needs_application?: boolean
 	secret_key: string | null
 	progress_milestone_count: number
 	created_at: string | null
