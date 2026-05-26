@@ -8,7 +8,6 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class UserActivityApplicationDefault extends Model
 {
     protected $fillable = [
-        'user_id',
         'activity_type_id',
         'selected_character_id',
         'answers',

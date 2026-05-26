@@ -70,19 +70,14 @@ class AccountNotificationController extends Controller
         abort_unless($notification->user_id === $request->user()->id, 404);
 
         if ($notification->read_at === null) {
-            $notification->update([
-                'read_at' => now(),
-            ]);
+            $notification->markAsRead();
 
             $this->notificationRealtimeService->broadcastUserInboxUpdated($request->user());
         }
 
         $notification->loadMissing('notificationEvent');
 
-        return redirect()->to(
-            $notification->notificationEvent?->action_url
-            ?: route('account.notifications.index')
-        );
+        return redirect()->to($this->sameOriginActionUrl($request, $notification->notificationEvent?->action_url));
     }
 
     public function openBroadcast(Request $request, SystemNotificationBroadcast $broadcast): RedirectResponse
@@ -93,5 +88,34 @@ class AccountNotificationController extends Controller
         return redirect()->to(
             $this->notificationInboxService->broadcastActionUrl($broadcast)
         );
+    }
+
+    private function sameOriginActionUrl(Request $request, ?string $actionUrl): string
+    {
+        if (blank($actionUrl)) {
+            return route('account.notifications.index');
+        }
+
+        if (str_starts_with($actionUrl, '/') && ! str_starts_with($actionUrl, '//')) {
+            return $actionUrl;
+        }
+
+        $parts = parse_url($actionUrl);
+
+        if (! is_array($parts) || ! isset($parts['scheme'], $parts['host'])) {
+            return route('account.notifications.index');
+        }
+
+        if (! in_array(strtolower((string) $parts['scheme']), ['http', 'https'], true)) {
+            return route('account.notifications.index');
+        }
+
+        $port = isset($parts['port']) ? ':'.$parts['port'] : '';
+        $actionOrigin = strtolower($parts['scheme'].'://'.$parts['host'].$port);
+        $requestOrigin = strtolower($request->getSchemeAndHttpHost());
+
+        return hash_equals($requestOrigin, $actionOrigin)
+            ? $actionUrl
+            : route('account.notifications.index');
     }
 }

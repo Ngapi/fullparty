@@ -173,6 +173,9 @@ it('returns matching discoverable run ids for the filter payload', function () {
     expect($responseImageUrl)->toContain('/storage/runs/generated-discovery/');
 
     $imagePath = ltrim((string) parse_url($responseImageUrl, PHP_URL_PATH), '/');
+    expect($imagePath)->toEndWith('.png')
+        ->not->toEndWith('.svg');
+
     Storage::disk('public')->assertExists(str_replace('storage/', '', $imagePath));
 });
 

@@ -312,10 +312,49 @@ it('stores uploaded admin images with a server-detected image extension instead 
     );
     $draftSmallImagePath = activityTypePublicStoragePath($storedUrl);
 
-    expect($draftSmallImagePath)->toEndWith('.png')
+    expect($draftSmallImagePath)->toEndWith('.jpg')
         ->not->toEndWith('.php');
 
     Storage::disk('public')->assertExists($draftSmallImagePath);
+});
+
+it('rejects svg uploads for activity type images', function () {
+    Storage::fake('public');
+
+    $admin = User::factory()->create([
+        'is_admin' => true,
+    ]);
+
+    $characterClass = CharacterClass::create([
+        'name' => 'White Mage',
+        'shorthand' => 'WHM',
+        'role' => 'healer',
+    ]);
+
+    $phantomBard = PhantomJob::create([
+        'name' => 'Phantom Bard',
+        'max_level' => 20,
+    ]);
+
+    $phantomZerker = PhantomJob::create([
+        'name' => 'Phantom Zerker',
+        'max_level' => 20,
+    ]);
+
+    $payload = activityTypeAdminPayload($characterClass, $phantomBard, $phantomZerker);
+    $payload['draft_small_image'] = UploadedFile::fake()->createWithContent(
+        'payload.svg',
+        '<svg xmlns="http://www.w3.org/2000/svg"><script>alert(1)</script></svg>',
+    );
+
+    $this
+        ->actingAs($admin)
+        ->from(route('admin.activity-types.create'))
+        ->post(route('admin.activity-types.store'), $payload)
+        ->assertRedirect(route('admin.activity-types.create'))
+        ->assertSessionHasErrors('draft_small_image');
+
+    expect(ActivityType::query()->where('slug', 'forked-tower')->doesntExist())->toBeTrue();
 });
 
 it('publishes roster summary presets into the activity type version snapshot', function () {

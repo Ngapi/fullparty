@@ -198,6 +198,11 @@ it('generates default group profile and banner images when none are uploaded', f
     $profilePath = ltrim((string) parse_url($group->profile_picture_url, PHP_URL_PATH), '/');
     $bannerPath = ltrim((string) parse_url($group->banner_image_url, PHP_URL_PATH), '/');
 
+    expect($profilePath)->toEndWith('.png')
+        ->and($bannerPath)->toEndWith('.png')
+        ->and($profilePath)->not->toEndWith('.svg')
+        ->and($bannerPath)->not->toEndWith('.svg');
+
     Storage::disk('public')->assertExists(str_replace('storage/', '', $profilePath));
     Storage::disk('public')->assertExists(str_replace('storage/', '', $bannerPath));
 });

@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use App\Models\Character;
 use App\Models\User;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\DB;
 
 class UserSeeder extends Seeder
@@ -63,8 +64,8 @@ class UserSeeder extends Seeder
             'provider_name' => $seededUser['discord_name'],
             'provider_email' => $seededUser['discord_email'],
             'avatar_url' => $seededUser['discord_avatar_url'],
-            'access_token' => $seededUser['discord_access_token'],
-            'refresh_token' => $seededUser['discord_refresh_token'],
+            'access_token' => $this->encryptNullable($seededUser['discord_access_token']),
+            'refresh_token' => $this->encryptNullable($seededUser['discord_refresh_token']),
             'provider_data' => json_encode([
                 'name' => $seededUser['discord_name'],
                 'avatar' => $seededUser['discord_avatar_url'],
@@ -103,6 +104,11 @@ class UserSeeder extends Seeder
         $value = env($key);
 
         return $value === false || $value === '' ? null : $value;
+    }
+
+    private function encryptNullable(?string $value): ?string
+    {
+        return $value === null ? null : Crypt::encryptString($value);
     }
 
     private function syncPrimaryKeySequence(string $table): void

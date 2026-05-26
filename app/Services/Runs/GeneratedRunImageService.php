@@ -7,6 +7,12 @@ use Illuminate\Support\Facades\Storage;
 
 class GeneratedRunImageService
 {
+    private const FALLBACK_PNG = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGOSHzRgAAAAABJRU5ErkJggg==';
+
+    private const IMAGE_WIDTH = 640;
+
+    private const IMAGE_HEIGHT = 960;
+
     public function generateResultImage(Activity $activity, string $activityTypeName): string
     {
         $seed = implode('|', [
@@ -17,55 +23,65 @@ class GeneratedRunImageService
         ]);
 
         $hash = substr(md5($seed), 0, 10);
-        $path = 'runs/generated-discovery/'.$activity->id.'-'.$hash.'.svg';
+        $path = 'runs/generated-discovery/'.$activity->id.'-'.$hash.'.png';
 
-        if (! Storage::disk('public')->exists($path)) {
-            Storage::disk('public')->put($path, $this->buildSvg($activity, $activityTypeName, $seed));
-        }
+        Storage::disk('public')->put($path, $this->buildPng($activity, $seed));
 
         return Storage::disk('public')->url($path);
     }
 
-    private function buildSvg(Activity $activity, string $activityTypeName, string $seed): string
+    private function buildPng(Activity $activity, string $seed): string
     {
+        if (! function_exists('imagecreatetruecolor')) {
+            return base64_decode(self::FALLBACK_PNG, true) ?: '';
+        }
+
         [$base, $secondary, $accent, $soft] = $this->paletteForDifficulty(
             $activity->activityTypeVersion?->difficulty ?? $activity->activityType?->currentPublishedVersion?->difficulty,
             $seed,
         );
 
-        $title = $this->escapeSvg($activityTypeName);
+        $canvas = imagecreatetruecolor(self::IMAGE_WIDTH, self::IMAGE_HEIGHT);
 
-        return <<<SVG
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 960" role="img" aria-label="{$title}">
-  <defs>
-    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stop-color="rgb({$base[0]},{$base[1]},{$base[2]})"/>
-      <stop offset="100%" stop-color="rgb({$secondary[0]},{$secondary[1]},{$secondary[2]})"/>
-    </linearGradient>
-    <radialGradient id="glowA" cx="28%" cy="18%" r="62%">
-      <stop offset="0%" stop-color="rgba({$accent[0]},{$accent[1]},{$accent[2]},0.58)"/>
-      <stop offset="100%" stop-color="rgba({$accent[0]},{$accent[1]},{$accent[2]},0)"/>
-    </radialGradient>
-    <radialGradient id="glowB" cx="82%" cy="24%" r="55%">
-      <stop offset="0%" stop-color="rgba({$soft[0]},{$soft[1]},{$soft[2]},0.38)"/>
-      <stop offset="100%" stop-color="rgba({$soft[0]},{$soft[1]},{$soft[2]},0)"/>
-    </radialGradient>
-  </defs>
-  <rect width="640" height="960" fill="url(#bg)"/>
-  <rect width="640" height="960" fill="url(#glowA)"/>
-  <rect width="640" height="960" fill="url(#glowB)"/>
-  <path d="M0 710L118 520L228 616L338 442L454 584L560 410L640 482V960H0Z" fill="rgba(255,255,255,0.06)"/>
-  <path d="M0 818L142 640L242 710L372 556L486 708L640 598V960H0Z" fill="rgba(6,10,18,0.34)"/>
-  <circle cx="162" cy="180" r="132" fill="rgba({$soft[0]},{$soft[1]},{$soft[2]},0.10)"/>
-  <circle cx="500" cy="160" r="172" fill="rgba(255,255,255,0.06)"/>
-  <path d="M78 62L246 134L168 312L34 246Z" fill="rgba({$accent[0]},{$accent[1]},{$accent[2]},0.14)"/>
-  <path d="M438 82L598 126L556 276L396 220Z" fill="rgba({$soft[0]},{$soft[1]},{$soft[2]},0.10)"/>
-  <path d="M122 0L46 960" stroke="rgba(255,255,255,0.08)" stroke-width="1"/>
-  <path d="M278 0L232 960" stroke="rgba(255,255,255,0.06)" stroke-width="1"/>
-  <path d="M436 0L520 960" stroke="rgba(255,255,255,0.05)" stroke-width="1"/>
-  <path d="M560 0L640 960" stroke="rgba(255,255,255,0.04)" stroke-width="1"/>
-</svg>
-SVG;
+        if (! $canvas) {
+            return base64_decode(self::FALLBACK_PNG, true) ?: '';
+        }
+
+        imagealphablending($canvas, true);
+        imagesavealpha($canvas, true);
+
+        for ($y = 0; $y < self::IMAGE_HEIGHT; $y++) {
+            $mix = $y / max(1, self::IMAGE_HEIGHT - 1);
+            $red = (int) round($base[0] + (($secondary[0] - $base[0]) * $mix));
+            $green = (int) round($base[1] + (($secondary[1] - $base[1]) * $mix));
+            $blue = (int) round($base[2] + (($secondary[2] - $base[2]) * $mix));
+            $lineColor = imagecolorallocate($canvas, $red, $green, $blue);
+            imageline($canvas, 0, $y, self::IMAGE_WIDTH, $y, $lineColor);
+        }
+
+        $accentGlow = imagecolorallocatealpha($canvas, $accent[0], $accent[1], $accent[2], 74);
+        $softGlow = imagecolorallocatealpha($canvas, $soft[0], $soft[1], $soft[2], 92);
+        $mountainBack = imagecolorallocatealpha($canvas, 255, 255, 255, 112);
+        $mountainFront = imagecolorallocatealpha($canvas, 6, 10, 18, 42);
+        $line = imagecolorallocatealpha($canvas, 255, 255, 255, 116);
+
+        imagefilledellipse($canvas, 162, 180, 264, 264, $softGlow);
+        imagefilledellipse($canvas, 500, 160, 344, 344, $accentGlow);
+        imagefilledpolygon($canvas, [0, 710, 118, 520, 228, 616, 338, 442, 454, 584, 560, 410, 640, 482, 640, 960, 0, 960], $mountainBack);
+        imagefilledpolygon($canvas, [0, 818, 142, 640, 242, 710, 372, 556, 486, 708, 640, 598, 640, 960, 0, 960], $mountainFront);
+
+        foreach ([122, 278, 436, 560] as $index => $x) {
+            imageline($canvas, $x, 0, $index % 2 === 0 ? max(0, $x - 76) : min(self::IMAGE_WIDTH, $x + 84), self::IMAGE_HEIGHT, $line);
+        }
+
+        ob_start();
+        imagepng($canvas);
+        $binary = ob_get_clean();
+        imagedestroy($canvas);
+
+        return is_string($binary) && $binary !== ''
+            ? $binary
+            : (base64_decode(self::FALLBACK_PNG, true) ?: '');
     }
 
     /**
@@ -138,10 +154,5 @@ SVG;
         $range = max(1, $max - $min);
 
         return $min + ($raw % ($range + 1));
-    }
-
-    private function escapeSvg(string $value): string
-    {
-        return htmlspecialchars($value, ENT_QUOTES | ENT_XML1, 'UTF-8');
     }
 }

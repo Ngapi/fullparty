@@ -14,6 +14,11 @@ class ApplicantQueuePayloadBuilder
 {
     use InteractsWithActivitySlotFieldDisplay;
 
+    /**
+     * @var array<int, Collection<int, ActivitySlot>>
+     */
+    private array $slotHistoryCache = [];
+
     public function __construct(
         private readonly ApplicantMilestoneResolver $milestoneResolver,
         private readonly ApplicationAnswerPresenter $answerPresenter,
@@ -88,8 +93,7 @@ class ApplicantQueuePayloadBuilder
         int $currentUserId,
         Collection $groupNotesByUserId,
         Collection $sharedNotesByUserId,
-    ): array
-    {
+    ): array {
         return [
             'id' => $application->id,
             'is_guest' => $application->user_id === null,
@@ -184,14 +188,12 @@ class ApplicantQueuePayloadBuilder
      */
     private function serializeApplicantUserStats(?int $userId, ?int $groupId): ?array
     {
-        if (!$userId) {
+        if (! $userId) {
             return null;
         }
 
-        static $slotHistoryCache = [];
-
-        if (!array_key_exists($userId, $slotHistoryCache)) {
-            $slotHistoryCache[$userId] = ActivitySlot::query()
+        if (! array_key_exists($userId, $this->slotHistoryCache)) {
+            $this->slotHistoryCache[$userId] = ActivitySlot::query()
                 ->with(['fieldValues', 'activity'])
                 ->whereNotNull('assigned_character_id')
                 ->whereHas('assignedCharacter', fn ($query) => $query->where('user_id', $userId))
@@ -209,7 +211,7 @@ class ApplicantQueuePayloadBuilder
         }
 
         /** @var Collection<int, ActivitySlot> $allSlots */
-        $allSlots = collect($slotHistoryCache[$userId]);
+        $allSlots = collect($this->slotHistoryCache[$userId]);
         $groupSlots = $groupId
             ? $allSlots->filter(fn (ActivitySlot $slot) => (int) $slot->activity?->group_id === (int) $groupId)->values()
             : collect();
@@ -257,7 +259,7 @@ class ApplicantQueuePayloadBuilder
                 $fieldValue = $slot->fieldValues->firstWhere('field_key', 'character_class');
                 $meta = $this->resolveSlotFieldDisplayMeta($fieldValue);
 
-                if (!$fieldValue || !$meta || blank($meta['name'] ?? null)) {
+                if (! $fieldValue || ! $meta || blank($meta['name'] ?? null)) {
                     return null;
                 }
 
@@ -301,7 +303,7 @@ class ApplicantQueuePayloadBuilder
                 $fieldValue = $slot->fieldValues->firstWhere('field_key', 'phantom_job');
                 $meta = $this->resolveSlotFieldDisplayMeta($fieldValue);
 
-                if (!$fieldValue || !$meta || blank($meta['name'] ?? null)) {
+                if (! $fieldValue || ! $meta || blank($meta['name'] ?? null)) {
                     return null;
                 }
 

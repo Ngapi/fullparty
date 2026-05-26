@@ -42,6 +42,39 @@ it('forbids non admins from viewing the system notifications page', function () 
         ->assertForbidden();
 });
 
+it('rejects non-http action urls for system notifications and banners', function () {
+    $admin = User::factory()->admin()->create();
+
+    $this->actingAs($admin)
+        ->post(route('admin.system-notifications.maintenance.store'), [
+            'headline' => 'Scheduled maintenance',
+            'message' => 'FullParty will be unavailable while we patch the app.',
+            'scheduled_for' => '2026-05-20 18:00:00',
+            'action_url' => 'javascript:alert(1)',
+        ])
+        ->assertSessionHasErrors('action_url');
+
+    $this->actingAs($admin)
+        ->post(route('admin.system-notifications.announcements.store'), [
+            'headline' => 'New feature drop',
+            'message' => 'Follower muting is now live for groups.',
+            'action_url' => 'javascript:alert(1)',
+        ])
+        ->assertSessionHasErrors('action_url');
+
+    $this->actingAs($admin)
+        ->put(route('admin.system-notifications.banner.store'), [
+            'title' => 'Service degradation',
+            'message' => 'Roster updates may take longer than usual while we work through a database issue.',
+            'action_label' => 'View status',
+            'action_url' => 'javascript:alert(1)',
+        ])
+        ->assertSessionHasErrors('action_url');
+
+    expect(SystemNotificationBroadcast::query()->count())->toBe(0)
+        ->and(SystemBanner::query()->count())->toBe(0);
+});
+
 it('sends mandatory maintenance notifications in app and off site regardless of the category preference', function () {
     Queue::fake();
 

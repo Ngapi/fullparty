@@ -17,6 +17,8 @@ class DevelopmentSeeder extends Seeder
      */
     public function run(): void
     {
+        abort_if(app()->environment('production'), 403);
+
         fake()->seed(20260425);
         mt_srand(20260425);
 

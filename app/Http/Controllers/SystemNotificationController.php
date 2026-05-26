@@ -41,22 +41,22 @@ class SystemNotificationController extends Controller
                 $event = $broadcast->notificationEvent;
 
                 return [
-                'id' => sprintf('broadcast:%d', $broadcast->id),
-                'type' => $event?->type,
-                'is_mandatory' => (bool) $event?->is_mandatory,
-                'title_key' => $event?->title_key,
-                'body_key' => $event?->body_key,
-                'message_params' => $event?->message_params,
-                'action_url' => $event?->action_url,
-                'payload' => $event?->payload,
-                'created_at' => $broadcast->created_at?->toIso8601String(),
-                'actor' => [
-                    'id' => $event?->actor?->id,
-                    'name' => $event?->actor?->name ?? 'System',
-                ],
-                'read_count' => (int) $broadcast->reads_count,
-                'delivery_count' => (int) ($event?->deliveries_count ?? 0),
-            ];
+                    'id' => sprintf('broadcast:%d', $broadcast->id),
+                    'type' => $event?->type,
+                    'is_mandatory' => (bool) $event?->is_mandatory,
+                    'title_key' => $event?->title_key,
+                    'body_key' => $event?->body_key,
+                    'message_params' => $event?->message_params,
+                    'action_url' => $event?->action_url,
+                    'payload' => $event?->payload,
+                    'created_at' => $broadcast->created_at?->toIso8601String(),
+                    'actor' => [
+                        'id' => $event?->actor?->id,
+                        'name' => $event?->actor?->name ?? 'System',
+                    ],
+                    'read_count' => (int) $broadcast->reads_count,
+                    'delivery_count' => (int) ($event?->deliveries_count ?? 0),
+                ];
             }),
         ]);
     }
@@ -69,7 +69,7 @@ class SystemNotificationController extends Controller
             'headline' => ['required', 'string', 'max:120'],
             'message' => ['required', 'string', 'max:2000'],
             'scheduled_for' => ['nullable', 'date'],
-            'action_url' => ['nullable', 'url', 'max:2048'],
+            'action_url' => ['nullable', 'url:http,https', 'max:2048'],
         ]);
 
         $actor = request()->user();
@@ -108,7 +108,7 @@ class SystemNotificationController extends Controller
         $validated = request()->validate([
             'headline' => ['required', 'string', 'max:120'],
             'message' => ['required', 'string', 'max:2000'],
-            'action_url' => ['nullable', 'url', 'max:2048'],
+            'action_url' => ['nullable', 'url:http,https', 'max:2048'],
         ]);
 
         $actor = request()->user();
@@ -146,7 +146,7 @@ class SystemNotificationController extends Controller
             'title' => ['required', 'string', 'max:120'],
             'message' => ['required', 'string', 'max:2000'],
             'action_label' => ['nullable', 'string', 'max:40', 'required_with:action_url'],
-            'action_url' => ['nullable', 'url', 'max:2048', 'required_with:action_label'],
+            'action_url' => ['nullable', 'url:http,https', 'max:2048', 'required_with:action_label'],
         ]);
 
         $actor = request()->user();
@@ -203,7 +203,7 @@ class SystemNotificationController extends Controller
 
     private function authorizeAdminAccess(): void
     {
-        if (!auth()->user()?->is_admin) {
+        if (! auth()->user()?->is_admin) {
             abort(403);
         }
     }

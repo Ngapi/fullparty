@@ -10,6 +10,11 @@ use Illuminate\Support\Facades\Log;
 
 class ApplicantMilestoneResolver
 {
+    /**
+     * @var array<string, Collection<int, array<string, mixed>>>
+     */
+    private array $encounterRankingsCache = [];
+
     public function __construct(
         private readonly CharacterZoneProgressFetcher $zoneProgressFetcher,
     ) {}
@@ -19,7 +24,7 @@ class ApplicantMilestoneResolver
      */
     public function serialize(?Character $character, ?ActivityTypeVersion $activityTypeVersion): array
     {
-        if (!$character || !$activityTypeVersion) {
+        if (! $character || ! $activityTypeVersion) {
             return [];
         }
 
@@ -104,7 +109,7 @@ class ApplicantMilestoneResolver
             ->keyBy('key');
         $boss = $bosses->get($bossKey);
 
-        if (!is_array($boss)) {
+        if (! is_array($boss)) {
             return [
                 'kills' => 0,
                 'progress_percent' => 0,
@@ -134,7 +139,7 @@ class ApplicantMilestoneResolver
             return (int) data_get($ranking, 'encounter.id', 0) === $encounterId;
         });
 
-        if (!is_array($match)) {
+        if (! is_array($match)) {
             return [
                 'kills' => 0,
                 'progress_percent' => 0,
@@ -152,12 +157,10 @@ class ApplicantMilestoneResolver
      */
     private function fetchEncounterRankings(Character $character, int $zoneId): Collection
     {
-        static $cache = [];
-
         $cacheKey = sprintf('%d:%d', $zoneId, $character->id);
 
-        if (array_key_exists($cacheKey, $cache)) {
-            return $cache[$cacheKey];
+        if (array_key_exists($cacheKey, $this->encounterRankingsCache)) {
+            return $this->encounterRankingsCache[$cacheKey];
         }
 
         try {
@@ -171,10 +174,10 @@ class ApplicantMilestoneResolver
                 'exception' => $exception->getMessage(),
             ]);
 
-            return $cache[$cacheKey] = collect();
+            return $this->encounterRankingsCache[$cacheKey] = collect();
         }
 
-        return $cache[$cacheKey] = $this->extractEncounterRankings($rawZoneRankings);
+        return $this->encounterRankingsCache[$cacheKey] = $this->extractEncounterRankings($rawZoneRankings);
     }
 
     /**

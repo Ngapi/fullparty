@@ -720,22 +720,29 @@ class GroupActivityApplicationController extends Controller
         array $answers,
         ?string $notes,
     ): void {
-        UserActivityApplicationDefault::query()->updateOrCreate(
-            [
+        $defaults = UserActivityApplicationDefault::query()
+            ->where('user_id', $userId)
+            ->where('activity_type_id', $activity->activity_type_id)
+            ->first();
+
+        if (! $defaults instanceof UserActivityApplicationDefault) {
+            $defaults = new UserActivityApplicationDefault;
+            $defaults->forceFill([
                 'user_id' => $userId,
                 'activity_type_id' => $activity->activity_type_id,
-            ],
-            [
-                'selected_character_id' => $selectedCharacterId,
-                'answers' => collect($answers)
-                    ->mapWithKeys(fn (array $answer) => [
-                        (string) ($answer['question_key'] ?? '') => $answer['value'] ?? null,
-                    ])
-                    ->filter(fn ($value, string $key) => $key !== '')
-                    ->all(),
-                'notes' => $notes,
-            ],
-        );
+            ]);
+        }
+
+        $defaults->forceFill([
+            'selected_character_id' => $selectedCharacterId,
+            'answers' => collect($answers)
+                ->mapWithKeys(fn (array $answer) => [
+                    (string) ($answer['question_key'] ?? '') => $answer['value'] ?? null,
+                ])
+                ->filter(fn ($value, string $key) => $key !== '')
+                ->all(),
+            'notes' => $notes,
+        ])->save();
     }
 
     /**

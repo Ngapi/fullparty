@@ -1,22 +1,22 @@
 <?php
 
 use App\Events\UserNotificationsUpdated;
+use App\Jobs\SendNotificationEmailDeliveryJob;
 use App\Mail\NotificationDeliveryMail;
 use App\Models\NotificationDelivery;
 use App\Models\NotificationEvent;
-use App\Models\UserNotification;
 use App\Models\SocialAccount;
 use App\Models\User;
-use App\Services\Notifications\NotificationService;
+use App\Models\UserNotification;
+use App\Services\Notifications\EmailNotificationDeliveryService;
 use App\Services\Notifications\NotificationMessageRenderer;
+use App\Services\Notifications\NotificationService;
 use App\Support\Notifications\NotificationCategory;
 use App\Support\Notifications\NotificationChannel;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Queue;
-use App\Jobs\SendNotificationEmailDeliveryJob;
-use App\Services\Notifications\EmailNotificationDeliveryService;
 
 uses(RefreshDatabase::class);
 
@@ -424,7 +424,7 @@ it('routes optional system announcement emails through the postmark broadcast st
         'email_notifications' => true,
     ]);
 
-    $event = NotificationEvent::query()->create([
+    $event = NotificationEvent::query()->forceCreate([
         'type' => 'system.announcement',
         'category' => NotificationCategory::SYSTEM_NOTICES,
         'is_mandatory' => false,
@@ -450,7 +450,7 @@ it('routes optional system announcement emails through the postmark broadcast st
 it('renders assignment notification emails with translated copy instead of raw keys', function () {
     $recipient = User::factory()->create();
 
-    $event = NotificationEvent::query()->create([
+    $event = NotificationEvent::query()->forceCreate([
         'type' => 'assignments.roster_published_assigned',
         'category' => NotificationCategory::ASSIGNMENTS,
         'title_key' => 'notifications.assignments.roster_published_assigned.title',
@@ -478,7 +478,7 @@ it('rejects invalid notification categories', function () {
 
 it('rejects invalid notification channels', function () {
     $recipient = User::factory()->create();
-    $event = NotificationEvent::query()->create([
+    $event = NotificationEvent::query()->forceCreate([
         'type' => 'applications.submitted',
         'category' => NotificationCategory::APPLICATIONS,
         'title_key' => 'notifications.applications.submitted.title',

@@ -5,8 +5,8 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 
 class NotificationEvent extends Model
@@ -16,10 +16,6 @@ class NotificationEvent extends Model
     protected $fillable = [
         'type',
         'category',
-        'is_mandatory',
-        'actor_user_id',
-        'subject_type',
-        'subject_id',
         'title_key',
         'body_key',
         'message_params',

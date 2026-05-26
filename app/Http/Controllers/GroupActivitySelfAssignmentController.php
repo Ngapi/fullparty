@@ -9,6 +9,7 @@ use App\Models\ActivitySlot;
 use App\Models\ActivitySlotAssignment;
 use App\Models\Character;
 use App\Models\Group;
+use App\Models\User;
 use App\Services\Groups\ActivityManagementRealtimeService;
 use App\Services\Groups\ActivitySlotAssignmentService;
 use App\Services\Groups\ActivitySlotAttendanceService;
@@ -47,6 +48,8 @@ class GroupActivitySelfAssignmentController extends Controller
         if (! $this->canAccessOverview($request, $group, $activity, $secretKey)) {
             abort(404);
         }
+
+        $this->ensureCanSelfAssign($group, $user);
 
         if ($activity->needs_application) {
             abort(404);
@@ -151,6 +154,8 @@ class GroupActivitySelfAssignmentController extends Controller
             abort(404);
         }
 
+        $this->ensureCanSelfAssign($group, $user);
+
         if ($activity->needs_application) {
             abort(404);
         }
@@ -240,5 +245,16 @@ class GroupActivitySelfAssignmentController extends Controller
         return response()->json([
             'slot' => $serializedSlot,
         ]);
+    }
+
+    private function ensureCanSelfAssign(Group $group, User $user): void
+    {
+        if ($group->isBanned($user->id)) {
+            abort(404);
+        }
+
+        if (! $group->isOwnedBy($user->id) && ! $group->hasMember($user->id)) {
+            abort(404);
+        }
     }
 }

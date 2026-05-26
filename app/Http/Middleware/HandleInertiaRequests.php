@@ -4,6 +4,8 @@ namespace App\Http\Middleware;
 
 use App\Models\Group;
 use App\Models\GroupMembership;
+use App\Models\SocialAccount;
+use App\Models\User;
 use App\Services\Notifications\NotificationInboxService;
 use App\Services\SystemBannerService;
 use App\Support\Groups\GroupDiscoveryBadgePalette;
@@ -54,13 +56,7 @@ class HandleInertiaRequests extends Middleware
                 'data' => fn () => $request->session()->get('flash_data', []), ],
             'auth' => [
                 'user' => fn () => $request->user()
-                    ? array_merge(
-                        $request->user()->load(['primaryCharacter', 'socialAccounts'])->toArray(),
-                        [
-                            'primary_character' => $request->user()->primaryCharacter,
-                            'social_accounts' => $request->user()->socialAccounts,
-                        ]
-                    )
+                    ? $this->serializeAuthenticatedUser($request->user())
                     : null,
             ],
             'navigation' => [
@@ -151,5 +147,49 @@ class HandleInertiaRequests extends Middleware
                 'href' => route('groups.dashboard', $group, false),
             ])
             ->all();
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function serializeAuthenticatedUser(User $user): array
+    {
+        $user->loadMissing(['primaryCharacter', 'socialAccounts']);
+
+        return [
+            'id' => $user->id,
+            'name' => $user->name,
+            'email' => $user->email,
+            'avatar_url' => $user->avatar_url,
+            'email_verified_at' => $user->email_verified_at?->toIso8601String(),
+            'is_admin' => (bool) $user->is_admin,
+            'public_profile' => (bool) $user->public_profile,
+            'public_characters' => (bool) $user->public_characters,
+            'application_notifications' => (bool) $user->application_notifications,
+            'run_and_reminder_notifications' => (bool) $user->run_and_reminder_notifications,
+            'group_update_notifications' => (bool) $user->group_update_notifications,
+            'assignment_notifications' => (bool) $user->assignment_notifications,
+            'account_character_notifications' => (bool) $user->account_character_notifications,
+            'system_notice_notifications' => (bool) $user->system_notice_notifications,
+            'email_notifications' => (bool) $user->email_notifications,
+            'discord_notifications' => (bool) $user->discord_notifications,
+            'primary_character' => $user->primaryCharacter ? [
+                'id' => $user->primaryCharacter->id,
+                'name' => $user->primaryCharacter->name,
+                'world' => $user->primaryCharacter->world,
+                'datacenter' => $user->primaryCharacter->datacenter,
+                'avatar_url' => $user->primaryCharacter->avatar_url,
+            ] : null,
+            'social_accounts' => $user->socialAccounts
+                ->map(fn (SocialAccount $socialAccount) => [
+                    'id' => $socialAccount->id,
+                    'provider' => $socialAccount->provider,
+                    'provider_name' => $socialAccount->provider_name,
+                    'provider_email' => $socialAccount->provider_email,
+                    'avatar_url' => $socialAccount->avatar_url,
+                ])
+                ->values()
+                ->all(),
+        ];
     }
 }

@@ -147,6 +147,12 @@ class ManagedImageStorage
             ]);
         }
 
+        if (! $this->extensionFromMimeType($contentType)) {
+            throw ValidationException::withMessages([
+                $field => 'The image must be a JPG, PNG, GIF, or WEBP file.',
+            ]);
+        }
+
         return $response;
     }
 
@@ -260,21 +266,39 @@ class ManagedImageStorage
 
     private function resolveUploadedImageExtension(UploadedFile $file): string
     {
-        return $this->extensionFromMimeType((string) $file->getMimeType())
-            ?? $this->sanitizeImageExtension($file->extension())
-            ?? 'png';
+        $extension = $this->extensionFromMimeType($this->mimeTypeFromImageContents($file) ?? '')
+            ?? $this->extensionFromMimeType((string) $file->getMimeType())
+            ?? $this->sanitizeImageExtension($file->extension());
+
+        if ($extension) {
+            return $extension;
+        }
+
+        throw ValidationException::withMessages([
+            'image' => 'The uploaded image must be a JPG, PNG, GIF, or WEBP file.',
+        ]);
+    }
+
+    private function mimeTypeFromImageContents(UploadedFile $file): ?string
+    {
+        $imageInfo = @getimagesize($file->getRealPath());
+
+        if (! is_array($imageInfo) || ! isset($imageInfo['mime'])) {
+            return null;
+        }
+
+        return is_string($imageInfo['mime']) ? $imageInfo['mime'] : null;
     }
 
     private function extensionFromMimeType(string $mimeType): ?string
     {
-        return match (strtolower(trim($mimeType))) {
+        $normalized = strtolower(trim(explode(';', $mimeType, 2)[0]));
+
+        return match ($normalized) {
             'image/jpeg', 'image/jpg' => 'jpg',
             'image/png' => 'png',
             'image/gif' => 'gif',
             'image/webp' => 'webp',
-            'image/svg+xml' => 'svg',
-            'image/bmp', 'image/x-ms-bmp' => 'bmp',
-            'image/avif' => 'avif',
             default => null,
         };
     }
@@ -292,9 +316,6 @@ class ManagedImageStorage
             'png' => 'png',
             'gif' => 'gif',
             'webp' => 'webp',
-            'svg' => 'svg',
-            'bmp' => 'bmp',
-            'avif' => 'avif',
             default => null,
         };
     }

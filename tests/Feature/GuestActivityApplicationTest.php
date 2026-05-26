@@ -373,7 +373,7 @@ it('prefills new authenticated applications from remembered defaults for the sam
         'lodestone_id' => '55112235',
     ]);
 
-    UserActivityApplicationDefault::query()->create([
+    UserActivityApplicationDefault::query()->forceCreate([
         'user_id' => $user->id,
         'activity_type_id' => $activity->activity_type_id,
         'selected_character_id' => $character->id,
@@ -458,7 +458,7 @@ it('filters stale remembered application defaults before sending them to the new
         'lodestone_id' => '55112237',
     ]);
 
-    UserActivityApplicationDefault::query()->create([
+    UserActivityApplicationDefault::query()->forceCreate([
         'user_id' => $user->id,
         'activity_type_id' => $type->id,
         'selected_character_id' => $otherCharacter->id,
@@ -536,7 +536,7 @@ it('does not overwrite remembered application defaults when an authenticated use
         'lodestone_id' => '55112238',
     ]);
 
-    UserActivityApplicationDefault::query()->create([
+    UserActivityApplicationDefault::query()->forceCreate([
         'user_id' => $user->id,
         'activity_type_id' => $activity->activity_type_id,
         'selected_character_id' => $character->id,

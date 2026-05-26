@@ -11,7 +11,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 uses(RefreshDatabase::class);
 
 it('uses enabled defaults for notification categories while optional system notices and off site channels stay off', function () {
-    $user = User::query()->create([
+    $user = User::query()->forceCreate([
         'name' => 'Settings Tester',
         'email' => 'settings@example.com',
         'password' => 'password',

@@ -172,6 +172,7 @@ it('claims matching guest applications and auto-refreshes on xivauth import', fu
 it('claims matching guest applications and auto-refreshes on manual verification', function () {
     $user = User::factory()->create();
     $character = Character::factory()->provisional()->create([
+        'user_id' => $user->id,
         'lodestone_id' => '12345678',
         'name' => 'Token Applicant',
         'world' => 'Twintania',
@@ -305,7 +306,61 @@ it('generates a fresh verification token for provisional characters during manua
 
     expect($character->token)->not->toBeNull()
         ->and($character->token)->toStartWith('FP-')
-        ->and($character->expires_at)->not->toBeNull();
+        ->and($character->expires_at)->not->toBeNull()
+        ->and($character->user_id)->toBe($user->id);
+});
+
+it('does not expose another users provisional verification token during manual lookup', function () {
+    $owner = User::factory()->create();
+    $viewer = User::factory()->create();
+    $character = Character::factory()->unverified()->create([
+        'user_id' => $owner->id,
+        'lodestone_id' => '99887766',
+        'token' => 'FP-SECRET',
+        'expires_at' => now()->addDay(),
+    ]);
+
+    $response = $this
+        ->actingAs($viewer)
+        ->from(route('account.characters'))
+        ->post(route('characters.exists'), [
+            'lodestone_id' => '99887766',
+        ]);
+
+    $response
+        ->assertRedirect(route('account.characters'))
+        ->assertSessionHas('flash_data.manual_character_lookup.taken', true)
+        ->assertSessionMissing('flash_data.manual_character_lookup.character.token');
+
+    $character->refresh();
+
+    expect($character->user_id)->toBe($owner->id)
+        ->and($character->token)->toBe('FP-SECRET');
+});
+
+it('does not allow manual verification of another users provisional character', function () {
+    $owner = User::factory()->create();
+    $viewer = User::factory()->create();
+    $character = Character::factory()->unverified()->create([
+        'user_id' => $owner->id,
+        'lodestone_id' => '88776655',
+        'token' => 'FP-SECRET',
+        'expires_at' => now()->addDay(),
+    ]);
+
+    $this
+        ->actingAs($viewer)
+        ->post(route('characters.verify'), [
+            'character_id' => $character->id,
+            'token' => 'FP-SECRET',
+        ])
+        ->assertForbidden();
+
+    $character->refresh();
+
+    expect($character->user_id)->toBe($owner->id)
+        ->and($character->verified_at)->toBeNull()
+        ->and($character->token)->toBe('FP-SECRET');
 });
 
 it('returns a form validation error for invalid lodestone input during manual lookup', function () {

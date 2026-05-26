@@ -17,10 +17,7 @@ use Illuminate\Notifications\Notifiable;
 #[Fillable([
     'name',
     'email',
-    'password',
-    'email_verified_at',
     'avatar_url',
-    'is_admin',
     'public_profile',
     'public_characters',
     'application_notifications',

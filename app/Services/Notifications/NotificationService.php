@@ -37,7 +37,7 @@ class NotificationService
 
         $subjectPayload = $this->resolveSubject($subject);
 
-        return NotificationEvent::query()->create([
+        return NotificationEvent::query()->forceCreate([
             'type' => $type,
             'category' => $category,
             'is_mandatory' => $isMandatory,
@@ -103,10 +103,10 @@ class NotificationService
                     ->latest('created_at')
                     ->first();
 
-                if (!$existingNotification) {
+                if (! $existingNotification) {
                     $this->syncAggregateCountOnEvent($event, $incrementBy);
 
-                    $notification = UserNotification::query()->create([
+                    $notification = UserNotification::query()->forceCreate([
                         'notification_event_id' => $event->id,
                         'user_id' => $recipient->id,
                         'aggregate_key' => $aggregateKey,
@@ -171,6 +171,7 @@ class NotificationService
                     ], true)
                 ) {
                     $deliveries->push($delivery);
+
                     continue;
                 }
 
@@ -222,7 +223,7 @@ class NotificationService
             ->whereBetween('id', [$minUserId, $maxUserId])
             ->orderBy('id');
 
-        if (!$event->is_mandatory) {
+        if (! $event->is_mandatory) {
             $query->where(NotificationCategory::preferenceField($event->category), true);
         }
 
@@ -264,11 +265,11 @@ class NotificationService
             : collect($recipients)->all();
 
         foreach ($items as $recipient) {
-            if (!$recipient instanceof User) {
+            if (! $recipient instanceof User) {
                 throw new InvalidArgumentException('Notification recipients must be persisted user models.');
             }
 
-            if (!$recipient->exists) {
+            if (! $recipient->exists) {
                 throw new InvalidArgumentException('Notification recipients must be persisted user models.');
             }
         }
@@ -297,7 +298,7 @@ class NotificationService
      */
     private function resolveDeliveryOutcome(NotificationEvent $event, User $recipient, string $channel): array
     {
-        if (!$this->recipientWantsEvent($recipient, $event)) {
+        if (! $this->recipientWantsEvent($recipient, $event)) {
             return [
                 'status' => NotificationDelivery::STATUS_SKIPPED,
                 'reason' => 'category_preference_disabled',
@@ -317,7 +318,7 @@ class NotificationService
      */
     private function resolveEmailDeliveryOutcome(User $recipient): array
     {
-        if (!$recipient->email_notifications) {
+        if (! $recipient->email_notifications) {
             return [
                 'status' => NotificationDelivery::STATUS_SKIPPED,
                 'reason' => 'channel_preference_disabled',
@@ -325,7 +326,7 @@ class NotificationService
             ];
         }
 
-        if (!filled($recipient->email)) {
+        if (! filled($recipient->email)) {
             return [
                 'status' => NotificationDelivery::STATUS_SKIPPED,
                 'reason' => 'missing_email_address',
@@ -347,7 +348,7 @@ class NotificationService
     {
         $target = $this->resolveDiscordTarget($recipient);
 
-        if (!$recipient->discord_notifications) {
+        if (! $recipient->discord_notifications) {
             return [
                 'status' => NotificationDelivery::STATUS_SKIPPED,
                 'reason' => 'channel_preference_disabled',
@@ -355,7 +356,7 @@ class NotificationService
             ];
         }
 
-        if (!$target) {
+        if (! $target) {
             return [
                 'status' => NotificationDelivery::STATUS_SKIPPED,
                 'reason' => 'missing_discord_account',

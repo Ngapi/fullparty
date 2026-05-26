@@ -14,8 +14,6 @@ class UserNotification extends Model
         'notification_event_id',
         'user_id',
         'aggregate_key',
-        'aggregate_count',
-        'read_at',
     ];
 
     protected $casts = [
@@ -39,8 +37,8 @@ class UserNotification extends Model
             return;
         }
 
-        $this->update([
+        $this->forceFill([
             'read_at' => now(),
-        ]);
+        ])->save();
     }
 }

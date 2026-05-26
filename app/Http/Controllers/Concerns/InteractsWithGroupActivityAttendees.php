@@ -18,8 +18,14 @@ trait InteractsWithGroupActivityAttendees
 
     private function canAccessOverview(Request $request, Group $group, Activity $activity, ?string $secretKey): bool
     {
+        $userId = $request->user()?->id;
+
+        if ($group->isBanned($userId)) {
+            return false;
+        }
+
         if (Activity::isModeratorOnlyStatus($activity->status)) {
-            return $group->hasModeratorAccess($request->user()?->id);
+            return $group->hasModeratorAccess($userId);
         }
 
         if ($activity->is_public) {
@@ -27,7 +33,7 @@ trait InteractsWithGroupActivityAttendees
                 return true;
             }
 
-            return $group->hasMember($request->user()?->id);
+            return $group->hasMember($userId);
         }
 
         return filled($secretKey)

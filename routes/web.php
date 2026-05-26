@@ -205,7 +205,9 @@ Route::prefix('{locale?}')
                 Route::post('/reset-password', [AuthController::class, 'resetPassword'])->name('password.update');
 
                 Route::post('/register', [AuthController::class, 'register'])->name('register.store');
-                Route::post('/login', [AuthController::class, 'login'])->name('login.store');
+                Route::post('/login', [AuthController::class, 'login'])
+                    ->middleware('throttle:login')
+                    ->name('login.store');
             });
 
             // Email verification lifecycle.

@@ -193,6 +193,7 @@ Use a real production configuration for these variables:
 REVERB_APP_ID=fullparty
 REVERB_APP_KEY=your-reverb-key
 REVERB_APP_SECRET=your-reverb-secret
+REVERB_ALLOWED_ORIGINS=https://your-domain.example
 
 REVERB_SERVER_HOST=0.0.0.0
 REVERB_SERVER_PORT=8080
@@ -212,6 +213,8 @@ Notes:
 - `REVERB_SERVER_*` is where the Reverb process listens
 - `REVERB_*` is what Laravel and the browser client use to connect
 - if the site runs behind SSL, `REVERB_SCHEME=https` and `REVERB_PORT=443` should be set accordingly
+- generate a unique `REVERB_APP_KEY` and `REVERB_APP_SECRET` for each deployment; never reuse placeholder values or credentials copied from examples
+- set `REVERB_ALLOWED_ORIGINS` to the exact browser origins that should connect, separated by commas if you use more than one origin
 
 After changing env values, FullParty should refresh Laravel config during deploy:
 
@@ -271,6 +274,16 @@ That covers:
 - notification tables
 - group follow tables
 - and everything else the app now depends on
+
+### Audit log table hardening
+
+In production, `audit_logs` should be append-only for the application database role. Run this as the PostgreSQL database owner or an administrative role after migrations:
+
+```sql
+REVOKE UPDATE, DELETE ON TABLE audit_logs FROM "your-app-db-user";
+```
+
+Replace `your-app-db-user` with the role used by `DB_USERNAME`. This is intentionally a deploy/database step rather than an app migration, because an application role that owns its own tables cannot meaningfully protect those tables from itself.
 
 ## 6. Queue Worker Setup in Forge
 

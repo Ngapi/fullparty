@@ -181,6 +181,86 @@ it('allows a signed-in user to self-assign one of their verified characters to a
         ->and($auditLog?->actor_user_id)->toBe($user->id);
 });
 
+it('does not allow banned group members to view the attendee overview', function () {
+    extract(createNonApplicationSelfAssignmentSetup());
+
+    $group->bans()->create([
+        'user_id' => $user->id,
+        'banned_by_user_id' => $owner->id,
+        'reason' => 'Removed from the group.',
+    ]);
+
+    $this->actingAs($user)
+        ->get(route('groups.activities.overview', [
+            'group' => $group->slug,
+            'activity' => $activity->id,
+        ]))
+        ->assertNotFound();
+});
+
+it('does not allow banned group members to self-assign roster slots', function () {
+    extract(createNonApplicationSelfAssignmentSetup());
+
+    $slot = $mainSlots->first();
+
+    $group->bans()->create([
+        'user_id' => $user->id,
+        'banned_by_user_id' => $owner->id,
+        'reason' => 'Removed from the group.',
+    ]);
+
+    $this->actingAs($user)
+        ->postJson(route('groups.activities.self-assignments.store', [
+            'group' => $group->slug,
+            'activity' => $activity->id,
+            'slot' => $slot->id,
+        ]), [
+            'character_id' => $character->id,
+            'expected_slot_state_token' => activity_slot_state_token($slot),
+            'field_values' => [
+                'character_class' => (string) $tankClass->id,
+                'phantom_job' => (string) $phantomKnight->id,
+            ],
+        ])
+        ->assertNotFound();
+
+    expect($slot->fresh()->assigned_character_id)->toBeNull();
+});
+
+it('does not allow secret-key viewers without group membership to self-assign roster slots', function () {
+    extract(createNonApplicationSelfAssignmentSetup());
+
+    $slot = $mainSlots->first();
+    $outsider = User::factory()->create();
+    $outsiderCharacter = Character::factory()->create([
+        'user_id' => $outsider->id,
+        'verified_at' => now(),
+    ]);
+
+    $activity->update([
+        'is_public' => false,
+        'secret_key' => str_repeat('s', 40),
+    ]);
+
+    $this->actingAs($outsider)
+        ->postJson(route('groups.activities.self-assignments.store', [
+            'group' => $group->slug,
+            'activity' => $activity->id,
+            'slot' => $slot->id,
+            'secretKey' => $activity->secret_key,
+        ]), [
+            'character_id' => $outsiderCharacter->id,
+            'expected_slot_state_token' => activity_slot_state_token($slot),
+            'field_values' => [
+                'character_class' => (string) $tankClass->id,
+                'phantom_job' => (string) $phantomKnight->id,
+            ],
+        ])
+        ->assertNotFound();
+
+    expect($slot->fresh()->assigned_character_id)->toBeNull();
+});
+
 it('does not allow a user to self-assign more than one slot in the same run', function () {
     extract(createNonApplicationSelfAssignmentSetup());
 

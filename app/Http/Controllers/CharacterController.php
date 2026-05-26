@@ -81,7 +81,20 @@ class CharacterController extends Controller
         }
         // If the character exists but has not been verified, tell the user to claim it
         if ($character) {
+            if ($character->user_id !== null && $character->user_id !== auth()->id()) {
+                return Redirect::back()->with('flash_data', [
+                    'manual_character_lookup' => [
+                        'taken' => true,
+                    ],
+                ]);
+            }
+
+            if ($character->user_id === null) {
+                $character->user_id = auth()->id();
+            }
+
             $this->renewVerificationTokenIfNeeded($character);
+            $character->save();
 
             return Redirect::back()->with('flash_data', [
                 'manual_character_lookup' => [
@@ -151,6 +164,8 @@ class CharacterController extends Controller
             'character_id' => ['required', 'exists:characters,id'],
         ]);
         $character = Character::find($validated['character_id']);
+
+        abort_unless($character->user_id === auth()->id(), 403);
 
         if ($character->isVerified()) {
             return Redirect::back()->with('flash_data', [

@@ -254,6 +254,25 @@ it('redirects notification opens without an action url back to the notifications
     });
 });
 
+it('does not redirect notification opens to external action urls', function () {
+    Event::fake([UserNotificationsUpdated::class]);
+
+    $user = User::factory()->create();
+    $notification = createNotificationForUser(
+        $user,
+        actionUrl: 'https://attacker.example/phish',
+    );
+
+    $this->actingAs($user);
+
+    $this->get(route('account.notifications.open', $notification))
+        ->assertRedirect(route('account.notifications.index'));
+
+    expect($notification->fresh()->read_at)->not->toBeNull();
+
+    Event::assertDispatchedTimes(UserNotificationsUpdated::class, 1);
+});
+
 it('opens a broadcast notification, marks it as read, and redirects to its action url', function () {
     Event::fake([UserNotificationsUpdated::class]);
 
@@ -293,7 +312,7 @@ function createNotificationForUser(
 ): UserNotification {
     $timestamp = $createdAt ?? now();
 
-    $event = NotificationEvent::query()->create([
+    $event = NotificationEvent::query()->forceCreate([
         'type' => 'user.settings.notifications_updated',
         'category' => 'account_character_updates',
         'title_key' => 'notifications.user.settings.notifications_updated.title',
@@ -311,7 +330,7 @@ function createNotificationForUser(
         'updated_at' => $timestamp,
     ])->saveQuietly();
 
-    $notification = UserNotification::query()->create([
+    $notification = UserNotification::query()->forceCreate([
         'notification_event_id' => $event->id,
         'user_id' => $user->id,
         'read_at' => $readAt,
@@ -334,7 +353,7 @@ function createSystemBroadcast(
 ): SystemNotificationBroadcast {
     $timestamp = $createdAt ?? now();
 
-    $event = NotificationEvent::query()->create([
+    $event = NotificationEvent::query()->forceCreate([
         'type' => $type,
         'category' => 'system_notices',
         'is_mandatory' => $isMandatory,

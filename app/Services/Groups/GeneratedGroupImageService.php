@@ -2,11 +2,12 @@
 
 namespace App\Services\Groups;
 
-use App\Models\Group;
 use Illuminate\Support\Facades\Storage;
 
 class GeneratedGroupImageService
 {
+    private const FALLBACK_PNG = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGOSHzRgAAAAABJRU5ErkJggg==';
+
     private const BANNER_WIDTH = 1500;
 
     private const BANNER_HEIGHT = 400;
@@ -16,13 +17,13 @@ class GeneratedGroupImageService
     public function generateBannerImage(string $slug, string $name, ?string $datacenter): string
     {
         if (! function_exists('imagecreatetruecolor')) {
-            return $this->storeSvgBanner($slug, $name, $datacenter);
+            return $this->storeFallbackPng('groups/generated-banners/'.$slug.'.png');
         }
 
         $canvas = imagecreatetruecolor(self::BANNER_WIDTH, self::BANNER_HEIGHT);
 
         if (! $canvas) {
-            return $this->storeSvgBanner($slug, $name, $datacenter);
+            return $this->storeFallbackPng('groups/generated-banners/'.$slug.'.png');
         }
 
         imagealphablending($canvas, true);
@@ -54,7 +55,7 @@ class GeneratedGroupImageService
         imagedestroy($canvas);
 
         if (! is_string($binary) || $binary === '') {
-            return $this->storeSvgBanner($slug, $name, $datacenter);
+            return $this->storeFallbackPng('groups/generated-banners/'.$slug.'.png');
         }
 
         $path = 'groups/generated-banners/'.$slug.'.png';
@@ -66,13 +67,13 @@ class GeneratedGroupImageService
     public function generateProfileImage(string $slug, string $name, ?string $datacenter): string
     {
         if (! function_exists('imagecreatetruecolor')) {
-            return $this->storeSvgProfile($slug, $name, $datacenter);
+            return $this->storeFallbackPng('groups/generated-profiles/'.$slug.'.png');
         }
 
         $canvas = imagecreatetruecolor(self::PROFILE_SIZE, self::PROFILE_SIZE);
 
         if (! $canvas) {
-            return $this->storeSvgProfile($slug, $name, $datacenter);
+            return $this->storeFallbackPng('groups/generated-profiles/'.$slug.'.png');
         }
 
         imagealphablending($canvas, true);
@@ -97,7 +98,7 @@ class GeneratedGroupImageService
         imagedestroy($canvas);
 
         if (! is_string($binary) || $binary === '') {
-            return $this->storeSvgProfile($slug, $name, $datacenter);
+            return $this->storeFallbackPng('groups/generated-profiles/'.$slug.'.png');
         }
 
         $path = 'groups/generated-profiles/'.$slug.'.png';
@@ -361,66 +362,9 @@ class GeneratedGroupImageService
         );
     }
 
-    private function storeSvgBanner(string $slug, string $name, ?string $datacenter): string
+    private function storeFallbackPng(string $path): string
     {
-        $base = $this->palette($slug.'-svg-base', 22, 74);
-        $secondary = $this->palette($slug.'-svg-secondary', 70, 156);
-        $accent = $this->palette($slug.'-svg-accent', 120, 220);
-        $safeName = $this->escapeSvg($name);
-        $safeRegion = $this->escapeSvg(Group::regionForDatacenter($datacenter) ?? '');
-
-        $svg = <<<SVG
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1500 400" role="img" aria-label="{$safeName}">
-  <defs>
-    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stop-color="rgb({$base[0]},{$base[1]},{$base[2]})"/>
-      <stop offset="100%" stop-color="rgb({$secondary[0]},{$secondary[1]},{$secondary[2]})"/>
-    </linearGradient>
-  </defs>
-  <rect width="1500" height="400" fill="url(#bg)"/>
-  <circle cx="240" cy="120" r="180" fill="rgba({$accent[0]},{$accent[1]},{$accent[2]},0.22)"/>
-  <circle cx="1180" cy="160" r="210" fill="rgba(255,255,255,0.08)"/>
-  <path d="M0 310L180 170L360 300L620 150L860 300L1110 170L1500 290V400H0Z" fill="rgba(8,11,22,0.35)"/>
-  <text x="60" y="340" fill="rgba(248,250,252,0.92)" font-size="34" font-family="Arial, sans-serif">{$safeName}</text>
-  <text x="60" y="374" fill="rgba(226,232,240,0.72)" font-size="18" font-family="Arial, sans-serif">{$safeRegion}</text>
-</svg>
-SVG;
-
-        $path = 'groups/generated-banners/'.$slug.'.svg';
-        Storage::disk('public')->put($path, $svg);
-
-        return Storage::disk('public')->url($path);
-    }
-
-    private function storeSvgProfile(string $slug, string $name, ?string $datacenter): string
-    {
-        $base = $this->palette($slug.'-profile-svg-base', 24, 82);
-        $secondary = $this->palette($slug.'-profile-svg-secondary', 84, 176);
-        $accent = $this->palette($slug.'-profile-svg-accent', 160, 235);
-        $initials = $this->escapeSvg($this->initials($name));
-        $safeName = $this->escapeSvg($name);
-        $safeRegion = $this->escapeSvg(Group::regionForDatacenter($datacenter) ?? '');
-
-        $svg = <<<SVG
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 800" role="img" aria-label="{$safeName}">
-  <defs>
-    <linearGradient id="profile-bg" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0%" stop-color="rgb({$base[0]},{$base[1]},{$base[2]})"/>
-      <stop offset="100%" stop-color="rgb({$secondary[0]},{$secondary[1]},{$secondary[2]})"/>
-    </linearGradient>
-  </defs>
-  <rect width="800" height="800" fill="url(#profile-bg)"/>
-  <circle cx="210" cy="220" r="180" fill="rgba({$accent[0]},{$accent[1]},{$accent[2]},0.22)"/>
-  <circle cx="570" cy="320" r="220" fill="rgba(255,255,255,0.08)"/>
-  <circle cx="400" cy="400" r="182" fill="rgba(8,11,22,0.22)" stroke="rgba(248,250,252,0.30)" stroke-width="3"/>
-  <circle cx="400" cy="400" r="132" fill="none" stroke="rgba({$accent[0]},{$accent[1]},{$accent[2]},0.52)" stroke-width="2"/>
-  <text x="400" y="418" text-anchor="middle" fill="rgb(248,250,252)" font-size="72" font-family="Arial, sans-serif" font-weight="700">{$initials}</text>
-  <text x="400" y="700" text-anchor="middle" fill="rgba(226,232,240,0.74)" font-size="20" font-family="Arial, sans-serif">{$safeRegion}</text>
-</svg>
-SVG;
-
-        $path = 'groups/generated-profiles/'.$slug.'.svg';
-        Storage::disk('public')->put($path, $svg);
+        Storage::disk('public')->put($path, base64_decode(self::FALLBACK_PNG, true) ?: '');
 
         return Storage::disk('public')->url($path);
     }
@@ -469,10 +413,5 @@ SVG;
         }
 
         return mb_strtoupper(mb_substr(trim($name), 0, 2)) ?: 'GP';
-    }
-
-    private function escapeSvg(string $value): string
-    {
-        return htmlspecialchars($value, ENT_QUOTES | ENT_XML1, 'UTF-8');
     }
 }
