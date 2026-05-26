@@ -56,7 +56,6 @@ class GroupMemberController extends Controller
             'profile_picture_url' => $group->profile_picture_url,
             'discord_invite_url' => $group->discord_invite_url,
             'datacenter' => $group->datacenter,
-            'is_public' => $group->is_public,
             'is_visible' => $group->is_visible,
             'slug' => $group->slug,
             'owner' => [
@@ -74,6 +73,8 @@ class GroupMemberController extends Controller
                 'can_manage_roles' => $group->isOwnedBy($currentUserId),
                 'can_view_bans' => $group->hasModeratorAccess($currentUserId),
                 'can_view_members' => $group->hasMember($currentUserId),
+                'can_review_membership_applications' => $group->usesMembershipApplications() && $group->hasModeratorAccess($currentUserId),
+                'can_manage_membership_application_form' => $group->usesMembershipApplications() && $group->hasAdminAccess($currentUserId),
             ],
         ];
     }

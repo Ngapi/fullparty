@@ -8,6 +8,7 @@ import { route } from "ziggy-js"
 import { useI18n } from "vue-i18n"
 import { localizedValue } from "@/utils/localizedValue"
 import { getActivityStatusMeta } from "@/utils/activityStatusMeta"
+import { createDateTimeFormatter, createRelativeTimeFormatter } from "@/utils/dateTimeFormat"
 import {
 	formatNotificationTime,
 	resolveNotificationDescription,
@@ -196,7 +197,7 @@ const formatDateTime = (value: string | null, fallback: string, options?: Intl.D
 		return fallback
 	}
 
-	return new Intl.DateTimeFormat(locale.value, {
+	return createDateTimeFormatter(locale.value, {
 		weekday: "short",
 		day: "numeric",
 		month: "short",
@@ -221,7 +222,7 @@ const formatRelativeTime = (value: string | null, fallback: string) => {
 
 	for (const [unit, threshold] of units) {
 		if (Math.abs(diffMs) >= threshold) {
-			return new Intl.RelativeTimeFormat(locale.value, { numeric: "auto" }).format(
+			return createRelativeTimeFormatter(locale.value, { numeric: "auto" }).format(
 				Math.round(diffMs / threshold),
 				unit,
 			)

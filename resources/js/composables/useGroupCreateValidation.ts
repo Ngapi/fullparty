@@ -1,5 +1,6 @@
 import type { GroupCreateField, GroupCreateFormData } from "@/Types/Groups";
 import type { InertiaForm } from "@inertiajs/vue3";
+import { isValidDiscordInviteUrl } from "@/utils/discordInviteValidation";
 import { validateGroupProfilePictureFile } from "@/utils/groupProfilePictureValidation";
 import { computed, type ComputedRef, type Ref } from "vue";
 import { useI18n } from "vue-i18n";
@@ -23,9 +24,9 @@ const reservedGroupSlugs = new Set([
 const stepFields: Record<number, GroupCreateField[]> = {
 	1: ["name", "slug", "group_type", "description", "datacenter"],
 	2: ["profile_picture", "banner_image", "discord_invite_url"],
-	3: ["recruiting_status", "primary_focuses", "experience_expectation", "voice_expectation", "preferred_languages", "tags"],
+	3: ["primary_focuses", "experience_expectation", "voice_expectation", "preferred_languages", "tags"],
 	4: ["active_timezone", "active_days", "active_start_time", "active_end_time"],
-	5: ["is_public", "is_visible"],
+	5: ["join_mode", "is_visible"],
 };
 
 type GroupCreateOption = {
@@ -151,10 +152,8 @@ export const useGroupCreateValidation = ({
 			}));
 			isValid = false;
 		} else if (discordInviteUrl) {
-			try {
-				new URL(discordInviteUrl);
-			} catch {
-				setFieldError("discord_invite_url", t("groups.index.create_modal.validation.invalid_url"));
+			if (!isValidDiscordInviteUrl(discordInviteUrl)) {
+				setFieldError("discord_invite_url", t("groups.index.create_modal.validation.invalid_discord_invite"));
 				isValid = false;
 			}
 		}
@@ -190,13 +189,6 @@ export const useGroupCreateValidation = ({
 		form.clearErrors(...stepFields[3]);
 
 		let isValid = true;
-
-		if (!form.recruiting_status) {
-			setFieldError("recruiting_status", t("groups.index.create_modal.validation.required", {
-				field: t("groups.index.create_modal.fields.recruiting_status.label"),
-			}));
-			isValid = false;
-		}
 
 		if (form.primary_focuses.length === 0) {
 			setFieldError("primary_focuses", t("groups.index.create_modal.validation.required", {
@@ -270,6 +262,20 @@ export const useGroupCreateValidation = ({
 		return isValid;
 	};
 
+	const validateStepFive = () => {
+		form.clearErrors(...stepFields[5]);
+
+		if (!form.join_mode) {
+			setFieldError("join_mode", t("groups.index.create_modal.validation.required", {
+				field: t("groups.index.create_modal.fields.join_mode.label"),
+			}));
+
+			return false;
+		}
+
+		return true;
+	};
+
 	const validateCurrentStep = () => {
 		if (step.value === 1) {
 			return validateStepOne();
@@ -285,6 +291,10 @@ export const useGroupCreateValidation = ({
 
 		if (step.value === 4) {
 			return validateStepFour();
+		}
+
+		if (step.value === 5) {
+			return validateStepFive();
 		}
 
 		return true;

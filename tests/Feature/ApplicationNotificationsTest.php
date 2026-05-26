@@ -54,7 +54,7 @@ it('notifies eligible moderators when an authenticated user submits an applicati
     $owner = User::factory()->create([
         'application_notifications' => true,
     ]);
-    $group = Group::factory()->public()->create([
+    $group = Group::factory()->open()->create([
         'owner_id' => $owner->id,
     ]);
     $optedInModerator = User::factory()->create([
@@ -140,7 +140,7 @@ it('aggregates moderator new-application notifications per activity until they a
     $owner = User::factory()->create([
         'application_notifications' => true,
     ]);
-    $group = Group::factory()->public()->create([
+    $group = Group::factory()->open()->create([
         'owner_id' => $owner->id,
     ]);
     $activity = createApplicationNotificationActivity($owner, $group, [
@@ -236,7 +236,7 @@ it('notifies eligible moderators when an application is updated', function () {
     $owner = User::factory()->create([
         'application_notifications' => true,
     ]);
-    $group = Group::factory()->public()->create([
+    $group = Group::factory()->open()->create([
         'owner_id' => $owner->id,
     ]);
     $activity = createApplicationNotificationActivity($owner, $group, [
@@ -292,7 +292,7 @@ it('notifies eligible moderators when an application is withdrawn', function () 
     $owner = User::factory()->create([
         'application_notifications' => true,
     ]);
-    $group = Group::factory()->public()->create([
+    $group = Group::factory()->open()->create([
         'owner_id' => $owner->id,
     ]);
     $activity = createApplicationNotificationActivity($owner, $group, [
@@ -331,7 +331,7 @@ it('notifies eligible moderators when an application is withdrawn', function () 
 
 it('notifies a signed in applicant when their application is declined', function () {
     $owner = User::factory()->create();
-    $group = Group::factory()->public()->create([
+    $group = Group::factory()->open()->create([
         'owner_id' => $owner->id,
     ]);
     $activity = createApplicationNotificationActivity($owner, $group, [
@@ -380,7 +380,7 @@ it('notifies a signed in applicant when their application is declined', function
 
 it('does not create a decline notification when the declined application belongs to a guest', function () {
     $owner = User::factory()->create();
-    $group = Group::factory()->public()->create([
+    $group = Group::factory()->open()->create([
         'owner_id' => $owner->id,
     ]);
     $activity = createApplicationNotificationActivity($owner, $group);
@@ -406,7 +406,7 @@ it('does not create a decline notification when the declined application belongs
 
 it('does not create a separate application-category cancellation notification when a run is cancelled', function () {
     $owner = User::factory()->create();
-    $group = Group::factory()->public()->create([
+    $group = Group::factory()->open()->create([
         'owner_id' => $owner->id,
     ]);
     $activity = createApplicationNotificationActivity($owner, $group, [

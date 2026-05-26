@@ -47,11 +47,7 @@ it('notifies moderators and the owner when a run is created in planning state', 
     $otherModerator = User::factory()->create([
         'group_update_notifications' => true,
     ]);
-    $follower = User::factory()->create([
-        'group_update_notifications' => true,
-    ]);
-
-    $group = Group::factory()->public()->create([
+    $group = Group::factory()->open()->create([
         'owner_id' => $owner->id,
     ]);
 
@@ -67,8 +63,6 @@ it('notifies moderators and the owner when a run is created in planning state', 
             'joined_at' => now(),
         ],
     ]);
-
-    $group->followers()->syncWithoutDetaching([$follower->id]);
 
     extract(createGroupUpdateActivityType($owner));
 
@@ -98,18 +92,18 @@ it('notifies moderators and the owner when a run is created in planning state', 
         ->and(NotificationDelivery::query()->count())->toBe(0);
 });
 
-it('notifies followers when a run is created in scheduled state', function () {
+it('notifies members when a run is created in scheduled state', function () {
     $owner = User::factory()->create([
         'group_update_notifications' => true,
     ]);
     $member = User::factory()->create([
         'group_update_notifications' => true,
     ]);
-    $follower = User::factory()->create([
+    $mutedMember = User::factory()->create([
         'group_update_notifications' => true,
     ]);
 
-    $group = Group::factory()->public()->create([
+    $group = Group::factory()->open()->create([
         'owner_id' => $owner->id,
     ]);
 
@@ -118,14 +112,11 @@ it('notifies followers when a run is created in scheduled state', function () {
         'role' => GroupMembership::ROLE_MEMBER,
         'joined_at' => now(),
     ]);
-
-    $group->followers()->syncWithoutDetaching([$follower->id]);
-
-    $mutedFollower = User::factory()->create([
-        'group_update_notifications' => true,
-    ]);
-    $group->followers()->syncWithoutDetaching([
-        $mutedFollower->id => ['notifications_enabled' => false],
+    $group->memberships()->create([
+        'user_id' => $mutedMember->id,
+        'role' => GroupMembership::ROLE_MEMBER,
+        'joined_at' => now(),
+        'notifications_enabled' => false,
     ]);
 
     extract(createGroupUpdateActivityType($owner));
@@ -151,11 +142,11 @@ it('notifies followers when a run is created in scheduled state', function () {
         ->all();
 
     expect($recipientIds)->toBe(
-        collect([$member->id, $follower->id])->sort()->values()->all()
+        collect([$member->id])->sort()->values()->all()
     );
 });
 
-it('notifies followers when a planned run is later scheduled', function () {
+it('notifies members when a planned run is later scheduled', function () {
     $owner = User::factory()->create([
         'group_update_notifications' => true,
     ]);
@@ -165,11 +156,8 @@ it('notifies followers when a planned run is later scheduled', function () {
     $member = User::factory()->create([
         'group_update_notifications' => true,
     ]);
-    $follower = User::factory()->create([
-        'group_update_notifications' => true,
-    ]);
 
-    $group = Group::factory()->public()->create([
+    $group = Group::factory()->open()->create([
         'owner_id' => $owner->id,
     ]);
 
@@ -185,8 +173,6 @@ it('notifies followers when a planned run is later scheduled', function () {
             'joined_at' => now(),
         ],
     ]);
-
-    $group->followers()->syncWithoutDetaching([$follower->id]);
 
     extract(createGroupUpdateActivityType($owner));
 
@@ -219,9 +205,39 @@ it('notifies followers when a planned run is later scheduled', function () {
         ->all();
 
     expect($recipientIds)->toBe(
-        collect([$owner->id, $member->id, $follower->id])->sort()->values()->all()
+        collect([$owner->id, $member->id])->sort()->values()->all()
     )
         ->and($activity->fresh()->status)->toBe(Activity::STATUS_SCHEDULED);
+});
+
+it('allows members to mute and unmute group notifications', function () {
+    $member = User::factory()->create([
+        'group_update_notifications' => true,
+    ]);
+    $group = Group::factory()
+        ->open()
+        ->withMember($member)
+        ->create();
+
+    $this->actingAs($member)
+        ->from(route('groups.dashboard', $group))
+        ->patch(route('groups.notifications.update', $group), [
+            'enabled' => false,
+        ])
+        ->assertRedirect(route('groups.dashboard', $group))
+        ->assertSessionDoesntHaveErrors();
+
+    expect($group->memberships()->where('user_id', $member->id)->first()?->notifications_enabled)->toBeFalse();
+
+    $this->actingAs($member)
+        ->from(route('groups.dashboard', $group))
+        ->patch(route('groups.notifications.update', $group), [
+            'enabled' => true,
+        ])
+        ->assertRedirect(route('groups.dashboard', $group))
+        ->assertSessionDoesntHaveErrors();
+
+    expect($group->memberships()->where('user_id', $member->id)->first()?->notifications_enabled)->toBeTrue();
 });
 
 it('notifies the affected user when they are promoted and demoted', function () {
@@ -230,7 +246,7 @@ it('notifies the affected user when they are promoted and demoted', function () 
         'group_update_notifications' => true,
     ]);
 
-    $group = Group::factory()->public()->create([
+    $group = Group::factory()->open()->create([
         'owner_id' => $owner->id,
     ]);
 
@@ -269,7 +285,7 @@ it('treats admin as an elevated promotion tier with the same notification flow',
         'group_update_notifications' => true,
     ]);
 
-    $group = Group::factory()->public()->create([
+    $group = Group::factory()->open()->create([
         'owner_id' => $owner->id,
     ]);
 
@@ -301,7 +317,7 @@ it('notifies both sides when ownership is transferred', function () {
         'group_update_notifications' => true,
     ]);
 
-    $group = Group::factory()->public()->create([
+    $group = Group::factory()->open()->create([
         'owner_id' => $owner->id,
     ]);
 
@@ -334,7 +350,7 @@ it('notifies moderators when a user joins or leaves and notifies the user when t
         'group_update_notifications' => true,
     ]);
 
-    $group = Group::factory()->public()->create([
+    $group = Group::factory()->open()->create([
         'owner_id' => $owner->id,
     ]);
 
@@ -400,7 +416,7 @@ it('notifies moderators when a user joins or leaves and notifies the user when t
 it('sanitizes ban reasons before persisting moderation actions', function () {
     $owner = User::factory()->create();
     $member = User::factory()->create();
-    $group = Group::factory()->public()->create([
+    $group = Group::factory()->open()->create([
         'owner_id' => $owner->id,
     ]);
     $group->memberships()->create([

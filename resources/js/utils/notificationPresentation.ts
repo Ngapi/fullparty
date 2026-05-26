@@ -1,4 +1,5 @@
 import type { NotificationDisplayMeta, NotificationRecord, NotificationTranslator } from "@/Types/Notifications"
+import { createRelativeTimeFormatter } from "@/utils/dateTimeFormat"
 
 const TYPE_META: Record<string, NotificationDisplayMeta> = {
 	'user.settings.notifications_updated': {
@@ -153,7 +154,7 @@ export const formatNotificationTime = (value: string | null, locale: string, t: 
 
 	for (const [unit, threshold] of units) {
 		if (Math.abs(diffMs) >= threshold) {
-			return new Intl.RelativeTimeFormat(locale, { numeric: 'auto' }).format(
+			return createRelativeTimeFormatter(locale, { numeric: 'auto' }).format(
 				Math.round(diffMs / threshold),
 				unit,
 			)

@@ -3,6 +3,7 @@ import type { RunDiscoveryResultItemData } from "../../Types/RunDiscovery";
 import { computed } from "vue";
 import { router } from "@inertiajs/vue3";
 import { useI18n } from "vue-i18n";
+import { createDateTimeFormatter } from "@/utils/dateTimeFormat";
 
 const props = defineProps<{
 	item: RunDiscoveryResultItemData
@@ -70,7 +71,7 @@ const scheduleLabel = computed(() => {
 		return t("runs.discovery.results.placeholder_item.schedule.tomorrow");
 	}
 
-	return new Intl.DateTimeFormat(locale.value, {
+	return createDateTimeFormatter(locale.value, {
 		weekday: "short",
 		day: "numeric",
 		month: "short",
@@ -82,7 +83,7 @@ const timeLabel = computed(() => {
 		return "—";
 	}
 
-	return new Intl.DateTimeFormat(locale.value, {
+	return createDateTimeFormatter(locale.value, {
 		hour: "numeric",
 		minute: "2-digit",
 	}).format(startsAtDate.value);
@@ -93,7 +94,7 @@ const timezoneLabel = computed(() => {
 		return Intl.DateTimeFormat().resolvedOptions().timeZone;
 	}
 
-	const parts = new Intl.DateTimeFormat(locale.value, {
+	const parts = createDateTimeFormatter(locale.value, {
 		timeZoneName: "short",
 	}).formatToParts(startsAtDate.value);
 

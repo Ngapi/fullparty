@@ -17,7 +17,7 @@ uses(RefreshDatabase::class);
 function createAttendanceTestSetup(int $partySize = 2, bool $withBench = true): array
 {
     $owner = User::factory()->create();
-    $group = Group::factory()->public()->create([
+    $group = Group::factory()->open()->create([
         'owner_id' => $owner->id,
     ]);
 

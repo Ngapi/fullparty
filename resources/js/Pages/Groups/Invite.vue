@@ -5,6 +5,7 @@ import { Link, router, usePage } from "@inertiajs/vue3";
 import AuthLayout from "@/Layouts/AuthLayout.vue";
 import { route } from "ziggy-js";
 import { useI18n } from "vue-i18n";
+import type { GroupJoinMode, GroupType } from "@/Types/Groups";
 
 const props = defineProps<{
 	invite: {
@@ -21,8 +22,9 @@ const props = defineProps<{
 		description: string | null
 		profile_picture_url: string | null
 		datacenter: string
-		is_public: boolean
 		is_visible: boolean
+		group_type: GroupType
+		join_mode: GroupJoinMode
 		slug: string
 		member_count: number
 		owner: {
@@ -44,6 +46,7 @@ const page = usePage();
 const isAuthenticated = computed(() => Boolean(page.props.auth?.user));
 const isAccepting = computed(() => router.processing);
 const declineHref = computed(() => isAuthenticated.value ? route('groups.index') : '/');
+const joinModeLabel = computed(() => t(`groups.common.join_modes.${props.group.join_mode}.label`));
 
 const acceptInvite = () => {
 	if (!isAuthenticated.value || !props.invite.can_accept || props.group.current_user_is_member) {
@@ -116,10 +119,8 @@ const acceptInvite = () => {
 					</div>
 
 					<div class="invite-info-block">
-						<p class="invite-info-label">{{ group.is_public ? t('general.public_group') : t('general.private_group') }}</p>
-						<p class="invite-info-value">
-							{{ group.is_public ? t('general.public_group') : t('general.private_group') }}
-						</p>
+						<p class="invite-info-label">{{ t('groups.common.labels.join_mode') }}</p>
+						<p class="invite-info-value">{{ joinModeLabel }}</p>
 					</div>
 				</div>
 

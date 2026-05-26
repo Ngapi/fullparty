@@ -5,6 +5,7 @@ import ActivityUpcomingListItem from "@/components/Groups/Activities/ActivityUpc
 import type { ActivityIndexItem } from "@/Types/ActivityCore";
 import { isArchivedActivityStatus } from "@/utils/activityLifecycle";
 import { getActivityStatusDotClass } from "@/utils/activityStatusMeta";
+import { createDateTimeFormatter } from "@/utils/dateTimeFormat";
 
 const props = defineProps<{
 	groupSlug: string
@@ -66,7 +67,7 @@ const selectedDateLabel = computed(() => {
 
 	const [year, month, day] = props.selectedDateKey.split('-').map(Number);
 
-	return new Intl.DateTimeFormat(locale.value, {
+	return createDateTimeFormatter(locale.value, {
 		weekday: 'long',
 		day: 'numeric',
 		month: 'long',

@@ -9,6 +9,7 @@ import type { ActivityIndexItem } from "@/Types/ActivityCore";
 import { canAcceptActivityApplications } from "@/utils/activityLifecycle";
 import { utcToDiscordTimestamp } from "@/utils/discordTimestamp";
 import { localizedValue } from "@/utils/localizedValue";
+import { createDateTimeFormatter } from "@/utils/dateTimeFormat";
 
 const props = defineProps<{
 	groupSlug: string
@@ -119,7 +120,7 @@ const formatDateLabel = () => {
 		return t("groups.activities.cards.no_time");
 	}
 
-	return new Intl.DateTimeFormat(locale.value, {
+	return createDateTimeFormatter(locale.value, {
 		year: "numeric",
 		month: "2-digit",
 		day: "2-digit",
@@ -131,7 +132,7 @@ const formatTimeLabel = () => {
 		return t("groups.activities.cards.no_time");
 	}
 
-	return new Intl.DateTimeFormat(locale.value, {
+	return createDateTimeFormatter(locale.value, {
 		hour: "2-digit",
 		minute: "2-digit",
 	}).format(new Date(props.activity.starts_at));

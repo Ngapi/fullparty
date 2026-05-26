@@ -7,7 +7,7 @@ export type PublicGroupSummary = {
 	id: number
 	name: string
 	slug: string
-	is_public: boolean
+	is_visible: boolean
 }
 
 export type AttendeeActivityType = {

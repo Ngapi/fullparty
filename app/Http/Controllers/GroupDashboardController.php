@@ -42,19 +42,12 @@ class GroupDashboardController extends Controller
 
         $currentUserId = auth()->id();
         $isMember = $group->hasMember($currentUserId);
-        $isFollower = $group->hasFollower($currentUserId);
 
-        if (! $isMember && ! $isFollower) {
+        if (! $isMember) {
             abort(403);
         }
 
         $currentMembership = $group->memberships->firstWhere('user_id', $currentUserId);
-        $currentFollow = $group->followers()
-            ->where('users.id', $currentUserId)
-            ->first();
-        $notificationsEnabled = $currentFollow
-            ? (bool) $currentFollow->pivot->notifications_enabled
-            : true;
         $canManageActivities = $group->hasModeratorAccess($currentUserId);
         $now = now();
         $weekStart = $now->copy()->startOfWeek();
@@ -63,10 +56,6 @@ class GroupDashboardController extends Controller
             ->when(
                 ! $canManageActivities,
                 fn ($activities) => $activities->reject(fn (Activity $activity) => Activity::isModeratorOnlyStatus($activity->status))
-            )
-            ->when(
-                ! $isMember,
-                fn ($activities) => $activities->where('is_public', true)
             )
             ->sortByDesc('updated_at')
             ->values();
@@ -125,7 +114,7 @@ class GroupDashboardController extends Controller
             ->sortByDesc('joined_at')
             ->first()?->joined_at?->toIso8601String();
 
-        return Inertia::render($this->dashboardComponent($group), [
+        return Inertia::render('Dashboard/Groups/CommunityDashboard', [
             'group' => [
                 'id' => $group->id,
                 'name' => $group->name,
@@ -135,11 +124,10 @@ class GroupDashboardController extends Controller
                 'discord_invite_url' => $group->discord_invite_url,
                 'datacenter' => $group->datacenter,
                 'region' => $group->inferredRegion(),
-                'is_public' => $group->is_public,
                 'is_visible' => $group->is_visible,
                 'slug' => $group->slug,
                 'group_type' => $group->group_type,
-                'recruiting_status' => $group->recruiting_status,
+                'join_mode' => $group->join_mode,
                 'primary_focuses' => $group->primary_focuses ?? [],
                 'experience_expectation' => $group->experience_expectation,
                 'voice_expectation' => $group->voice_expectation,
@@ -154,19 +142,20 @@ class GroupDashboardController extends Controller
                 'current_user_role' => $group->memberships
                     ->firstWhere('user_id', $currentUserId)
                     ?->role,
-                'follow' => [
-                    'is_following' => $isMember || $currentFollow !== null,
-                    'notifications_enabled' => $notificationsEnabled,
+                'notifications' => [
+                    'enabled' => (bool) ($currentMembership?->notifications_enabled ?? true),
                 ],
                 'permissions' => [
                     'can_manage_group' => $group->isOwnedBy($currentUserId),
                     'can_manage_members' => $canManageActivities,
                     'can_manage_discovery' => $group->hasAdminAccess($currentUserId),
                     'can_manage_activities' => $canManageActivities,
-                    'can_view_members' => $isMember,
+                    'can_view_members' => true,
+                    'can_review_membership_applications' => $group->usesMembershipApplications() && $group->hasModeratorAccess($currentUserId),
+                    'can_manage_membership_application_form' => $group->usesMembershipApplications() && $group->hasAdminAccess($currentUserId),
                     'can_leave' => $currentMembership instanceof GroupMembership
                         && ! $group->isOwnedBy($currentUserId),
-                    'can_toggle_notifications' => $currentMembership instanceof GroupMembership || $currentFollow !== null,
+                    'can_toggle_notifications' => $currentMembership instanceof GroupMembership,
                 ],
                 'stats' => [
                     'member_count' => $group->memberships->count(),
@@ -193,29 +182,27 @@ class GroupDashboardController extends Controller
                         ->where('is_public', true)
                         ->count(),
                     'last_activity_at' => $lastActivityAt,
-                    'latest_member_join_at' => $isMember ? $latestMemberJoinAt : null,
+                    'latest_member_join_at' => $latestMemberJoinAt,
                 ],
                 'member_role_breakdown' => [
-                    'owner' => $isMember ? $memberRoleBreakdown[GroupMembership::ROLE_OWNER] : 0,
-                    'admin' => $isMember ? $memberRoleBreakdown[GroupMembership::ROLE_ADMIN] : 0,
-                    'moderator' => $isMember ? $memberRoleBreakdown[GroupMembership::ROLE_MODERATOR] : 0,
-                    'member' => $isMember ? $memberRoleBreakdown[GroupMembership::ROLE_MEMBER] : 0,
+                    'owner' => $memberRoleBreakdown[GroupMembership::ROLE_OWNER],
+                    'admin' => $memberRoleBreakdown[GroupMembership::ROLE_ADMIN],
+                    'moderator' => $memberRoleBreakdown[GroupMembership::ROLE_MODERATOR],
+                    'member' => $memberRoleBreakdown[GroupMembership::ROLE_MEMBER],
                 ],
-                'members_preview' => $isMember
-                    ? $group->memberships
-                        ->sortBy(function (GroupMembership $membership) {
-                            return array_search($membership->role, GroupMembership::ROLES, true);
-                        })
-                        ->take(6)
-                        ->values()
-                        ->map(fn (GroupMembership $membership) => [
-                            'id' => $membership->user->id,
-                            'name' => $membership->user->name,
-                            'avatar_url' => $membership->user->avatar_url,
-                            'role' => $membership->role,
-                            'joined_at' => $membership->joined_at?->toIso8601String(),
-                        ])
-                    : [],
+                'members_preview' => $group->memberships
+                    ->sortBy(function (GroupMembership $membership) {
+                        return array_search($membership->role, GroupMembership::ROLES, true);
+                    })
+                    ->take(6)
+                    ->values()
+                    ->map(fn (GroupMembership $membership) => [
+                        'id' => $membership->user->id,
+                        'name' => $membership->user->name,
+                        'avatar_url' => $membership->user->avatar_url,
+                        'role' => $membership->role,
+                        'joined_at' => $membership->joined_at?->toIso8601String(),
+                    ]),
                 'activity_status_breakdown' => collect(Activity::STATUSES)
                     ->map(fn (string $status) => [
                         'status' => $status,
@@ -238,13 +225,6 @@ class GroupDashboardController extends Controller
                     ->map(fn (Activity $activity) => $this->serializeDashboardActivity($activity, $group, $canManageActivities)),
             ],
         ]);
-    }
-
-    private function dashboardComponent(Group $group): string
-    {
-        return $group->group_type === Group::TYPE_STATIC
-            ? 'Dashboard/Groups/StaticDashboard'
-            : 'Dashboard/Groups/CommunityDashboard';
     }
 
     private function activityHistoryTimestamp(Activity $activity): int
@@ -450,7 +430,7 @@ class GroupDashboardController extends Controller
         }
 
         if ($activity->is_public) {
-            return $group->is_public || $group->hasMember(auth()->id());
+            return $group->is_visible || $group->hasMember(auth()->id());
         }
 
         return $canManageActivities && filled($activity->secret_key);

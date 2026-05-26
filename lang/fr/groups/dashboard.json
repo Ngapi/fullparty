@@ -22,8 +22,6 @@
     "no_member_joins": "No member joins recorded"
   },
   "hero": {
-    "public_group": "Public Group",
-    "private_group": "Private Group",
     "visible_group": "Visible in Discovery",
     "hidden_group": "Hidden from Discovery",
     "no_description": "This group has not added a description yet. Use this space to clarify what you run, who it is for, and how people should approach joining.",
@@ -120,8 +118,9 @@
     "configured": "Configured",
     "missing": "Missing",
     "join_mode": "Join Mode",
-    "join_mode_public": "Open Join",
-    "join_mode_private": "Invite Only",
+    "join_mode_open": "Open Group",
+    "join_mode_invite_only": "Invite Only",
+    "join_mode_application": "Application Based",
     "discovery": "Discovery",
     "discovery_visible": "Discoverable",
     "discovery_hidden": "Hidden",

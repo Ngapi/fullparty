@@ -23,7 +23,6 @@ it('seeds groups with populated discovery metadata and generated images', functi
     expect($groups)->toHaveCount(20)
         ->and($groups->every(fn (Group $group) => filled($group->profile_picture_url)))->toBeTrue()
         ->and($groups->every(fn (Group $group) => filled($group->banner_image_url)))->toBeTrue()
-        ->and($groups->every(fn (Group $group) => filled($group->recruiting_status)))->toBeTrue()
         ->and($groups->every(fn (Group $group) => ($group->primary_focuses ?? []) !== []))->toBeTrue()
         ->and($groups->every(fn (Group $group) => filled($group->experience_expectation)))->toBeTrue()
         ->and($groups->every(fn (Group $group) => filled($group->voice_expectation)))->toBeTrue()
@@ -36,7 +35,6 @@ it('seeds groups with populated discovery metadata and generated images', functi
         ->and($groups->every(fn (Group $group) => $group->memberships()->where('role', GroupMembership::ROLE_ADMIN)->exists()))->toBeTrue()
         ->and($forkedTowerGroup->inferredRegion())->toBe('EU')
         ->and($forkedTowerGroup->owner_id)->toBe(1)
-        ->and($forkedTowerGroup->recruiting_status)->toBe('applications_open')
         ->and($forkedTowerGroup->primary_focuses)->toBe(['progression', 'clears', 'reclears'])
         ->and($forkedTowerGroup->preferred_languages)->toBe(['en', 'de', 'fr'])
         ->and($developmentOwner->is_admin)->toBeFalse();

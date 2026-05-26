@@ -44,6 +44,18 @@ const lastActivityText = computed(() => formatRelativeTime(
 const bannerUrl = computed(() => props.group.banner_image_url ?? "/prereqimages/forked.jpg");
 const ownerName = computed(() => props.group.owner.name ?? "—");
 const descriptionText = computed(() => props.group.description || t("groups.index.table.no_description"));
+const joinModeLabel = computed(() => t(`groups.common.join_modes.${props.group.join_mode}.label`));
+const joinModeIcon = computed(() => {
+	if (props.group.join_mode === "open") {
+		return "i-lucide-door-open";
+	}
+
+	if (props.group.join_mode === "application") {
+		return "i-lucide-file-check-2";
+	}
+
+	return "i-lucide-ticket";
+});
 
 function badgeLabel(value: string, group: "experience_expectation" | "voice_expectation" | "primary_focuses") {
 	if (group === "voice_expectation") {
@@ -90,6 +102,10 @@ function openGroup() {
 							<span v-if="group.region" class="inline-flex items-center gap-1">
 								<UIcon name="i-lucide-globe" class="size-3.5" />
 								{{ group.region }}
+							</span>
+							<span class="inline-flex items-center gap-1">
+								<UIcon :name="joinModeIcon" class="size-3.5" />
+								{{ joinModeLabel }}
 							</span>
 						</div>
 					</div>

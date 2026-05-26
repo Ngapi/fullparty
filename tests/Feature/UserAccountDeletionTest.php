@@ -30,10 +30,6 @@ it('anonymizes the account while preserving history-bearing records', function (
         'joined_at' => now(),
     ]);
 
-    $group->followers()->syncWithoutDetaching([
-        $user->id => ['notifications_enabled' => true],
-    ]);
-
     SocialAccount::query()->create([
         'user_id' => $user->id,
         'provider' => 'discord',
@@ -87,7 +83,6 @@ it('anonymizes the account while preserving history-bearing records', function (
         ->and($application->user_id)->toBe($user->id);
 
     expect($group->memberships()->where('user_id', $user->id)->exists())->toBeFalse()
-        ->and($group->followers()->where('users.id', $user->id)->exists())->toBeFalse()
         ->and(SocialAccount::query()->where('user_id', $user->id)->exists())->toBeFalse()
         ->and(DB::table('sessions')->where('user_id', $user->id)->exists())->toBeFalse()
         ->and(DB::table('password_reset_tokens')->where('email', 'test@example.com')->exists())->toBeFalse();

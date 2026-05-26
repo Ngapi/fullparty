@@ -10,7 +10,6 @@ const props = defineProps<{
 
 const { t } = useI18n();
 
-const recruitingBadge = computed(() => props.group.badge_meta.recruiting_status ?? null);
 const experienceBadge = computed(() => props.group.badge_meta.experience_expectation ?? null);
 const voiceBadge = computed(() => props.group.badge_meta.voice_expectation ?? null);
 const focusBadges = computed(() => props.group.badge_meta.primary_focuses ?? []);
@@ -56,7 +55,6 @@ const activityWindowText = computed(() => {
 const descriptionText = computed(() => props.group.description || t("groups.common.states.no_description_long"));
 
 const primaryBadges = computed(() => [
-	recruitingBadge.value,
 	experienceBadge.value,
 	voiceBadge.value,
 	...focusBadges.value,
@@ -65,10 +63,6 @@ const primaryBadges = computed(() => [
 const primaryFocusValues = computed(() => new Set((props.group.primary_focuses ?? []).map((value) => String(value))));
 
 const resolveBadgeLabel = (value: string) => {
-	if (value === props.group.recruiting_status) {
-		return t(`groups.index.create_modal.fields.recruiting_status.options.${value}`);
-	}
-
 	if (value === props.group.experience_expectation) {
 		return t(`groups.index.create_modal.fields.experience_expectation.options.${value}`);
 	}

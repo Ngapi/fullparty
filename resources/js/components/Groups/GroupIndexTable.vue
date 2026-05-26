@@ -4,6 +4,7 @@ import { router } from "@inertiajs/vue3";
 import { route } from "ziggy-js";
 import { computed, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
+import { createRelativeTimeFormatter } from "@/utils/dateTimeFormat";
 
 const props = withDefaults(defineProps<{
 	title: string
@@ -72,7 +73,15 @@ const roleBadge = (role: string | null | undefined) => {
 };
 
 const groupVisibilityIcon = (group: GroupIndexRecord) => {
-	return group.is_public ? 'i-lucide-globe' : 'i-lucide-lock';
+	if (group.join_mode === 'open') {
+		return 'i-lucide-door-open';
+	}
+
+	if (group.join_mode === 'application') {
+		return 'i-lucide-file-check-2';
+	}
+
+	return 'i-lucide-ticket';
 };
 
 const activityText = (value: string | null) => {
@@ -84,7 +93,7 @@ const activityText = (value: string | null) => {
 	const now = new Date();
 	const diffInSeconds = Math.round((date.getTime() - now.getTime()) / 1000);
 	const absoluteSeconds = Math.abs(diffInSeconds);
-	const formatter = new Intl.RelativeTimeFormat(undefined, { numeric: 'auto' });
+	const formatter = createRelativeTimeFormatter(undefined, { numeric: 'auto' });
 
 	if (absoluteSeconds < 60) {
 		return formatter.format(diffInSeconds, 'second');

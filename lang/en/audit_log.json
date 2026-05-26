@@ -134,6 +134,12 @@
         "enabled": "enabled group notifications.",
         "muted": "muted group notifications."
       },
+      "membership_application": {
+        "submitted": "submitted a membership application.",
+        "approved": "approved a membership application.",
+        "declined": "declined a membership application.",
+        "form_updated": "updated the membership application form."
+      },
       "activity": {
         "created": "created an activity.",
         "updated": "updated an activity.",
@@ -276,6 +282,11 @@
     "email": "Email",
     "provider": "Provider",
     "provider_user_id": "Provider User ID",
+    "membership_application_id": "Membership Application",
+    "applicant_user_id": "Applicant",
+    "applicant_name": "Applicant Name",
+    "field_count": "Field Count",
+    "previous_field_count": "Previous Field Count",
     "login_method": "Login Method",
     "registration_method": "Registration Method",
     "remember": "Remember Me",
@@ -356,6 +367,12 @@
         "enabled": "Group notifications enabled",
         "muted": "Group notifications muted"
       },
+      "membership_application": {
+        "submitted": "Membership application submitted",
+        "approved": "Membership application approved",
+        "declined": "Membership application declined",
+        "form_updated": "Membership application form updated"
+      },
       "activity": {
         "created": "Activity created",
         "updated": "Activity updated",
@@ -394,7 +411,7 @@
         "revoked": "Invite link revoked"
       },
       "member": {
-        "joined": "Member joined public group",
+        "joined": "Member joined group",
         "joined_via_invite": "Member joined via invite",
         "left": "Member left group",
         "promoted": "Member role promoted",

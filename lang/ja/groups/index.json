@@ -34,6 +34,8 @@
     "general": "概要",
         "activities": "Runs",
     "members": "メンバー",
+    "membership_applications": "Membership Applications",
+    "application_form": "Application Form",
     "audit_log": "監査ログ",
     "discovery_settings": "Discovery 設定",
     "settings": "設定"
@@ -73,8 +75,16 @@
       "sort_placeholder": "Sort By",
       "more_filters_open": "More Filters",
       "more_filters_close": "Hide Extra Filters",
+      "clear_filters": "フィルターをクリア",
+      "recruiting_method_label": "募集方法",
+      "recruiting_method_placeholder": "募集方法を選択",
       "tags_placeholder": "Search by extra tag",
       "tags_help": "Use this for optional freeform tags such as Late Night or Blind Prog.",
+      "recruiting_methods": {
+        "open": "オープン",
+        "invite_only": "招待",
+        "application": "応募"
+      },
       "size_options": {
         "1": "1+ Members",
         "50": "50+ Members",
@@ -100,13 +110,15 @@
       "title": "Group Details",
       "loading": "Loading group details...",
       "actions": {
-        "follow": "Follow Group",
-        "unfollow": "Unfollow",
         "join": "Join Group",
         "leave": "Leave Group",
         "dashboard": "Dashboard",
+        "apply": "Apply to Join",
         "mute_notifications": "Mute Notifications",
-        "unmute_notifications": "Unmute Notifications"
+        "unmute_notifications": "Unmute Notifications",
+        "invite_required": "Invite Required",
+        "application_required": "Application Based",
+        "application_pending": "Application Pending"
       },
       "tabs": {
         "about": "Info",
@@ -175,7 +187,6 @@
       "active_days": "Active Days",
       "active_hours": "Active Hours",
       "progress": "Progress",
-      "public_group": "Public Group",
       "visible_in_discovery": "Visible in Discovery",
       "description_fallback": "This group has not added a description yet.",
       "not_shared": "Not shared",
@@ -199,9 +210,9 @@
       "2": "プレゼンス",
       "3": "発見設定",
       "4": "活動時間帯",
-      "5": "公開設定"
+      "5": "Access"
     },
-    "slug_preview": "公開招待URL: /invite/{slug}",
+    "slug_preview": "Group slug: {slug}",
     "slug_fallback": "yourslug",
     "slug_warning": "グループ作成後、slug は変更できません。",
     "validation": {
@@ -211,6 +222,7 @@
       "slug_reserved": "この slug は予約済みです。別のものを選んでください。",
       "invalid_option": "{field} の有効な値を選択してください。",
       "invalid_url": "有効な URL を入力してください。",
+      "invalid_discord_invite": "有効な Discord 招待リンクを入力してください。",
       "image_invalid_format": "画像は JPG、JPEG、PNG、WEBP のいずれかである必要があります。",
       "image_too_large": "画像は 5 MB 以下にしてください。",
       "max_tags": "タグは最大 {max} 個まで選択できます。",
@@ -234,8 +246,8 @@
         "subtitle": "普段のタイムゾーン、活動日、よくプレイする時間帯を伝えましょう。"
       },
       "visibility": {
-        "title": "公開範囲と参加設定",
-        "subtitle": "グループが発見可能かどうか、自由に参加できるかどうかを設定します。"
+        "title": "Access",
+        "subtitle": "Choose how people can join, then decide whether this group appears in discovery."
       }
     },
     "fields": {
@@ -283,16 +295,6 @@
       "discord_invite_url": {
         "placeholder": "https://discord.gg/yourserver",
         "help": "任意。メンバーが簡単に参加できるように Discord 招待を追加します。"
-      },
-      "recruiting_status": {
-        "label": "募集状況",
-        "placeholder": "募集状況を選択",
-        "help": "新しいメンバーを積極的に募集しているかどうかを伝えます。",
-        "options": {
-          "looking_for_members": "メンバー募集中",
-          "applications_open": "応募受付中",
-          "closed": "募集停止中"
-        }
       },
       "primary_focuses": {
         "label": "主な方針",
@@ -381,22 +383,25 @@
         "label": "活動終了時間",
         "help": "任意。普段の活動時間帯の終了時刻です。"
       },
-      "is_public": {
-        "label": "公開グループ",
-        "help": "公開グループには誰でも参加でき、今後の公開 Runs は外部ユーザーにも表示されます。"
+      "join_mode": {
+        "label": "Join Mode",
+        "placeholder": "Select a join mode",
+        "help": "Open is community-only. Invite-only and application-based groups can still use generated invite links."
       },
       "is_visible": {
         "label": "検索に表示する",
-        "help": "表示可能なグループは、非公開でも検索や発見に表示されます。"
+        "help": "Visible groups can appear in discovery and search."
       }
     },
     "visibility_summary": {
       "label": "この設定の意味",
       "default_name": "このグループ",
-      "public_visible": "{name} は誰でも参加でき、検索やプロフィールに表示されます。",
-      "public_hidden": "{name} は誰でも参加できますが、発見画面や検索可能なプロフィールには表示されません。",
-      "private_visible": "{name} は招待経由でのみ参加できますが、検索やプロフィールには表示されます。",
-      "private_hidden": "{name} は招待経由でのみ参加でき、発見画面や検索可能なプロフィールには表示されません。"
+      "open_visible": "{name} can be joined by anyone and can appear in discovery.",
+      "open_hidden": "{name} can be joined by anyone with the permanent slug invite, but will stay out of discovery.",
+      "invite_only_visible": "{name} requires a generated invite link and can appear in discovery.",
+      "invite_only_hidden": "{name} requires a generated invite link and will stay out of discovery.",
+      "application_visible": "{name} will use applications for new members and can appear in discovery. Invite links can still add members directly.",
+      "application_hidden": "{name} will use applications for new members and stay out of discovery. Invite links can still add members directly."
     },
     "toasts": {
       "created": "グループを作成しました。"

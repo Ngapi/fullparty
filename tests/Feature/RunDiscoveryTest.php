@@ -19,7 +19,7 @@ beforeEach(function () {
 });
 
 it('renders the run discovery scaffold with lookup data', function () {
-    Group::factory()->public()->create([
+    Group::factory()->open()->create([
         'name' => 'Test Group',
         'slug' => 'testgrup',
     ]);
@@ -87,7 +87,7 @@ it('returns matching discoverable run ids for the filter payload', function () {
     ]);
 
     $matchingGroup = Group::factory()
-        ->public()
+        ->open()
         ->create([
             'datacenter' => 'Light',
             'group_type' => Group::TYPE_COMMUNITY,
@@ -112,7 +112,7 @@ it('returns matching discoverable run ids for the filter payload', function () {
     ]);
 
     $excludedGroup = Group::factory()
-        ->public()
+        ->open()
         ->create([
             'datacenter' => 'Aether',
             'group_type' => Group::TYPE_COMMUNITY,
@@ -206,7 +206,7 @@ it('treats melee-style role hints as dps slots in discovery', function () {
     ]);
 
     $group = Group::factory()
-        ->public()
+        ->open()
         ->create([
             'datacenter' => 'Light',
             'group_type' => Group::TYPE_COMMUNITY,
@@ -248,7 +248,7 @@ it('only exposes private moderator-visible runs to moderators of that group', fu
     ]);
 
     $group = Group::factory()
-        ->private()
+        ->inviteOnly()
         ->create([
             'owner_id' => $moderator->id,
             'datacenter' => 'Light',
@@ -302,7 +302,7 @@ it('shows runs the viewer can apply to, self-assign to, or already has an applic
     ]);
 
     $group = Group::factory()
-        ->public()
+        ->open()
         ->create([
             'datacenter' => 'Light',
             'group_type' => Group::TYPE_COMMUNITY,
@@ -415,7 +415,7 @@ it('matches time-of-day filters in the user timezone instead of the app timezone
     ]);
 
     $group = Group::factory()
-        ->public()
+        ->open()
         ->create([
             'datacenter' => 'Aether',
             'preferred_languages' => ['en'],
@@ -472,7 +472,7 @@ it('uses the updated evening and night boundaries for time-of-day filtering', fu
     ]);
 
     $group = Group::factory()
-        ->public()
+        ->open()
         ->create([
             'datacenter' => 'Light',
             'group_type' => Group::TYPE_COMMUNITY,
@@ -550,7 +550,7 @@ it('lets users save and unsave discoverable runs and filter to saved runs only',
     ]);
 
     $group = Group::factory()
-        ->public()
+        ->open()
         ->create([
             'datacenter' => 'Light',
             'group_type' => Group::TYPE_COMMUNITY,
@@ -646,7 +646,7 @@ it('paginates discovery results at ten runs per page', function () {
     ]);
 
     $group = Group::factory()
-        ->public()
+        ->open()
         ->create([
             'datacenter' => 'Light',
             'group_type' => Group::TYPE_COMMUNITY,

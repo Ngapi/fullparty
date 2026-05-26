@@ -10,6 +10,7 @@ import { getPaginationRowModel } from "@tanstack/vue-table";
 import { computed, ref, useTemplateRef, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import MemberNotesButton from "@/components/Shared/Notes/MemberNotesButton.vue";
+import { createDateTimeFormatter } from "@/utils/dateTimeFormat";
 
 const props = defineProps<{
 	bannedMembers: GroupBannedMemberRecord[]
@@ -34,10 +35,10 @@ const formatShortDate = (value: string | null) => {
 		return notAvailableLabel.value;
 	}
 
-	return new Intl.DateTimeFormat(undefined, {
+	return createDateTimeFormatter(undefined, {
 		year: 'numeric',
-		month: 'short',
-		day: 'numeric',
+		month: '2-digit',
+		day: '2-digit',
 	}).format(new Date(value));
 };
 

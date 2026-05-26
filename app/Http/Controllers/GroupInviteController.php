@@ -31,10 +31,6 @@ class GroupInviteController extends Controller
 
         $group = $invite->group->loadMissing('memberships');
 
-        if (! $group->usesCommunityJoinFlow()) {
-            abort(404);
-        }
-
         return Inertia::render('Groups/Invite', [
             'invite' => [
                 'token' => $invite->token,
@@ -50,9 +46,10 @@ class GroupInviteController extends Controller
                 'description' => $group->description,
                 'profile_picture_url' => $group->profile_picture_url,
                 'datacenter' => $group->datacenter,
-                'is_public' => $group->is_public,
                 'is_visible' => $group->is_visible,
                 'slug' => $group->slug,
+                'group_type' => $group->group_type,
+                'join_mode' => $group->join_mode,
                 'member_count' => $group->memberships->count(),
                 'owner' => [
                     'id' => $group->owner?->id,
@@ -69,12 +66,6 @@ class GroupInviteController extends Controller
     {
         $group->loadMissing('memberships');
         $this->authorizeModeratorAccess($group);
-
-        if (! $group->usesCommunityJoinFlow()) {
-            return redirect()->back()->withErrors([
-                'error' => 'group_invites_unavailable',
-            ]);
-        }
 
         $validated = $request->validate([
             'max_uses' => [
@@ -126,14 +117,6 @@ class GroupInviteController extends Controller
                 ->firstOrFail();
 
             $invite->load('group');
-
-            if (! $invite->group->usesCommunityJoinFlow()) {
-                return [
-                    'accepted' => false,
-                    'banned' => false,
-                    'group' => null,
-                ];
-            }
 
             if ($invite->group->isBanned(auth()->id())) {
                 return [
@@ -269,11 +252,7 @@ class GroupInviteController extends Controller
 
     private function canAcceptInvite(GroupInvite $invite): bool
     {
-        if (! $invite->group->usesCommunityJoinFlow()) {
-            return false;
-        }
-
-        if ($invite->is_system && ! $invite->group->is_public) {
+        if ($invite->is_system && ! $invite->group->hasPermanentInvite()) {
             return false;
         }
 

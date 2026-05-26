@@ -34,10 +34,12 @@ use App\Http\Controllers\GroupActivitySlotUnassignmentController;
 use App\Http\Controllers\GroupAuditLogController;
 use App\Http\Controllers\GroupController;
 use App\Http\Controllers\GroupDashboardController;
-use App\Http\Controllers\GroupFollowController;
 use App\Http\Controllers\GroupInviteController;
 use App\Http\Controllers\GroupMemberController;
 use App\Http\Controllers\GroupMemberNoteController;
+use App\Http\Controllers\GroupMembershipApplicationController;
+use App\Http\Controllers\GroupMembershipApplicationFormController;
+use App\Http\Controllers\GroupMembershipApplicationReviewController;
 use App\Http\Controllers\GroupMembershipController;
 use App\Http\Controllers\GroupSettingsController;
 use App\Http\Controllers\LocaleController;
@@ -119,7 +121,7 @@ Route::prefix('{locale?}')
 
         /*
         |--------------------------------------------------------------------------
-        | Public Groups, Activities, And Invite Pages
+        | Visible Groups, Activities, And Invite Pages
         |--------------------------------------------------------------------------
         |
         | These routes must remain safe for guests and must not leak private activity
@@ -299,16 +301,15 @@ Route::prefix('{locale?}')
 
             /*
             |--------------------------------------------------------------------------
-            | Groups: Membership, Follows, And Moderation
+            | Groups: Membership And Moderation
             |--------------------------------------------------------------------------
             */
 
             Route::post('/groups/{group:slug}/join', [GroupMembershipController::class, 'join'])->name('groups.join');
+            Route::get('/groups/{group:slug}/membership-application', [GroupMembershipApplicationController::class, 'create'])->name('groups.membership-applications.create');
+            Route::post('/groups/{group:slug}/membership-application', [GroupMembershipApplicationController::class, 'store'])->name('groups.membership-applications.store');
             Route::post('/groups/{group:slug}/leave', [GroupMembershipController::class, 'leave'])->name('groups.leave');
-            Route::post('/groups/{group:slug}/follow', [GroupFollowController::class, 'store'])->name('groups.follow');
-            Route::delete('/groups/{group:slug}/follow', [GroupFollowController::class, 'destroy'])->name('groups.unfollow');
-            Route::patch('/groups/{group:slug}/follow-notifications', [GroupFollowController::class, 'updateNotifications'])->name('groups.follow-notifications.update');
-
+            Route::patch('/groups/{group:slug}/notifications', [GroupMembershipController::class, 'updateNotifications'])->name('groups.notifications.update');
             Route::put('/groups/{group:slug}/members/{user}', [GroupMembershipController::class, 'update'])->name('groups.members.update');
             Route::delete('/groups/{group:slug}/members/{user}', [GroupMembershipController::class, 'destroy'])->name('groups.members.destroy');
             Route::post('/groups/{group:slug}/members/{user}/ban', [GroupMembershipController::class, 'ban'])->name('groups.members.ban');
@@ -341,6 +342,11 @@ Route::prefix('{locale?}')
                 // Group dashboard landing and non-activity sections.
                 Route::get('/', [GroupDashboardController::class, 'show'])->name('groups.dashboard');
                 Route::get('/members', [GroupMemberController::class, 'index'])->name('groups.dashboard.members');
+                Route::get('/membership-applications', [GroupMembershipApplicationReviewController::class, 'index'])->name('groups.dashboard.membership-applications.index');
+                Route::post('/membership-applications/{application}/approve', [GroupMembershipApplicationReviewController::class, 'approve'])->name('groups.dashboard.membership-applications.approve');
+                Route::post('/membership-applications/{application}/decline', [GroupMembershipApplicationReviewController::class, 'decline'])->name('groups.dashboard.membership-applications.decline');
+                Route::get('/membership-application-form', [GroupMembershipApplicationFormController::class, 'edit'])->name('groups.dashboard.membership-application-form.edit');
+                Route::put('/membership-application-form', [GroupMembershipApplicationFormController::class, 'update'])->name('groups.dashboard.membership-application-form.update');
                 Route::get('/audit-log', [GroupAuditLogController::class, 'index'])->name('groups.dashboard.audit-log');
                 Route::get('/discovery-settings', [GroupSettingsController::class, 'showDiscovery'])->name('groups.dashboard.discovery-settings');
                 Route::put('/discovery-settings', [GroupSettingsController::class, 'updateDiscovery'])->name('groups.dashboard.discovery-settings.update');

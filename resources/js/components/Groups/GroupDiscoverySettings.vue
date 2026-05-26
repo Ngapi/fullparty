@@ -9,7 +9,6 @@ import { useI18n } from 'vue-i18n'
 import { route } from 'ziggy-js'
 
 type GroupDiscoveryLookups = {
-	recruiting_statuses?: string[]
 	primary_focuses?: string[]
 	experience_expectations?: string[]
 	voice_expectations?: string[]
@@ -34,10 +33,6 @@ const groupDiscoveryLookups = computed<GroupDiscoveryLookups>(() => page.props.l
 const localeOptions = computed(() => (groupDiscoveryLookups.value.preferred_languages ?? []).map((code) => ({
 	value: code,
 	label: uiLocales[code as keyof typeof uiLocales]?.name ?? code.toUpperCase(),
-})))
-const recruitingStatusOptions = computed(() => (groupDiscoveryLookups.value.recruiting_statuses ?? []).map((value) => ({
-	value,
-	label: t(`groups.index.create_modal.fields.recruiting_status.options.${value}`),
 })))
 const primaryFocusOptions = computed(() => (groupDiscoveryLookups.value.primary_focuses ?? []).map((value) => ({
 	value,
@@ -69,7 +64,6 @@ const regionSummary = computed(() => {
 })
 
 const form = useForm({
-	recruiting_status: props.group.recruiting_status ?? '',
 	primary_focuses: [...props.group.primary_focuses],
 	experience_expectation: props.group.experience_expectation ?? '',
 	voice_expectation: props.group.voice_expectation ?? '',
@@ -138,21 +132,6 @@ const submit = () => {
 			</div>
 
 			<div class="grid grid-cols-1 gap-4 xl:grid-cols-2">
-				<UFormField
-					:label="t('groups.index.create_modal.fields.recruiting_status.label')"
-					:help="t('groups.index.create_modal.fields.recruiting_status.help')"
-					:error="form.errors.recruiting_status"
-				>
-					<USelect
-						v-model="form.recruiting_status"
-						class="w-full"
-						:items="recruitingStatusOptions"
-						value-key="value"
-						:placeholder="t('groups.index.create_modal.fields.recruiting_status.placeholder')"
-						:ui="{ base: 'rounded-none' }"
-					/>
-				</UFormField>
-
 				<UFormField
 					:label="t('groups.index.create_modal.fields.experience_expectation.label')"
 					:help="t('groups.index.create_modal.fields.experience_expectation.help')"

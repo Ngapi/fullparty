@@ -17,7 +17,7 @@ uses(RefreshDatabase::class);
 
 it('renders serialized roster slots on the attendee overview page', function () {
     $owner = User::factory()->create();
-    $group = Group::factory()->public()->create([
+    $group = Group::factory()->open()->create([
         'owner_id' => $owner->id,
     ]);
 
@@ -258,7 +258,7 @@ it('renders serialized roster slots on the attendee overview page', function () 
 
 it('exposes the cancellation reason on the attendee overview payload', function () {
     $owner = User::factory()->create();
-    $group = Group::factory()->public()->create([
+    $group = Group::factory()->open()->create([
         'owner_id' => $owner->id,
     ]);
     $type = ActivityType::factory()->create([
@@ -302,7 +302,7 @@ it('exposes the cancellation reason on the attendee overview payload', function 
 
 it('falls back to cancelled application review reasons on the attendee overview payload', function () {
     $owner = User::factory()->create();
-    $group = Group::factory()->public()->create([
+    $group = Group::factory()->open()->create([
         'owner_id' => $owner->id,
     ]);
     $type = ActivityType::factory()->create([
@@ -350,7 +350,7 @@ it('falls back to cancelled application review reasons on the attendee overview 
 
 it('exposes completion summary data on the attendee overview payload', function () {
     $owner = User::factory()->create();
-    $group = Group::factory()->public()->create([
+    $group = Group::factory()->open()->create([
         'owner_id' => $owner->id,
     ]);
     $type = ActivityType::factory()->create([

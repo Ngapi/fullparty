@@ -11,6 +11,7 @@ import ApplicantUserStats from "@/components/Groups/Activities/ApplicantUserStat
 import type { LocalizedText } from "@/Types/Common";
 import type { QueueApplication } from "@/Types/ActivityQueue";
 import { activityTextLimits } from "@/utils/activityTextLimits";
+import { createDateTimeFormatter } from "@/utils/dateTimeFormat";
 
 const props = defineProps<{
 	groupSlug: string
@@ -130,7 +131,7 @@ const submittedAtLabel = computed(() => {
 		return t('groups.activities.management.queue.no_submission_time');
 	}
 
-	return new Intl.DateTimeFormat(locale.value, {
+	return createDateTimeFormatter(locale.value, {
 		year: 'numeric',
 		month: '2-digit',
 		day: '2-digit',

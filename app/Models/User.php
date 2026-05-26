@@ -111,13 +111,6 @@ class User extends Authenticatable implements MustVerifyEmail
             ->withTimestamps();
     }
 
-    public function followedGroups(): BelongsToMany
-    {
-        return $this->belongsToMany(Group::class, 'group_follows')
-            ->withPivot(['notifications_enabled'])
-            ->withTimestamps();
-    }
-
     public function moderatedGroups(): BelongsToMany
     {
         return $this->groups()->wherePivotIn('role', [

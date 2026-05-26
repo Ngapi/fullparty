@@ -34,12 +34,12 @@ it('renders the personal dashboard summary with participation and group data', f
         'provider_name' => 'XIVAuth User',
     ]);
 
-    $ownedGroup = Group::factory()->public()->create([
+    $ownedGroup = Group::factory()->open()->create([
         'owner_id' => $user->id,
         'name' => 'Owned Group',
     ]);
 
-    $moderatedGroup = Group::factory()->public()->create([
+    $moderatedGroup = Group::factory()->open()->create([
         'name' => 'Moderated Group',
     ]);
     $moderatedGroup->memberships()->create([
@@ -48,7 +48,7 @@ it('renders the personal dashboard summary with participation and group data', f
         'joined_at' => now()->subDays(2),
     ]);
 
-    $memberGroup = Group::factory()->public()->create([
+    $memberGroup = Group::factory()->open()->create([
         'name' => 'Member Group',
     ]);
     $memberGroup->memberships()->create([

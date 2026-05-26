@@ -12,6 +12,7 @@ use App\Support\Auth\OAuthEmailVerification;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 use Laravel\Socialite\Socialite;
+use Laravel\Socialite\Two\InvalidStateException;
 
 class GoogleAuthController extends Controller
 {
@@ -27,7 +28,13 @@ class GoogleAuthController extends Controller
 
     public function callback()
     {
-        $googleUser = Socialite::driver('google')->user();
+        try {
+            $googleUser = Socialite::driver('google')->user();
+        } catch (InvalidStateException) {
+            return redirect()
+                ->route('settings')
+                ->withErrors(['error' => 'social_oauth_invalid_state']);
+        }
 
         $provider = 'google';
         $providerUserId = (string) $googleUser->getId();

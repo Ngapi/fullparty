@@ -2,6 +2,7 @@
 import { computed } from "vue"
 import { useI18n } from "vue-i18n"
 import type { ActivityCompletionSummary } from "@/Types/ActivityProgression"
+import { createDateTimeFormatter } from "@/utils/dateTimeFormat";
 
 const props = defineProps<{
 	completedProgression: ActivityCompletionSummary
@@ -14,7 +15,7 @@ const completedAtLabel = computed(() => {
 		return t("groups.activities.management.overview.progression.not_recorded")
 	}
 
-	return new Intl.DateTimeFormat(locale.value, {
+	return createDateTimeFormatter(locale.value, {
 		year: "numeric",
 		month: "2-digit",
 		day: "2-digit",

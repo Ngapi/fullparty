@@ -8,10 +8,12 @@
     "visibility_summary_label": "Visibility Summary",
     "visibility_summary": {
       "default_name": "This group",
-      "public_visible": "{name} can be joined by anyone and will show up in search and profiles.",
-      "public_hidden": "{name} can be joined by anyone, but it will not show up in discovery or searchable profiles.",
-      "private_visible": "{name} can only be joined via invite, but it will still show up in search and profiles.",
-      "private_hidden": "{name} can only be joined via invite and will stay hidden from discovery and searchable profiles."
+      "open_visible": "{name} can be joined by anyone and can appear in discovery.",
+      "open_hidden": "{name} can be joined by anyone with the permanent slug invite, but will stay out of discovery.",
+      "invite_only_visible": "{name} requires a generated invite link and can appear in discovery.",
+      "invite_only_hidden": "{name} requires a generated invite link and will stay out of discovery.",
+      "application_visible": "{name} will use applications for new members and can appear in discovery. Invite links can still add members directly.",
+      "application_hidden": "{name} will use applications for new members and stay out of discovery. Invite links can still add members directly."
     },
     "fields": {
       "name": {
@@ -27,6 +29,14 @@
         "preview_label": "Visible Crop Preview",
         "preview_help": "This preview shows the centered square crop that will be resized and used as your group's profile image."
       },
+      "banner_image": {
+        "label": "Banner Image",
+        "placeholder": "Choose a wide banner image",
+        "help": "Optional. Upload a new wide banner for discovery cards and the group dashboard.",
+        "preview_alt": "Group banner preview",
+        "preview_label": "Banner Preview",
+        "preview_help": "This preview shows the wide banner crop used for the group header and discovery cards."
+      },
       "discord_invite_url": {
         "placeholder": "https://discord.gg/yourserver",
         "help": "Optional. Add a Discord invite so members can easily join your server."
@@ -34,18 +44,19 @@
       "datacenter": {
         "placeholder": "Select a data center"
       },
-      "is_public": {
-        "label": "Public Group",
-        "help": "Anyone can join public groups, and public-facing future runs can be seen by outsiders."
+      "join_mode": {
+        "label": "Join Mode",
+        "placeholder": "Select a join mode",
+        "help": "Open is community-only. Invite-only and application-based groups can still use generated invite links."
       },
       "is_visible": {
         "label": "Visible in Discovery",
-        "help": "Visible groups can appear in discovery and search, even if they are private."
+        "help": "Visible groups can appear in discovery and search."
       }
     },
     "validation": {
-      "image_invalid_format": "Profile picture must be a JPG, JPEG, PNG, or WEBP image.",
-      "image_too_large": "Profile picture must be 5 MB or smaller."
+      "image_invalid_format": "Images must be JPG, JPEG, PNG, or WEBP files.",
+      "image_too_large": "Images must be 5 MB or smaller."
     },
     "toasts": {
       "updated": "Group settings have been updated."

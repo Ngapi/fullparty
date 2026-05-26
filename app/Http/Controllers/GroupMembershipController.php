@@ -32,15 +32,9 @@ class GroupMembershipController extends Controller
             'redirect_to' => ['nullable', Rule::in(['back', 'dashboard'])],
         ]);
 
-        if (! $group->usesCommunityJoinFlow()) {
+        if (! $group->allowsOpenJoin()) {
             return redirect()->back()->withErrors([
                 'error' => 'group_join_unavailable',
-            ]);
-        }
-
-        if (! $group->is_public) {
-            return redirect()->back()->withErrors([
-                'error' => 'group_not_public',
             ]);
         }
 
@@ -131,6 +125,23 @@ class GroupMembershipController extends Controller
 
         return $this->leaveRedirect($group, $validated['redirect_to'] ?? 'back')
             ->with('success', 'group_left');
+    }
+
+    public function updateNotifications(Request $request, Group $group): RedirectResponse
+    {
+        $validated = $request->validate([
+            'enabled' => ['required', 'boolean'],
+        ]);
+
+        $membership = $group->memberships()
+            ->where('user_id', auth()->id())
+            ->firstOrFail();
+
+        $membership->update([
+            'notifications_enabled' => $validated['enabled'],
+        ]);
+
+        return redirect()->back()->with('success', 'group_notifications_updated');
     }
 
     private function leaveRedirect(Group $group, string $target): RedirectResponse

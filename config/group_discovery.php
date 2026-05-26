@@ -3,11 +3,6 @@
 use App\Http\Middleware\ApplyLocale;
 
 return [
-    'recruiting_statuses' => [
-        'looking_for_members',
-        'applications_open',
-        'closed',
-    ],
     'primary_focuses' => [
         'progression',
         'clears',
@@ -42,11 +37,6 @@ return [
     'preferred_languages' => ApplyLocale::SUPPORTED_LOCALES,
     'max_tags' => 12,
     'badge_colors' => [
-        'recruiting_statuses' => [
-            'looking_for_members' => '#4C7DFF',
-            'applications_open' => '#7A5AF8',
-            'closed' => '#6B7280',
-        ],
         'primary_focuses' => [
             'progression' => '#7A5AF8',
             'clears' => '#4C7DFF',

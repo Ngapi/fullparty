@@ -9,6 +9,20 @@
     "community": "コミュニティ",
     "static": "固定"
   },
+  "join_modes": {
+    "open": {
+      "label": "Open Group",
+      "description": "People can join whenever. Community open groups also get a permanent slug invite."
+    },
+    "invite_only": {
+      "label": "Invite Only",
+      "description": "People can only join through generated invite links."
+    },
+    "application": {
+      "label": "Application Based",
+      "description": "People apply for review. Generated invite links can still add members directly."
+    }
+  },
   "voice_expectations": {
     "required": "Voice Required",
     "preferred": "Voice Preferred",
@@ -36,13 +50,15 @@
     "recent_activity": "Recent Activity",
     "region": "Region",
     "group_type": "Group Type",
+    "join_mode": "Join Mode",
     "timezone": "Timezone",
     "active_days": "Active Days",
     "active_hours": "Active Hours"
   },
   "states": {
-    "public_group": "Public Group",
-    "private_group": "Private Group",
+    "open_group": "Open Group",
+    "invite_only_group": "Invite Only",
+    "application_group": "Application Based",
     "visible_in_discovery": "Visible in Discovery",
     "hidden_from_discovery": "Hidden from Discovery",
     "not_shared": "Not shared",
@@ -53,6 +69,7 @@
   "validation": {
     "active_time_pair_required": "活動開始時刻と終了時刻は両方とも指定してください。",
     "active_timezone_required": "活動日または活動時間を設定する場合は、活動タイムゾーンが必要です。",
-    "active_end_time_after_start": "活動終了時刻は開始時刻より後である必要があります。"
+    "active_end_time_after_start": "活動終了時刻は開始時刻より後である必要があります。",
+    "invalid_join_mode_for_group_type": "Choose a join mode supported by this group type."
   }
 }

@@ -2,6 +2,7 @@
 import type { AuditLogRowRecord } from "@/Types/Audit";
 import { computed, ref } from "vue";
 import { useI18n } from "vue-i18n";
+import { createDateTimeFormatter } from "@/utils/dateTimeFormat";
 
 const props = withDefaults(defineProps<{
 	row: AuditLogRowRecord
@@ -133,10 +134,10 @@ const detailLines = computed(() => {
 	return lines;
 });
 
-const formatTimestamp = (value: string) => new Intl.DateTimeFormat(undefined, {
+const formatTimestamp = (value: string) => createDateTimeFormatter(undefined, {
 	year: 'numeric',
-	month: 'short',
-	day: 'numeric',
+	month: '2-digit',
+	day: '2-digit',
 	hour: '2-digit',
 	minute: '2-digit',
 }).format(new Date(value));

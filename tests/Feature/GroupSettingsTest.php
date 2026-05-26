@@ -26,7 +26,7 @@ it('rejects unsupported profile picture formats when updating group settings', f
             'description' => $group->description,
             'discord_invite_url' => $group->discord_invite_url,
             'datacenter' => $group->datacenter,
-            'is_public' => $group->is_public,
+            'join_mode' => $group->join_mode,
             'is_visible' => $group->is_visible,
             'profile_picture' => UploadedFile::fake()->create('animated.gif', 64, 'image/gif'),
         ])
@@ -51,7 +51,7 @@ it('sanitizes group name and description when updating group settings', function
             'description' => $rawDescription,
             'discord_invite_url' => $group->discord_invite_url,
             'datacenter' => $group->datacenter,
-            'is_public' => $group->is_public,
+            'join_mode' => $group->join_mode,
             'is_visible' => $group->is_visible,
         ])
         ->assertRedirect();
@@ -76,7 +76,7 @@ it('rejects group descriptions longer than the supported limit when updating gro
             'description' => str_repeat('a', GroupDetailsRequest::DESCRIPTION_MAX_LENGTH + 1),
             'discord_invite_url' => $group->discord_invite_url,
             'datacenter' => $group->datacenter,
-            'is_public' => $group->is_public,
+            'join_mode' => $group->join_mode,
             'is_visible' => $group->is_visible,
         ])
         ->assertRedirect(route('groups.dashboard.settings', $group))
@@ -97,11 +97,45 @@ it('rejects non-discord invite links when updating group settings', function () 
             'description' => $group->description,
             'discord_invite_url' => 'https://example.com/not-a-discord-invite',
             'datacenter' => $group->datacenter,
-            'is_public' => $group->is_public,
+            'join_mode' => $group->join_mode,
             'is_visible' => $group->is_visible,
         ])
         ->assertRedirect(route('groups.dashboard.settings', $group))
         ->assertSessionHasErrors('discord_invite_url');
+});
+
+it('updates group profile and banner images from general settings', function () {
+    Storage::fake('public');
+
+    $owner = User::factory()->create();
+    $group = Group::factory()->create([
+        'owner_id' => $owner->id,
+        'group_type' => Group::TYPE_COMMUNITY,
+    ]);
+
+    $this->actingAs($owner)
+        ->put(route('groups.dashboard.settings.update', $group), [
+            'name' => $group->name,
+            'description' => $group->description,
+            'discord_invite_url' => $group->discord_invite_url,
+            'datacenter' => $group->datacenter,
+            'join_mode' => $group->join_mode,
+            'is_visible' => $group->is_visible,
+            'profile_picture' => UploadedFile::fake()->image('profile.png', 256, 256),
+            'banner_image' => UploadedFile::fake()->image('banner.png', 1500, 500),
+        ])
+        ->assertRedirect();
+
+    $group->refresh();
+
+    expect($group->profile_picture_url)->toContain('/storage/groups/')
+        ->and($group->banner_image_url)->toContain('/storage/groups/');
+
+    $profilePath = ltrim((string) parse_url($group->profile_picture_url, PHP_URL_PATH), '/');
+    $bannerPath = ltrim((string) parse_url($group->banner_image_url, PHP_URL_PATH), '/');
+
+    Storage::disk('public')->assertExists(str_replace('storage/', '', $profilePath));
+    Storage::disk('public')->assertExists(str_replace('storage/', '', $bannerPath));
 });
 
 it('allows owners and admins to view the discovery settings page', function () {
@@ -149,7 +183,6 @@ it('stores discovery metadata when updating discovery settings', function () {
 
     $this->actingAs($owner)
         ->put(route('groups.dashboard.discovery-settings.update', $group), [
-            'recruiting_status' => 'applications_open',
             'primary_focuses' => ['maps'],
             'experience_expectation' => 'casual',
             'voice_expectation' => 'optional',
@@ -165,7 +198,6 @@ it('stores discovery metadata when updating discovery settings', function () {
     $group->refresh();
 
     expect($group->datacenter)->toBe('Aether')
-        ->and($group->recruiting_status)->toBe('applications_open')
         ->and($group->primary_focuses)->toBe(['maps'])
         ->and($group->experience_expectation)->toBe('casual')
         ->and($group->voice_expectation)->toBe('optional')
@@ -181,7 +213,6 @@ it('stores discovery metadata when updating discovery settings', function () {
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
             ->where('group.region', 'NA')
-            ->where('group.recruiting_status', 'applications_open')
             ->where('group.primary_focuses', ['maps'])
             ->where('group.experience_expectation', 'casual')
             ->where('group.voice_expectation', 'optional')
@@ -191,7 +222,6 @@ it('stores discovery metadata when updating discovery settings', function () {
             ->where('group.active_days', ['sat', 'sun'])
             ->where('group.active_start_time', '18:00')
             ->where('group.active_end_time', '23:00')
-            ->where('group.badge_meta.recruiting_status.color', '#7A5AF8')
             ->where('group.badge_meta.primary_focuses.0.color', '#6366F1')
             ->where('group.badge_meta.experience_expectation.color', '#8CCB7A')
             ->where('group.badge_meta.voice_expectation.color', '#62C98F')
@@ -224,7 +254,6 @@ it('allows admins to update discovery settings but forbids moderators', function
 
     $this->actingAs($admin)
         ->put(route('groups.dashboard.discovery-settings.update', $group), [
-            'recruiting_status' => 'looking_for_members',
             'primary_focuses' => ['progression', 'reclears'],
             'experience_expectation' => 'mixed',
             'voice_expectation' => 'preferred',
@@ -239,13 +268,12 @@ it('allows admins to update discovery settings but forbids moderators', function
 
     $group->refresh();
 
-    expect($group->recruiting_status)->toBe('looking_for_members')
-        ->and($group->primary_focuses)->toBe(['progression', 'reclears'])
+    expect($group->primary_focuses)->toBe(['progression', 'reclears'])
         ->and($group->active_end_time)->toBe('01:00');
 
     $this->actingAs($moderator)
         ->put(route('groups.dashboard.discovery-settings.update', $group), [
-            'recruiting_status' => 'closed',
+            'primary_focuses' => ['maps'],
         ])
         ->assertForbidden();
 });
@@ -255,7 +283,6 @@ it('preserves existing discovery metadata when omitted from a settings update', 
     $group = Group::factory()->create([
         'owner_id' => $owner->id,
         'group_type' => Group::TYPE_COMMUNITY,
-        'recruiting_status' => 'looking_for_members',
         'primary_focuses' => ['progression'],
         'experience_expectation' => 'mixed',
         'voice_expectation' => 'preferred',
@@ -273,7 +300,7 @@ it('preserves existing discovery metadata when omitted from a settings update', 
             'description' => $group->description,
             'discord_invite_url' => $group->discord_invite_url,
             'datacenter' => $group->datacenter,
-            'is_public' => $group->is_public,
+            'join_mode' => $group->join_mode,
             'is_visible' => $group->is_visible,
         ])
         ->assertRedirect();
@@ -281,7 +308,6 @@ it('preserves existing discovery metadata when omitted from a settings update', 
     $group->refresh();
 
     expect($group->name)->toBe('Updated Name')
-        ->and($group->recruiting_status)->toBe('looking_for_members')
         ->and($group->primary_focuses)->toBe(['progression'])
         ->and($group->experience_expectation)->toBe('mixed')
         ->and($group->voice_expectation)->toBe('preferred')

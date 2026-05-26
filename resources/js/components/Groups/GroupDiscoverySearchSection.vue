@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { DatacenterLookup, GroupDiscoveryLookups, GroupIndexRecord, PaginatedGroups } from "@/Types/Groups";
+import type { DatacenterLookup, GroupDiscoveryLookups, GroupIndexRecord, GroupJoinMode, PaginatedGroups } from "@/Types/Groups";
 import GroupSearchResults from "@/components/Groups/GroupSearchResults.vue";
 import axios from "axios";
 import { computed, onBeforeUnmount, ref, watch } from "vue";
@@ -51,7 +51,7 @@ const memberCountFilter = ref<MemberCountFilter>(null);
 const sortBy = ref<SortFilter>("created_at_desc");
 const isMoreFiltersOpen = ref(false);
 
-const recruitingStatusFilter = ref<string | undefined>(undefined);
+const recruitingMethodFilter = ref<GroupJoinMode | undefined>(undefined);
 const primaryFocusFilters = ref<string[]>([]);
 const voiceExpectationFilter = ref<string | undefined>(undefined);
 const preferredLanguageFilters = ref<string[]>([]);
@@ -118,10 +118,20 @@ const memberCountOptions = computed(() => ([
 	},
 ]));
 
-const recruitingStatusOptions = computed(() => (groupDiscoveryLookups.value.recruiting_statuses ?? []).map((value) => ({
-	label: t(`groups.index.create_modal.fields.recruiting_status.options.${value}`),
-	value,
-})));
+const recruitingMethodOptions = computed(() => ([
+	{
+		label: t("groups.index.discovery.filters.recruiting_methods.open"),
+		value: "open",
+	},
+	{
+		label: t("groups.index.discovery.filters.recruiting_methods.invite_only"),
+		value: "invite_only",
+	},
+	{
+		label: t("groups.index.discovery.filters.recruiting_methods.application"),
+		value: "application",
+	},
+]));
 
 const primaryFocusOptions = computed(() => (groupDiscoveryLookups.value.primary_focuses ?? []).map((value) => ({
 	label: t(`groups.index.create_modal.fields.primary_focuses.options.${value}`),
@@ -175,6 +185,20 @@ const moreFiltersButtonLabel = computed(() => (
 		? t("groups.index.discovery.filters.more_filters_close")
 		: t("groups.index.discovery.filters.more_filters_open")
 ));
+const hasActiveFilters = computed(() => (
+	selectedTopLevelFilter.value !== "all"
+	|| searchQuery.value.trim() !== ""
+	|| Boolean(experienceFilter.value)
+	|| Boolean(regionFilter.value)
+	|| Boolean(memberCountFilter.value)
+	|| sortBy.value !== "created_at_desc"
+	|| Boolean(recruitingMethodFilter.value)
+	|| primaryFocusFilters.value.length > 0
+	|| Boolean(voiceExpectationFilter.value)
+	|| preferredLanguageFilters.value.length > 0
+	|| activeDayFilters.value.length > 0
+	|| extraTagsFilter.value.trim() !== ""
+));
 const requestParams = computed(() => ({
 	query: searchQuery.value.trim() || undefined,
 	group_type: selectedTopLevelFilter.value === "all" ? undefined : selectedTopLevelFilter.value,
@@ -182,7 +206,7 @@ const requestParams = computed(() => ({
 	region: regionFilter.value || undefined,
 	size: memberCountFilter.value || undefined,
 	sort_by: sortBy.value,
-	recruiting_status: recruitingStatusFilter.value || undefined,
+	join_mode: recruitingMethodFilter.value || undefined,
 	primary_focuses: primaryFocusFilters.value,
 	voice_expectation: voiceExpectationFilter.value || undefined,
 	preferred_languages: preferredLanguageFilters.value,
@@ -197,7 +221,7 @@ const filterSignature = computed(() => JSON.stringify({
 	region: requestParams.value.region ?? null,
 	size: requestParams.value.size ?? null,
 	sort_by: requestParams.value.sort_by,
-	recruiting_status: requestParams.value.recruiting_status ?? null,
+	join_mode: requestParams.value.join_mode ?? null,
 	primary_focuses: [...primaryFocusFilters.value],
 	voice_expectation: requestParams.value.voice_expectation ?? null,
 	preferred_languages: [...preferredLanguageFilters.value],
@@ -214,6 +238,22 @@ function resolveLanguageLabel(value: string) {
 	};
 
 	return languageLabels[value] ?? value.toUpperCase();
+}
+
+function clearFilters() {
+	selectedTopLevelFilter.value = "all";
+	searchQuery.value = "";
+	experienceFilter.value = undefined;
+	regionFilter.value = undefined;
+	memberCountFilter.value = null;
+	sortBy.value = "created_at_desc";
+	recruitingMethodFilter.value = undefined;
+	primaryFocusFilters.value = [];
+	voiceExpectationFilter.value = undefined;
+	preferredLanguageFilters.value = [];
+	activeDayFilters.value = [];
+	extraTagsFilter.value = "";
+	currentPage.value = 1;
 }
 
 async function fetchDiscoveryResults() {
@@ -298,7 +338,7 @@ onBeforeUnmount(() => {
 
 			<div class="mt-5 flex flex-col gap-4">
 				<div class="flex flex-col gap-4 xl:flex-row xl:items-center">
-					<div class="grid flex-1 gap-3 md:grid-cols-2 xl:grid-cols-[minmax(0,1.9fr)_minmax(12rem,1fr)_minmax(10rem,0.9fr)_minmax(9rem,0.8fr)_auto]">
+					<div class="grid flex-1 gap-3 md:grid-cols-2 xl:grid-cols-[minmax(0,1.9fr)_minmax(12rem,1fr)_minmax(10rem,0.9fr)_minmax(9rem,0.8fr)_auto_auto]">
 						<UInput
 							v-model="searchQuery"
 							:placeholder="t('groups.index.discovery.filters.search_placeholder')"
@@ -348,6 +388,18 @@ onBeforeUnmount(() => {
 						>
 							{{ moreFiltersButtonLabel }}
 						</UButton>
+
+						<UButton
+							color="neutral"
+							variant="ghost"
+							size="xl"
+							icon="i-lucide-filter-x"
+							class="justify-center xl:min-w-36"
+							:disabled="!hasActiveFilters"
+							@click="clearFilters"
+						>
+							{{ t('groups.index.discovery.filters.clear_filters') }}
+						</UButton>
 					</div>
 
 					<div class="h-px w-full bg-default xl:hidden" />
@@ -372,14 +424,14 @@ onBeforeUnmount(() => {
 					<template #content>
 						<div class="grid gap-4 border-t border-default py-4 md:grid-cols-2 xl:grid-cols-3">
 							<UFormField
-								:label="t('groups.index.create_modal.fields.recruiting_status.label')"
+								:label="t('groups.index.discovery.filters.recruiting_method_label')"
 							>
 								<USelectMenu
-									v-model="recruitingStatusFilter"
-									:items="recruitingStatusOptions"
+									v-model="recruitingMethodFilter"
+									:items="recruitingMethodOptions"
 									value-key="value"
 									class="w-full"
-									:placeholder="t('groups.index.create_modal.fields.recruiting_status.placeholder')"
+									:placeholder="t('groups.index.discovery.filters.recruiting_method_placeholder')"
 								/>
 							</UFormField>
 

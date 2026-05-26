@@ -160,7 +160,7 @@ class ActivitySeeder extends Seeder
                     'beginner_friendly' => $beginnerFriendly,
                     'run_style' => $runStyle,
                     'target_prog_point_key' => $this->pickTargetProgPointKey($context['prog_points'], $runStyle),
-                    'is_public' => $group->is_public ? fake()->boolean(80) : fake()->boolean(35),
+                    'is_public' => $group->is_visible ? fake()->boolean(80) : fake()->boolean(35),
                     'needs_application' => true,
                     'allow_guest_applications' => $allowGuestApplications,
                     'created_at' => $startsAt->copy()->subDays(fake()->numberBetween(3, 14)),
@@ -224,7 +224,7 @@ class ActivitySeeder extends Seeder
                     'beginner_friendly' => $beginnerFriendly,
                     'run_style' => $runStyle,
                     'target_prog_point_key' => $this->pickTargetProgPointKey($context['prog_points'], $runStyle),
-                    'is_public' => $group->is_public ? fake()->boolean(80) : fake()->boolean(35),
+                    'is_public' => $group->is_visible ? fake()->boolean(80) : fake()->boolean(35),
                     'needs_application' => true,
                     'allow_guest_applications' => false,
                     'is_completed' => true,
@@ -1164,7 +1164,7 @@ class ActivitySeeder extends Seeder
 
     private function seededGuestApplicationsAllowed(Group $group, string $runStyle, bool $isHistorical): bool
     {
-        if ($isHistorical || ! $group->is_public) {
+        if ($isHistorical || ! $group->is_visible) {
             return false;
         }
 

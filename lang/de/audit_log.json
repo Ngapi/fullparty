@@ -134,6 +134,12 @@
         "enabled": "hat Gruppenbenachrichtigungen aktiviert.",
         "muted": "hat Gruppenbenachrichtigungen stummgeschaltet."
       },
+      "membership_application": {
+        "submitted": "submitted a membership application.",
+        "approved": "approved a membership application.",
+        "declined": "declined a membership application.",
+        "form_updated": "updated the membership application form."
+      },
       "activity": {
         "created": "hat eine Aktivität erstellt.",
         "updated": "hat eine Aktivität aktualisiert.",
@@ -259,6 +265,11 @@
     "email": "E-Mail",
     "provider": "Anbieter",
     "provider_user_id": "Anbieter-Benutzer-ID",
+    "membership_application_id": "Membership Application",
+    "applicant_user_id": "Applicant",
+    "applicant_name": "Applicant Name",
+    "field_count": "Field Count",
+    "previous_field_count": "Previous Field Count",
     "login_method": "Anmeldemethode",
     "registration_method": "Registrierungsmethode",
     "remember": "Angemeldet bleiben",
@@ -339,6 +350,12 @@
         "enabled": "Gruppenbenachrichtigungen aktiviert",
         "muted": "Gruppenbenachrichtigungen stummgeschaltet"
       },
+      "membership_application": {
+        "submitted": "Membership application submitted",
+        "approved": "Membership application approved",
+        "declined": "Membership application declined",
+        "form_updated": "Membership application form updated"
+      },
       "activity": {
         "created": "Aktivität erstellt",
         "updated": "Aktivität aktualisiert",
@@ -373,7 +390,7 @@
         "revoked": "Einladungslink widerrufen"
       },
       "member": {
-        "joined": "Mitglied ist öffentlicher Gruppe beigetreten",
+        "joined": "Mitglied ist Gruppe beigetreten",
         "joined_via_invite": "Mitglied ist per Einladung beigetreten",
         "left": "Mitglied hat Gruppe verlassen",
         "promoted": "Mitgliedsrolle befördert",

@@ -15,7 +15,7 @@ it('returns the latest eight visible groups for the featured groups feed', funct
         'created_at' => now()->addMinute(),
     ]);
 
-    $groups = Group::factory()->count(9)->public()->create()->values();
+    $groups = Group::factory()->count(9)->open()->create()->values();
 
     $groups->each(function (Group $group, int $index): void {
         $group->forceFill([

@@ -5,6 +5,7 @@ import { Link, usePage } from "@inertiajs/vue3";
 import { useI18n } from "vue-i18n";
 import { localizedValue } from "@/utils/localizedValue";
 import { getActivityStatusBorderClass, getActivityStatusMeta } from "@/utils/activityStatusMeta";
+import { createDateTimeFormatter } from "@/utils/dateTimeFormat";
 
 const props = defineProps<{
 	activities: GroupDashboardActivity[]
@@ -38,17 +39,17 @@ const weekRangeLabel = computed(() => {
 	const end = weekEnd.value;
 
 	if (start.getFullYear() === end.getFullYear() && start.getMonth() === end.getMonth()) {
-		const monthLabel = new Intl.DateTimeFormat(locale.value, {
+		const monthLabel = createDateTimeFormatter(locale.value, {
 			month: "long",
 		}).format(start);
 
 		return `${monthLabel} ${start.getDate()} - ${end.getDate()}`;
 	}
 
-	return `${new Intl.DateTimeFormat(locale.value, {
+	return `${createDateTimeFormatter(locale.value, {
 		month: "short",
 		day: "numeric",
-	}).format(start)} - ${new Intl.DateTimeFormat(locale.value, {
+	}).format(start)} - ${createDateTimeFormatter(locale.value, {
 		month: "short",
 		day: "numeric",
 	}).format(end)}`;
@@ -106,7 +107,7 @@ const activityStartsAtLabel = (activity: GroupDashboardActivity) => {
 		return t("groups.activities.cards.no_time");
 	}
 
-	return new Intl.DateTimeFormat(locale.value, {
+	return createDateTimeFormatter(locale.value, {
 		hour: "2-digit",
 		minute: "2-digit",
 	}).format(new Date(activity.starts_at));
@@ -150,10 +151,10 @@ const activityStartsAtLabel = (activity: GroupDashboardActivity) => {
 						<div class="flex items-center justify-between border-b border-white/8 px-3 py-3">
 							<div class="flex flex-col">
 								<p class="text-[11px] font-medium uppercase tracking-[0.16em] text-white/44">
-									{{ new Intl.DateTimeFormat(locale, { weekday: "short" }).format(day.date) }}
+									{{ createDateTimeFormatter(locale, { weekday: "short" }).format(day.date) }}
 								</p>
 								<p class="mt-1 text-sm font-semibold text-white">
-									{{ new Intl.DateTimeFormat(locale, { day: "numeric", month: "short" }).format(day.date) }}
+									{{ createDateTimeFormatter(locale, { day: "numeric", month: "short" }).format(day.date) }}
 								</p>
 							</div>
 

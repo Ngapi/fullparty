@@ -30,26 +30,13 @@ class GroupMembership extends Model
         'user_id',
         'role',
         'joined_at',
+        'notifications_enabled',
     ];
 
     protected $casts = [
         'joined_at' => 'datetime',
+        'notifications_enabled' => 'boolean',
     ];
-
-    protected static function booted(): void
-    {
-        static::created(function (GroupMembership $membership): void {
-            $membership->group()
-                ->first()?->followers()
-                ->syncWithoutDetaching([$membership->user_id]);
-        });
-
-        static::deleted(function (GroupMembership $membership): void {
-            $membership->group()
-                ->first()?->followers()
-                ->detach($membership->user_id);
-        });
-    }
 
     public function group(): BelongsTo
     {

@@ -3,6 +3,7 @@ import { computed, ref } from "vue";
 import { useI18n } from "vue-i18n";
 import ActivityCalendarDayCell from "@/components/Groups/Activities/ActivityCalendarDayCell.vue";
 import type { ActivityIndexItem } from "@/Types/ActivityCore";
+import { createDateTimeFormatter } from "@/utils/dateTimeFormat";
 
 const props = defineProps<{
 	groupSlug: string
@@ -31,12 +32,12 @@ const toLocalDateKey = (date: Date) => {
 const dayLabels = computed(() => {
 	const mondayStart = new Date(2026, 0, 5);
 
-	return Array.from({ length: 7 }, (_, index) => new Intl.DateTimeFormat(locale.value, {
+	return Array.from({ length: 7 }, (_, index) => createDateTimeFormatter(locale.value, {
 		weekday: 'short',
 	}).format(new Date(mondayStart.getFullYear(), mondayStart.getMonth(), mondayStart.getDate() + index)));
 });
 
-const monthLabel = computed(() => new Intl.DateTimeFormat(locale.value, {
+const monthLabel = computed(() => createDateTimeFormatter(locale.value, {
 	month: 'long',
 	year: 'numeric',
 }).format(monthCursor.value));

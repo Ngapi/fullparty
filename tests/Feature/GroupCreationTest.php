@@ -19,11 +19,10 @@ function validCreateGroupPayload(array $overrides = []): array
         'name' => 'Static Full Party',
         'description' => 'A fixed roster for weekly clears.',
         'datacenter' => 'Light',
-        'is_public' => false,
+        'join_mode' => Group::JOIN_MODE_INVITE_ONLY,
         'is_visible' => true,
         'slug' => 'staticfp',
         'group_type' => Group::TYPE_STATIC,
-        'recruiting_status' => 'looking_for_members',
         'primary_focuses' => ['progression'],
         'experience_expectation' => 'mixed',
         'voice_expectation' => 'preferred',
@@ -44,6 +43,8 @@ it('stores the selected group type when creating a group', function () {
     $group = Group::query()->where('slug', 'staticfp')->firstOrFail();
 
     expect($group->group_type)->toBe(Group::TYPE_STATIC)
+        ->and($group->join_mode)->toBe(Group::JOIN_MODE_INVITE_ONLY)
+        ->and($group->is_visible)->toBeTrue()
         ->and($group->profile_picture_url)->toContain('/storage/groups/generated-profiles/staticfp.')
         ->and($group->banner_image_url)->toContain('/storage/groups/generated-banners/staticfp.')
         ->and($group->memberships()
@@ -60,13 +61,30 @@ it('rejects unknown group types when creating a group', function () {
         ->post(route('groups.store'), validCreateGroupPayload([
             'name' => 'Odd Group',
             'slug' => 'oddgroup',
-            'is_public' => true,
+            'join_mode' => Group::JOIN_MODE_OPEN,
             'group_type' => 'raid-team',
         ]))
         ->assertRedirect(route('groups.index'))
         ->assertSessionHasErrors('group_type');
 
     expect(Group::query()->where('slug', 'oddgroup')->exists())->toBeFalse();
+});
+
+it('rejects open join mode for static groups', function () {
+    $user = User::factory()->create();
+
+    $this->actingAs($user)
+        ->from(route('groups.index'))
+        ->post(route('groups.store'), validCreateGroupPayload([
+            'name' => 'Open Static',
+            'slug' => 'openstat',
+            'group_type' => Group::TYPE_STATIC,
+            'join_mode' => Group::JOIN_MODE_OPEN,
+        ]))
+        ->assertRedirect(route('groups.index'))
+        ->assertSessionHasErrors('join_mode');
+
+    expect(Group::query()->where('slug', 'openstat')->exists())->toBeFalse();
 });
 
 it('rejects unsupported profile picture formats when creating a group', function () {
@@ -145,11 +163,10 @@ it('stores discovery metadata and exposes inferred region on the group dashboard
         ->post(route('groups.store'), validCreateGroupPayload([
             'name' => 'Chaos Prog',
             'description' => 'Late night progression group.',
-            'is_public' => true,
+            'join_mode' => Group::JOIN_MODE_OPEN,
             'slug' => 'chaospro',
             'group_type' => Group::TYPE_COMMUNITY,
             'banner_image' => UploadedFile::fake()->image('banner.png', 1500, 500),
-            'recruiting_status' => 'looking_for_members',
             'primary_focuses' => ['progression', 'mount_farming'],
             'experience_expectation' => 'mixed',
             'voice_expectation' => 'preferred',
@@ -166,7 +183,6 @@ it('stores discovery metadata and exposes inferred region on the group dashboard
 
     expect($group->banner_image_url)->not->toBeNull()
         ->and($group->banner_image_url)->toContain('/storage/groups/')
-        ->and($group->recruiting_status)->toBe('looking_for_members')
         ->and($group->primary_focuses)->toBe(['progression', 'mount_farming'])
         ->and($group->experience_expectation)->toBe('mixed')
         ->and($group->voice_expectation)->toBe('preferred')
@@ -184,7 +200,6 @@ it('stores discovery metadata and exposes inferred region on the group dashboard
         ->assertInertia(fn (Assert $page) => $page
             ->where('group.banner_image_url', $group->banner_image_url)
             ->where('group.region', 'EU')
-            ->where('group.recruiting_status', 'looking_for_members')
             ->where('group.primary_focuses', ['progression', 'mount_farming'])
             ->where('group.experience_expectation', 'mixed')
             ->where('group.voice_expectation', 'preferred')
@@ -194,7 +209,6 @@ it('stores discovery metadata and exposes inferred region on the group dashboard
             ->where('group.active_days', ['fri', 'sat'])
             ->where('group.active_start_time', '19:00')
             ->where('group.active_end_time', '22:30')
-            ->where('group.badge_meta.recruiting_status.color', '#4C7DFF')
             ->where('group.badge_meta.primary_focuses.0.color', '#7A5AF8')
             ->where('group.badge_meta.experience_expectation.color', '#64748B')
             ->where('group.badge_meta.voice_expectation.color', '#6FA7E8')
@@ -243,7 +257,7 @@ it('requires a timezone and complete time pair when active schedule metadata is 
         ->from(route('groups.index'))
         ->post(route('groups.store'), validCreateGroupPayload([
             'name' => 'Schedule Group',
-            'is_public' => true,
+            'join_mode' => Group::JOIN_MODE_OPEN,
             'slug' => 'schedgrp',
             'group_type' => Group::TYPE_COMMUNITY,
             'active_days' => ['fri'],
@@ -283,7 +297,6 @@ it('requires the discovery and group fit fields when creating a group', function
         ->from(route('groups.index'))
         ->post(route('groups.store'), validCreateGroupPayload([
             'slug' => 'nofitgrp',
-            'recruiting_status' => '',
             'primary_focuses' => [],
             'experience_expectation' => '',
             'voice_expectation' => '',
@@ -291,7 +304,6 @@ it('requires the discovery and group fit fields when creating a group', function
         ]))
         ->assertRedirect(route('groups.index'))
         ->assertSessionHasErrors([
-            'recruiting_status',
             'primary_focuses',
             'experience_expectation',
             'voice_expectation',

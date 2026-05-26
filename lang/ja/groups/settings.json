@@ -8,10 +8,12 @@
     "visibility_summary_label": "公開設定の概要",
     "visibility_summary": {
       "default_name": "このグループ",
-      "public_visible": "{name} は誰でも参加でき、検索やプロフィールに表示されます。",
-      "public_hidden": "{name} は誰でも参加できますが、発見画面や検索可能なプロフィールには表示されません。",
-      "private_visible": "{name} は招待経由でのみ参加できますが、検索やプロフィールには表示されます。",
-      "private_hidden": "{name} は招待経由でのみ参加でき、発見画面や検索可能なプロフィールには表示されません。"
+      "open_visible": "{name} can be joined by anyone and can appear in discovery.",
+      "open_hidden": "{name} can be joined by anyone with the permanent slug invite, but will stay out of discovery.",
+      "invite_only_visible": "{name} requires a generated invite link and can appear in discovery.",
+      "invite_only_hidden": "{name} requires a generated invite link and will stay out of discovery.",
+      "application_visible": "{name} will use applications for new members and can appear in discovery. Invite links can still add members directly.",
+      "application_hidden": "{name} will use applications for new members and stay out of discovery. Invite links can still add members directly."
     },
     "fields": {
       "name": { "placeholder": "Forked Tower Enjoyers" },
@@ -23,23 +25,32 @@
         "preview_label": "表示される切り抜きプレビュー",
         "preview_help": "このプレビューは、中央の正方形トリミングがリサイズされ、グループのプロフィール画像として使われることを示します。"
       },
+      "banner_image": {
+        "label": "バナー画像",
+        "placeholder": "横長のバナー画像を選択",
+        "help": "任意。Discovery カードとグループダッシュボード用の新しい横長バナーをアップロードします。",
+        "preview_alt": "グループバナーのプレビュー",
+        "preview_label": "バナープレビュー",
+        "preview_help": "このプレビューは、グループヘッダーや Discovery カードで使われる横長の切り抜きを示します。"
+      },
       "discord_invite_url": {
         "placeholder": "https://discord.gg/yourserver",
         "help": "任意。メンバーが簡単に参加できるように Discord 招待を追加します。"
       },
       "datacenter": { "placeholder": "データセンターを選択" },
-      "is_public": {
-        "label": "公開グループ",
-        "help": "公開グループには誰でも参加でき、今後の公開 Runs は外部ユーザーにも表示されます。"
+      "join_mode": {
+        "label": "Join Mode",
+        "placeholder": "Select a join mode",
+        "help": "Open is community-only. Invite-only and application-based groups can still use generated invite links."
       },
       "is_visible": {
         "label": "検索に表示する",
-        "help": "表示可能なグループは、非公開でも検索や発見に表示されます。"
+        "help": "Visible groups can appear in discovery and search."
       }
     },
     "validation": {
-      "image_invalid_format": "プロフィール画像には JPG、JPEG、PNG、WEBP のいずれかを指定してください。",
-      "image_too_large": "プロフィール画像は 5 MB 以下にしてください。"
+      "image_invalid_format": "画像は JPG、JPEG、PNG、WEBP のいずれかである必要があります。",
+      "image_too_large": "画像は 5 MB 以下にしてください。"
     },
     "toasts": { "updated": "グループ設定を更新しました。" }
   },

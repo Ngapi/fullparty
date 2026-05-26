@@ -7,7 +7,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 uses(RefreshDatabase::class);
 
 it('renders localized public urls in the sitemap and excludes non-indexable activity urls', function () {
-    $publicGroup = Group::factory()->public()->create([
+    $publicGroup = Group::factory()->open()->create([
         'slug' => 'publicgp',
     ]);
 

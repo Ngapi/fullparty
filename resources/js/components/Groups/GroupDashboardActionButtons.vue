@@ -15,6 +15,10 @@ const { t } = useI18n();
 const confirmationModal = useConfirmationModal();
 const { showGroupNotificationsToast } = useGroupNotificationToast();
 
+const notificationActionLabel = () => props.group.notifications.enabled
+	? t("groups.dashboard.actions.mute_notifications")
+	: t("groups.dashboard.actions.unmute_notifications");
+
 const openRuns = () => {
 	router.get(route("groups.dashboard.activities.index", props.group.slug));
 };
@@ -32,9 +36,9 @@ const toggleNotifications = () => {
 		return;
 	}
 
-	const enabled = !props.group.follow.notifications_enabled;
+	const enabled = !props.group.notifications.enabled;
 
-	router.patch(route("groups.follow-notifications.update", props.group.slug), {
+	router.patch(route("groups.notifications.update", props.group.slug), {
 		enabled,
 	}, {
 		preserveScroll: true,
@@ -119,10 +123,11 @@ const openDiscordInvite = () => {
 				v-if="group.permissions.can_toggle_notifications"
 				color="neutral"
 				variant="ghost"
-				:icon="group.follow.notifications_enabled ? 'i-lucide-bell' : 'i-lucide-bell-off'"
-				class="justify-center sm:col-span-2"
+				:icon="group.notifications.enabled ? 'i-lucide-bell' : 'i-lucide-bell-off'"
+				:aria-label="notificationActionLabel()"
+				:title="notificationActionLabel()"
+				class="justify-center"
 				@click="toggleNotifications"
-				size="xl"
 			/>
 			<UButton
 				v-if="group.permissions.can_leave"

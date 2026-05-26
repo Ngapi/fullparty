@@ -25,6 +25,7 @@ import ManualAssignCharacterToSlotModal from "@/components/Groups/Activities/Man
 import CompleteActivityModal from "@/components/Groups/Activities/CompleteActivityModal.vue";
 import ConfirmationModal from "@/components/Shared/Modals/ConfirmationModal.vue";
 import { activityTextLimits } from "@/utils/activityTextLimits";
+import { createDateTimeFormatter } from "@/utils/dateTimeFormat";
 
 const props = defineProps<{
 	group: {
@@ -1576,7 +1577,7 @@ onBeforeUnmount(() => {
 									{{ localizedValue(entry.group_label, locale, fallbackLocale) || localizedValue(entry.slot_label, locale, fallbackLocale) || t('groups.activities.management.messages.unknown_slot') }}
 								</p>
 								<p v-if="entry.marked_missing_at">
-									{{ new Intl.DateTimeFormat(locale, {
+									{{ createDateTimeFormatter(locale, {
 										year: 'numeric',
 										month: '2-digit',
 										day: '2-digit',

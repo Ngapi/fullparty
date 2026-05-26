@@ -7,6 +7,7 @@ use App\Http\Requests\UpdateGroupSettingsRequest;
 use App\Models\Group;
 use App\Models\GroupMembership;
 use App\Services\AuditLogger;
+use App\Services\Groups\MembershipApplicationFormSchemaService;
 use App\Services\ManagedImageStorage;
 use App\Support\Audit\AuditScope;
 use App\Support\Audit\AuditSeverity;
@@ -25,6 +26,7 @@ class GroupSettingsController extends Controller
         private readonly ManagedImageStorage $managedImageStorage,
         private readonly AuditLogger $auditLogger,
         private readonly GroupDiscoveryBadgePalette $groupDiscoveryBadgePalette,
+        private readonly MembershipApplicationFormSchemaService $membershipApplicationFormSchemaService,
     ) {}
 
     public function show(Group $group): Response
@@ -82,7 +84,7 @@ class GroupSettingsController extends Controller
             'banner_image_url' => $group->banner_image_url,
             'discord_invite_url' => $group->discord_invite_url,
             'datacenter' => $group->datacenter,
-            'is_public' => $group->is_public,
+            'join_mode' => $group->join_mode,
             'is_visible' => $group->is_visible,
         ];
 
@@ -94,15 +96,17 @@ class GroupSettingsController extends Controller
                 'banner_image_url' => $bannerImageUrl,
                 'discord_invite_url' => $validated['discord_invite_url'] ?? null,
                 'datacenter' => $validated['datacenter'],
-                'is_public' => $validated['is_public'],
+                'join_mode' => $validated['join_mode'],
                 'is_visible' => $validated['is_visible'],
             ]);
 
-            if ($group->is_public && $group->usesCommunityJoinFlow()) {
+            if ($group->hasPermanentInvite()) {
                 $group->ensureSystemInvite();
             } else {
                 $group->removeSystemInvite();
             }
+
+            $this->membershipApplicationFormSchemaService->ensureDefaultForm($group);
         });
 
         $updatedValues = [
@@ -112,7 +116,7 @@ class GroupSettingsController extends Controller
             'banner_image_url' => $group->banner_image_url,
             'discord_invite_url' => $group->discord_invite_url,
             'datacenter' => $group->datacenter,
-            'is_public' => $group->is_public,
+            'join_mode' => $group->join_mode,
             'is_visible' => $group->is_visible,
         ];
 
@@ -151,9 +155,6 @@ class GroupSettingsController extends Controller
         $originalValues = $this->discoverySettingsValues($group);
 
         $group->update([
-            'recruiting_status' => Arr::exists($validated, 'recruiting_status')
-                ? ($validated['recruiting_status'] ?? null)
-                : $group->recruiting_status,
             'primary_focuses' => Arr::exists($validated, 'primary_focuses')
                 ? ($validated['primary_focuses'] ?? [])
                 : ($group->primary_focuses ?? []),
@@ -266,11 +267,10 @@ class GroupSettingsController extends Controller
             'discord_invite_url' => $group->discord_invite_url,
             'datacenter' => $group->datacenter,
             'region' => $group->inferredRegion(),
-            'is_public' => $group->is_public,
             'is_visible' => $group->is_visible,
             'slug' => $group->slug,
             'group_type' => $group->group_type,
-            'recruiting_status' => $group->recruiting_status,
+            'join_mode' => $group->join_mode,
             'primary_focuses' => $group->primary_focuses ?? [],
             'experience_expectation' => $group->experience_expectation,
             'voice_expectation' => $group->voice_expectation,
@@ -293,10 +293,11 @@ class GroupSettingsController extends Controller
                 'can_manage_group' => $group->isOwnedBy($currentUserId),
                 'can_manage_members' => $group->hasModeratorAccess($currentUserId),
                 'can_manage_discovery' => $group->hasAdminAccess($currentUserId),
-                'can_manage_invites' => $group->usesCommunityJoinFlow()
-                    && $group->hasModeratorAccess($currentUserId),
+                'can_manage_invites' => $group->hasModeratorAccess($currentUserId),
                 'can_transfer_ownership' => $group->isOwnedBy($currentUserId),
                 'can_view_members' => $group->hasMember($currentUserId),
+                'can_review_membership_applications' => $group->usesMembershipApplications() && $group->hasModeratorAccess($currentUserId),
+                'can_manage_membership_application_form' => $group->usesMembershipApplications() && $group->hasAdminAccess($currentUserId),
             ],
         ];
 
@@ -316,21 +317,19 @@ class GroupSettingsController extends Controller
                 'role' => $membership->role,
                 'joined_at' => $membership->joined_at,
             ]);
-        $payload['invites'] = $group->usesCommunityJoinFlow()
-            ? $group->invites
-                ->sortByDesc('created_at')
-                ->values()
-                ->map(fn ($invite) => [
-                    'id' => $invite->id,
-                    'token' => $invite->token,
-                    'is_system' => $invite->is_system,
-                    'uses' => $invite->uses,
-                    'max_uses' => $invite->max_uses,
-                    'expires_at' => $invite->expires_at,
-                    'created_by' => $invite->creator?->name,
-                    'created_at' => $invite->created_at,
-                ])
-            : [];
+        $payload['invites'] = $group->invites
+            ->sortByDesc('created_at')
+            ->values()
+            ->map(fn ($invite) => [
+                'id' => $invite->id,
+                'token' => $invite->token,
+                'is_system' => $invite->is_system,
+                'uses' => $invite->uses,
+                'max_uses' => $invite->max_uses,
+                'expires_at' => $invite->expires_at,
+                'created_by' => $invite->creator?->name,
+                'created_at' => $invite->created_at,
+            ]);
 
         return $payload;
     }
@@ -341,7 +340,6 @@ class GroupSettingsController extends Controller
     private function discoverySettingsValues(Group $group): array
     {
         return [
-            'recruiting_status' => $group->recruiting_status,
             'primary_focuses' => $group->primary_focuses ?? [],
             'experience_expectation' => $group->experience_expectation,
             'voice_expectation' => $group->voice_expectation,

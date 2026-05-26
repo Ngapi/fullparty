@@ -134,6 +134,12 @@
         "enabled": "a activé les notifications du groupe.",
         "muted": "a coupé les notifications du groupe."
       },
+      "membership_application": {
+        "submitted": "submitted a membership application.",
+        "approved": "approved a membership application.",
+        "declined": "declined a membership application.",
+        "form_updated": "updated the membership application form."
+      },
       "activity": {
         "created": "a créé une activité.",
         "updated": "a mis à jour une activité.",
@@ -259,6 +265,11 @@
     "email": "E-mail",
     "provider": "Fournisseur",
     "provider_user_id": "ID utilisateur du fournisseur",
+    "membership_application_id": "Membership Application",
+    "applicant_user_id": "Applicant",
+    "applicant_name": "Applicant Name",
+    "field_count": "Field Count",
+    "previous_field_count": "Previous Field Count",
     "login_method": "Méthode de connexion",
     "registration_method": "Méthode d'inscription",
     "remember": "Se souvenir de moi",
@@ -339,6 +350,12 @@
         "enabled": "Notifications du groupe activées",
         "muted": "Notifications du groupe coupées"
       },
+      "membership_application": {
+        "submitted": "Membership application submitted",
+        "approved": "Membership application approved",
+        "declined": "Membership application declined",
+        "form_updated": "Membership application form updated"
+      },
       "activity": {
         "created": "Activité créée",
         "updated": "Activité mise à jour",
@@ -373,7 +390,7 @@
         "revoked": "Lien d'invitation révoqué"
       },
       "member": {
-        "joined": "Membre ayant rejoint un groupe public",
+        "joined": "Membre ayant rejoint le groupe",
         "joined_via_invite": "Membre ayant rejoint via une invitation",
         "left": "Membre ayant quitté le groupe",
         "promoted": "Rôle de membre promu",

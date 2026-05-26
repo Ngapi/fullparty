@@ -48,8 +48,6 @@
   "members": "Membres",
   "public": "Public",
   "private": "Privé",
-  "public_group": "Groupe public",
-  "private_group": "Groupe privé",
   "profile_picture": "Image de profil",
   "discord_invite_url": "Lien d'invitation Discord",
   "severity_levels": {

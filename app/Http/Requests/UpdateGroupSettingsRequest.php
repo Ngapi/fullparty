@@ -19,7 +19,7 @@ class UpdateGroupSettingsRequest extends GroupDetailsRequest
             'banner_image',
             'discord_invite_url',
             'datacenter',
-            'is_public',
+            'join_mode',
             'is_visible',
         ]);
     }

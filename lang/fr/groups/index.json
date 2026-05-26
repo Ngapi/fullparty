@@ -34,6 +34,8 @@
     "general": "Général",
     "activities": "Runs",
     "members": "Membres",
+    "membership_applications": "Membership Applications",
+    "application_form": "Application Form",
     "audit_log": "Journal d'audit",
     "discovery_settings": "Paramètres Discovery",
     "settings": "Paramètres"
@@ -73,8 +75,16 @@
       "sort_placeholder": "Sort By",
       "more_filters_open": "More Filters",
       "more_filters_close": "Hide Extra Filters",
+      "clear_filters": "Effacer les filtres",
+      "recruiting_method_label": "Méthode de recrutement",
+      "recruiting_method_placeholder": "Sélectionnez une méthode",
       "tags_placeholder": "Search by extra tag",
       "tags_help": "Use this for optional freeform tags such as Late Night or Blind Prog.",
+      "recruiting_methods": {
+        "open": "Ouvert",
+        "invite_only": "Invitation",
+        "application": "Candidature"
+      },
       "size_options": {
         "1": "1+ Members",
         "50": "50+ Members",
@@ -100,13 +110,15 @@
       "title": "Group Details",
       "loading": "Loading group details...",
       "actions": {
-        "follow": "Follow Group",
-        "unfollow": "Unfollow",
         "join": "Join Group",
         "leave": "Leave Group",
         "dashboard": "Dashboard",
+        "apply": "Apply to Join",
         "mute_notifications": "Mute Notifications",
-        "unmute_notifications": "Unmute Notifications"
+        "unmute_notifications": "Unmute Notifications",
+        "invite_required": "Invite Required",
+        "application_required": "Application Based",
+        "application_pending": "Application Pending"
       },
       "tabs": {
         "about": "Info",
@@ -175,7 +187,6 @@
       "active_days": "Active Days",
       "active_hours": "Active Hours",
       "progress": "Progress",
-      "public_group": "Public Group",
       "visible_in_discovery": "Visible in Discovery",
       "description_fallback": "This group has not added a description yet.",
       "not_shared": "Not shared",
@@ -199,9 +210,9 @@
       "2": "Présence",
       "3": "Découverte",
       "4": "Fenêtre d'activité",
-      "5": "Visibilité"
+      "5": "Access"
     },
-    "slug_preview": "URL d'invitation publique : /invite/{slug}",
+    "slug_preview": "Group slug: {slug}",
     "slug_fallback": "votreslug",
     "slug_warning": "Votre slug est permanent une fois le groupe créé.",
     "validation": {
@@ -211,6 +222,7 @@
       "slug_reserved": "Ce slug est réservé. Choisissez-en un autre.",
       "invalid_option": "Choisissez une valeur valide pour {field}.",
       "invalid_url": "Saisissez une URL valide.",
+      "invalid_discord_invite": "Saisissez un lien d'invitation Discord valide.",
       "image_invalid_format": "Les images doivent être au format JPG, JPEG, PNG ou WEBP.",
       "image_too_large": "Les images doivent faire 5 Mo ou moins.",
       "max_tags": "Choisissez jusqu'à {max} tags.",
@@ -234,8 +246,8 @@
         "subtitle": "Aidez les gens à comprendre votre fuseau horaire habituel, vos jours actifs et les heures où le groupe joue le plus souvent."
       },
       "visibility": {
-        "title": "Visibilité et accès",
-        "subtitle": "Contrôlez si les gens peuvent découvrir le groupe et s'ils peuvent le rejoindre librement."
+        "title": "Access",
+        "subtitle": "Choose how people can join, then decide whether this group appears in discovery."
       }
     },
     "fields": {
@@ -283,16 +295,6 @@
       "discord_invite_url": {
         "placeholder": "https://discord.gg/yourserver",
         "help": "Optionnel. Ajoutez une invitation Discord pour que les membres puissent rejoindre facilement votre serveur."
-      },
-      "recruiting_status": {
-        "label": "Statut de recrutement",
-        "placeholder": "Sélectionnez un statut de recrutement",
-        "help": "Indiquez aux gens si le groupe recherche activement de nouveaux membres.",
-        "options": {
-          "looking_for_members": "Recherche de membres",
-          "applications_open": "Candidatures ouvertes",
-          "closed": "Fermé"
-        }
       },
       "primary_focuses": {
         "label": "Objectif principal",
@@ -381,22 +383,25 @@
         "label": "Heure de fin active",
         "help": "Optionnel. Fin habituelle de la fenêtre d'activité de votre groupe."
       },
-      "is_public": {
-        "label": "Groupe public",
-        "help": "Tout le monde peut rejoindre les groupes publics, et les runs publics à venir peuvent être vus par les non-membres."
+      "join_mode": {
+        "label": "Join Mode",
+        "placeholder": "Select a join mode",
+        "help": "Open is community-only. Invite-only and application-based groups can still use generated invite links."
       },
       "is_visible": {
         "label": "Visible dans la découverte",
-        "help": "Les groupes visibles peuvent apparaître dans la découverte et la recherche, même s'ils sont privés."
+        "help": "Visible groups can appear in discovery and search."
       }
     },
     "visibility_summary": {
       "label": "Ce que cela signifie",
       "default_name": "Ce groupe",
-      "public_visible": "{name} peut être rejoint par n'importe qui et apparaîtra dans la recherche et les profils.",
-      "public_hidden": "{name} peut être rejoint par n'importe qui, mais n'apparaîtra pas dans la découverte ni dans les profils consultables.",
-      "private_visible": "{name} ne peut être rejoint que via une invitation, mais apparaîtra quand même dans la recherche et les profils.",
-      "private_hidden": "{name} ne peut être rejoint que via une invitation et restera caché dans la découverte et les profils consultables."
+      "open_visible": "{name} can be joined by anyone and can appear in discovery.",
+      "open_hidden": "{name} can be joined by anyone with the permanent slug invite, but will stay out of discovery.",
+      "invite_only_visible": "{name} requires a generated invite link and can appear in discovery.",
+      "invite_only_hidden": "{name} requires a generated invite link and will stay out of discovery.",
+      "application_visible": "{name} will use applications for new members and can appear in discovery. Invite links can still add members directly.",
+      "application_hidden": "{name} will use applications for new members and stay out of discovery. Invite links can still add members directly."
     },
     "toasts": {
       "created": "Votre groupe a été créé."

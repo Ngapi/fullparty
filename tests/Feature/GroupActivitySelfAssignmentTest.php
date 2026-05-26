@@ -19,7 +19,7 @@ function createNonApplicationSelfAssignmentSetup(): array
 {
     $owner = User::factory()->create();
     $user = User::factory()->create();
-    $group = Group::factory()->public()->create([
+    $group = Group::factory()->open()->create([
         'owner_id' => $owner->id,
     ]);
 

@@ -8,6 +8,7 @@ import { route } from "ziggy-js";
 import ActivityContextMenu from "@/components/Groups/Activities/ActivityContextMenu.vue";
 import { localizedValue } from "@/utils/localizedValue";
 import { getActivityStatusBorderClass } from "@/utils/activityStatusMeta";
+import { createDateTimeFormatter } from "@/utils/dateTimeFormat";
 
 const props = defineProps<{
 	groupSlug: string
@@ -40,7 +41,7 @@ const activityTime = (activity: ActivityIndexItem) => {
 		return '';
 	}
 
-	return new Intl.DateTimeFormat(locale.value, {
+	return createDateTimeFormatter(locale.value, {
 		hour: '2-digit',
 		minute: '2-digit',
 	}).format(new Date(activity.starts_at));

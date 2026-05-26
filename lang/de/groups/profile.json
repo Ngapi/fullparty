@@ -4,19 +4,15 @@
     "no_description": "Diese Gruppe hat noch keine öffentliche Beschreibung hinzugefügt."
   },
   "badges": {
-    "public": "Öffentliche Gruppe",
-    "private": "Nur mit Einladung"
+    "open": "Open group",
+    "invite_only": "Invite only",
+    "application": "Application based"
   },
   "actions": {
     "back": "Zurück",
     "join": "Gruppe beitreten",
     "sign_in_to_join": "Zum Beitreten anmelden",
-    "follow": "Für Benachrichtigungen folgen",
-    "sign_in_to_follow": "Zum Folgen anmelden",
-    "unfollow": "Nicht mehr folgen",
     "leave": "Gruppe verlassen",
-    "mute_notifications": "Benachrichtigungen stummschalten",
-    "unmute_notifications": "Benachrichtigungen aktivieren",
     "open_dashboard": "Dashboard öffnen",
     "open_discord": "Discord öffnen"
   },
@@ -50,12 +46,14 @@
   "access": {
     "title": "Gruppenzugang",
     "subtitle": "Wie andere diese Gruppe finden und beitreten können.",
-    "public_title": "Offen zum Beitreten",
-    "public_description": "Jeder mit einem FullParty-Konto kann dieser Gruppe beitreten.",
-    "private_title": "Einladungsbasiert",
-    "private_description": "Neue Mitglieder benötigen eine Einladung vom Gruppenstaff.",
+    "open_title": "Open group",
+    "open_description": "Anyone with a FullParty account can join this group.",
+    "invite_only_title": "Invite only",
+    "invite_only_description": "New members need an invite from the group staff.",
+    "application_title": "Application based",
+    "application_description": "New members apply for staff review. Invite links can still add members directly.",
     "static_title": "Static-Roster",
-    "static_description": "Diese Gruppe nutzt keine öffentlichen Beitritte oder Community-Einladungslinks.",
+    "static_description": "This group uses a fixed roster style.",
     "visible_title": "Auffindbar",
     "visible_description": "Diese Gruppe kann in öffentlicher Suche und Discovery erscheinen.",
     "hidden_title": "Nicht auffindbar",

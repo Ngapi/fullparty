@@ -12,6 +12,7 @@ use App\Support\Auth\OAuthEmailVerification;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 use Laravel\Socialite\Socialite;
+use Laravel\Socialite\Two\InvalidStateException;
 
 class DiscordAuthController extends Controller
 {
@@ -27,7 +28,14 @@ class DiscordAuthController extends Controller
 
     public function callback()
     {
-        $discordUser = Socialite::driver('discord')->user();
+        try {
+            $discordUser = Socialite::driver('discord')->user();
+        } catch (InvalidStateException) {
+            return redirect()
+                ->route('settings')
+                ->withErrors(['error' => 'social_oauth_invalid_state']);
+        }
+
         $provider = 'discord';
         $providerUserId = (string) $discordUser->getId();
         $providerEmail = $discordUser->getEmail();

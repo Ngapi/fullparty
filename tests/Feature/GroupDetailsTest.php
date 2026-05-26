@@ -12,11 +12,10 @@ uses(RefreshDatabase::class);
 
 it('returns discovery details for visible groups', function () {
     $user = User::factory()->create();
-    $group = Group::factory()->public()->create([
+    $group = Group::factory()->open()->create([
         'name' => 'Detail Group',
         'slug' => 'detailgp',
         'description' => 'Detailed description',
-        'recruiting_status' => 'applications_open',
         'primary_focuses' => ['progression', 'maps'],
         'experience_expectation' => 'midcore',
         'voice_expectation' => 'preferred',
@@ -74,16 +73,13 @@ it('returns discovery details for visible groups', function () {
         ->assertOk()
         ->assertJsonPath('data.name', 'Detail Group')
         ->assertJsonPath('data.region', $group->inferredRegion())
-        ->assertJsonPath('data.recruiting_status', 'applications_open')
         ->assertJsonPath('data.primary_focuses.0', 'progression')
         ->assertJsonPath('data.experience_expectation', 'midcore')
         ->assertJsonPath('data.voice_expectation', 'preferred')
         ->assertJsonPath('data.preferred_languages.0', 'en')
         ->assertJsonPath('data.tags.0', 'Late Night')
         ->assertJsonPath('data.links.dashboard', null)
-        ->assertJsonPath('data.follow.is_following', false)
-        ->assertJsonPath('data.follow.notifications_enabled', true)
-        ->assertJsonPath('data.permissions.can_follow', true)
+        ->assertJsonPath('data.notifications.enabled', true)
         ->assertJsonPath('data.permissions.can_join', true)
         ->assertJsonPath('data.permissions.can_leave', false)
         ->assertJsonPath('data.permissions.can_toggle_notifications', false)
@@ -128,7 +124,7 @@ it('does not expose discovery details for hidden groups', function () {
 
 it('derives turnout from filled slots even before assignment snapshots are materialized', function () {
     $user = User::factory()->create();
-    $group = Group::factory()->public()->create([
+    $group = Group::factory()->open()->create([
         'slug' => 'turnoutg',
     ]);
     $activity = Activity::factory()->complete()->create([
@@ -159,7 +155,7 @@ it('derives turnout from filled slots even before assignment snapshots are mater
 
 it('only exposes public runs in discovery activity details', function () {
     $user = User::factory()->create();
-    $group = Group::factory()->public()->create([
+    $group = Group::factory()->open()->create([
         'slug' => 'pubruns',
     ]);
     $publicActivity = Activity::factory()->complete()->create([
@@ -188,7 +184,7 @@ it('only exposes public runs in discovery activity details', function () {
 
 it('only exposes owner and moderators in discovery team details', function () {
     $viewer = User::factory()->create();
-    $group = Group::factory()->public()->create([
+    $group = Group::factory()->open()->create([
         'slug' => 'teamdtl',
     ]);
     $admin = User::factory()->create([
@@ -248,20 +244,21 @@ it('only exposes owner and moderators in discovery team details', function () {
 it('returns member interaction state for discovery details', function () {
     $member = User::factory()->create();
     $group = Group::factory()
-        ->public()
+        ->open()
         ->withMember($member)
         ->create([
             'slug' => 'memstate',
         ]);
+    $group->memberships()
+        ->where('user_id', $member->id)
+        ->update(['notifications_enabled' => false]);
 
     $this->actingAs($member)
         ->getJson(route('groups.details', $group))
         ->assertOk()
         ->assertJsonPath('data.current_user_role', GroupMembership::ROLE_MEMBER)
         ->assertJsonPath('data.links.dashboard', route('groups.dashboard', $group, false))
-        ->assertJsonPath('data.follow.is_following', true)
-        ->assertJsonPath('data.follow.notifications_enabled', true)
-        ->assertJsonPath('data.permissions.can_follow', false)
+        ->assertJsonPath('data.notifications.enabled', false)
         ->assertJsonPath('data.permissions.can_join', false)
         ->assertJsonPath('data.permissions.can_leave', true)
         ->assertJsonPath('data.permissions.can_toggle_notifications', true);

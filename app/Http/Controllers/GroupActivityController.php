@@ -177,9 +177,8 @@ class GroupActivityController extends Controller
 
         $currentUserId = auth()->id();
         $isMember = $group->hasMember($currentUserId);
-        $isFollower = $group->hasFollower($currentUserId);
 
-        if (! $isMember && ! $isFollower) {
+        if (! $isMember) {
             abort(403);
         }
 
@@ -977,6 +976,8 @@ class GroupActivityController extends Controller
                 'can_manage_discovery' => $group->hasAdminAccess($currentUserId),
                 'can_manage_activities' => $canManageActivities ?? $canModerateGroup,
                 'can_view_members' => $isMember,
+                'can_review_membership_applications' => $group->usesMembershipApplications() && $canModerateGroup,
+                'can_manage_membership_application_form' => $group->usesMembershipApplications() && $group->hasAdminAccess($currentUserId),
             ],
         ];
     }

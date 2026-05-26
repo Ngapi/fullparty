@@ -12,6 +12,8 @@ const props = defineProps<{
 			can_manage_members?: boolean
 			can_manage_discovery?: boolean
 			can_view_members?: boolean
+			can_review_membership_applications?: boolean
+			can_manage_membership_application_form?: boolean
 		}
 	}
 }>()
@@ -38,14 +40,26 @@ const leftitems = computed(() => [
 		href: route('groups.dashboard.members', props.group.slug),
 		active: page.url.startsWith(route('groups.dashboard.members', props.group.slug, false)),
 	}] : []),
+	...(props.group.permissions?.can_review_membership_applications ? [{
+		label: t('groups.index.navigation.membership_applications'),
+		icon: 'i-lucide-clipboard-check',
+		href: route('groups.dashboard.membership-applications.index', props.group.slug),
+		active: page.url.startsWith(route('groups.dashboard.membership-applications.index', props.group.slug, false)),
+	}] : []),
 ])
 
 const rightitems = computed(() => {
-	if (!props.group.permissions?.can_manage_members) {
+	if (!props.group.permissions?.can_manage_members && !props.group.permissions?.can_manage_membership_application_form) {
 		return []
 	}
 
 	return [
+		...(props.group.permissions?.can_manage_membership_application_form ? [{
+			label: t('groups.index.navigation.application_form'),
+			icon: 'i-lucide-list-checks',
+			href: route('groups.dashboard.membership-application-form.edit', props.group.slug),
+			active: page.url.startsWith(route('groups.dashboard.membership-application-form.edit', props.group.slug, false)),
+		}] : []),
 		{
 			label: t('groups.index.navigation.audit_log'),
 			icon: 'i-lucide-scroll-text',

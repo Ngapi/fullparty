@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\Models\Group;
 use App\Support\Input\RequestTextInputSanitizer;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
@@ -42,9 +43,8 @@ abstract class GroupDetailsRequest extends FormRequest
                 },
             ],
             'datacenter' => ['required', 'string', Rule::in(config('datacenters.values', []))],
-            'is_public' => ['required', 'boolean'],
+            'join_mode' => ['required', 'string', Rule::in(Group::JOIN_MODES)],
             'is_visible' => ['required', 'boolean'],
-            'recruiting_status' => ['nullable', 'string', Rule::in(config('group_discovery.recruiting_statuses', []))],
             'primary_focuses' => ['nullable', 'array'],
             'primary_focuses.*' => ['required', 'string', Rule::in(config('group_discovery.primary_focuses', []))],
             'experience_expectation' => ['nullable', 'string', Rule::in(config('group_discovery.experience_expectations', []))],
@@ -79,7 +79,7 @@ abstract class GroupDetailsRequest extends FormRequest
             [
                 'name',
                 'discord_invite_url',
-                'recruiting_status',
+                'join_mode',
                 'primary_focuses.*',
                 'experience_expectation',
                 'voice_expectation',
@@ -129,6 +129,20 @@ abstract class GroupDetailsRequest extends FormRequest
                 $validator->errors()->add(
                     'active_timezone',
                     __('groups.common.validation.active_timezone_required')
+                );
+            }
+
+            $routeGroup = $this->route('group');
+            $groupType = (string) $this->input(
+                'group_type',
+                $routeGroup instanceof Group ? $routeGroup->group_type : Group::TYPE_COMMUNITY
+            );
+            $joinMode = (string) $this->input('join_mode');
+
+            if ($joinMode !== '' && ! in_array($joinMode, Group::joinModesForType($groupType), true)) {
+                $validator->errors()->add(
+                    'join_mode',
+                    __('groups.common.validation.invalid_join_mode_for_group_type')
                 );
             }
 

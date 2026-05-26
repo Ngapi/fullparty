@@ -21,7 +21,7 @@ uses(RefreshDatabase::class);
 function createRosterAssignmentSetup(): array
 {
     $owner = User::factory()->create();
-    $group = Group::factory()->public()->create([
+    $group = Group::factory()->open()->create([
         'owner_id' => $owner->id,
     ]);
     Character::factory()->primary()->create([
@@ -257,7 +257,7 @@ it('assigns a pending application to a roster slot and creates an active assignm
 
 it('lets moderators swap a party composition preset without changing assignments', function () {
     $owner = User::factory()->create();
-    $group = Group::factory()->public()->create([
+    $group = Group::factory()->open()->create([
         'owner_id' => $owner->id,
     ]);
     Character::factory()->primary()->create([
@@ -338,7 +338,7 @@ it('lets moderators swap a party composition preset without changing assignments
 
 it('lets moderators apply a party composition to other compatible parties without changing assignments', function () {
     $owner = User::factory()->create();
-    $group = Group::factory()->public()->create([
+    $group = Group::factory()->open()->create([
         'owner_id' => $owner->id,
     ]);
     Character::factory()->primary()->create([
@@ -498,7 +498,7 @@ it('lets moderators apply a party composition to other compatible parties withou
 
 it('lets moderators customize empty slot composition hints without changing assignments', function () {
     $owner = User::factory()->create();
-    $group = Group::factory()->public()->create([
+    $group = Group::factory()->open()->create([
         'owner_id' => $owner->id,
     ]);
     Character::factory()->primary()->create([
@@ -604,7 +604,7 @@ it('lets moderators customize empty slot composition hints without changing assi
 
 it('rejects composition hint changes on assigned slots', function () {
     $owner = User::factory()->create();
-    $group = Group::factory()->public()->create([
+    $group = Group::factory()->open()->create([
         'owner_id' => $owner->id,
     ]);
     Character::factory()->primary()->create([

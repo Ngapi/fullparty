@@ -57,7 +57,7 @@ it('notifies signed in active applicants when a run is cancelled', function () {
     Queue::fake();
 
     $owner = User::factory()->create();
-    $group = Group::factory()->public()->create([
+    $group = Group::factory()->open()->create([
         'owner_id' => $owner->id,
     ]);
     $activity = createRunNotificationActivity($owner, $group, [
@@ -164,7 +164,7 @@ it('notifies placed applicants when a run is completed', function () {
     Queue::fake();
 
     $owner = User::factory()->create();
-    $group = Group::factory()->public()->create([
+    $group = Group::factory()->open()->create([
         'owner_id' => $owner->id,
     ]);
     $activity = createRunNotificationActivity($owner, $group, [
@@ -267,7 +267,7 @@ it('notifies placed applicants when a run is completed', function () {
 
 it('sanitizes completion progress notes before storing them', function () {
     $owner = User::factory()->create();
-    $group = Group::factory()->public()->create([
+    $group = Group::factory()->open()->create([
         'owner_id' => $owner->id,
     ]);
     $activity = createRunNotificationActivity($owner, $group, [
@@ -290,7 +290,7 @@ it('sanitizes completion progress notes before storing them', function () {
 
 it('rejects completion progress notes that exceed the configured limit', function () {
     $owner = User::factory()->create();
-    $group = Group::factory()->public()->create([
+    $group = Group::factory()->open()->create([
         'owner_id' => $owner->id,
     ]);
     $activity = createRunNotificationActivity($owner, $group, [
@@ -314,7 +314,7 @@ it('dispatches starting soon and starting now reminders only once', function () 
     Queue::fake();
 
     $owner = User::factory()->create();
-    $group = Group::factory()->public()->create([
+    $group = Group::factory()->open()->create([
         'owner_id' => $owner->id,
     ]);
 

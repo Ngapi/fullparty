@@ -17,9 +17,32 @@ class Group extends Model
 
     public const TYPE_STATIC = 'static';
 
+    public const JOIN_MODE_OPEN = 'open';
+
+    public const JOIN_MODE_INVITE_ONLY = 'invite_only';
+
+    public const JOIN_MODE_APPLICATION = 'application';
+
     public const TYPES = [
         self::TYPE_COMMUNITY,
         self::TYPE_STATIC,
+    ];
+
+    public const JOIN_MODES = [
+        self::JOIN_MODE_OPEN,
+        self::JOIN_MODE_INVITE_ONLY,
+        self::JOIN_MODE_APPLICATION,
+    ];
+
+    public const COMMUNITY_JOIN_MODES = [
+        self::JOIN_MODE_OPEN,
+        self::JOIN_MODE_INVITE_ONLY,
+        self::JOIN_MODE_APPLICATION,
+    ];
+
+    public const STATIC_JOIN_MODES = [
+        self::JOIN_MODE_INVITE_ONLY,
+        self::JOIN_MODE_APPLICATION,
     ];
 
     protected $fillable = [
@@ -30,11 +53,11 @@ class Group extends Model
         'banner_image_url',
         'discord_invite_url',
         'datacenter',
-        'is_public',
         'is_visible',
         'slug',
         'group_type',
-        'recruiting_status',
+        'join_mode',
+        'membership_application_schema',
         'primary_focuses',
         'experience_expectation',
         'voice_expectation',
@@ -47,8 +70,8 @@ class Group extends Model
     ];
 
     protected $casts = [
-        'is_public' => 'boolean',
         'is_visible' => 'boolean',
+        'membership_application_schema' => 'array',
         'primary_focuses' => 'array',
         'preferred_languages' => 'array',
         'tags' => 'array',
@@ -74,13 +97,6 @@ class Group extends Model
     {
         return $this->belongsToMany(User::class, 'group_memberships')
             ->withPivot(['role', 'joined_at'])
-            ->withTimestamps();
-    }
-
-    public function followers(): BelongsToMany
-    {
-        return $this->belongsToMany(User::class, 'group_follows')
-            ->withPivot(['notifications_enabled'])
             ->withTimestamps();
     }
 
@@ -112,6 +128,11 @@ class Group extends Model
     public function activities(): HasMany
     {
         return $this->hasMany(Activity::class);
+    }
+
+    public function membershipApplications(): HasMany
+    {
+        return $this->hasMany(GroupMembershipApplication::class);
     }
 
     public function scopeVisible($query)
@@ -167,22 +188,6 @@ class Group extends Model
             ->contains(fn (GroupMembership $membership) => $membership->user_id === $userId);
     }
 
-    public function hasFollower(?int $userId): bool
-    {
-        if ($userId === null) {
-            return false;
-        }
-
-        if ($this->relationLoaded('followers')) {
-            return $this->followers
-                ->contains(fn (User $user) => $user->id === $userId);
-        }
-
-        return $this->followers()
-            ->where('users.id', $userId)
-            ->exists();
-    }
-
     public function isBanned(?int $userId): bool
     {
         if ($userId === null) {
@@ -203,6 +208,32 @@ class Group extends Model
         return $this->group_type === self::TYPE_COMMUNITY;
     }
 
+    public function allowsOpenJoin(): bool
+    {
+        return $this->usesCommunityJoinFlow()
+            && $this->join_mode === self::JOIN_MODE_OPEN;
+    }
+
+    public function usesMembershipApplications(): bool
+    {
+        return $this->join_mode === self::JOIN_MODE_APPLICATION;
+    }
+
+    public function hasPermanentInvite(): bool
+    {
+        return $this->allowsOpenJoin();
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    public static function joinModesForType(string $groupType): array
+    {
+        return $groupType === self::TYPE_STATIC
+            ? self::STATIC_JOIN_MODES
+            : self::COMMUNITY_JOIN_MODES;
+    }
+
     public function inferredRegion(): ?string
     {
         return self::regionForDatacenter($this->datacenter);
@@ -219,7 +250,7 @@ class Group extends Model
 
     public function ensureSystemInvite(): void
     {
-        if (! $this->usesCommunityJoinFlow()) {
+        if (! $this->hasPermanentInvite()) {
             return;
         }
 

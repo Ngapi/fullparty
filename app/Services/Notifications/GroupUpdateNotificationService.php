@@ -23,7 +23,7 @@ class GroupUpdateNotificationService
 
         $recipients = $isPlanningNotification
             ? $this->moderatorRecipients($activity->group, $actor instanceof User ? $actor->id : null)
-            : $this->followerRecipients($activity->group, $actor instanceof User ? $actor->id : null);
+            : $this->memberRecipients($activity->group, $actor instanceof User ? $actor->id : null);
 
         if ($recipients->isEmpty()) {
             return;
@@ -64,7 +64,7 @@ class GroupUpdateNotificationService
     {
         $activity->loadMissing('group');
 
-        $recipients = $this->followerRecipients($activity->group, $actor instanceof User ? $actor->id : null);
+        $recipients = $this->memberRecipients($activity->group, $actor instanceof User ? $actor->id : null);
 
         if ($recipients->isEmpty()) {
             return;
@@ -292,21 +292,15 @@ class GroupUpdateNotificationService
     {
         return User::query()
             ->where('group_update_notifications', true)
-            ->whereHas('followedGroups', function ($followQuery) use ($group): void {
-                $followQuery
-                    ->where('groups.id', $group->id)
-                    ->where('group_follows.notifications_enabled', true);
-            })
-            ->where(function ($query) use ($group): void {
-                $query->whereKey($group->owner_id)
-                    ->orWhereHas('groupMemberships', function ($membershipQuery) use ($group): void {
-                        $membershipQuery
-                            ->where('group_id', $group->id)
-                            ->whereIn('role', [
-                                GroupMembership::ROLE_ADMIN,
-                                GroupMembership::ROLE_MODERATOR,
-                            ]);
-                    });
+            ->whereHas('groupMemberships', function ($query) use ($group): void {
+                $query
+                    ->where('group_id', $group->id)
+                    ->where('notifications_enabled', true)
+                    ->whereIn('role', [
+                        GroupMembership::ROLE_OWNER,
+                        GroupMembership::ROLE_ADMIN,
+                        GroupMembership::ROLE_MODERATOR,
+                    ]);
             })
             ->when($excludeUserId !== null, fn ($query) => $query->whereKeyNot($excludeUserId))
             ->get();
@@ -315,14 +309,14 @@ class GroupUpdateNotificationService
     /**
      * @return EloquentCollection<int, User>
      */
-    private function followerRecipients(Group $group, ?int $excludeUserId = null): EloquentCollection
+    private function memberRecipients(Group $group, ?int $excludeUserId = null): EloquentCollection
     {
         return User::query()
             ->where('group_update_notifications', true)
-            ->whereHas('followedGroups', function ($query) use ($group): void {
+            ->whereHas('groupMemberships', function ($query) use ($group): void {
                 $query
-                    ->where('groups.id', $group->id)
-                    ->where('group_follows.notifications_enabled', true);
+                    ->where('group_id', $group->id)
+                    ->where('notifications_enabled', true);
             })
             ->when($excludeUserId !== null, fn ($query) => $query->whereKeyNot($excludeUserId))
             ->get();

@@ -69,6 +69,8 @@
     "privacy_updated": "Datenschutzeinstellungen erfolgreich aktualisiert",
     "social_account_unlinked": "Verknüpftes Konto erfolgreich getrennt",
     "social_account_unlink_blocked": "Füge eine andere Anmeldemethode hinzu oder setze ein Passwort, bevor du dein letztes Social-Konto trennst.",
+    "social_oauth_invalid_state": "Dieser Verbindungsversuch ist abgelaufen. Bitte versuche erneut, das Konto zu verbinden.",
+    "error_title": "Etwas ist schiefgelaufen",
     "title": "Erfolg!"
   }
 }

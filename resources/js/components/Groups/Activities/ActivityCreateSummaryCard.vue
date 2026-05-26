@@ -4,6 +4,7 @@ import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 import { localizedValue } from "@/utils/localizedValue";
 import { usePage } from "@inertiajs/vue3";
+import { createDateTimeFormatter } from "@/utils/dateTimeFormat";
 
 const props = defineProps<{
 	form: {
@@ -59,7 +60,7 @@ const serverStartLabel = computed(() => {
 
 	const serverTimeDate = new Date(`${props.form.starts_at}:00Z`);
 
-	return new Intl.DateTimeFormat(locale.value, {
+	return createDateTimeFormatter(locale.value, {
 		weekday: 'long',
 		day: 'numeric',
 		month: 'long',
@@ -76,7 +77,7 @@ const localStartLabel = computed(() => {
 
 	const serverTimeDate = new Date(`${props.form.starts_at}:00Z`);
 
-	return new Intl.DateTimeFormat(locale.value, {
+	return createDateTimeFormatter(locale.value, {
 		weekday: 'long',
 		day: 'numeric',
 		month: 'long',

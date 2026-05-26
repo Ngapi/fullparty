@@ -8,6 +8,7 @@ import { useToast } from "@nuxt/ui/composables";
 import PageHeader from "@/components/PageHeader.vue";
 import { localizedValue } from "@/utils/localizedValue";
 import { getActivityStatusMeta } from "@/utils/activityStatusMeta";
+import { createDateTimeFormatter } from "@/utils/dateTimeFormat";
 
 const props = defineProps<{
 	activeApplications: AccountApplication[]
@@ -27,7 +28,7 @@ const formatDateTime = (value: string | null, options?: Intl.DateTimeFormatOptio
 		return t("applications.not_available");
 	}
 
-	return new Intl.DateTimeFormat(locale.value, {
+	return createDateTimeFormatter(locale.value, {
 		year: "numeric",
 		month: "2-digit",
 		day: "2-digit",
@@ -42,7 +43,7 @@ const formatRunTime = (value: string | null) => {
 		return t("groups.activities.cards.no_time");
 	}
 
-	return new Intl.DateTimeFormat(locale.value, {
+	return createDateTimeFormatter(locale.value, {
 		year: "numeric",
 		month: "2-digit",
 		day: "2-digit",

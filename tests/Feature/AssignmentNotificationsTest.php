@@ -1,5 +1,6 @@
 <?php
 
+use App\Jobs\SendNotificationEmailDeliveryJob;
 use App\Models\Activity;
 use App\Models\ActivityApplication;
 use App\Models\ActivitySlot;
@@ -14,7 +15,6 @@ use App\Models\PhantomJob;
 use App\Models\SocialAccount;
 use App\Models\User;
 use App\Models\UserNotification;
-use App\Jobs\SendNotificationEmailDeliveryJob;
 use App\Services\Groups\ActivitySlotBench;
 use App\Support\Notifications\NotificationCategory;
 use App\Support\Notifications\NotificationChannel;
@@ -87,7 +87,7 @@ function createAssignmentNotificationActivity(User $owner, Group $group, array $
 function createPublishedAssignmentFieldNotificationSetup(): array
 {
     $owner = User::factory()->create();
-    $group = Group::factory()->public()->create([
+    $group = Group::factory()->open()->create([
         'owner_id' => $owner->id,
     ]);
 
@@ -199,7 +199,7 @@ it('notifies signed in applicants of their roster positions when the roster is p
     Queue::fake();
 
     $owner = User::factory()->create();
-    $group = Group::factory()->public()->create([
+    $group = Group::factory()->open()->create([
         'owner_id' => $owner->id,
     ]);
     $activity = createAssignmentNotificationActivity($owner, $group, [
@@ -344,7 +344,7 @@ it('notifies signed in applicants of their roster positions when the roster is p
         ->and($discordDeliveries->pluck('status')->unique()->values()->all())->toBe([NotificationDelivery::STATUS_SKIPPED])
         ->and($discordDeliveries->pluck('status_reason')->unique()->values()->all())->toBe(['discord_transport_unavailable']);
 
-Queue::assertPushed(SendNotificationEmailDeliveryJob::class, 2);
+    Queue::assertPushed(SendNotificationEmailDeliveryJob::class, 2);
 });
 
 it('notifies a manually assigned member when they are added to a published roster slot', function () {
@@ -414,7 +414,7 @@ it('notifies manually assigned members when the roster is published', function (
     Queue::fake();
 
     $owner = User::factory()->create();
-    $group = Group::factory()->public()->create([
+    $group = Group::factory()->open()->create([
         'owner_id' => $owner->id,
     ]);
     $activity = createAssignmentNotificationActivity($owner, $group, [
@@ -554,7 +554,7 @@ it('does not inherit designations when replacing assignees in designated publish
 
 it('does not create assignment notifications while the roster is still unpublished', function () {
     $owner = User::factory()->create();
-    $group = Group::factory()->public()->create([
+    $group = Group::factory()->open()->create([
         'owner_id' => $owner->id,
     ]);
     $activity = createAssignmentNotificationActivity($owner, $group, [
@@ -601,7 +601,7 @@ it('notifies affected users when assignments change after the roster has been pu
     Queue::fake();
 
     $owner = User::factory()->create();
-    $group = Group::factory()->public()->create([
+    $group = Group::factory()->open()->create([
         'owner_id' => $owner->id,
     ]);
     $activity = createAssignmentNotificationActivity($owner, $group, [
@@ -734,7 +734,7 @@ it('notifies affected users when published filled slots are swapped', function (
     Queue::fake();
 
     $owner = User::factory()->create();
-    $group = Group::factory()->public()->create([
+    $group = Group::factory()->open()->create([
         'owner_id' => $owner->id,
     ]);
 
@@ -856,7 +856,7 @@ it('notifies the applicant when a published roster assignment is returned to the
     Queue::fake();
 
     $owner = User::factory()->create();
-    $group = Group::factory()->public()->create([
+    $group = Group::factory()->open()->create([
         'owner_id' => $owner->id,
     ]);
     $activity = createAssignmentNotificationActivity($owner, $group, [

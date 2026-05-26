@@ -48,8 +48,6 @@
   "members": "メンバー",
   "public": "公開",
   "private": "非公開",
-  "public_group": "公開グループ",
-  "private_group": "非公開グループ",
   "profile_picture": "プロフィール画像",
   "discord_invite_url": "Discord招待リンク",
   "severity_levels": {

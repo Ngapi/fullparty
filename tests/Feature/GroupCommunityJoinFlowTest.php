@@ -1,22 +1,41 @@
 <?php
 
 use App\Models\Group;
-use App\Models\GroupInvite;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Inertia\Testing\AssertableInertia as Assert;
 
 uses(RefreshDatabase::class);
 
-it('does not expose or allow the public join action for static groups', function () {
+it('allows open community groups to be joined directly and keeps a permanent slug invite', function () {
     $owner = User::factory()->create();
     $viewer = User::factory()->create();
-    $group = Group::factory()->public()->create([
+    $group = Group::factory()->open()->create([
         'owner_id' => $owner->id,
-        'group_type' => Group::TYPE_STATIC,
+        'group_type' => Group::TYPE_COMMUNITY,
     ]);
 
-    expect($group->invites()->exists())->toBeFalse();
+    expect($group->join_mode)->toBe(Group::JOIN_MODE_OPEN)
+        ->and($group->systemInvite?->token)->toBe($group->slug);
+
+    $this->actingAs($viewer)
+        ->from(route('groups.index'))
+        ->post(route('groups.join', $group))
+        ->assertRedirect(route('groups.dashboard', $group));
+
+    expect($group->memberships()->where('user_id', $viewer->id)->exists())->toBeTrue();
+});
+
+it('does not allow direct joins for invite-only or application-based groups', function (string $groupType, string $joinMode) {
+    $owner = User::factory()->create();
+    $viewer = User::factory()->create();
+    $group = Group::factory()->create([
+        'owner_id' => $owner->id,
+        'group_type' => $groupType,
+        'join_mode' => $joinMode,
+    ]);
+
+    expect($group->invites()->where('is_system', true)->exists())->toBeFalse();
 
     $this->actingAs($viewer)
         ->from(route('groups.index'))
@@ -25,20 +44,20 @@ it('does not expose or allow the public join action for static groups', function
         ->assertSessionHasErrors('error');
 
     expect($group->memberships()->where('user_id', $viewer->id)->exists())->toBeFalse();
-});
+})->with([
+    'community invite-only' => [Group::TYPE_COMMUNITY, Group::JOIN_MODE_INVITE_ONLY],
+    'community application-based' => [Group::TYPE_COMMUNITY, Group::JOIN_MODE_APPLICATION],
+    'static invite-only' => [Group::TYPE_STATIC, Group::JOIN_MODE_INVITE_ONLY],
+    'static application-based' => [Group::TYPE_STATIC, Group::JOIN_MODE_APPLICATION],
+]);
 
-it('does not expose invite management for static groups', function () {
+it('allows generated invites for static groups', function () {
     $owner = User::factory()->create();
-    $group = Group::factory()->public()->create([
+    $viewer = User::factory()->create();
+    $group = Group::factory()->create([
         'owner_id' => $owner->id,
         'group_type' => Group::TYPE_STATIC,
-    ]);
-
-    GroupInvite::query()->create([
-        'group_id' => $group->id,
-        'created_by' => $owner->id,
-        'token' => 'staticjoin',
-        'is_system' => false,
+        'join_mode' => Group::JOIN_MODE_INVITE_ONLY,
     ]);
 
     $this->actingAs($owner)
@@ -46,7 +65,8 @@ it('does not expose invite management for static groups', function () {
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
             ->where('group.group_type', Group::TYPE_STATIC)
-            ->where('group.permissions.can_manage_invites', false)
+            ->where('group.join_mode', Group::JOIN_MODE_INVITE_ONLY)
+            ->where('group.permissions.can_manage_invites', true)
             ->has('group.invites', 0)
         );
 
@@ -57,40 +77,48 @@ it('does not expose invite management for static groups', function () {
             'expires_at' => null,
         ])
         ->assertRedirect(route('groups.dashboard.settings', $group))
-        ->assertSessionHasErrors('error');
+        ->assertSessionDoesntHaveErrors();
 
-    expect($group->invites()->count())->toBe(1);
-});
-
-it('does not allow static group invite links to be viewed or accepted', function () {
-    $owner = User::factory()->create();
-    $viewer = User::factory()->create();
-    $group = Group::factory()->public()->create([
-        'owner_id' => $owner->id,
-        'group_type' => Group::TYPE_STATIC,
-    ]);
-    $invite = GroupInvite::query()->create([
-        'group_id' => $group->id,
-        'created_by' => $owner->id,
-        'token' => 'staticlink',
-        'is_system' => false,
-    ]);
+    $invite = $group->invites()->where('is_system', false)->firstOrFail();
 
     $this->get(route('groups.invites.show', $invite->token))
-        ->assertNotFound();
+        ->assertOk();
 
     $this->actingAs($viewer)
         ->post(route('groups.invites.accept', $invite->token))
-        ->assertRedirect(route('groups.index'))
-        ->assertSessionHasErrors('error');
+        ->assertRedirect(route('groups.dashboard', $group));
 
-    expect($group->memberships()->where('user_id', $viewer->id)->exists())->toBeFalse()
-        ->and($invite->fresh()->uses)->toBe(0);
+    expect($group->memberships()->where('user_id', $viewer->id)->exists())->toBeTrue()
+        ->and($invite->fresh()->uses)->toBe(1);
 });
+
+it('allows generated invites for application-based groups without creating a permanent slug invite', function (string $groupType) {
+    $owner = User::factory()->create();
+    $group = Group::factory()->applicationBased()->create([
+        'owner_id' => $owner->id,
+        'group_type' => $groupType,
+    ]);
+
+    expect($group->invites()->where('is_system', true)->exists())->toBeFalse();
+
+    $this->actingAs($owner)
+        ->from(route('groups.dashboard.settings', $group))
+        ->post(route('groups.invites.store', $group), [
+            'max_uses' => null,
+            'expires_at' => null,
+        ])
+        ->assertRedirect(route('groups.dashboard.settings', $group))
+        ->assertSessionDoesntHaveErrors();
+
+    expect($group->invites()->where('is_system', false)->count())->toBe(1);
+})->with([
+    'community' => [Group::TYPE_COMMUNITY],
+    'static' => [Group::TYPE_STATIC],
+]);
 
 it('rejects invite max uses above the supported limit', function () {
     $owner = User::factory()->create();
-    $group = Group::factory()->public()->create([
+    $group = Group::factory()->open()->create([
         'owner_id' => $owner->id,
         'group_type' => Group::TYPE_COMMUNITY,
     ]);
@@ -109,7 +137,7 @@ it('rejects invite max uses above the supported limit', function () {
 
 it('rejects invite max uses values that contain non-digit characters', function () {
     $owner = User::factory()->create();
-    $group = Group::factory()->public()->create([
+    $group = Group::factory()->open()->create([
         'owner_id' => $owner->id,
         'group_type' => Group::TYPE_COMMUNITY,
     ]);

@@ -7,6 +7,7 @@ import { setQueueApplicationDragData } from "@/components/Groups/Activities/rost
 import MemberNotesButton from "@/components/Shared/Notes/MemberNotesButton.vue";
 import type { LocalizedText } from "@/Types/Common";
 import type { QueueApplication } from "@/Types/ActivityQueue";
+import { createDateTimeFormatter } from "@/utils/dateTimeFormat";
 
 const props = defineProps<{
 	application: QueueApplication
@@ -85,7 +86,7 @@ const submittedAtLabel = computed(() => {
 		return t('groups.activities.management.queue.no_submission_time');
 	}
 
-	return new Intl.DateTimeFormat(locale.value, {
+	return createDateTimeFormatter(locale.value, {
 		year: 'numeric',
 		month: '2-digit',
 		day: '2-digit',

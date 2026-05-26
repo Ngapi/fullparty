@@ -8,10 +8,12 @@
     "visibility_summary_label": "Sichtbarkeitsübersicht",
     "visibility_summary": {
       "default_name": "Diese Gruppe",
-      "public_visible": "{name} kann von jedem betreten werden und erscheint in Suche und Profilen.",
-      "public_hidden": "{name} kann von jedem betreten werden, erscheint aber nicht in der Entdeckung oder in durchsuchbaren Profilen.",
-      "private_visible": "{name} kann nur per Einladung betreten werden, erscheint aber weiterhin in Suche und Profilen.",
-      "private_hidden": "{name} kann nur per Einladung betreten werden und bleibt in Entdeckung und durchsuchbaren Profilen verborgen."
+      "open_visible": "{name} can be joined by anyone and can appear in discovery.",
+      "open_hidden": "{name} can be joined by anyone with the permanent slug invite, but will stay out of discovery.",
+      "invite_only_visible": "{name} requires a generated invite link and can appear in discovery.",
+      "invite_only_hidden": "{name} requires a generated invite link and will stay out of discovery.",
+      "application_visible": "{name} will use applications for new members and can appear in discovery. Invite links can still add members directly.",
+      "application_hidden": "{name} will use applications for new members and stay out of discovery. Invite links can still add members directly."
     },
     "fields": {
       "name": { "placeholder": "Forked Tower Enjoyers" },
@@ -23,23 +25,32 @@
         "preview_label": "Sichtbare Beschnittvorschau",
         "preview_help": "Diese Vorschau zeigt den zentrierten quadratischen Zuschnitt, der skaliert und als Profilbild deiner Gruppe verwendet wird."
       },
+      "banner_image": {
+        "label": "Bannerbild",
+        "placeholder": "Breites Bannerbild auswählen",
+        "help": "Optional. Lade ein neues breites Banner für Discovery-Karten und das Gruppen-Dashboard hoch.",
+        "preview_alt": "Vorschau des Gruppenbanners",
+        "preview_label": "Bannervorschau",
+        "preview_help": "Diese Vorschau zeigt den breiten Beschnitt, der für den Gruppenheader und Discovery-Karten verwendet wird."
+      },
       "discord_invite_url": {
         "placeholder": "https://discord.gg/yourserver",
         "help": "Optional. Füge eine Discord-Einladung hinzu, damit Mitglieder deinem Server leicht beitreten können."
       },
       "datacenter": { "placeholder": "Wähle ein Datenzentrum" },
-      "is_public": {
-        "label": "Öffentliche Gruppe",
-        "help": "Jeder kann öffentlichen Gruppen beitreten, und öffentliche zukünftige Runs können von Außenstehenden gesehen werden."
+      "join_mode": {
+        "label": "Join Mode",
+        "placeholder": "Select a join mode",
+        "help": "Open is community-only. Invite-only and application-based groups can still use generated invite links."
       },
       "is_visible": {
         "label": "In der Entdeckung sichtbar",
-        "help": "Sichtbare Gruppen können in Entdeckung und Suche erscheinen, auch wenn sie privat sind."
+        "help": "Visible groups can appear in discovery and search."
       }
     },
     "validation": {
-      "image_invalid_format": "Das Profilbild muss ein JPG-, JPEG-, PNG- oder WEBP-Bild sein.",
-      "image_too_large": "Das Profilbild darf höchstens 5 MB groß sein."
+      "image_invalid_format": "Bilder müssen JPG-, JPEG-, PNG- oder WEBP-Dateien sein.",
+      "image_too_large": "Bilder dürfen höchstens 5 MB groß sein."
     },
     "toasts": { "updated": "Gruppeneinstellungen wurden aktualisiert." }
   },

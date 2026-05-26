@@ -13,6 +13,7 @@ import { getActivityStatusMeta } from "@/utils/activityStatusMeta";
 import { isArchivedActivityStatus } from "@/utils/activityLifecycle";
 import { buildActivityCompletionSummary } from "@/utils/buildActivityCompletionSummary";
 import type { ActivityOverviewPermissions, AttendeeActivity, PublicGroupSummary } from "@/Types/ActivityAttendee";
+import { createDateTimeFormatter } from "@/utils/dateTimeFormat";
 
 const props = defineProps<{
 	group: PublicGroupSummary
@@ -77,7 +78,7 @@ const serverStartsAtLabel = computed(() => {
 		return t("groups.activities.cards.no_time");
 	}
 
-	return new Intl.DateTimeFormat(locale.value, {
+	return createDateTimeFormatter(locale.value, {
 		weekday: "long",
 		day: "numeric",
 		month: "long",
@@ -92,7 +93,7 @@ const localStartsAtLabel = computed(() => {
 		return t("groups.activities.cards.no_time");
 	}
 
-	return new Intl.DateTimeFormat(locale.value, {
+	return createDateTimeFormatter(locale.value, {
 		weekday: "long",
 		day: "numeric",
 		month: "long",

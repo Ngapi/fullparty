@@ -7,6 +7,7 @@ import { route } from 'ziggy-js'
 import { useI18n } from 'vue-i18n'
 import { useToast } from '@nuxt/ui/composables'
 import PageHeader from '@/components/PageHeader.vue'
+import { createDateTimeFormatter } from "@/utils/dateTimeFormat";
 import {
 	formatNotificationTime,
 	resolveNotificationDescription,
@@ -37,7 +38,7 @@ const formatExactDateTime = (value: string | null) => {
 		return t('notifications.ui.just_now')
 	}
 
-	return new Intl.DateTimeFormat(locale.value, {
+	return createDateTimeFormatter(locale.value, {
 		year: 'numeric',
 		month: '2-digit',
 		day: '2-digit',

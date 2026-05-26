@@ -33,7 +33,6 @@ class GroupAuditLogController extends Controller
                 'profile_picture_url' => $group->profile_picture_url,
                 'discord_invite_url' => $group->discord_invite_url,
                 'datacenter' => $group->datacenter,
-                'is_public' => $group->is_public,
                 'is_visible' => $group->is_visible,
                 'slug' => $group->slug,
                 'owner' => [
@@ -51,6 +50,8 @@ class GroupAuditLogController extends Controller
                     'can_manage_roles' => $group->isOwnedBy(auth()->id()),
                     'can_view_bans' => $group->hasModeratorAccess(auth()->id()),
                     'can_view_members' => $group->hasMember(auth()->id()),
+                    'can_review_membership_applications' => $group->usesMembershipApplications() && $group->hasModeratorAccess(auth()->id()),
+                    'can_manage_membership_application_form' => $group->usesMembershipApplications() && $group->hasAdminAccess(auth()->id()),
                 ],
             ],
             'auditLogs' => $auditLogs

@@ -164,7 +164,6 @@ final class RunDiscoveryService
                 'name',
                 'slug',
                 'datacenter',
-                'is_public',
                 'is_visible',
                 'group_type',
                 'voice_expectation',
@@ -505,7 +504,7 @@ final class RunDiscoveryService
         }
 
         if ($activity->is_public) {
-            if ($group->is_public) {
+            if ($group->is_visible) {
                 return true;
             }
 

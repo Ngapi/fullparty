@@ -16,7 +16,6 @@ class StoreGroupRequest extends GroupDetailsRequest
         return [
             ...$this->baseRules(),
             'group_type' => ['required', 'string', Rule::in(Group::TYPES)],
-            'recruiting_status' => ['required', 'string', Rule::in(config('group_discovery.recruiting_statuses', []))],
             'primary_focuses' => ['required', 'array', 'min:1'],
             'primary_focuses.*' => ['required', 'string', Rule::in(config('group_discovery.primary_focuses', []))],
             'experience_expectation' => ['required', 'string', Rule::in(config('group_discovery.experience_expectations', []))],

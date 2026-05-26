@@ -8,10 +8,12 @@
     "visibility_summary_label": "Résumé de visibilité",
     "visibility_summary": {
       "default_name": "Ce groupe",
-      "public_visible": "{name} peut être rejoint par n'importe qui et apparaîtra dans la recherche et les profils.",
-      "public_hidden": "{name} peut être rejoint par n'importe qui, mais n'apparaîtra pas dans la découverte ni dans les profils consultables.",
-      "private_visible": "{name} ne peut être rejoint que via une invitation, mais apparaîtra quand même dans la recherche et les profils.",
-      "private_hidden": "{name} ne peut être rejoint que via une invitation et restera caché dans la découverte et les profils consultables."
+      "open_visible": "{name} can be joined by anyone and can appear in discovery.",
+      "open_hidden": "{name} can be joined by anyone with the permanent slug invite, but will stay out of discovery.",
+      "invite_only_visible": "{name} requires a generated invite link and can appear in discovery.",
+      "invite_only_hidden": "{name} requires a generated invite link and will stay out of discovery.",
+      "application_visible": "{name} will use applications for new members and can appear in discovery. Invite links can still add members directly.",
+      "application_hidden": "{name} will use applications for new members and stay out of discovery. Invite links can still add members directly."
     },
     "fields": {
       "name": { "placeholder": "Forked Tower Enjoyers" },
@@ -23,23 +25,32 @@
         "preview_label": "Aperçu du recadrage visible",
         "preview_help": "Cet aperçu montre le recadrage carré centré qui sera redimensionné et utilisé comme image de profil de votre groupe."
       },
+      "banner_image": {
+        "label": "Image de bannière",
+        "placeholder": "Choisir une bannière large",
+        "help": "Optionnel. Téléversez une nouvelle bannière large pour les cartes de découverte et le dashboard du groupe.",
+        "preview_alt": "Aperçu de la bannière du groupe",
+        "preview_label": "Aperçu de la bannière",
+        "preview_help": "Cet aperçu montre le recadrage large utilisé pour l'en-tête du groupe et les cartes de découverte."
+      },
       "discord_invite_url": {
         "placeholder": "https://discord.gg/yourserver",
         "help": "Optionnel. Ajoutez une invitation Discord pour que les membres puissent rejoindre facilement votre serveur."
       },
       "datacenter": { "placeholder": "Sélectionnez un centre de données" },
-      "is_public": {
-        "label": "Groupe public",
-        "help": "Tout le monde peut rejoindre les groupes publics, et les runs publics à venir peuvent être vus par les non-membres."
+      "join_mode": {
+        "label": "Join Mode",
+        "placeholder": "Select a join mode",
+        "help": "Open is community-only. Invite-only and application-based groups can still use generated invite links."
       },
       "is_visible": {
         "label": "Visible dans la découverte",
-        "help": "Les groupes visibles peuvent apparaître dans la découverte et la recherche, même s'ils sont privés."
+        "help": "Visible groups can appear in discovery and search."
       }
     },
     "validation": {
-      "image_invalid_format": "L'image de profil doit être au format JPG, JPEG, PNG ou WEBP.",
-      "image_too_large": "L'image de profil doit faire 5 Mo ou moins."
+      "image_invalid_format": "Les images doivent être au format JPG, JPEG, PNG ou WEBP.",
+      "image_too_large": "Les images doivent faire 5 Mo ou moins."
     },
     "toasts": { "updated": "Les paramètres du groupe ont été mis à jour." }
   },

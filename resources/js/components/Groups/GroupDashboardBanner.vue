@@ -10,6 +10,17 @@ const props = defineProps<{
 
 const { t } = useI18n();
 const groupTypeLabel = computed(() => t(`groups.common.group_types.${props.group.group_type}`));
+const titleStyle = computed(() => {
+	const length = Array.from(props.group.name.trim()).length;
+	const excessLength = Math.max(0, length - 18);
+	const mobileSize = Math.max(1.5, 2.25 - (excessLength * 0.025));
+	const desktopSize = Math.max(2, 3 - (excessLength * 0.035));
+
+	return {
+		"--group-name-size-mobile": `${mobileSize.toFixed(3)}rem`,
+		"--group-name-size-desktop": `${desktopSize.toFixed(3)}rem`,
+	};
+});
 </script>
 
 <template>
@@ -33,7 +44,10 @@ const groupTypeLabel = computed(() => t(`groups.common.group_types.${props.group
 				<p class="text-[11px] uppercase tracking-[0.22em] text-brand-200/80">
 					{{ groupTypeLabel }}
 				</p>
-				<h1 class="mt-3 text-4xl font-semibold leading-tight text-white sm:text-5xl break-words [overflow-wrap:anywhere]">
+				<h1
+					class="group-name-title"
+					:style="titleStyle"
+				>
 					{{ group.name }}
 				</h1>
 			</div>
@@ -44,3 +58,20 @@ const groupTypeLabel = computed(() => t(`groups.common.group_types.${props.group
 		</div>
 	</div>
 </template>
+
+<style scoped>
+.group-name-title {
+	margin-top: 0.75rem;
+	overflow-wrap: anywhere;
+	font-size: var(--group-name-size-mobile);
+	font-weight: 600;
+	line-height: 1.15;
+	color: white;
+}
+
+@media (min-width: 640px) {
+	.group-name-title {
+		font-size: var(--group-name-size-desktop);
+	}
+}
+</style>

@@ -17,7 +17,7 @@ uses(RefreshDatabase::class);
 function createApplicantQueueActivity(): array
 {
     $owner = User::factory()->create();
-    $group = Group::factory()->public()->create([
+    $group = Group::factory()->open()->create([
         'owner_id' => $owner->id,
     ]);
     Character::factory()->primary()->create([
@@ -100,13 +100,13 @@ function createQueueApplication(Activity $activity, CharacterClass $characterCla
     $user = User::query()->findOrFail($userId);
     $character = Character::query()->find($selectedCharacterId);
 
-    if (!$character) {
+    if (! $character) {
         $character = Character::factory()->primary()->create([
             'user_id' => $user->id,
         ]);
     }
 
-    if (!$character->classes()->exists()) {
+    if (! $character->classes()->exists()) {
         $character->classes()->attach($characterClass->id, [
             'level' => 100,
             'is_preferred' => true,

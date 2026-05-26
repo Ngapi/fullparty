@@ -101,7 +101,7 @@ function createCrudActivityType(User $creator): ActivityType
 
 it('allows moderators to create private application activities with guest applications enabled', function () {
     $owner = User::factory()->create();
-    $group = Group::factory()->public()->create([
+    $group = Group::factory()->open()->create([
         'owner_id' => $owner->id,
     ]);
     $organizerCharacter = Character::factory()->primary()->create([
@@ -175,7 +175,7 @@ it('allows moderators to create private application activities with guest applic
 
 it('defaults activity discovery metadata from the group and activity type version', function () {
     $owner = User::factory()->create();
-    $group = Group::factory()->public()->create([
+    $group = Group::factory()->open()->create([
         'owner_id' => $owner->id,
         'datacenter' => 'Light',
     ]);
@@ -204,7 +204,7 @@ it('defaults activity discovery metadata from the group and activity type versio
 
 it('shows only non-bench slot counts on the group runs page', function () {
     $owner = User::factory()->create();
-    $group = Group::factory()->public()->create([
+    $group = Group::factory()->open()->create([
         'owner_id' => $owner->id,
     ]);
     $activityType = createCrudActivityType($owner);
@@ -236,7 +236,7 @@ it('shows only non-bench slot counts on the group runs page', function () {
 
 it('sanitizes activity free-text fields when creating and updating activities', function () {
     $owner = User::factory()->create();
-    $group = Group::factory()->public()->create([
+    $group = Group::factory()->open()->create([
         'owner_id' => $owner->id,
     ]);
     $activityType = createCrudActivityType($owner);
@@ -283,7 +283,7 @@ it('sanitizes activity free-text fields when creating and updating activities', 
 
 it('rejects activity descriptions and notes that exceed the configured limits', function () {
     $owner = User::factory()->create();
-    $group = Group::factory()->public()->create([
+    $group = Group::factory()->open()->create([
         'owner_id' => $owner->id,
     ]);
     $activityType = createCrudActivityType($owner);
@@ -326,7 +326,7 @@ it('rejects activity descriptions and notes that exceed the configured limits', 
 it('forbids non moderators from creating activities', function () {
     $owner = User::factory()->create();
     $member = User::factory()->create();
-    $group = Group::factory()->public()->create([
+    $group = Group::factory()->open()->create([
         'owner_id' => $owner->id,
     ]);
     $group->memberships()->create([
@@ -351,7 +351,7 @@ it('forbids non moderators from creating activities', function () {
 
 it('prefills the create run page starts_at value from the requested calendar slot', function () {
     $owner = User::factory()->create();
-    $group = Group::factory()->public()->create([
+    $group = Group::factory()->open()->create([
         'owner_id' => $owner->id,
     ]);
     createCrudActivityType($owner);
@@ -369,7 +369,7 @@ it('prefills the create run page starts_at value from the requested calendar slo
 it('hides planned activities from non moderators on the dashboard runs page', function () {
     $owner = User::factory()->create();
     $member = User::factory()->create();
-    $group = Group::factory()->public()->create([
+    $group = Group::factory()->open()->create([
         'owner_id' => $owner->id,
     ]);
     $group->memberships()->create([
@@ -414,65 +414,21 @@ it('hides planned activities from non moderators on the dashboard runs page', fu
             ->has('activities', 2));
 });
 
-it('allows followers to view only public non-moderator activities on the dashboard runs page', function () {
-    $owner = User::factory()->create();
-    $follower = User::factory()->create();
-    $group = Group::factory()->public()->create([
-        'owner_id' => $owner->id,
-    ]);
-    $group->followers()->syncWithoutDetaching([
-        $follower->id => ['notifications_enabled' => true],
-    ]);
-    $activityType = createCrudActivityType($owner);
-
-    $scheduledActivity = Activity::factory()->create([
-        'group_id' => $group->id,
-        'activity_type_id' => $activityType->id,
-        'activity_type_version_id' => $activityType->current_published_version_id,
-        'organized_by_user_id' => $owner->id,
-        'status' => Activity::STATUS_SCHEDULED,
-        'title' => 'Public Scheduled Run',
-        'is_public' => true,
-        'updated_at' => now()->subMinutes(10),
+it('redirects non members away from the dashboard runs page', function () {
+    $viewer = User::factory()->create();
+    $group = Group::factory()->open()->create([
+        'owner_id' => User::factory()->create()->id,
     ]);
 
-    Activity::factory()->create([
-        'group_id' => $group->id,
-        'activity_type_id' => $activityType->id,
-        'activity_type_version_id' => $activityType->current_published_version_id,
-        'organized_by_user_id' => $owner->id,
-        'status' => Activity::STATUS_PLANNED,
-        'title' => 'Moderator Planning Run',
-        'is_public' => true,
-    ]);
-
-    Activity::factory()->private()->create([
-        'group_id' => $group->id,
-        'activity_type_id' => $activityType->id,
-        'activity_type_version_id' => $activityType->current_published_version_id,
-        'organized_by_user_id' => $owner->id,
-        'status' => Activity::STATUS_ASSIGNED,
-        'title' => 'Private Roster Run',
-    ]);
-
-    $this->actingAs($follower)
+    $this->actingAs($viewer)
         ->get(route('groups.dashboard.activities.index', $group))
-        ->assertOk()
-        ->assertInertia(fn (Assert $page) => $page
-            ->where('group.current_user_role', null)
-            ->where('group.permissions.can_manage_activities', false)
-            ->where('group.permissions.can_view_members', false)
-            ->has('activities', 1)
-            ->where('activities.0.id', $scheduledActivity->id)
-            ->where('activities.0.status', Activity::STATUS_SCHEDULED)
-            ->where('activities.0.is_public', true)
-            ->where('activities.0.secret_key', null));
+        ->assertRedirect(route('groups.index'));
 });
 
 it('rejects organizer characters that do not belong to the organizer user', function () {
     $owner = User::factory()->create();
     $otherUser = User::factory()->create();
-    $group = Group::factory()->public()->create([
+    $group = Group::factory()->open()->create([
         'owner_id' => $owner->id,
     ]);
     $activityType = createCrudActivityType($owner);
@@ -498,7 +454,7 @@ it('rejects organizer characters that do not belong to the organizer user', func
 it('updates mutable activity fields while keeping private access intact', function () {
     $owner = User::factory()->create();
     $moderator = User::factory()->create();
-    $group = Group::factory()->private()->create([
+    $group = Group::factory()->inviteOnly()->create([
         'owner_id' => $owner->id,
     ]);
     $group->memberships()->create([
@@ -585,7 +541,7 @@ it('updates mutable activity fields while keeping private access intact', functi
 
 it('accepts half-hour durations and rejects values outside the half-hour step', function () {
     $owner = User::factory()->create();
-    $group = Group::factory()->public()->create([
+    $group = Group::factory()->open()->create([
         'owner_id' => $owner->id,
     ]);
     $activityType = createCrudActivityType($owner);
@@ -618,7 +574,7 @@ it('accepts half-hour durations and rejects values outside the half-hour step', 
 
 it('allows moderators to schedule a planned activity', function () {
     $owner = User::factory()->create();
-    $group = Group::factory()->public()->create([
+    $group = Group::factory()->open()->create([
         'owner_id' => $owner->id,
     ]);
     $activityType = createCrudActivityType($owner);
@@ -653,7 +609,7 @@ it('allows moderators to schedule a planned activity', function () {
 
 it('allows moderators to delete runs before roster publish', function (string $status) {
     $owner = User::factory()->create();
-    $group = Group::factory()->public()->create([
+    $group = Group::factory()->open()->create([
         'owner_id' => $owner->id,
     ]);
     $activityType = createCrudActivityType($owner);
@@ -688,7 +644,7 @@ it('allows moderators to delete runs before roster publish', function (string $s
 
 it('forbids cancelling runs before roster publish', function (string $status) {
     $owner = User::factory()->create();
-    $group = Group::factory()->public()->create([
+    $group = Group::factory()->open()->create([
         'owner_id' => $owner->id,
     ]);
     $activityType = createCrudActivityType($owner);
@@ -718,7 +674,7 @@ it('forbids cancelling runs before roster publish', function (string $status) {
 
 it('forbids deleting runs after roster publish', function (string $status) {
     $owner = User::factory()->create();
-    $group = Group::factory()->public()->create([
+    $group = Group::factory()->open()->create([
         'owner_id' => $owner->id,
     ]);
     $activityType = createCrudActivityType($owner);
@@ -747,7 +703,7 @@ it('forbids deleting runs after roster publish', function (string $status) {
 
 it('does not allow archived activities to be updated', function () {
     $owner = User::factory()->create();
-    $group = Group::factory()->public()->create([
+    $group = Group::factory()->open()->create([
         'owner_id' => $owner->id,
     ]);
     $activityType = createCrudActivityType($owner);
@@ -774,7 +730,7 @@ it('does not allow archived activities to be updated', function () {
 
 it('rejects invalid target prog points during activity creation', function () {
     $owner = User::factory()->create();
-    $group = Group::factory()->public()->create([
+    $group = Group::factory()->open()->create([
         'owner_id' => $owner->id,
     ]);
     $activityType = createCrudActivityType($owner);
@@ -796,7 +752,7 @@ it('rejects invalid target prog points during activity creation', function () {
 
 it('rejects prohibited fields during activity updates', function () {
     $owner = User::factory()->create();
-    $group = Group::factory()->public()->create([
+    $group = Group::factory()->open()->create([
         'owner_id' => $owner->id,
     ]);
     $activityType = createCrudActivityType($owner);
@@ -835,7 +791,7 @@ it('rejects prohibited fields during activity updates', function () {
 
 it('cancels active applications, clears live slots, and keeps guest status pages read only', function () {
     $owner = User::factory()->create();
-    $group = Group::factory()->public()->create([
+    $group = Group::factory()->open()->create([
         'owner_id' => $owner->id,
     ]);
     $activityType = createCrudActivityType($owner);

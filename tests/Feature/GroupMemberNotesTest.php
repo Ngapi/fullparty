@@ -16,7 +16,7 @@ function createGroupMemberNotesContext(): array
     $moderator = User::factory()->create();
     $member = User::factory()->create();
 
-    $group = Group::factory()->public()->create([
+    $group = Group::factory()->open()->create([
         'owner_id' => $owner->id,
     ]);
 
@@ -70,7 +70,7 @@ it('returns the full note payload for a group member when a moderator opens the 
         'body' => 'Missed the last two call-time confirmations.',
     ]);
 
-    $sharedGroup = Group::factory()->public()->create();
+    $sharedGroup = Group::factory()->open()->create();
     $sharedAuthor = User::factory()->create();
 
     GroupUserNote::create([

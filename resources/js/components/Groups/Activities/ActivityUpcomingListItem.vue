@@ -7,6 +7,7 @@ import ActivityContextMenu from "@/components/Groups/Activities/ActivityContextM
 import { localizedValue } from "@/utils/localizedValue";
 import type { ActivityIndexItem } from "@/Types/ActivityCore";
 import { getActivityStatusMeta } from "@/utils/activityStatusMeta";
+import { createDateTimeFormatter, createRelativeTimeFormatter } from "@/utils/dateTimeFormat";
 
 const props = defineProps<{
 	groupSlug: string
@@ -38,9 +39,9 @@ const dateParts = computed(() => {
 	}
 
 	return {
-		weekday: new Intl.DateTimeFormat(locale.value, { weekday: 'short' }).format(activityDate.value),
-		day: new Intl.DateTimeFormat(locale.value, { day: 'numeric' }).format(activityDate.value),
-		month: new Intl.DateTimeFormat(locale.value, { month: 'short' }).format(activityDate.value),
+		weekday: createDateTimeFormatter(locale.value, { weekday: 'short' }).format(activityDate.value),
+		day: createDateTimeFormatter(locale.value, { day: 'numeric' }).format(activityDate.value),
+		month: createDateTimeFormatter(locale.value, { month: 'short' }).format(activityDate.value),
 	};
 });
 
@@ -49,7 +50,7 @@ const startsAtLabel = computed(() => {
 		return t('groups.activities.cards.no_time');
 	}
 
-	return new Intl.DateTimeFormat(locale.value, {
+	return createDateTimeFormatter(locale.value, {
 		weekday: 'long',
 		day: 'numeric',
 		month: 'long',
@@ -66,7 +67,7 @@ const relativeLabel = computed(() => {
 	const diffMs = activityDate.value.getTime() - Date.now();
 	const diffMinutes = Math.round(diffMs / (1000 * 60));
 	const absoluteMinutes = Math.abs(diffMinutes);
-	const formatter = new Intl.RelativeTimeFormat(locale.value, { numeric: 'auto' });
+	const formatter = createRelativeTimeFormatter(locale.value, { numeric: 'auto' });
 
 	if (absoluteMinutes < 60) {
 		return formatter.format(diffMinutes, 'minute');

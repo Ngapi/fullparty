@@ -3,6 +3,7 @@ import type { MemberNote } from "@/Types/Groups";
 import { memberNoteLimits } from "@/utils/memberNoteLimits";
 import { useI18n } from "vue-i18n";
 import { useMemberNotes } from "@/composables/useMemberNotes";
+import { createDateTimeFormatter } from "@/utils/dateTimeFormat";
 
 const props = defineProps<{
 	notes: ReturnType<typeof useMemberNotes>
@@ -39,10 +40,10 @@ const formatDate = (value: string | null) => {
 		return t('groups.members.roster.not_available');
 	}
 
-	return new Intl.DateTimeFormat(undefined, {
+	return createDateTimeFormatter(undefined, {
 		year: 'numeric',
-		month: 'short',
-		day: 'numeric',
+		month: '2-digit',
+		day: '2-digit',
 		hour: '2-digit',
 		minute: '2-digit',
 	}).format(new Date(value));

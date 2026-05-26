@@ -78,6 +78,15 @@ watch(
 				icon: 'i-lucide-triangle-alert'
 			})
 		}
+
+		if (error === 'social_oauth_invalid_state') {
+			toast.add({
+				title: t('settings.toasts.error_title'),
+				description: t('settings.toasts.social_oauth_invalid_state'),
+				color: 'error',
+				icon: 'i-lucide-triangle-alert'
+			})
+		}
 	},
 	{ immediate: true }
 )

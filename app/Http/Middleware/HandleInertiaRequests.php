@@ -74,16 +74,10 @@ class HandleInertiaRequests extends Middleware
                         'joined' => $this->serializeGroupQuickLinks(
                             $request->user()->memberGroups()->get(['groups.id', 'groups.name', 'groups.slug'])
                         ),
-                        'followed' => $this->serializeGroupQuickLinks(
-                            $request->user()->followedGroups()
-                                ->whereDoesntHave('memberships', fn ($query) => $query->where('user_id', $request->user()->id))
-                                ->get(['groups.id', 'groups.name', 'groups.slug'])
-                        ),
                     ]
                     : [
                         'my' => [],
                         'joined' => [],
-                        'followed' => [],
                     ],
             ],
             'notifications' => [
@@ -113,7 +107,6 @@ class HandleInertiaRequests extends Middleware
                     ->values()
                     ->all(),
                 'group_discovery' => fn () => [
-                    'recruiting_statuses' => config('group_discovery.recruiting_statuses', []),
                     'primary_focuses' => config('group_discovery.primary_focuses', []),
                     'experience_expectations' => config('group_discovery.experience_expectations', []),
                     'voice_expectations' => config('group_discovery.voice_expectations', []),

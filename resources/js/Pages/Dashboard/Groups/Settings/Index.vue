@@ -29,7 +29,7 @@ const { t } = useI18n();
 		<div class="mt-4 grid grid-cols-2 gap-6">
 			<GroupGeneralSettings :group="group" />
 			<div class="flex h-full w-full flex-col gap-6">
-				<GroupInviteSettings v-if="group.group_type === 'community'" :group="group" />
+				<GroupInviteSettings v-if="group.permissions.can_manage_invites" :group="group" />
 				<GroupOwnershipSettings :group="group" />
 				<GroupDangerZoneSettings :group="group" />
 			</div>

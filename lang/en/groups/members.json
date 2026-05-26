@@ -113,12 +113,12 @@
   "kick_modal": {
     "title": "Remove {name}?",
     "subtitle": "This will remove the selected member from {group}.",
-    "warning": "They will lose dashboard access immediately and will need to rejoin through a public join flow or a fresh invite."
+    "warning": "They will lose dashboard access immediately and will need to rejoin through an open join mode or a fresh invite."
   },
   "ban_modal": {
     "title": "Ban {name}?",
     "subtitle": "This will remove the selected member from {group} and prevent them from joining again.",
-    "warning": "Banned users can still view discoverable groups, but they will not be able to join through public access or invite links.",
+    "warning": "Banned users can still view discoverable groups, but they will not be able to join through open access or invite links.",
     "reason": {
       "label": "Reason",
       "help": "Optional. Add a note explaining why this ban was applied.",

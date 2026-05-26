@@ -69,6 +69,8 @@
     "privacy_updated": "Privacy settings updated successfully",
     "social_account_unlinked": "Connected account unlinked successfully",
     "social_account_unlink_blocked": "Add another sign-in method or set a password before unlinking your last social account.",
+    "social_oauth_invalid_state": "That connection attempt expired. Please try connecting the account again.",
+    "error_title": "Something went wrong",
     "title": "Success!"
   }
 }

@@ -4,11 +4,11 @@ import { router } from "@inertiajs/vue3";
 import { route } from "ziggy-js";
 import { useToast } from "@nuxt/ui/composables";
 import { useI18n } from "vue-i18n";
+import { createDateTimeFormatter } from "@/utils/dateTimeFormat";
 
 const props = defineProps<{
 	group: {
 		slug: string
-		is_public: boolean
 		permissions: {
 			can_manage_invites: boolean
 		}
@@ -59,7 +59,7 @@ const formatDate = (value: string | null) => {
 		return t('groups.settings.invites.never');
 	}
 
-	return new Intl.DateTimeFormat(undefined, {
+	return createDateTimeFormatter(undefined, {
 		year: 'numeric',
 		month: '2-digit',
 		day: '2-digit',

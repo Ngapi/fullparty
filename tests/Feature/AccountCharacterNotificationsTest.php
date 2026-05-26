@@ -22,7 +22,7 @@ uses(RefreshDatabase::class);
 
 function createAccountCharacterNotificationActivity(User $owner): Activity
 {
-    $group = Group::factory()->public()->create([
+    $group = Group::factory()->open()->create([
         'owner_id' => $owner->id,
     ]);
 

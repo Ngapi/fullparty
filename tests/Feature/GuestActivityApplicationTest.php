@@ -21,7 +21,7 @@ uses(RefreshDatabase::class);
 function createGuestApplicationActivity(array $activityOverrides = []): Activity
 {
     $owner = User::factory()->create();
-    $group = Group::factory()->public()->create([
+    $group = Group::factory()->open()->create([
         'owner_id' => $owner->id,
     ]);
 
@@ -401,7 +401,7 @@ it('prefills new authenticated applications from remembered defaults for the sam
 
 it('filters stale remembered application defaults before sending them to the new form', function () {
     $owner = User::factory()->create();
-    $group = Group::factory()->public()->create([
+    $group = Group::factory()->open()->create([
         'owner_id' => $owner->id,
     ]);
     $type = ActivityType::factory()->create([

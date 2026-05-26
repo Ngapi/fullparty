@@ -18,6 +18,7 @@ import { buildActivityCompletionSummary } from "@/utils/buildActivityCompletionS
 import type { ActivityOverviewPermissions, AttendeeActivity, PublicGroupSummary } from "@/Types/ActivityAttendee";
 import type { ActivitySlot } from "@/Types/ActivityRoster";
 import type { ManualAssignmentCharacter, QueueFilterField } from "@/Types/ActivityQueue";
+import { createDateTimeFormatter } from "@/utils/dateTimeFormat";
 
 const props = defineProps<{
 	group: PublicGroupSummary
@@ -107,7 +108,7 @@ const serverStartsAtLabel = computed(() => {
 		return t("groups.activities.cards.no_time");
 	}
 
-	return new Intl.DateTimeFormat(locale.value, {
+	return createDateTimeFormatter(locale.value, {
 		weekday: "long",
 		day: "numeric",
 		month: "long",
@@ -122,7 +123,7 @@ const localStartsAtLabel = computed(() => {
 		return t("groups.activities.cards.no_time");
 	}
 
-	return new Intl.DateTimeFormat(locale.value, {
+	return createDateTimeFormatter(locale.value, {
 		weekday: "long",
 		day: "numeric",
 		month: "long",

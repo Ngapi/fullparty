@@ -29,7 +29,7 @@ trait InteractsWithGroupActivityAttendees
         }
 
         if ($activity->is_public) {
-            if ($group->is_public) {
+            if ($group->is_visible) {
                 return true;
             }
 
@@ -64,7 +64,7 @@ trait InteractsWithGroupActivityAttendees
             'id' => $group->id,
             'name' => $group->name,
             'slug' => $group->slug,
-            'is_public' => $group->is_public,
+            'is_visible' => $group->is_visible,
         ];
     }
 

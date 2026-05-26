@@ -28,7 +28,7 @@ uses(RefreshDatabase::class);
 function createModerationEndpointSetup(array $versionOverrides = [], array $activityOverrides = []): array
 {
     $owner = User::factory()->create();
-    $group = Group::factory()->public()->create([
+    $group = Group::factory()->open()->create([
         'owner_id' => $owner->id,
     ]);
 

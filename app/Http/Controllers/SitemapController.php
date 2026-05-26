@@ -43,8 +43,7 @@ class SitemapController extends Controller
             ->where('is_public', true)
             ->where('status', '!=', Activity::STATUS_PLANNED)
             ->whereHas('group', fn ($query) => $query
-                ->where('is_visible', true)
-                ->where('is_public', true))
+                ->where('is_visible', true))
             ->with('group:id,slug')
             ->orderBy('updated_at', 'desc')
             ->get(['id', 'group_id', 'updated_at'])

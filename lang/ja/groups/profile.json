@@ -4,19 +4,15 @@
     "no_description": "このグループにはまだ公開説明がありません。"
   },
   "badges": {
-    "public": "公開グループ",
-    "private": "招待制"
+    "open": "Open group",
+    "invite_only": "Invite only",
+    "application": "Application based"
   },
   "actions": {
     "back": "戻る",
     "join": "グループに参加",
     "sign_in_to_join": "ログインして参加",
-    "follow": "通知をフォロー",
-    "sign_in_to_follow": "ログインしてフォロー",
-    "unfollow": "フォロー解除",
     "leave": "グループを退出",
-    "mute_notifications": "通知をミュート",
-    "unmute_notifications": "通知を再開",
     "open_dashboard": "ダッシュボードを開く",
     "open_discord": "Discordを開く"
   },
@@ -50,12 +46,14 @@
   "access": {
     "title": "グループアクセス",
     "subtitle": "このグループの見つけ方と参加方法です。",
-    "public_title": "自由参加",
-    "public_description": "FullPartyアカウントがあれば誰でもこのグループに参加できます。",
-    "private_title": "招待制",
-    "private_description": "新しいメンバーはグループスタッフからの招待が必要です。",
+    "open_title": "Open group",
+    "open_description": "Anyone with a FullParty account can join this group.",
+    "invite_only_title": "Invite only",
+    "invite_only_description": "New members need an invite from the group staff.",
+    "application_title": "Application based",
+    "application_description": "New members apply for staff review. Invite links can still add members directly.",
     "static_title": "固定ロスター",
-    "static_description": "このグループでは公開参加やコミュニティ招待リンクは使用しません。",
+    "static_description": "This group uses a fixed roster style.",
     "visible_title": "検索に表示",
     "visible_description": "このグループは公開ディスカバリーや検索に表示されます。",
     "hidden_title": "検索に非表示",

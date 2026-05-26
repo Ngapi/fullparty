@@ -13,7 +13,6 @@ class UpdateGroupDiscoverySettingsRequest extends GroupDetailsRequest
     public function rules(): array
     {
         return Arr::only($this->baseRules(), [
-            'recruiting_status',
             'primary_focuses',
             'experience_expectation',
             'voice_expectation',

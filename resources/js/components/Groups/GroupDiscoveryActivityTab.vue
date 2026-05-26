@@ -2,6 +2,7 @@
 import type { GroupDiscoveryDetailRecord } from "@/Types/Groups";
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
+import { createDateTimeFormatter } from "@/utils/dateTimeFormat";
 
 const props = defineProps<{
 	group: GroupDiscoveryDetailRecord
@@ -60,10 +61,10 @@ function formatTimelineDate(value: string | null) {
 		return "—";
 	}
 
-	const formatted = new Intl.DateTimeFormat(locale.value, {
-		day: "numeric",
-		month: "short",
+	const formatted = createDateTimeFormatter(locale.value, {
 		year: "numeric",
+		month: "2-digit",
+		day: "2-digit",
 		hour: "numeric",
 		minute: "2-digit",
 	}).format(new Date(value));

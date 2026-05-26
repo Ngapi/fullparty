@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { GroupJoinMode, GroupType } from "@/Types/Groups";
 import { groupProfilePictureAccept, validateGroupProfilePictureFile } from "@/utils/groupProfilePictureValidation";
 import {
 	sanitizeMultilineText,
@@ -6,13 +7,13 @@ import {
 	sanitizeSingleLineText,
 	sanitizeSingleLineTextForInput,
 } from "@/utils/textInputSanitizer";
-import { computed, ref } from "vue";
+import { computed, onBeforeUnmount, ref } from "vue";
 import { useForm, usePage } from "@inertiajs/vue3";
 import { route } from "ziggy-js";
 import { useToast } from "@nuxt/ui/composables";
 import { useI18n } from "vue-i18n";
 
-const groupProfilePictureMaxBytes = 5 * 1024 * 1024;
+const groupImageMaxBytes = 5 * 1024 * 1024;
 
 const props = defineProps<{
 	group: {
@@ -20,9 +21,11 @@ const props = defineProps<{
 		name: string
 		description: string | null
 		profile_picture_url: string | null
+		banner_image_url: string | null
 		discord_invite_url: string | null
 		datacenter: string
-		is_public: boolean
+		group_type: GroupType
+		join_mode: GroupJoinMode
 		is_visible: boolean
 		slug: string
 		permissions: {
@@ -40,13 +43,26 @@ const form = useForm({
 	name: props.group.name ?? '',
 	description: props.group.description ?? '',
 	profile_picture: null as File | null,
+	banner_image: null as File | null,
 	discord_invite_url: props.group.discord_invite_url ?? '',
 	datacenter: props.group.datacenter ?? '',
-	is_public: props.group.is_public ?? false,
+	join_mode: props.group.join_mode ?? 'invite_only',
 	is_visible: props.group.is_visible ?? true,
 });
 
 const profilePicturePreviewUrl = ref<string | null>(props.group.profile_picture_url ?? null);
+const bannerImagePreviewUrl = ref<string | null>(props.group.banner_image_url ?? null);
+const joinModeOptions = computed(() => {
+	const values: GroupJoinMode[] = props.group.group_type === 'static'
+		? ['invite_only', 'application']
+		: ['open', 'invite_only', 'application'];
+
+	return values.map((value) => ({
+		value,
+		label: t(`groups.common.join_modes.${value}.label`),
+		description: t(`groups.common.join_modes.${value}.description`),
+	}));
+});
 
 const nameFieldValue = computed({
 	get: () => form.name,
@@ -67,53 +83,61 @@ const descriptionFieldValue = computed({
 const visibilitySummary = computed(() => {
 	const displayGroupName = form.name.trim() || t('groups.settings.general.visibility_summary.default_name');
 
-	if (form.is_public && form.is_visible) {
-		return t('groups.settings.general.visibility_summary.public_visible', { name: displayGroupName });
-	}
+	const joinModeKey = form.join_mode || 'invite_only';
+	const visibilityKey = form.is_visible ? 'visible' : 'hidden';
 
-	if (form.is_public && !form.is_visible) {
-		return t('groups.settings.general.visibility_summary.public_hidden', { name: displayGroupName });
-	}
-
-	if (!form.is_public && form.is_visible) {
-		return t('groups.settings.general.visibility_summary.private_visible', { name: displayGroupName });
-	}
-
-	return t('groups.settings.general.visibility_summary.private_hidden', { name: displayGroupName });
+	return t(`groups.settings.general.visibility_summary.${joinModeKey}_${visibilityKey}`, { name: displayGroupName });
 });
 
-const updateProfilePicture = (event: Event) => {
+const revokePreviewUrl = (url: string | null) => {
+	if (!url || !url.startsWith('blob:')) {
+		return;
+	}
+
+	URL.revokeObjectURL(url);
+};
+
+const replacePreviewUrl = (target: typeof profilePicturePreviewUrl, url: string | null) => {
+	revokePreviewUrl(target.value);
+	target.value = url;
+};
+
+const updateImage = (event: Event, field: 'profile_picture' | 'banner_image') => {
 	const target = event.target as HTMLInputElement;
 	const file = target.files?.[0] ?? null;
+	const previewTarget = field === 'profile_picture' ? profilePicturePreviewUrl : bannerImagePreviewUrl;
+	const fallbackUrl = field === 'profile_picture'
+		? (props.group.profile_picture_url ?? null)
+		: (props.group.banner_image_url ?? null);
 
-	form.clearErrors("profile_picture");
+	form.clearErrors(field);
 
-	form.profile_picture = file;
+	form[field] = file;
 
 	if (!file) {
-		profilePicturePreviewUrl.value = props.group.profile_picture_url ?? null;
+		replacePreviewUrl(previewTarget, fallbackUrl);
 		return;
 	}
 
-	const profilePictureValidation = validateGroupProfilePictureFile(file);
+	const imageValidation = validateGroupProfilePictureFile(file);
 
-	if (!profilePictureValidation.isValid) {
-		form.profile_picture = null;
-		profilePicturePreviewUrl.value = props.group.profile_picture_url ?? null;
-		form.setError("profile_picture", t("groups.settings.general.validation.image_invalid_format"));
+	if (!imageValidation.isValid) {
+		form[field] = null;
+		replacePreviewUrl(previewTarget, fallbackUrl);
+		form.setError(field, t("groups.settings.general.validation.image_invalid_format"));
 		target.value = "";
 		return;
 	}
 
-	if (file.size > groupProfilePictureMaxBytes) {
-		form.profile_picture = null;
-		profilePicturePreviewUrl.value = props.group.profile_picture_url ?? null;
-		form.setError("profile_picture", t("groups.settings.general.validation.image_too_large"));
+	if (file.size > groupImageMaxBytes) {
+		form[field] = null;
+		replacePreviewUrl(previewTarget, fallbackUrl);
+		form.setError(field, t("groups.settings.general.validation.image_too_large"));
 		target.value = "";
 		return;
 	}
 
-	profilePicturePreviewUrl.value = URL.createObjectURL(file);
+	replacePreviewUrl(previewTarget, URL.createObjectURL(file));
 };
 
 const submit = () => {
@@ -129,18 +153,23 @@ const submit = () => {
 			_method: 'put',
 		}))
 		.post(route('groups.dashboard.settings.update', props.group.slug), {
-		forceFormData: true,
-		preserveScroll: true,
-		onSuccess: () => {
-			toast.add({
-				title: t('general.success'),
-				description: t('groups.settings.general.toasts.updated'),
-				color: 'success',
-				icon: 'i-lucide-check',
-			});
-		},
+			forceFormData: true,
+			preserveScroll: true,
+			onSuccess: () => {
+				toast.add({
+					title: t('general.success'),
+					description: t('groups.settings.general.toasts.updated'),
+					color: 'success',
+					icon: 'i-lucide-check',
+				});
+			},
 		});
 };
+
+onBeforeUnmount(() => {
+	revokePreviewUrl(profilePicturePreviewUrl.value);
+	revokePreviewUrl(bannerImagePreviewUrl.value);
+});
 </script>
 
 <template>
@@ -206,7 +235,7 @@ const submit = () => {
 							type="file"
 							:accept="groupProfilePictureAccept"
 							:disabled="!group.permissions.can_manage_group"
-							@change="updateProfilePicture"
+							@change="(event) => updateImage(event, 'profile_picture')"
 						>
 					</label>
 
@@ -226,6 +255,47 @@ const submit = () => {
 								{{ t('groups.settings.general.fields.profile_picture.preview_help') }}
 							</p>
 						</div>
+					</div>
+				</div>
+			</UFormField>
+
+			<UFormField
+				:label="t('groups.settings.general.fields.banner_image.label')"
+				:help="t('groups.settings.general.fields.banner_image.help')"
+				:error="form.errors.banner_image"
+			>
+				<div class="flex flex-col gap-3">
+					<label
+						class="file-upload-field"
+						:class="{ 'pointer-events-none opacity-60': !group.permissions.can_manage_group }"
+					>
+						<UIcon name="i-lucide-image-up" size="16" />
+						<span class="text-sm font-medium">
+							{{ form.banner_image?.name || t('groups.settings.general.fields.banner_image.placeholder') }}
+						</span>
+						<input
+							class="sr-only"
+							type="file"
+							:accept="groupProfilePictureAccept"
+							:disabled="!group.permissions.can_manage_group"
+							@change="(event) => updateImage(event, 'banner_image')"
+						>
+					</label>
+
+					<div v-if="bannerImagePreviewUrl" class="rounded-sm border border-muted p-3">
+						<p class="mb-2 text-xs uppercase tracking-wide text-muted">
+							{{ t('groups.settings.general.fields.banner_image.preview_label') }}
+						</p>
+						<div class="wide-preview-frame">
+							<img
+								:src="bannerImagePreviewUrl"
+								:alt="t('groups.settings.general.fields.banner_image.preview_alt')"
+								class="wide-preview-image"
+							>
+						</div>
+						<p class="mt-2 text-sm text-muted">
+							{{ t('groups.settings.general.fields.banner_image.preview_help') }}
+						</p>
 					</div>
 				</div>
 			</UFormField>
@@ -258,13 +328,21 @@ const submit = () => {
 				/>
 			</UFormField>
 
-			<div class="toggle-block">
-				<div class="flex flex-col gap-1">
-					<p class="font-medium">{{ t('groups.settings.general.fields.is_public.label') }}</p>
-					<p class="text-sm text-muted">{{ t('groups.settings.general.fields.is_public.help') }}</p>
-				</div>
-				<USwitch v-model="form.is_public" :disabled="!group.permissions.can_manage_group" />
-			</div>
+			<UFormField
+				:label="t('groups.settings.general.fields.join_mode.label')"
+				:help="t('groups.settings.general.fields.join_mode.help')"
+				:error="form.errors.join_mode"
+				required
+			>
+				<USelect
+					v-model="form.join_mode"
+					class="w-full"
+					:items="joinModeOptions"
+					value-key="value"
+					:placeholder="t('groups.settings.general.fields.join_mode.placeholder')"
+					:disabled="!group.permissions.can_manage_group"
+				/>
+			</UFormField>
 
 			<div class="toggle-block">
 				<div class="flex flex-col gap-1">
@@ -309,6 +387,14 @@ const submit = () => {
 }
 
 .square-preview-image {
+	@apply absolute inset-0 h-full w-full object-cover object-center;
+}
+
+.wide-preview-frame {
+	@apply relative aspect-[15/4] w-full overflow-hidden rounded-sm border border-default bg-muted/30;
+}
+
+.wide-preview-image {
 	@apply absolute inset-0 h-full w-full object-cover object-center;
 }
 </style>

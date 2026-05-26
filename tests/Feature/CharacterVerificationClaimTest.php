@@ -20,7 +20,7 @@ uses(RefreshDatabase::class);
 function createCharacterClaimActivity(): Activity
 {
     $owner = User::factory()->create();
-    $group = Group::factory()->public()->create([
+    $group = Group::factory()->open()->create([
         'owner_id' => $owner->id,
     ]);
 

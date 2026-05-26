@@ -2,7 +2,9 @@ import type { LocalizedText } from "@/Types/Common"
 
 export type MemberNoteSeverity = "info" | "warning" | "critical"
 export type GroupType = "community" | "static"
+export type GroupJoinMode = "open" | "invite_only" | "application"
 export type GroupRole = "owner" | "admin" | "moderator" | "member"
+export type MembershipApplicationFieldType = "small_text" | "big_text" | "select" | "toggle"
 export type GroupCreateField =
 	| "name"
 	| "description"
@@ -10,11 +12,10 @@ export type GroupCreateField =
 	| "banner_image"
 	| "discord_invite_url"
 	| "datacenter"
-	| "is_public"
+	| "join_mode"
 	| "is_visible"
 	| "slug"
 	| "group_type"
-	| "recruiting_status"
 	| "primary_focuses"
 	| "experience_expectation"
 	| "voice_expectation"
@@ -32,11 +33,10 @@ export type GroupCreateFormData = {
 	banner_image: File | null
 	discord_invite_url: string
 	datacenter: string
-	is_public: boolean
+	join_mode: GroupJoinMode
 	is_visible: boolean
 	slug: string
 	group_type: GroupType
-	recruiting_status: string
 	primary_focuses: string[]
 	experience_expectation: string
 	voice_expectation: string
@@ -109,9 +109,8 @@ export type GroupIndexRecord = {
 	datacenter: string | null
 	region: string | null
 	group_type: GroupType
-	is_public: boolean
+	join_mode: GroupJoinMode
 	is_visible: boolean
-	recruiting_status: string | null
 	primary_focuses: string[]
 	experience_expectation: string | null
 	voice_expectation: string | null
@@ -131,15 +130,17 @@ export type GroupIndexRecord = {
 		dashboard: string | null
 	}
 	current_user_role: string | null
-	follow: {
-		is_following: boolean
-		notifications_enabled: boolean
+	notifications: {
+		enabled: boolean
+	}
+	membership_application: {
+		pending: boolean
 	}
 	permissions: {
 		can_join: boolean
+		can_apply: boolean
 		can_leave: boolean
 		can_toggle_notifications: boolean
-		can_follow: boolean
 	}
 	stats: {
 		member_count: number
@@ -177,7 +178,6 @@ export type DatacenterLookup = {
 }
 
 export type GroupDiscoveryLookups = {
-	recruiting_statuses?: string[]
 	primary_focuses?: string[]
 	experience_expectations?: string[]
 	voice_expectations?: string[]
@@ -199,7 +199,6 @@ export type GroupDiscoveryTagBadge = {
 }
 
 export type GroupDiscoveryBadgeMeta = {
-	recruiting_status: GroupDiscoveryBadgeEntry | null
 	primary_focuses: GroupDiscoveryBadgeEntry[]
 	experience_expectation: GroupDiscoveryBadgeEntry | null
 	voice_expectation: GroupDiscoveryBadgeEntry | null
@@ -267,11 +266,10 @@ export type GroupDashboardGroup = {
 	discord_invite_url: string | null
 	datacenter: string
 	region: string | null
-	is_public: boolean
 	is_visible: boolean
 	slug: string
 	group_type: GroupType
-	recruiting_status: string | null
+	join_mode: GroupJoinMode
 	primary_focuses: string[]
 	experience_expectation: string | null
 	voice_expectation: string | null
@@ -288,9 +286,8 @@ export type GroupDashboardGroup = {
 		avatar_url: string | null
 	}
 	current_user_role: string | null
-	follow: {
-		is_following: boolean
-		notifications_enabled: boolean
+	notifications: {
+		enabled: boolean
 	}
 	permissions: {
 		can_manage_group: boolean
@@ -298,6 +295,8 @@ export type GroupDashboardGroup = {
 		can_manage_discovery: boolean
 		can_manage_activities: boolean
 		can_view_members: boolean
+		can_review_membership_applications: boolean
+		can_manage_membership_application_form: boolean
 		can_leave: boolean
 		can_toggle_notifications: boolean
 	}
@@ -412,6 +411,8 @@ export type GroupMemberManagementGroup = {
 	permissions: {
 		can_manage_members: boolean
 		can_manage_discovery?: boolean
+		can_review_membership_applications?: boolean
+		can_manage_membership_application_form?: boolean
 		can_manage_roles: boolean
 		can_view_bans: boolean
 	}
@@ -478,6 +479,50 @@ export type GroupBannedMemberTableRow = GroupBannedMemberRecord & {
 	reason_display: string
 	banned_by_name: string
 	character_summary: string
+}
+
+export type MembershipApplicationLocalizedText = Record<string, string | null | undefined>
+
+export type MembershipApplicationFormOption = {
+	id: string
+	label: MembershipApplicationLocalizedText
+}
+
+export type MembershipApplicationFormField = {
+	id: string
+	type: MembershipApplicationFieldType
+	name: MembershipApplicationLocalizedText
+	description: MembershipApplicationLocalizedText
+	required: boolean
+	options: MembershipApplicationFormOption[]
+}
+
+export type MembershipApplicationAnswerValue = string | boolean | null
+
+export type MembershipApplicationRecord = {
+	id: number
+	status: "pending" | "approved" | "declined"
+	answers: Record<string, MembershipApplicationAnswerValue>
+	form_snapshot: MembershipApplicationFormField[]
+	submitted_at: string | null
+	reviewed_at: string | null
+	review_reason: string | null
+	user?: {
+		id: number | null
+		name: string | null
+		avatar_url: string | null
+		primary_character?: {
+			id: number
+			name: string | null
+			world: string | null
+			avatar_url: string | null
+		} | null
+	}
+	reviewed_by?: {
+		id: number
+		name: string
+		avatar_url: string | null
+	} | null
 }
 
 export type GroupMemberNotesController = {

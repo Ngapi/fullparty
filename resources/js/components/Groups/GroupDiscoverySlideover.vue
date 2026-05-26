@@ -4,6 +4,7 @@ import { router } from "@inertiajs/vue3";
 import { computed, defineAsyncComponent, ref } from "vue";
 import { useI18n } from "vue-i18n";
 import { route } from "ziggy-js";
+import { useGroupNotificationToast } from "@/composables/useGroupNotificationToast";
 
 const GroupDiscoveryInfoTab = defineAsyncComponent(() => import("@/components/Groups/GroupDiscoveryInfoTab.vue"));
 const GroupDiscoveryActivityTab = defineAsyncComponent(() => import("@/components/Groups/GroupDiscoveryActivityTab.vue"));
@@ -21,7 +22,8 @@ const emit = defineEmits<{
 	"refresh-group": [groupSlug: string]
 }>();
 
-const { locale, t } = useI18n();
+const { t } = useI18n();
+const { showGroupNotificationsToast } = useGroupNotificationToast();
 
 const openModel = computed({
 	get: () => props.open,
@@ -37,31 +39,62 @@ const groupTypeLabel = computed(() => {
 
 	return t(`groups.common.group_types.${props.group.group_type}`);
 });
+const joinModeLabel = computed(() => {
+	if (!props.group?.join_mode) {
+		return t("groups.common.states.not_shared");
+	}
+
+	return t(`groups.common.join_modes.${props.group.join_mode}.label`);
+});
+const joinModeIcon = computed(() => {
+	if (props.group?.join_mode === "open") {
+		return "i-lucide-door-open";
+	}
+
+	if (props.group?.join_mode === "application") {
+		return "i-lucide-file-check-2";
+	}
+
+	return "i-lucide-ticket";
+});
+const accessStatusLabel = computed(() => {
+	if (!props.group || props.group.current_user_role || props.group.permissions.can_join || props.group.permissions.can_apply) {
+		return null;
+	}
+
+	if (props.group.membership_application.pending) {
+		return t("groups.index.discovery.detail.actions.application_pending");
+	}
+
+	if (props.group.join_mode === "application") {
+		return t("groups.index.discovery.detail.actions.application_required");
+	}
+
+	if (props.group.join_mode === "invite_only") {
+		return t("groups.index.discovery.detail.actions.invite_required");
+	}
+
+	return null;
+});
 
 const bannerUrl = computed(() => props.group?.banner_image_url ?? "/prereqimages/forked.jpg");
 const isActionPending = ref(false);
 const canShowActionButtons = computed(() => Boolean(props.group) && !props.loading);
 const isMember = computed(() => Boolean(props.group?.current_user_role));
-const followActionLabel = computed(() => (
-	props.group?.follow.is_following
-		? t("groups.index.discovery.detail.actions.unfollow")
-		: t("groups.index.discovery.detail.actions.follow")
-));
 const membershipActionLabel = computed(() => (
 	isMember.value
 		? t("groups.index.discovery.detail.actions.leave")
+		: props.group?.permissions.can_apply
+			? t("groups.index.discovery.detail.actions.apply")
 		: t("groups.index.discovery.detail.actions.join")
 ));
 const notificationsActionLabel = computed(() => (
-	props.group?.follow.notifications_enabled
+	props.group?.notifications.enabled
 		? t("groups.index.discovery.detail.actions.mute_notifications")
 		: t("groups.index.discovery.detail.actions.unmute_notifications")
 ));
-const showFollowAction = computed(() => canShowActionButtons.value
-	&& !isMember.value
-	&& Boolean(props.group?.follow.is_following || props.group?.permissions.can_follow));
 const showMembershipAction = computed(() => canShowActionButtons.value
-	&& Boolean(props.group?.permissions.can_join || props.group?.permissions.can_leave));
+	&& Boolean(props.group?.permissions.can_join || props.group?.permissions.can_apply || props.group?.permissions.can_leave));
 const showDashboardAction = computed(() => canShowActionButtons.value && Boolean(props.group?.links.dashboard));
 const showNotificationsAction = computed(() => canShowActionButtons.value && Boolean(props.group?.permissions.can_toggle_notifications));
 const detailTabs = computed(() => ([
@@ -93,32 +126,6 @@ const refreshCurrentGroup = () => {
 	}
 };
 
-const toggleFollow = () => {
-	if (!props.group || isActionPending.value || !showFollowAction.value) {
-		return;
-	}
-
-	isActionPending.value = true;
-
-	if (props.group.follow.is_following) {
-		router.delete(route("groups.unfollow", props.group.slug), {
-			preserveScroll: true,
-			preserveState: true,
-			onSuccess: refreshCurrentGroup,
-			onFinish: finishAction,
-		});
-
-		return;
-	}
-
-	router.post(route("groups.follow", props.group.slug), {}, {
-		preserveScroll: true,
-		preserveState: true,
-		onSuccess: refreshCurrentGroup,
-		onFinish: finishAction,
-	});
-};
-
 const toggleMembership = () => {
 	if (!props.group || isActionPending.value || !showMembershipAction.value) {
 		return;
@@ -133,6 +140,15 @@ const toggleMembership = () => {
 			preserveScroll: true,
 			preserveState: true,
 			onSuccess: refreshCurrentGroup,
+			onFinish: finishAction,
+		});
+
+		return;
+	}
+
+	if (props.group.permissions.can_apply) {
+		router.get(route("groups.membership-applications.create", props.group.slug), {}, {
+			preserveScroll: true,
 			onFinish: finishAction,
 		});
 
@@ -162,17 +178,22 @@ const toggleNotifications = () => {
 		return;
 	}
 
+	const enabled = !props.group.notifications.enabled;
 	isActionPending.value = true;
 
-	router.patch(route("groups.follow-notifications.update", props.group.slug), {
-		enabled: !props.group.follow.notifications_enabled,
+	router.patch(route("groups.notifications.update", props.group.slug), {
+		enabled,
 	}, {
 		preserveScroll: true,
 		preserveState: true,
-		onSuccess: refreshCurrentGroup,
+		onSuccess: () => {
+			showGroupNotificationsToast(enabled);
+			refreshCurrentGroup();
+		},
 		onFinish: finishAction,
 	});
 };
+
 </script>
 
 <template>
@@ -232,6 +253,10 @@ const toggleNotifications = () => {
 													<UIcon name="i-lucide-globe" class="size-4" />
 													{{ group.region }}
 												</span>
+												<span class="inline-flex items-center gap-1">
+													<UIcon :name="joinModeIcon" class="size-4" />
+													{{ joinModeLabel }}
+												</span>
 											</div>
 										</div>
 									</div>
@@ -241,19 +266,10 @@ const toggleNotifications = () => {
 										class="flex flex-wrap items-center gap-2 lg:max-w-sm lg:justify-end"
 									>
 										<UButton
-											v-if="showFollowAction"
-											color="neutral"
-											variant="outline"
-											icon="i-lucide-bell-plus"
-											:label="followActionLabel"
-											:disabled="isActionPending"
-											@click="toggleFollow"
-										/>
-										<UButton
 											v-if="showMembershipAction"
 											:color="group.permissions.can_leave ? 'error' : 'primary'"
 											:variant="group.permissions.can_leave ? 'outline' : 'solid'"
-											:icon="group.permissions.can_leave ? 'i-lucide-log-out' : 'i-lucide-user-plus'"
+											:icon="group.permissions.can_leave ? 'i-lucide-log-out' : group.permissions.can_apply ? 'i-lucide-file-check-2' : 'i-lucide-user-plus'"
 											:label="membershipActionLabel"
 											:disabled="isActionPending"
 											@click="toggleMembership"
@@ -268,11 +284,20 @@ const toggleNotifications = () => {
 											@click="openDashboard"
 										/>
 										<UButton
+											v-if="accessStatusLabel"
+											color="neutral"
+											variant="outline"
+											:icon="joinModeIcon"
+											:label="accessStatusLabel"
+											disabled
+										/>
+										<UButton
 											v-if="showNotificationsAction"
 											color="neutral"
 											variant="ghost"
-											:icon="group.follow.notifications_enabled ? 'i-lucide-bell-off' : 'i-lucide-bell'"
-											:label="notificationsActionLabel"
+											:icon="group.notifications.enabled ? 'i-lucide-bell' : 'i-lucide-bell-off'"
+											:aria-label="notificationsActionLabel"
+											:title="notificationsActionLabel"
 											:disabled="isActionPending"
 											@click="toggleNotifications"
 										/>

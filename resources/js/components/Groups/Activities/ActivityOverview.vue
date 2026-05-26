@@ -6,6 +6,7 @@ import { useI18n } from "vue-i18n";
 import { getActivityStatusMeta } from "@/utils/activityStatusMeta";
 import type { ActivitySlot } from "@/Types/ActivityRoster";
 import type { ActivityCompletionSummary } from "@/Types/ActivityProgression";
+import { createDateTimeFormatter } from "@/utils/dateTimeFormat";
 
 const props = defineProps<{
 	title: string
@@ -88,7 +89,7 @@ const dateLabel = computed(() => {
 		return t('groups.activities.cards.no_time');
 	}
 
-	return new Intl.DateTimeFormat(locale.value, {
+	return createDateTimeFormatter(locale.value, {
 		year: 'numeric',
 		month: '2-digit',
 		day: '2-digit',
@@ -100,7 +101,7 @@ const timeLabel = computed(() => {
 		return t('groups.activities.cards.no_time');
 	}
 
-	return new Intl.DateTimeFormat(locale.value, {
+	return createDateTimeFormatter(locale.value, {
 		hour: '2-digit',
 		minute: '2-digit',
 		timeZone: 'UTC',

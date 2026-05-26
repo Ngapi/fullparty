@@ -15,7 +15,11 @@ uses(RefreshDatabase::class);
 function createAccessControlActivity(array $groupOverrides = [], array $activityOverrides = []): array
 {
     $owner = User::factory()->create();
-    $groupFactory = ($groupOverrides['is_public'] ?? true) ? Group::factory()->public() : Group::factory()->private();
+    $groupFactory = match ($groupOverrides['join_mode'] ?? Group::JOIN_MODE_OPEN) {
+        Group::JOIN_MODE_APPLICATION => Group::factory()->applicationBased(),
+        Group::JOIN_MODE_INVITE_ONLY => Group::factory()->inviteOnly(),
+        default => Group::factory()->open(),
+    };
     $group = $groupFactory->create(array_merge([
         'owner_id' => $owner->id,
     ], $groupOverrides));
@@ -125,9 +129,9 @@ it('returns not found for non member writes to dashboard endpoints', function ()
     expect($application->fresh()->status)->toBe(ActivityApplication::STATUS_APPROVED);
 });
 
-it('requires membership to view public activities that belong to private groups', function () {
+it('requires membership to view public activities that belong to hidden groups', function () {
     extract(createAccessControlActivity([
-        'is_public' => false,
+        'is_visible' => false,
     ], [
         'is_public' => true,
     ]));

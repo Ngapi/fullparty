@@ -7,10 +7,12 @@ use App\Models\Activity;
 use App\Models\ActivitySlotAssignment;
 use App\Models\Group;
 use App\Models\GroupMembership;
+use App\Models\GroupMembershipApplication;
 use App\Models\ScheduledRun;
 use App\Models\User;
 use App\Services\AuditLogger;
 use App\Services\Groups\GeneratedGroupImageService;
+use App\Services\Groups\MembershipApplicationFormSchemaService;
 use App\Services\ManagedImageStorage;
 use App\Support\Audit\AuditScope;
 use App\Support\Audit\AuditSeverity;
@@ -39,6 +41,7 @@ class GroupController extends Controller
         private readonly RequestTextInputSanitizer $requestTextInputSanitizer,
         private readonly GroupDiscoveryBadgePalette $groupDiscoveryBadgePalette,
         private readonly GeneratedGroupImageService $generatedGroupImageService,
+        private readonly MembershipApplicationFormSchemaService $membershipApplicationFormSchemaService,
     ) {}
 
     public function index(Request $request): Response
@@ -50,7 +53,6 @@ class GroupController extends Controller
                 'owner.primaryCharacter',
                 'memberships.user.primaryCharacter',
                 'scheduledRuns',
-                'followers' => fn ($query) => $query->where('users.id', $user->id),
             ])
             ->get()
             ->sortBy('name')
@@ -62,7 +64,6 @@ class GroupController extends Controller
                 'owner.primaryCharacter',
                 'memberships.user.primaryCharacter',
                 'scheduledRuns',
-                'followers' => fn ($query) => $query->where('users.id', $user->id),
             ])
             ->get()
             ->sortBy('name')
@@ -74,7 +75,6 @@ class GroupController extends Controller
                 'owner.primaryCharacter',
                 'memberships.user.primaryCharacter',
                 'scheduledRuns',
-                'followers' => fn ($query) => $query->where('users.id', $user->id),
             ])
             ->get()
             ->sortBy('name')
@@ -116,7 +116,7 @@ class GroupController extends Controller
                 'member_count_desc',
                 'member_count_asc',
             ])],
-            'recruiting_status' => ['nullable', Rule::in(config('group_discovery.recruiting_statuses', []))],
+            'join_mode' => ['nullable', Rule::in(Group::JOIN_MODES)],
             'primary_focuses' => ['nullable', 'array', 'max:'.count(config('group_discovery.primary_focuses', []))],
             'primary_focuses.*' => [Rule::in(config('group_discovery.primary_focuses', []))],
             'voice_expectation' => ['nullable', Rule::in(config('group_discovery.voice_expectations', []))],
@@ -191,11 +191,10 @@ class GroupController extends Controller
                 'banner_image_url' => $uploadedBannerImageUrl,
                 'discord_invite_url' => $validated['discord_invite_url'] ?? null,
                 'datacenter' => $validated['datacenter'],
-                'is_public' => $validated['is_public'],
                 'is_visible' => $validated['is_visible'],
                 'slug' => $validated['slug'],
                 'group_type' => $validated['group_type'],
-                'recruiting_status' => $validated['recruiting_status'] ?? null,
+                'join_mode' => $validated['join_mode'],
                 'primary_focuses' => $validated['primary_focuses'] ?? [],
                 'experience_expectation' => $validated['experience_expectation'] ?? null,
                 'voice_expectation' => $validated['voice_expectation'] ?? null,
@@ -224,6 +223,7 @@ class GroupController extends Controller
             }
 
             $group->save();
+            $this->membershipApplicationFormSchemaService->ensureDefaultForm($group);
 
             $group->memberships()->create([
                 'user_id' => auth()->id(),
@@ -231,7 +231,7 @@ class GroupController extends Controller
                 'joined_at' => now(),
             ]);
 
-            if ($group->is_public) {
+            if ($group->hasPermanentInvite()) {
                 $group->ensureSystemInvite();
             }
 
@@ -297,11 +297,10 @@ class GroupController extends Controller
             'discord_invite_url' => $group->discord_invite_url,
             'datacenter' => $group->datacenter,
             'region' => $group->inferredRegion(),
-            'is_public' => $group->is_public,
             'is_visible' => $group->is_visible,
             'slug' => $group->slug,
             'group_type' => $group->group_type,
-            'recruiting_status' => $group->recruiting_status,
+            'join_mode' => $group->join_mode,
             'primary_focuses' => $group->primary_focuses ?? [],
             'experience_expectation' => $group->experience_expectation,
             'voice_expectation' => $group->voice_expectation,
@@ -663,7 +662,6 @@ class GroupController extends Controller
                 'owner.primaryCharacter',
                 'memberships.user.primaryCharacter',
                 'scheduledRuns',
-                'followers' => fn ($query) => $query->where('users.id', $currentUserId),
             ])
             ->withCount('memberships')
             ->visible();
@@ -722,7 +720,7 @@ class GroupController extends Controller
         $experienceExpectation = $filters['experience_expectation'] ?? null;
         $region = $filters['region'] ?? null;
         $size = $filters['size'] ?? null;
-        $recruitingStatus = $filters['recruiting_status'] ?? null;
+        $joinMode = $filters['join_mode'] ?? null;
         $primaryFocuses = array_values(array_filter($filters['primary_focuses'] ?? [], fn ($value) => is_string($value) && $value !== ''));
         $voiceExpectation = $filters['voice_expectation'] ?? null;
         $preferredLanguages = array_values(array_filter($filters['preferred_languages'] ?? [], fn ($value) => is_string($value) && $value !== ''));
@@ -766,8 +764,8 @@ class GroupController extends Controller
             $query->has('memberships', '>=', (int) $size);
         }
 
-        if (is_string($recruitingStatus) && $recruitingStatus !== '') {
-            $query->where('groups.recruiting_status', $recruitingStatus);
+        if (is_string($joinMode) && $joinMode !== '') {
+            $query->where('groups.join_mode', $joinMode);
         }
 
         $this->applyJsonArrayAnyMatchFilter($query, 'groups.primary_focuses', $primaryFocuses);
@@ -840,13 +838,13 @@ class GroupController extends Controller
             'name' => $group->name,
             'slug' => $group->slug,
             'group_type' => $group->group_type,
+            'join_mode' => $group->join_mode,
+            'membership_application_schema' => $group->membership_application_schema ?? [],
             'profile_picture_url' => $group->profile_picture_url,
             'banner_image_url' => $group->banner_image_url,
             'datacenter' => $group->datacenter,
             'region' => $group->inferredRegion(),
-            'is_public' => $group->is_public,
             'is_visible' => $group->is_visible,
-            'recruiting_status' => $group->recruiting_status,
             'primary_focuses' => $group->primary_focuses ?? [],
             'experience_expectation' => $group->experience_expectation,
             'voice_expectation' => $group->voice_expectation,
@@ -863,54 +861,46 @@ class GroupController extends Controller
      * @return array{
      *     links: array{dashboard: string|null},
      *     current_user_role: string|null,
-     *     follow: array{is_following: bool, notifications_enabled: bool},
-     *     permissions: array{can_join: bool, can_leave: bool, can_toggle_notifications: bool, can_follow: bool}
+     *     notifications: array{enabled: bool},
+     *     membership_application: array{pending: bool},
+     *     permissions: array{can_join: bool, can_apply: bool, can_leave: bool, can_toggle_notifications: bool}
      * }
      */
     private function serializeGroupInteractionState(Group $group, int $currentUserId, bool $includeBanCheck = false): array
     {
         $currentMembership = $group->memberships->firstWhere('user_id', $currentUserId);
         $isMember = $currentMembership instanceof GroupMembership;
-        $currentFollow = $this->resolveCurrentFollow($group, $currentUserId);
-        $isFollowing = $isMember || $currentFollow !== null;
-        $notificationsEnabled = $currentFollow
-            ? (bool) $currentFollow->pivot->notifications_enabled
-            : true;
         $isBanned = $includeBanCheck ? $group->isBanned($currentUserId) : false;
+        $hasPendingMembershipApplication = $group->membershipApplications()
+            ->where('user_id', $currentUserId)
+            ->where('status', GroupMembershipApplication::STATUS_PENDING)
+            ->exists();
 
         return [
             'links' => [
-                'dashboard' => $isFollowing
+                'dashboard' => $isMember
                     ? route('groups.dashboard', $group, false)
                     : null,
             ],
             'current_user_role' => $currentMembership?->role,
-            'follow' => [
-                'is_following' => $isFollowing,
-                'notifications_enabled' => $notificationsEnabled,
+            'notifications' => [
+                'enabled' => (bool) ($currentMembership?->notifications_enabled ?? true),
+            ],
+            'membership_application' => [
+                'pending' => $hasPendingMembershipApplication,
             ],
             'permissions' => [
                 'can_join' => ! $isBanned
                     && ! $isMember
-                    && $group->is_public
-                    && $group->usesCommunityJoinFlow(),
-                'can_leave' => $isMember && ! $group->isOwnedBy($currentUserId),
-                'can_toggle_notifications' => ! $isBanned && $isFollowing,
-                'can_follow' => ! $isBanned
+                    && $group->allowsOpenJoin(),
+                'can_apply' => ! $isBanned
                     && ! $isMember
-                    && $group->is_public,
+                    && ! $hasPendingMembershipApplication
+                    && $group->usesMembershipApplications()
+                    && $group->is_visible,
+                'can_leave' => $isMember && ! $group->isOwnedBy($currentUserId),
+                'can_toggle_notifications' => $isMember,
             ],
         ];
-    }
-
-    private function resolveCurrentFollow(Group $group, int $currentUserId): ?User
-    {
-        if ($group->relationLoaded('followers')) {
-            return $group->followers->firstWhere('id', $currentUserId);
-        }
-
-        return $group->followers()
-            ->where('users.id', $currentUserId)
-            ->first();
     }
 }

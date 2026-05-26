@@ -6,6 +6,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Inertia\Testing\AssertableInertia as Assert;
 use Laravel\Socialite\Socialite;
+use Laravel\Socialite\Two\InvalidStateException;
 use Laravel\Socialite\Two\User as SocialiteUser;
 
 uses(RefreshDatabase::class);
@@ -221,6 +222,48 @@ it('rejects xivauth callbacks when the provider email is not verified', function
     expect(SocialAccount::query()->where('provider', 'xivauth')->doesntExist())->toBeTrue();
 });
 
+it('redirects invalid google oauth state back to settings', function () {
+    $user = User::factory()->create();
+
+    fakeSocialiteInvalidState('google');
+
+    $response = $this
+        ->actingAs($user)
+        ->get(route('google.callback'));
+
+    $response
+        ->assertRedirect(route('settings'))
+        ->assertSessionHasErrors(['error' => 'social_oauth_invalid_state']);
+});
+
+it('redirects invalid discord oauth state back to settings', function () {
+    $user = User::factory()->create();
+
+    fakeSocialiteInvalidState('discord');
+
+    $response = $this
+        ->actingAs($user)
+        ->get(route('discord.callback'));
+
+    $response
+        ->assertRedirect(route('settings'))
+        ->assertSessionHasErrors(['error' => 'social_oauth_invalid_state']);
+});
+
+it('redirects invalid xivauth oauth state back to settings', function () {
+    $user = User::factory()->create();
+
+    fakeSocialiteInvalidState('xivauth', usesPkce: true);
+
+    $response = $this
+        ->actingAs($user)
+        ->get(route('xivauth.callback'));
+
+    $response
+        ->assertRedirect(route('settings'))
+        ->assertSessionHasErrors(['error' => 'social_oauth_invalid_state']);
+});
+
 it('does not expose oauth secrets in shared inertia user props', function () {
     $user = User::factory()->create();
 
@@ -294,6 +337,26 @@ function fakeSocialiteUser(string $providerName, SocialiteUser $user): void
     $provider->shouldReceive('user')
         ->once()
         ->andReturn($user);
+
+    Socialite::shouldReceive('driver')
+        ->once()
+        ->with($providerName)
+        ->andReturn($provider);
+}
+
+function fakeSocialiteInvalidState(string $providerName, bool $usesPkce = false): void
+{
+    $provider = Mockery::mock();
+
+    if ($usesPkce) {
+        $provider->shouldReceive('enablePKCE')
+            ->once()
+            ->andReturnSelf();
+    }
+
+    $provider->shouldReceive('user')
+        ->once()
+        ->andThrow(new InvalidStateException);
 
     Socialite::shouldReceive('driver')
         ->once()

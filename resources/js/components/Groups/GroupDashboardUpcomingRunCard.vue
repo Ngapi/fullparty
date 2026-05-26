@@ -6,6 +6,7 @@ import { useI18n } from "vue-i18n";
 import { localizedValue } from "@/utils/localizedValue";
 import { formatRelativeTime } from "@/utils/formatRelativeTime";
 import { getActivityStatusMeta } from "@/utils/activityStatusMeta";
+import { createDateTimeFormatter } from "@/utils/dateTimeFormat";
 
 const props = defineProps<{
 	activity: GroupDashboardActivity
@@ -37,7 +38,7 @@ const startsAtLabel = computed(() => {
 		return t("groups.activities.cards.no_time");
 	}
 
-	return new Intl.DateTimeFormat(locale.value, {
+	return createDateTimeFormatter(locale.value, {
 		weekday: "short",
 		day: "numeric",
 		month: "short",

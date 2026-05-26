@@ -10,6 +10,7 @@ import { localizedValue } from "@/utils/localizedValue";
 import { getActivityStatusMeta } from "@/utils/activityStatusMeta";
 import { canAcceptActivityApplications } from "@/utils/activityLifecycle";
 import ActivityApplicationForm from "@/components/Groups/Activities/ActivityApplicationForm.vue";
+import { createDateTimeFormatter } from "@/utils/dateTimeFormat";
 
 const props = defineProps<{
 	group: {
@@ -133,7 +134,7 @@ const dateLabel = computed(() => {
 		return t('groups.activities.cards.no_time');
 	}
 
-	return new Intl.DateTimeFormat(locale.value, {
+	return createDateTimeFormatter(locale.value, {
 		year: 'numeric',
 		month: '2-digit',
 		day: '2-digit',
@@ -145,7 +146,7 @@ const startsAtLabel = computed(() => {
 		return t('groups.activities.cards.no_time');
 	}
 
-	return new Intl.DateTimeFormat(locale.value, {
+	return createDateTimeFormatter(locale.value, {
 		hour: '2-digit',
 		minute: '2-digit',
 		timeZone: 'UTC',

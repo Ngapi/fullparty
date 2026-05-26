@@ -49,6 +49,7 @@ const datacenterOptions = computed(() => page.props.lookups?.datacenters ?? []);
 const canSubmit = computed(() => Boolean(props.form.activity_type_id && props.form.status));
 const isEditMode = computed(() => props.mode === 'edit');
 const minimumItemLevelTouched = ref(false);
+const minimumItemLevelEnabledState = ref(props.form.min_item_level !== null && props.form.min_item_level !== undefined);
 const {
 	activityTypeItems,
 	organizerCharacterItems,
@@ -96,12 +97,20 @@ const runStyleItems = computed(() => props.activityOptions.runStyles.map((value)
 })));
 
 const minimumItemLevelEnabled = computed({
-	get: () => props.form.min_item_level !== null && props.form.min_item_level !== undefined,
+	get: () => minimumItemLevelEnabledState.value,
 	set: (enabled: boolean) => {
 		minimumItemLevelTouched.value = true;
-		props.form.min_item_level = enabled
-			? (selectedActivityType.value?.default_min_item_level ?? 1)
-			: null;
+		minimumItemLevelEnabledState.value = enabled;
+
+		if (!enabled) {
+			props.form.min_item_level = null;
+
+			return;
+		}
+
+		if (props.form.min_item_level === null || props.form.min_item_level === undefined) {
+			props.form.min_item_level = selectedActivityType.value?.default_min_item_level ?? 1;
+		}
 	},
 });
 
@@ -120,7 +129,10 @@ watch(selectedActivityType, (activityType, previousActivityType) => {
 	const previousDefault = previousActivityType?.default_min_item_level ?? null;
 
 	if (props.form.min_item_level === previousDefault) {
-		props.form.min_item_level = activityType?.default_min_item_level ?? null;
+		const nextDefault = activityType?.default_min_item_level ?? null;
+
+		props.form.min_item_level = nextDefault;
+		minimumItemLevelEnabledState.value = nextDefault !== null && nextDefault !== undefined;
 	}
 }, { immediate: true });
 

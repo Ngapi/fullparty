@@ -19,7 +19,6 @@ return new class extends Migration
             $table->string('profile_picture_url')->nullable();
             $table->string('discord_invite_url')->nullable();
             $table->string('datacenter');
-            $table->boolean('is_public')->default(false);
             $table->boolean('is_visible')->default(true);
             $table->string('slug', 8)->unique();
             $table->timestamps();

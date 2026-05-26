@@ -4,19 +4,15 @@
     "no_description": "Ce groupe n'a pas encore ajouté de description publique."
   },
   "badges": {
-    "public": "Groupe public",
-    "private": "Sur invitation"
+    "open": "Open group",
+    "invite_only": "Invite only",
+    "application": "Application based"
   },
   "actions": {
     "back": "Retour",
     "join": "Rejoindre le groupe",
     "sign_in_to_join": "Se connecter pour rejoindre",
-    "follow": "Suivre les notifications",
-    "sign_in_to_follow": "Se connecter pour suivre",
-    "unfollow": "Ne plus suivre",
     "leave": "Quitter le groupe",
-    "mute_notifications": "Couper les notifications",
-    "unmute_notifications": "Réactiver les notifications",
     "open_dashboard": "Ouvrir le tableau de bord",
     "open_discord": "Ouvrir Discord"
   },
@@ -50,12 +46,14 @@
   "access": {
     "title": "Accès au groupe",
     "subtitle": "Comment les autres peuvent trouver et rejoindre ce groupe.",
-    "public_title": "Ouvert aux inscriptions",
-    "public_description": "Toute personne avec un compte FullParty peut rejoindre ce groupe.",
-    "private_title": "Sur invitation",
-    "private_description": "Les nouveaux membres ont besoin d'une invitation du staff.",
+    "open_title": "Open group",
+    "open_description": "Anyone with a FullParty account can join this group.",
+    "invite_only_title": "Invite only",
+    "invite_only_description": "New members need an invite from the group staff.",
+    "application_title": "Application based",
+    "application_description": "New members apply for staff review. Invite links can still add members directly.",
     "static_title": "Roster static",
-    "static_description": "Ce groupe n'utilise pas les inscriptions publiques ni les liens d'invitation communautaires.",
+    "static_description": "This group uses a fixed roster style.",
     "visible_title": "Découvrable",
     "visible_description": "Ce groupe peut apparaître dans la recherche et la découverte publiques.",
     "hidden_title": "Non découvrable",

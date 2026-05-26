@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { GroupCreateField, GroupCreateFormData } from '@/Types/Groups';
+import type { GroupCreateField, GroupCreateFormData, GroupJoinMode } from '@/Types/Groups';
 import { useGroupCreateValidation } from '@/composables/useGroupCreateValidation';
 import { groupProfilePictureAccept } from '@/utils/groupProfilePictureValidation';
 import {
@@ -23,7 +23,6 @@ type DatacenterOption = {
 }
 
 type GroupDiscoveryLookups = {
-	recruiting_statuses?: string[]
 	primary_focuses?: string[]
 	experience_expectations?: string[]
 	voice_expectations?: string[]
@@ -77,10 +76,6 @@ const localeOptions = computed(() => {
 		label: uiLocales[code as keyof typeof uiLocales]?.name ?? code.toUpperCase(),
 	}));
 });
-const recruitingStatusOptions = computed(() => (groupDiscoveryLookups.value.recruiting_statuses ?? []).map((value) => ({
-	value,
-	label: t(`groups.index.create_modal.fields.recruiting_status.options.${value}`),
-})));
 const primaryFocusOptions = computed(() => (groupDiscoveryLookups.value.primary_focuses ?? []).map((value) => ({
 	value,
 	label: t(`groups.index.create_modal.fields.primary_focuses.options.${value}`),
@@ -106,11 +101,10 @@ const form = useForm<GroupCreateFormData>({
 	banner_image: null,
 	discord_invite_url: '',
 	datacenter: '',
-	is_public: false,
+	join_mode: 'invite_only',
 	is_visible: true,
 	slug: '',
 	group_type: 'community',
-	recruiting_status: '',
 	primary_focuses: [],
 	experience_expectation: '',
 	voice_expectation: '',
@@ -120,6 +114,18 @@ const form = useForm<GroupCreateFormData>({
 	active_days: [],
 	active_start_time: '',
 	active_end_time: '',
+});
+
+const joinModeOptions = computed(() => {
+	const values: GroupJoinMode[] = form.group_type === 'static'
+		? ['invite_only', 'application']
+		: ['open', 'invite_only', 'application'];
+
+	return values.map((value) => ({
+		value,
+		label: t(`groups.common.join_modes.${value}.label`),
+		description: t(`groups.common.join_modes.${value}.description`),
+	}));
 });
 
 const mergeTagOptions = (tags: string[]) => {
@@ -178,19 +184,19 @@ const inferredRegion = computed(() => selectedDatacenterOption.value?.region ?? 
 const displayGroupName = computed(() => form.name.trim() || t('groups.index.create_modal.visibility_summary.default_name'));
 
 const visibilitySummary = computed(() => {
-	if (form.is_public && form.is_visible) {
-		return t('groups.index.create_modal.visibility_summary.public_visible', { name: displayGroupName.value });
+	const joinModeKey = form.join_mode || 'invite_only';
+	const visibilityKey = form.is_visible ? 'visible' : 'hidden';
+
+	return t(`groups.index.create_modal.visibility_summary.${joinModeKey}_${visibilityKey}`, { name: displayGroupName.value });
+});
+
+watch(() => form.group_type, (groupType) => {
+	if (groupType === 'static' && form.join_mode === 'open') {
+		form.join_mode = 'invite_only';
 	}
 
-	if (form.is_public && !form.is_visible) {
-		return t('groups.index.create_modal.visibility_summary.public_hidden', { name: displayGroupName.value });
-	}
-
-	if (!form.is_public && form.is_visible) {
-		return t('groups.index.create_modal.visibility_summary.private_visible', { name: displayGroupName.value });
-	}
-
-	return t('groups.index.create_modal.visibility_summary.private_hidden', { name: displayGroupName.value });
+	clearFieldError('group_type');
+	clearFieldError('join_mode');
 });
 
 const revokePreviewUrl = (url: string | null) => {
@@ -218,12 +224,11 @@ const hide = () => {
 const resetForm = () => {
 	form.reset();
 	form.clearErrors();
-	form.is_public = false;
+	form.join_mode = 'invite_only';
 	form.is_visible = true;
 	form.group_type = 'community';
 	form.profile_picture = null;
 	form.banner_image = null;
-	form.recruiting_status = '';
 	form.primary_focuses = [];
 	form.experience_expectation = '';
 	form.voice_expectation = '';
@@ -553,23 +558,6 @@ defineExpose({
 					</div>
 
 					<UFormField
-						:label="t('groups.index.create_modal.fields.recruiting_status.label')"
-						:help="t('groups.index.create_modal.fields.recruiting_status.help')"
-						:error="form.errors.recruiting_status"
-						required
-					>
-						<USelect
-							v-model="form.recruiting_status"
-							class="w-full"
-							:items="recruitingStatusOptions"
-							value-key="value"
-							:placeholder="t('groups.index.create_modal.fields.recruiting_status.placeholder')"
-							:ui="{ base: 'rounded-none' }"
-							@update:model-value="clearFieldError('recruiting_status')"
-						/>
-					</UFormField>
-
-					<UFormField
 						:label="t('groups.index.create_modal.fields.primary_focuses.label')"
 						:help="t('groups.index.create_modal.fields.primary_focuses.help')"
 						:error="form.errors.primary_focuses"
@@ -748,13 +736,22 @@ defineExpose({
 						<p class="text-sm text-muted">{{ t('groups.index.create_modal.sections.visibility.subtitle') }}</p>
 					</div>
 
-					<div class="toggle-block">
-						<div class="flex flex-col gap-1">
-							<p class="font-medium">{{ t('groups.index.create_modal.fields.is_public.label') }}</p>
-							<p class="text-sm text-muted">{{ t('groups.index.create_modal.fields.is_public.help') }}</p>
-						</div>
-						<USwitch v-model="form.is_public" />
-					</div>
+					<UFormField
+						:label="t('groups.index.create_modal.fields.join_mode.label')"
+						:help="t('groups.index.create_modal.fields.join_mode.help')"
+						:error="form.errors.join_mode"
+						required
+					>
+						<USelect
+							v-model="form.join_mode"
+							class="w-full"
+							:items="joinModeOptions"
+							value-key="value"
+							:placeholder="t('groups.index.create_modal.fields.join_mode.placeholder')"
+							:ui="{ base: 'rounded-none' }"
+							@update:model-value="clearFieldError('join_mode')"
+						/>
+					</UFormField>
 
 					<div class="toggle-block">
 						<div class="flex flex-col gap-1">

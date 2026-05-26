@@ -4,19 +4,15 @@
     "no_description": "This group has not added a public description yet."
   },
   "badges": {
-    "public": "Public group",
-    "private": "Invite only"
+    "open": "Open group",
+    "invite_only": "Invite only",
+    "application": "Application based"
   },
   "actions": {
     "back": "Back",
     "join": "Join Group",
     "sign_in_to_join": "Sign In To Join",
-    "follow": "Follow For Notifications",
-    "sign_in_to_follow": "Sign In To Follow",
-    "unfollow": "Unfollow",
     "leave": "Leave Group",
-    "mute_notifications": "Mute Notifications",
-    "unmute_notifications": "Unmute Notifications",
     "open_dashboard": "Open Dashboard",
     "open_discord": "Open Discord"
   },
@@ -50,12 +46,14 @@
   "access": {
     "title": "Group Access",
     "subtitle": "How people can find and join this group.",
-    "public_title": "Open to join",
-    "public_description": "Anyone with a FullParty account can join this group.",
-    "private_title": "Invite based",
-    "private_description": "New members need an invite from the group staff.",
+    "open_title": "Open group",
+    "open_description": "Anyone with a FullParty account can join this group.",
+    "invite_only_title": "Invite only",
+    "invite_only_description": "New members need an invite from the group staff.",
+    "application_title": "Application based",
+    "application_description": "New members apply for staff review. Invite links can still add members directly.",
     "static_title": "Static roster",
-    "static_description": "This group does not use public joins or community invite links.",
+    "static_description": "This group uses a fixed roster style.",
     "visible_title": "Discoverable",
     "visible_description": "This group can appear in public discovery and search.",
     "hidden_title": "Not discoverable",

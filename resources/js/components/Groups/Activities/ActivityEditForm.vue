@@ -40,7 +40,7 @@ const emit = defineEmits<{
 const { t } = useI18n();
 const page = usePage();
 const datacenterOptions = computed(() => page.props.lookups?.datacenters ?? []);
-const minimumItemLevelTouched = ref(false);
+const minimumItemLevelEnabledState = ref(props.form.min_item_level !== null && props.form.min_item_level !== undefined);
 const {
 	organizerCharacterItems,
 	selectedOrganizerCharacter,
@@ -75,15 +75,23 @@ const runStyleItems = computed(() => props.activityOptions.runStyles.map((value)
 })));
 
 const minimumItemLevelEnabled = computed({
-	get: () => props.form.min_item_level !== null && props.form.min_item_level !== undefined,
+	get: () => minimumItemLevelEnabledState.value,
 	set: (enabled: boolean) => {
-		minimumItemLevelTouched.value = true;
-		props.form.min_item_level = enabled ? 1 : null;
+		minimumItemLevelEnabledState.value = enabled;
+
+		if (!enabled) {
+			props.form.min_item_level = null;
+
+			return;
+		}
+
+		if (props.form.min_item_level === null || props.form.min_item_level === undefined) {
+			props.form.min_item_level = 1;
+		}
 	},
 });
 
 const updateMinimumItemLevel = (value: unknown) => {
-	minimumItemLevelTouched.value = true;
 	props.form.min_item_level = value === '' || value === null
 		? null
 		: Math.min(9999, Math.max(1, Number(value) || 1));

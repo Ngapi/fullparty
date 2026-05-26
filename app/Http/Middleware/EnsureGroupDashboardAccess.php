@@ -23,25 +23,10 @@ class EnsureGroupDashboardAccess
             return $next($request);
         }
 
-        if (
-            $this->allowsFollowerDashboardView($request)
-            && $group->hasFollower($request->user()?->id)
-        ) {
-            return $next($request);
-        }
-
         if ($group->is_visible && $request->isMethodSafe()) {
             return redirect()->route('groups.index');
         }
 
         abort(404);
-    }
-
-    private function allowsFollowerDashboardView(Request $request): bool
-    {
-        return $request->routeIs([
-            'groups.dashboard',
-            'groups.dashboard.activities.index',
-        ]);
     }
 }

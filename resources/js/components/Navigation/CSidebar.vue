@@ -55,12 +55,10 @@ const isAdmin = computed(() => Boolean(page.props.auth?.user?.is_admin))
 const groupQuickLinks = computed(() => page.props.navigation?.group_quick_links ?? {
 	my: [],
 	joined: [],
-	followed: [],
 })
 const groupDrawerOpen = ref({
 	my: false,
 	joined: false,
-	followed: false,
 })
 
 const groupQuickLinkSections = computed(() => [
@@ -75,12 +73,6 @@ const groupQuickLinkSections = computed(() => [
 		label: t('navigation.sidebar.joined_groups'),
 		icon: 'i-lucide-users',
 		items: groupQuickLinks.value.joined,
-	},
-	{
-		key: 'followed',
-		label: t('navigation.sidebar.followed_groups'),
-		icon: 'i-lucide-heart',
-		items: groupQuickLinks.value.followed,
 	},
 ].filter((section) => section.items.length > 0))
 

@@ -14,7 +14,7 @@ uses(RefreshDatabase::class);
 
 it('exports a styled excel-compatible roster sheet', function () {
     $owner = User::factory()->create();
-    $group = Group::factory()->public()->create([
+    $group = Group::factory()->open()->create([
         'owner_id' => $owner->id,
         'name' => 'Speed Group',
     ]);
@@ -329,7 +329,7 @@ it('exports a styled excel-compatible roster sheet', function () {
 
 it('exports a roster even when the activity type has no requirements summary rows', function () {
     $owner = User::factory()->create();
-    $group = Group::factory()->public()->create([
+    $group = Group::factory()->open()->create([
         'owner_id' => $owner->id,
         'name' => 'Simple Group',
     ]);

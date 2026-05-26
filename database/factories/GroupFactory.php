@@ -5,6 +5,7 @@ namespace Database\Factories;
 use App\Models\Group;
 use App\Models\GroupMembership;
 use App\Models\User;
+use App\Services\Groups\MembershipApplicationFormSchemaService;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -27,11 +28,11 @@ class GroupFactory extends Factory
             'banner_image_url' => null,
             'discord_invite_url' => fake()->boolean(60) ? 'https://discord.gg/'.fake()->lexify('????????') : null,
             'datacenter' => fake()->randomElement(['Light', 'Chaos', 'Aether', 'Crystal', 'Primal', 'Dynamis']),
-            'is_public' => fake()->boolean(70),
             'is_visible' => true,
             'slug' => strtolower(fake()->unique()->regexify('[a-z0-9]{8}')),
             'group_type' => Group::TYPE_COMMUNITY,
-            'recruiting_status' => null,
+            'join_mode' => Group::JOIN_MODE_INVITE_ONLY,
+            'membership_application_schema' => null,
             'primary_focuses' => [],
             'experience_expectation' => null,
             'voice_expectation' => null,
@@ -47,6 +48,11 @@ class GroupFactory extends Factory
     public function configure(): static
     {
         return $this->afterCreating(function (Group $group): void {
+            if (! in_array($group->join_mode, Group::joinModesForType($group->group_type), true)) {
+                $group->join_mode = Group::JOIN_MODE_INVITE_ONLY;
+                $group->save();
+            }
+
             $group->memberships()->firstOrCreate(
                 ['user_id' => $group->owner_id],
                 [
@@ -55,28 +61,33 @@ class GroupFactory extends Factory
                 ]
             );
 
-            if ($group->is_public && $group->usesCommunityJoinFlow()) {
+            if ($group->hasPermanentInvite()) {
                 $group->ensureSystemInvite();
             }
 
-            $group->followers()->syncWithoutDetaching([
-                $group->owner_id => ['notifications_enabled' => true],
-            ]);
+            app(MembershipApplicationFormSchemaService::class)->ensureDefaultForm($group);
         });
     }
 
-    public function public(): static
+    public function open(): static
     {
         return $this->state(fn (array $attributes) => [
-            'is_public' => true,
             'is_visible' => true,
+            'join_mode' => Group::JOIN_MODE_OPEN,
         ]);
     }
 
-    public function private(): static
+    public function inviteOnly(): static
     {
         return $this->state(fn (array $attributes) => [
-            'is_public' => false,
+            'join_mode' => Group::JOIN_MODE_INVITE_ONLY,
+        ]);
+    }
+
+    public function applicationBased(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'join_mode' => Group::JOIN_MODE_APPLICATION,
         ]);
     }
 
@@ -100,9 +111,6 @@ class GroupFactory extends Factory
                 ]
             );
 
-            $group->followers()->syncWithoutDetaching([
-                $member->id => ['notifications_enabled' => true],
-            ]);
         });
     }
 }

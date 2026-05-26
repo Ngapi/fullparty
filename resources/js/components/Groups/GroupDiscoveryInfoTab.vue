@@ -12,7 +12,6 @@ const props = defineProps<{
 const { locale, t } = useI18n();
 
 const experienceBadge = computed(() => props.group.badge_meta.experience_expectation ?? null);
-const recruitingBadge = computed(() => props.group.badge_meta.recruiting_status ?? null);
 const voiceBadge = computed(() => props.group.badge_meta.voice_expectation ?? null);
 const focusBadges = computed(() => props.group.badge_meta.primary_focuses ?? []);
 const tagBadges = computed(() => props.group.badge_meta.tags ?? []);
@@ -167,11 +166,6 @@ function formatTime(value: string) {
 				{{ t('groups.common.labels.metadata_tags') }}
 			</p>
 			<div class="flex flex-wrap gap-2">
-				<GroupDiscoveryBadge
-					v-if="recruitingBadge"
-					:color="recruitingBadge.color"
-					:label="t(`groups.index.create_modal.fields.recruiting_status.options.${recruitingBadge.value}`)"
-				/>
 				<GroupDiscoveryBadge
 					v-if="experienceBadge"
 					:color="experienceBadge.color"

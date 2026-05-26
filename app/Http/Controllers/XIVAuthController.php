@@ -14,6 +14,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
 use Laravel\Socialite\Socialite;
+use Laravel\Socialite\Two\InvalidStateException;
 
 class XIVAuthController extends Controller
 {
@@ -33,9 +34,15 @@ class XIVAuthController extends Controller
 
     public function callback()
     {
-        $xivauthUser = Socialite::driver('xivauth')
-            ->enablePKCE()
-            ->user();
+        try {
+            $xivauthUser = Socialite::driver('xivauth')
+                ->enablePKCE()
+                ->user();
+        } catch (InvalidStateException) {
+            return redirect()
+                ->route('settings')
+                ->withErrors(['error' => 'social_oauth_invalid_state']);
+        }
 
         $provider = 'xivauth';
         $providerUserId = (string) $xivauthUser->getId();

@@ -69,6 +69,8 @@
     "privacy_updated": "プライバシー設定を更新しました",
     "social_account_unlinked": "連携アカウントを解除しました",
     "social_account_unlink_blocked": "最後のソーシャルアカウントを解除する前に、別のサインイン方法を追加するかパスワードを設定してください。",
+    "social_oauth_invalid_state": "この連携操作は期限切れです。もう一度アカウント連携をお試しください。",
+    "error_title": "問題が発生しました",
     "title": "成功！"
   }
 }

@@ -25,7 +25,7 @@ function attachAdditionalMembers(Group $group, int $count): void
 it('returns the initial discovery results when the query is empty', function () {
     $user = User::factory()->create();
 
-    Group::factory()->public()->withMember($user)->create([
+    Group::factory()->open()->withMember($user)->create([
         'name' => 'Joined Group',
         'slug' => 'joingrp',
         'created_at' => now()->subDay(),
@@ -36,7 +36,7 @@ it('returns the initial discovery results when the query is empty', function () 
         'slug' => 'hiddengp',
     ]);
 
-    $groups = Group::factory()->count(7)->public()->create()->values();
+    $groups = Group::factory()->count(7)->open()->create()->values();
 
     $groups->each(function (Group $group, int $index): void {
         $group->owner->update([
@@ -53,7 +53,6 @@ it('returns the initial discovery results when the query is empty', function () 
             'name' => "Search Group {$index}",
             'slug' => "srchgrp{$index}",
             'description' => "Discovery group {$index}",
-            'recruiting_status' => 'looking_for_members',
             'primary_focuses' => ['progression'],
             'experience_expectation' => 'mixed',
             'voice_expectation' => 'preferred',
@@ -76,14 +75,13 @@ it('returns the initial discovery results when the query is empty', function () 
         ->assertJsonPath('data.0.name', 'Search Group 6')
         ->assertJsonPath('data.0.owner.name', 'Character 6')
         ->assertJsonPath('data.0.owner.avatar_url', 'https://example.com/character-avatar-6.png')
-        ->assertJsonPath('data.0.badge_meta.recruiting_status.color', '#4C7DFF')
         ->assertJsonPath('data.0.badge_meta.tags.0.color', app(GroupDiscoveryBadgePalette::class)->tagColor('Tag 6'))
         ->assertJsonMissing(['name' => 'Hidden Group']);
 });
 
 it('uses the owner primary character in the initial discovery page payload', function () {
     $user = User::factory()->create();
-    $group = Group::factory()->public()->create([
+    $group = Group::factory()->open()->create([
         'name' => 'Initial Discovery Group',
         'slug' => 'initdisc',
     ]);
@@ -109,16 +107,16 @@ it('uses the owner primary character in the initial discovery page payload', fun
         );
 });
 
-it('shares the sidebar group quick links as my, joined, and follower-only buckets', function () {
+it('shares the sidebar group quick links as my and joined buckets', function () {
     $user = User::factory()->create();
 
-    $ownedGroup = Group::factory()->public()->create([
+    $ownedGroup = Group::factory()->open()->create([
         'owner_id' => $user->id,
         'name' => 'Owned Sidebar Group',
         'slug' => 'ownedsb',
     ]);
 
-    $adminGroup = Group::factory()->public()->create([
+    $adminGroup = Group::factory()->open()->create([
         'name' => 'Admin Sidebar Group',
         'slug' => 'adminsb',
     ]);
@@ -128,7 +126,7 @@ it('shares the sidebar group quick links as my, joined, and follower-only bucket
         'joined_at' => now(),
     ]);
 
-    $memberGroup = Group::factory()->public()->create([
+    $memberGroup = Group::factory()->open()->create([
         'name' => 'Member Sidebar Group',
         'slug' => 'membersb',
     ]);
@@ -136,14 +134,6 @@ it('shares the sidebar group quick links as my, joined, and follower-only bucket
         'user_id' => $user->id,
         'role' => GroupMembership::ROLE_MEMBER,
         'joined_at' => now(),
-    ]);
-
-    $followedOnlyGroup = Group::factory()->public()->create([
-        'name' => 'Followed Sidebar Group',
-        'slug' => 'followsb',
-    ]);
-    $followedOnlyGroup->followers()->attach($user->id, [
-        'notifications_enabled' => true,
     ]);
 
     $this->actingAs($user)
@@ -154,14 +144,13 @@ it('shares the sidebar group quick links as my, joined, and follower-only bucket
             ->where('navigation.group_quick_links.my.0.slug', 'adminsb')
             ->where('navigation.group_quick_links.my.1.slug', 'ownedsb')
             ->where('navigation.group_quick_links.joined.0.slug', 'membersb')
-            ->where('navigation.group_quick_links.followed.0.slug', 'followsb')
         );
 });
 
 it('includes groups the current user already belongs to in discovery results', function () {
     $user = User::factory()->create();
 
-    Group::factory()->public()->withMember($user)->create([
+    Group::factory()->open()->withMember($user)->create([
         'name' => 'Joined Group',
         'slug' => 'joingrp',
         'group_type' => Group::TYPE_STATIC,
@@ -181,12 +170,11 @@ it('includes groups the current user already belongs to in discovery results', f
 it('applies discovery filters to the group search results', function () {
     $user = User::factory()->create();
 
-    $matchingGroup = Group::factory()->public()->create([
+    $matchingGroup = Group::factory()->applicationBased()->create([
         'name' => 'Night Prog',
         'slug' => 'nightpro',
         'group_type' => Group::TYPE_STATIC,
         'datacenter' => 'Light',
-        'recruiting_status' => 'applications_open',
         'primary_focuses' => ['progression'],
         'experience_expectation' => 'hardcore',
         'voice_expectation' => 'required',
@@ -197,12 +185,11 @@ it('applies discovery filters to the group search results', function () {
 
     attachAdditionalMembers($matchingGroup, 49);
 
-    Group::factory()->public()->create([
+    Group::factory()->applicationBased()->create([
         'name' => 'Wrong Region',
         'slug' => 'wrongreg',
         'group_type' => Group::TYPE_STATIC,
         'datacenter' => 'Aether',
-        'recruiting_status' => 'applications_open',
         'primary_focuses' => ['progression'],
         'experience_expectation' => 'hardcore',
         'voice_expectation' => 'required',
@@ -211,13 +198,25 @@ it('applies discovery filters to the group search results', function () {
         'active_days' => ['fri'],
     ]);
 
-    Group::factory()->public()->create([
+    Group::factory()->applicationBased()->create([
         'name' => 'Wrong Focus',
         'slug' => 'wrongfoc',
         'group_type' => Group::TYPE_STATIC,
         'datacenter' => 'Light',
-        'recruiting_status' => 'applications_open',
         'primary_focuses' => ['maps'],
+        'experience_expectation' => 'hardcore',
+        'voice_expectation' => 'required',
+        'preferred_languages' => ['en'],
+        'tags' => ['Late Night'],
+        'active_days' => ['fri'],
+    ]);
+
+    Group::factory()->inviteOnly()->create([
+        'name' => 'Wrong Method',
+        'slug' => 'wrongmet',
+        'group_type' => Group::TYPE_STATIC,
+        'datacenter' => 'Light',
+        'primary_focuses' => ['progression'],
         'experience_expectation' => 'hardcore',
         'voice_expectation' => 'required',
         'preferred_languages' => ['en'],
@@ -228,11 +227,11 @@ it('applies discovery filters to the group search results', function () {
     $this->actingAs($user)
         ->getJson(route('groups.search', [
             'group_type' => Group::TYPE_STATIC,
+            'join_mode' => Group::JOIN_MODE_APPLICATION,
             'experience_expectation' => 'hardcore',
             'region' => 'EU',
             'size' => '50',
             'sort_by' => 'member_count_desc',
-            'recruiting_status' => 'applications_open',
             'primary_focuses' => ['progression'],
             'voice_expectation' => 'required',
             'preferred_languages' => ['en'],

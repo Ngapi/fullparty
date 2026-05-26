@@ -134,6 +134,12 @@
         "enabled": "がグループ通知を有効にしました。",
         "muted": "がグループ通知をミュートしました。"
       },
+      "membership_application": {
+        "submitted": "submitted a membership application.",
+        "approved": "approved a membership application.",
+        "declined": "declined a membership application.",
+        "form_updated": "updated the membership application form."
+      },
       "activity": {
         "created": "がアクティビティを作成しました。",
         "updated": "がアクティビティを更新しました。",
@@ -259,6 +265,11 @@
     "email": "メールアドレス",
     "provider": "プロバイダー",
     "provider_user_id": "プロバイダーユーザーID",
+    "membership_application_id": "Membership Application",
+    "applicant_user_id": "Applicant",
+    "applicant_name": "Applicant Name",
+    "field_count": "Field Count",
+    "previous_field_count": "Previous Field Count",
     "login_method": "ログイン方法",
     "registration_method": "登録方法",
     "remember": "ログイン状態を保持",
@@ -339,6 +350,12 @@
         "enabled": "グループ通知を有効化",
         "muted": "グループ通知をミュート"
       },
+      "membership_application": {
+        "submitted": "Membership application submitted",
+        "approved": "Membership application approved",
+        "declined": "Membership application declined",
+        "form_updated": "Membership application form updated"
+      },
       "activity": {
         "created": "アクティビティ作成",
         "updated": "アクティビティ更新",
@@ -373,7 +390,7 @@
         "revoked": "招待リンクを無効化"
       },
       "member": {
-        "joined": "メンバーが公開グループに参加",
+        "joined": "メンバーがグループに参加",
         "joined_via_invite": "メンバーが招待経由で参加",
         "left": "メンバーがグループを退出",
         "promoted": "メンバーの役職を昇格",

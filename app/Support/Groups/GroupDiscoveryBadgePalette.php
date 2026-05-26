@@ -22,7 +22,6 @@ final class GroupDiscoveryBadgePalette
         $region = $group->inferredRegion();
 
         return [
-            'recruiting_status' => $this->singleValueBadgeMeta($group->recruiting_status, 'recruiting_statuses'),
             'primary_focuses' => $this->multiValueBadgeMeta($group->primary_focuses ?? [], 'primary_focuses'),
             'experience_expectation' => $this->singleValueBadgeMeta($group->experience_expectation, 'experience_expectations'),
             'voice_expectation' => $this->singleValueBadgeMeta($group->voice_expectation, 'voice_expectations'),

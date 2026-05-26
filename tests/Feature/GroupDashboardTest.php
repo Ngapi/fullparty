@@ -18,7 +18,7 @@ it('renders the group dashboard with activity-driven overview data', function ()
     Carbon::setTestNow(Carbon::parse('2026-05-27 12:00:00'));
 
     $owner = User::factory()->create();
-    $group = Group::factory()->public()->create([
+    $group = Group::factory()->open()->create([
         'owner_id' => $owner->id,
         'description' => 'Late-night raid group for progression and cleanup.',
         'discord_invite_url' => 'https://discord.gg/fullparty',
@@ -169,10 +169,9 @@ it('renders the group dashboard with activity-driven overview data', function ()
                 ->where('group.stats.cancelled_count', 1)
                 ->where('group.stats.open_application_count', 2)
                 ->where('group.stats.public_activity_count', 4)
-                ->where('group.follow.is_following', true)
-                ->where('group.follow.notifications_enabled', true)
-                ->where('group.permissions.can_leave', false)
+                ->where('group.notifications.enabled', true)
                 ->where('group.permissions.can_toggle_notifications', true)
+                ->where('group.permissions.can_leave', false)
                 ->where('group.member_role_breakdown.owner', 1)
                 ->where('group.member_role_breakdown.moderator', 1)
                 ->where('group.member_role_breakdown.member', 1)
@@ -226,10 +225,6 @@ it('renders the group dashboard with activity-driven overview data', function ()
                 ->where('group.history_activities.1.can_view_overview', true)
             );
 
-        $group->followers()->syncWithoutDetaching([
-            $member->id => ['notifications_enabled' => false],
-        ]);
-
         $this->actingAs($member)
             ->get(route('groups.dashboard', $group))
             ->assertOk()
@@ -241,10 +236,9 @@ it('renders the group dashboard with activity-driven overview data', function ()
                 ->where('group.stats.completed_count', 1)
                 ->where('group.stats.cancelled_count', 1)
                 ->where('group.stats.open_application_count', 1)
-                ->where('group.follow.is_following', true)
-                ->where('group.follow.notifications_enabled', false)
-                ->where('group.permissions.can_leave', true)
+                ->where('group.notifications.enabled', true)
                 ->where('group.permissions.can_toggle_notifications', true)
+                ->where('group.permissions.can_leave', true)
                 ->where('group.content_summary.total_runs', 4)
                 ->where('group.content_items.0.total_runs', 4)
                 ->where('group.content_items.0.active_runs', 2)
@@ -267,64 +261,12 @@ it('renders the group dashboard with activity-driven overview data', function ()
                 ->where('group.history_activities.1.can_view_overview', true)
             );
 
-        $follower = User::factory()->create();
-        $group->followers()->syncWithoutDetaching([
-            $follower->id => ['notifications_enabled' => true],
-        ]);
-
-        $this->actingAs($follower)
-            ->get(route('groups.dashboard', $group))
-            ->assertOk()
-            ->assertInertia(fn (Assert $page) => $page
-                ->where('group.current_user_role', null)
-                ->where('group.follow.is_following', true)
-                ->where('group.follow.notifications_enabled', true)
-                ->where('group.permissions.can_leave', false)
-                ->where('group.permissions.can_toggle_notifications', true)
-                ->where('group.permissions.can_view_members', false)
-                ->where('group.stats.activity_count', 3)
-                ->where('group.stats.planned_count', 0)
-                ->where('group.stats.scheduled_count', 1)
-                ->where('group.stats.assigned_count', 0)
-                ->where('group.stats.completed_count', 1)
-                ->where('group.stats.cancelled_count', 1)
-                ->where('group.stats.open_application_count', 1)
-                ->where('group.stats.public_activity_count', 3)
-                ->where('group.stats.latest_member_join_at', null)
-                ->where('group.member_role_breakdown.owner', 0)
-                ->where('group.member_role_breakdown.admin', 0)
-                ->where('group.member_role_breakdown.moderator', 0)
-                ->where('group.member_role_breakdown.member', 0)
-                ->where('group.content_summary.total_runs', 3)
-                ->where('group.content_items.0.total_runs', 3)
-                ->where('group.content_items.0.active_runs', 1)
-                ->has('group.members_preview', 0)
-                ->has('group.current_week_activities', 3)
-                ->where('group.current_week_activities.0.id', $cancelledActivity->id)
-                ->where('group.current_week_activities.1.id', $completeActivity->id)
-                ->where('group.current_week_activities.2.id', $scheduledActivity->id)
-                ->has('group.upcoming_activities', 1)
-                ->where('group.upcoming_activities.0.id', $scheduledActivity->id)
-                ->where('group.upcoming_activities.0.can_view_overview', true)
-                ->where('group.upcoming_activities.0.can_apply', false)
-                ->where('group.upcoming_activities.0.secret_key', null)
-                ->where('group.upcoming_activities.0.links.view', route('groups.activities.overview', [
-                    'group' => $group->slug,
-                    'activity' => $scheduledActivity->id,
-                ], false))
-                ->where('group.upcoming_activities.0.links.apply', null)
-                ->has('group.history_activities', 2)
-                ->where('group.history_activities.0.id', $completeActivity->id)
-                ->where('group.history_activities.0.can_view_overview', true)
-                ->where('group.history_activities.1.id', $cancelledActivity->id)
-                ->where('group.history_activities.1.can_view_overview', true)
-            );
     } finally {
         Carbon::setTestNow();
     }
 });
 
-it('renders the static dashboard page for static groups', function () {
+it('renders the community dashboard page for static groups', function () {
     $owner = User::factory()->create();
     $group = Group::factory()->create([
         'owner_id' => $owner->id,
@@ -335,7 +277,7 @@ it('renders the static dashboard page for static groups', function () {
         ->get(route('groups.dashboard', $group))
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
-            ->component('Dashboard/Groups/StaticDashboard')
+            ->component('Dashboard/Groups/CommunityDashboard')
             ->where('group.id', $group->id)
             ->where('group.group_type', Group::TYPE_STATIC)
         );
