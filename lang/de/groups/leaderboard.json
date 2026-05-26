@@ -1,0 +1,63 @@
+{
+  "title": "Bestenliste",
+  "subtitle": "{group}-Teilnahmeranglisten uber eingeteilte Runs.",
+  "summary": {
+    "total_participations": "Teilnahmen gesamt",
+    "ranked_participants": "Gewertete Teilnehmende",
+    "raid_leaders": "Raid-Leader-Runs",
+    "hosts": "Geleitete Runs"
+  },
+  "common": {
+    "participations": "Teilnahmen",
+    "runs": "Runs",
+    "complete_runs_only": "Nur abgeschlossene Runs",
+    "no_date": "Kein aktueller Run"
+  },
+  "cache": {
+    "refresh": "Bestenliste aktualisieren",
+    "refreshing": "Aktualisiere...",
+    "cooldown": "Aktualisierung in {time}",
+    "tooltip": "Zwischengespeichert {cached}. Lauft ab {expires}.",
+    "unknown": "Unbekannt"
+  },
+  "featured": {
+    "mvp_title": "Aktivster Spieler",
+    "mvp_subtitle": "Der Charakter mit den meisten eingeteilten Run-Auftritten.",
+    "host_success_title": "Beste Host-Performance",
+    "host_success_subtitle": "Hochster gewichteter Performance-Wert bei abgeschlossenen gehosteten Runs.",
+    "last_seen": "Zuletzt teilgenommen am {date}"
+  },
+  "boards": {
+    "overall": {
+      "title": "Gesamtteilnahme",
+      "subtitle": "Meiste eingeteilte Run-Auftritte."
+    },
+    "raid_leaders": {
+      "title": "Raid Leader",
+      "subtitle": "Meiste Runs als Raid Leader markiert."
+    },
+    "hosts": {
+      "title": "Hosts",
+      "subtitle": "Meiste Runs als Host markiert."
+    }
+  },
+  "host_success": {
+    "title": "Host-Performance",
+    "subtitle": "Abgeschlossene gehostete Runs, gewertet nach gewichteten Erfolgen und Bayesian Smoothing. Hosts brauchen mindestens zwei abgeschlossene gehostete Runs.",
+    "record": "{successes}/{total} erfolgreich",
+    "failed": "{count} Ziel verfehlt",
+    "minimum": "2+ abgeschlossene gehostete Runs",
+    "formula_label": "Host-Performance-Formel",
+    "formula_hint": "Score = (dokumentierte Erfolge + Auto-Erfolge x 0.5 + Prior) / (abgeschlossene gehostete Runs + 10). Hosts mit nur einem Run werden ausgeblendet.",
+    "raw_success": "Roher Erfolg {rate}",
+    "documented": "{count} dokumentiert",
+    "auto": "{count} auto",
+    "breakdown": "{documented} dokumentiert / {auto} auto / {failed} verfehlt"
+  },
+  "empty": {
+    "overall": "Eingeteilte Teilnehmende erscheinen hier, sobald Runs belegte Slots haben.",
+    "raid_leaders": "Raid-Leader-Ranglisten erscheinen, sobald Slots als Raid Leader markiert sind.",
+    "hosts": "Host-Ranglisten erscheinen, sobald Slots als Host markiert sind.",
+    "host_success": "Host-Erfolg erscheint, nachdem abgeschlossene gehostete Runs vorhanden sind."
+  }
+}

@@ -22,9 +22,9 @@ use RuntimeException;
 
 class ActivitySeeder extends Seeder
 {
-    private const MIN_TOTAL_ACTIVITIES_PER_GROUP = 75;
+    private const MIN_TOTAL_ACTIVITIES_PER_GROUP = 300;
 
-    private const MAX_TOTAL_ACTIVITIES_PER_GROUP = 100;
+    private const MAX_TOTAL_ACTIVITIES_PER_GROUP = 400;
 
     private const HISTORICAL_ACTIVITY_RATIO = 0.4;
 
@@ -115,6 +115,11 @@ class ActivitySeeder extends Seeder
                 continue;
             }
 
+            $designationCharacterLoadouts = $groupCharacterLoadouts
+                ->shuffle()
+                ->take(min(10, $groupCharacterLoadouts->count()))
+                ->values();
+
             $totalActivityCount = fake()->numberBetween(
                 self::MIN_TOTAL_ACTIVITIES_PER_GROUP,
                 self::MAX_TOTAL_ACTIVITIES_PER_GROUP,
@@ -141,6 +146,7 @@ class ActivitySeeder extends Seeder
                 $slotGroups = $context['layout_groups'];
                 $minAssignedSlots = $this->minimumAssignedSlotCount($slotGroups);
                 $maxAssignedSlots = $this->maximumAssignedSlotCount($slotGroups, $minAssignedSlots);
+                $targetProgPointKey = $this->pickTargetProgPointKey($context['prog_points'], $runStyle);
 
                 $activityId = $this->insertActivity([
                     'group_id' => $group->id,
@@ -159,7 +165,7 @@ class ActivitySeeder extends Seeder
                     'min_item_level' => $minItemLevel,
                     'beginner_friendly' => $beginnerFriendly,
                     'run_style' => $runStyle,
-                    'target_prog_point_key' => $this->pickTargetProgPointKey($context['prog_points'], $runStyle),
+                    'target_prog_point_key' => $targetProgPointKey,
                     'is_public' => $group->is_visible ? fake()->boolean(80) : fake()->boolean(35),
                     'needs_application' => true,
                     'allow_guest_applications' => $allowGuestApplications,
@@ -172,9 +178,11 @@ class ActivitySeeder extends Seeder
                     organizerUserId: $organizer->id,
                     context: $context,
                     characterLoadouts: $groupCharacterLoadouts,
+                    designationCharacterLoadouts: $designationCharacterLoadouts,
                     minimumAssignments: $minAssignedSlots,
                     maximumAssignments: $maxAssignedSlots,
                     isComplete: false,
+                    furthestProgressKey: null,
                 );
 
                 $this->seedApplicationsForActivity(
@@ -205,6 +213,13 @@ class ActivitySeeder extends Seeder
                 $slotGroups = $context['layout_groups'];
                 $minAssignedSlots = $this->historicalMinimumAssignedSlotCount($slotGroups);
                 $maxAssignedSlots = $this->historicalMaximumAssignedSlotCount($slotGroups, $minAssignedSlots);
+                $targetProgPointKey = $this->pickTargetProgPointKey($context['prog_points'], $runStyle, true);
+                $completionAttributes = $this->seededCompletionAttributes(
+                    context: $context,
+                    targetProgPointKey: $targetProgPointKey,
+                    completedAt: $startsAt->copy()->addMinutes((int) round($durationHours * 60)),
+                    recordedByUserId: $organizer->id,
+                );
 
                 $activityId = $this->insertActivity([
                     'group_id' => $group->id,
@@ -223,12 +238,13 @@ class ActivitySeeder extends Seeder
                     'min_item_level' => $minItemLevel,
                     'beginner_friendly' => $beginnerFriendly,
                     'run_style' => $runStyle,
-                    'target_prog_point_key' => $this->pickTargetProgPointKey($context['prog_points'], $runStyle),
+                    'target_prog_point_key' => $targetProgPointKey,
                     'is_public' => $group->is_visible ? fake()->boolean(80) : fake()->boolean(35),
                     'needs_application' => true,
                     'allow_guest_applications' => false,
                     'is_completed' => true,
                     'completed_at' => $startsAt->copy()->addMinutes((int) round($durationHours * 60)),
+                    ...$completionAttributes,
                     'created_at' => $startsAt->copy()->subDays(fake()->numberBetween(7, 28)),
                     'updated_at' => $startsAt->copy()->subHours(fake()->numberBetween(2, 72)),
                 ]);
@@ -238,9 +254,11 @@ class ActivitySeeder extends Seeder
                     organizerUserId: $organizer->id,
                     context: $context,
                     characterLoadouts: $groupCharacterLoadouts,
+                    designationCharacterLoadouts: $designationCharacterLoadouts,
                     minimumAssignments: $minAssignedSlots,
                     maximumAssignments: $maxAssignedSlots,
                     isComplete: true,
+                    furthestProgressKey: $completionAttributes['furthest_progress_key'] ?? null,
                 );
             }
         }
@@ -460,15 +478,18 @@ class ActivitySeeder extends Seeder
     /**
      * @param  array<string, mixed>  $context
      * @param  Collection<int, array<string, mixed>>  $characterLoadouts
+     * @param  Collection<int, array<string, mixed>>  $designationCharacterLoadouts
      */
     private function seedActivitySlotsAndMilestones(
         int $activityId,
         int $organizerUserId,
         array $context,
         Collection $characterLoadouts,
+        Collection $designationCharacterLoadouts,
         int $minimumAssignments,
         ?int $maximumAssignments,
         bool $isComplete,
+        ?string $furthestProgressKey,
     ): void {
         $slotDefinitions = $this->buildSlotDefinitions($context['layout_groups']);
 
@@ -477,8 +498,14 @@ class ActivitySeeder extends Seeder
         }
 
         $slotCount = count($slotDefinitions);
+        $desiredHostCount = fake()->boolean(90) ? 1 : 2;
         $maxAssignments = min($maximumAssignments ?? $slotCount, $slotCount, $characterLoadouts->count());
-        $minAssignments = min(max(0, $minimumAssignments), $maxAssignments);
+        $minimumDesignationSlots = $this->minimumDesignationSlotCount(
+            slotDefinitions: $slotDefinitions,
+            desiredHostCount: $desiredHostCount,
+            designationPoolCount: $designationCharacterLoadouts->count(),
+        );
+        $minAssignments = min(max(0, $minimumAssignments, $minimumDesignationSlots), $maxAssignments);
         $assignmentCount = $maxAssignments === 0
             ? 0
             : fake()->numberBetween($minAssignments, $maxAssignments);
@@ -486,21 +513,41 @@ class ActivitySeeder extends Seeder
         $assignmentBySlotKey = [];
 
         if ($assignmentCount > 0) {
-            $selectedSlotKeys = collect($slotDefinitions)
+            $selectedSlotKeys = $this->selectAssignedSlotKeys($slotDefinitions, $assignmentCount);
+            $designationBySlotKey = $this->buildSlotDesignations(
+                slotDefinitions: $slotDefinitions,
+                selectedSlotKeys: $selectedSlotKeys,
+                desiredHostCount: $desiredHostCount,
+                designationPoolCount: $designationCharacterLoadouts->count(),
+            );
+            $designationSlotKeys = collect(array_keys($designationBySlotKey));
+            $selectedDesignationCharacters = $designationCharacterLoadouts
                 ->shuffle()
-                ->take($assignmentCount)
-                ->pluck('slot_key')
+                ->take($designationSlotKeys->count())
                 ->values();
 
+            foreach ($designationSlotKeys as $index => $slotKey) {
+                $assignmentBySlotKey[$slotKey] = $selectedDesignationCharacters[$index];
+            }
+
+            $usedCharacterIds = collect($assignmentBySlotKey)
+                ->pluck('id')
+                ->map(fn (mixed $characterId): int => (int) $characterId)
+                ->all();
+            $remainingSlotKeys = $selectedSlotKeys
+                ->reject(fn (string $slotKey): bool => isset($assignmentBySlotKey[$slotKey]))
+                ->values();
             $selectedCharacters = $characterLoadouts
+                ->reject(fn (array $loadout): bool => in_array((int) $loadout['id'], $usedCharacterIds, true))
                 ->shuffle()
-                ->take($assignmentCount)
+                ->take($remainingSlotKeys->count())
                 ->values();
 
-            foreach ($selectedSlotKeys as $index => $slotKey) {
+            foreach ($remainingSlotKeys as $index => $slotKey) {
                 $assignmentBySlotKey[$slotKey] = $selectedCharacters[$index];
             }
         }
+        $designationBySlotKey ??= [];
 
         $timestamps = [
             'created_at' => now(),
@@ -511,6 +558,10 @@ class ActivitySeeder extends Seeder
 
         foreach ($slotDefinitions as $slotDefinition) {
             $assignedLoadout = $assignmentBySlotKey[$slotDefinition['slot_key']] ?? null;
+            $designations = $designationBySlotKey[$slotDefinition['slot_key']] ?? [
+                'is_host' => false,
+                'is_raid_leader' => false,
+            ];
 
             $slotRows[] = [
                 'activity_id' => $activityId,
@@ -522,8 +573,8 @@ class ActivitySeeder extends Seeder
                 'sort_order' => $slotDefinition['sort_order'],
                 'assigned_character_id' => $assignedLoadout['id'] ?? null,
                 'assigned_by_user_id' => $assignedLoadout ? $organizerUserId : null,
-                'is_host' => false,
-                'is_raid_leader' => false,
+                'is_host' => $designations['is_host'],
+                'is_raid_leader' => $designations['is_raid_leader'],
                 ...$timestamps,
             ];
         }
@@ -611,9 +662,14 @@ class ActivitySeeder extends Seeder
 
         $progressMilestoneRows = [];
         $milestones = $context['progress_milestones'];
-        $lastMilestoneIndex = count($milestones) - 1;
+        $furthestProgressOrder = $this->progressOrderForKey($context['prog_points'], $furthestProgressKey);
 
         foreach ($milestones as $index => $milestoneDefinition) {
+            $milestoneOrder = (int) ($milestoneDefinition['order'] ?? $index + 1);
+            $milestoneWasReached = $isComplete
+                && $furthestProgressOrder !== null
+                && $milestoneOrder <= $furthestProgressOrder;
+
             $progressMilestoneRows[] = [
                 'activity_id' => $activityId,
                 'milestone_key' => (string) ($milestoneDefinition['key'] ?? ('milestone-'.($index + 1))),
@@ -623,8 +679,10 @@ class ActivitySeeder extends Seeder
                         : ['en' => (string) ($milestoneDefinition['key'] ?? 'Milestone')]
                 ),
                 'sort_order' => (int) ($milestoneDefinition['order'] ?? $index + 1),
-                'kills' => $isComplete && $index === $lastMilestoneIndex ? 1 : 0,
-                'best_progress_percent' => $isComplete && $index === $lastMilestoneIndex ? 100 : null,
+                'kills' => $milestoneWasReached ? fake()->numberBetween(1, 3) : 0,
+                'best_progress_percent' => $milestoneWasReached
+                    ? fake()->randomElement([100, 100, 100, fake()->numberBetween(65, 98)])
+                    : null,
                 'source' => null,
                 'notes' => null,
                 ...$timestamps,
@@ -829,6 +887,142 @@ class ActivitySeeder extends Seeder
     }
 
     /**
+     * @param  array<int, array<string, mixed>>  $slotDefinitions
+     */
+    private function minimumDesignationSlotCount(array $slotDefinitions, int $desiredHostCount, int $designationPoolCount): int
+    {
+        if ($slotDefinitions === [] || $designationPoolCount <= 0) {
+            return 0;
+        }
+
+        $partyCount = collect($slotDefinitions)
+            ->pluck('group_key')
+            ->unique()
+            ->count();
+
+        return min(count($slotDefinitions), $designationPoolCount, $partyCount + $desiredHostCount);
+    }
+
+    /**
+     * @param  array<int, array<string, mixed>>  $slotDefinitions
+     * @return Collection<int, string>
+     */
+    private function selectAssignedSlotKeys(array $slotDefinitions, int $assignmentCount): Collection
+    {
+        $definitions = collect($slotDefinitions);
+        $selected = collect();
+
+        $definitions
+            ->groupBy('group_key')
+            ->shuffle()
+            ->each(function (Collection $groupSlots) use (&$selected, $assignmentCount): void {
+                if ($selected->count() >= $assignmentCount) {
+                    return;
+                }
+
+                $selected->push($groupSlots->random()['slot_key']);
+            });
+
+        if ($selected->count() < $assignmentCount) {
+            $selected = $selected
+                ->merge(
+                    $definitions
+                        ->reject(fn (array $slotDefinition) => $selected->contains($slotDefinition['slot_key']))
+                        ->shuffle()
+                        ->take($assignmentCount - $selected->count())
+                        ->pluck('slot_key')
+                );
+        }
+
+        return $selected->values();
+    }
+
+    /**
+     * @param  array<int, array<string, mixed>>  $slotDefinitions
+     * @param  Collection<int, string>  $selectedSlotKeys
+     * @return array<string, array{is_host: bool, is_raid_leader: bool}>
+     */
+    private function buildSlotDesignations(
+        array $slotDefinitions,
+        Collection $selectedSlotKeys,
+        int $desiredHostCount,
+        int $designationPoolCount,
+    ): array {
+        if ($designationPoolCount <= 0) {
+            return [];
+        }
+
+        $selectedSlotDefinitions = collect($slotDefinitions)
+            ->filter(fn (array $slotDefinition): bool => $selectedSlotKeys->contains($slotDefinition['slot_key']))
+            ->values();
+
+        if ($selectedSlotDefinitions->isEmpty()) {
+            return [];
+        }
+
+        $designations = [];
+        $mark = function (string $slotKey, string $designation) use (&$designations): void {
+            $designations[$slotKey] ??= [
+                'is_host' => false,
+                'is_raid_leader' => false,
+            ];
+
+            $designations[$slotKey][$designation] = true;
+        };
+
+        $selectedSlotDefinitions
+            ->groupBy('group_key')
+            ->shuffle()
+            ->take($designationPoolCount)
+            ->each(function (Collection $groupSlots) use ($mark, $designations): void {
+                $leaderSlot = $groupSlots
+                    ->reject(fn (array $slotDefinition): bool => (bool) ($designations[$slotDefinition['slot_key']]['is_host'] ?? false))
+                    ->shuffle()
+                    ->first();
+
+                if (! $leaderSlot) {
+                    $leaderSlot = $groupSlots->random();
+                }
+
+                $mark($leaderSlot['slot_key'], 'is_raid_leader');
+            });
+
+        $remainingDesignationSlots = max(0, $designationPoolCount - count($designations));
+        $hostSlotKeys = $selectedSlotDefinitions
+            ->reject(fn (array $slotDefinition): bool => (bool) ($designations[$slotDefinition['slot_key']]['is_raid_leader'] ?? false))
+            ->shuffle()
+            ->take(min($desiredHostCount, $remainingDesignationSlots))
+            ->pluck('slot_key');
+
+        foreach ($hostSlotKeys as $slotKey) {
+            $mark($slotKey, 'is_host');
+        }
+
+        $remainingDesignationSlots = max(0, $designationPoolCount - count($designations));
+
+        $selectedSlotDefinitions
+            ->groupBy('group_key')
+            ->each(function (Collection $groupSlots) use (&$designations, &$remainingDesignationSlots, $mark): void {
+                if ($remainingDesignationSlots <= 0 || ! fake()->boolean(12)) {
+                    return;
+                }
+
+                $extraLeader = $groupSlots
+                    ->reject(fn (array $slotDefinition): bool => (bool) ($designations[$slotDefinition['slot_key']]['is_host'] ?? false)
+                        || (bool) ($designations[$slotDefinition['slot_key']]['is_raid_leader'] ?? false))
+                    ->shuffle()
+                    ->first();
+
+                if ($extraLeader) {
+                    $mark($extraLeader['slot_key'], 'is_raid_leader');
+                    $remainingDesignationSlots--;
+                }
+            });
+
+        return $designations;
+    }
+
+    /**
      * @param  array<string, mixed>  $context
      * @return array<string, mixed>
      */
@@ -928,10 +1122,14 @@ class ActivitySeeder extends Seeder
         $base = now()->startOfDay()->addDays(fake()->numberBetween(1, self::ACTIVITY_WINDOW_DAYS));
         [$hour, $minute] = $this->seededStartTimeForDate($base);
 
-        return $base
+        $startsAt = $base
             ->copy()
             ->setTime($hour, $minute)
             ->addMinutes((($activityIndex - 1) % 6) * 15);
+
+        return $startsAt->greaterThan($base->copy()->endOfDay())
+            ? $base->copy()->endOfDay()
+            : $startsAt;
     }
 
     private function historicalStartsAt(Carbon $referenceDate, int $activityIndex): Carbon
@@ -964,7 +1162,7 @@ class ActivitySeeder extends Seeder
     /**
      * @param  array<int, array<string, mixed>>  $progPoints
      */
-    private function pickTargetProgPointKey(array $progPoints, string $runStyle): ?string
+    private function pickTargetProgPointKey(array $progPoints, string $runStyle, bool $isCompletedRun = false): ?string
     {
         if ($progPoints === []) {
             return null;
@@ -984,7 +1182,11 @@ class ActivitySeeder extends Seeder
             Activity::RUN_STYLE_SPEEDRUN,
             Activity::RUN_STYLE_MARATHON,
         ], true)) {
-            return null;
+            if (! $isCompletedRun || fake()->boolean(55)) {
+                return null;
+            }
+
+            return $points->last()['key'] ?? null;
         }
 
         if ($runStyle === Activity::RUN_STYLE_CLEAR) {
@@ -996,6 +1198,130 @@ class ActivitySeeder extends Seeder
         $point = $points->random();
 
         return $point['key'] ?? null;
+    }
+
+    /**
+     * @param  array<string, mixed>  $context
+     * @return array<string, mixed>
+     */
+    private function seededCompletionAttributes(
+        array $context,
+        ?string $targetProgPointKey,
+        Carbon $completedAt,
+        int $recordedByUserId,
+    ): array {
+        $furthestProgressKey = $this->seededFurthestProgressKey($context['prog_points'], $targetProgPointKey);
+
+        return [
+            'progress_entry_mode' => $context['progress_milestones'] === [] ? null : 'manual',
+            'progress_notes' => fake()->boolean(45) ? fake()->sentence() : null,
+            'furthest_progress_key' => $furthestProgressKey,
+            'furthest_progress_percent' => $this->seededFurthestProgressPercent($context['prog_points'], $furthestProgressKey),
+            'progress_recorded_by_user_id' => $recordedByUserId,
+            'progress_recorded_at' => $completedAt->copy()->addMinutes(fake()->numberBetween(5, 90)),
+        ];
+    }
+
+    /**
+     * @param  array<int, array<string, mixed>>  $progPoints
+     */
+    private function seededFurthestProgressKey(array $progPoints, ?string $targetProgPointKey): ?string
+    {
+        $points = $this->orderedProgPoints($progPoints);
+
+        if ($points->isEmpty()) {
+            return null;
+        }
+
+        if ($targetProgPointKey === null) {
+            $latePoints = $points->slice(max(0, $points->count() - 3))->values();
+
+            return ($latePoints->isNotEmpty() ? $latePoints : $points)->random()['key'] ?? null;
+        }
+
+        $targetIndex = $points->search(fn (array $point): bool => ($point['key'] ?? null) === $targetProgPointKey);
+
+        if ($targetIndex === false) {
+            return fake()->boolean(75)
+                ? ($points->last()['key'] ?? null)
+                : null;
+        }
+
+        $targetWasReached = fake()->boolean(62);
+
+        if ($targetWasReached) {
+            return $points
+                ->slice($targetIndex)
+                ->values()
+                ->random()['key'] ?? $targetProgPointKey;
+        }
+
+        if ($targetIndex === 0) {
+            return null;
+        }
+
+        return $points
+            ->slice(0, $targetIndex)
+            ->values()
+            ->random()['key'] ?? null;
+    }
+
+    /**
+     * @param  array<int, array<string, mixed>>  $progPoints
+     */
+    private function seededFurthestProgressPercent(array $progPoints, ?string $furthestProgressKey): ?float
+    {
+        $furthestOrder = $this->progressOrderForKey($progPoints, $furthestProgressKey);
+
+        if ($furthestOrder === null) {
+            return null;
+        }
+
+        $finalOrder = $this->orderedProgPoints($progPoints)
+            ->map(fn (array $point): int => (int) ($point['_seed_order'] ?? $point['order'] ?? 1))
+            ->max();
+
+        if ($finalOrder !== null && $furthestOrder >= $finalOrder) {
+            return 100.0;
+        }
+
+        return (float) fake()->numberBetween(35, 98);
+    }
+
+    /**
+     * @param  array<int, array<string, mixed>>  $progPoints
+     */
+    private function progressOrderForKey(array $progPoints, ?string $key): ?int
+    {
+        if ($key === null) {
+            return null;
+        }
+
+        $point = $this->orderedProgPoints($progPoints)
+            ->first(fn (array $point): bool => ($point['key'] ?? null) === $key);
+
+        if (! $point) {
+            return null;
+        }
+
+        return (int) ($point['_seed_order'] ?? $point['order'] ?? 1);
+    }
+
+    /**
+     * @param  array<int, array<string, mixed>>  $progPoints
+     * @return Collection<int, array<string, mixed>>
+     */
+    private function orderedProgPoints(array $progPoints): Collection
+    {
+        return collect($progPoints)
+            ->filter(fn ($point): bool => is_array($point) && filled($point['key'] ?? null))
+            ->values()
+            ->map(fn (array $point, int $index): array => [
+                ...$point,
+                '_seed_order' => (int) ($point['order'] ?? $index + 1),
+            ])
+            ->sortBy(fn (array $point): int => (int) $point['_seed_order'])
+            ->values();
     }
 
     private function seededRunStyle(string $slug, bool $isHistorical): string

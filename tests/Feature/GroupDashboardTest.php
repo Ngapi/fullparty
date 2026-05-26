@@ -567,3 +567,224 @@ it('renders the group statistics page with participation application and loadout
         Carbon::setTestNow();
     }
 });
+
+it('renders the group leaderboard with participation and host success rankings', function () {
+    $owner = User::factory()->create();
+    $group = Group::factory()->open()->create([
+        'owner_id' => $owner->id,
+    ]);
+
+    $type = ActivityType::factory()->create([
+        'created_by_user_id' => $owner->id,
+    ]);
+    $version = ActivityTypeVersion::factory()->create([
+        'activity_type_id' => $type->id,
+        'published_by_user_id' => $owner->id,
+        'prog_points' => [
+            ['key' => 'phase-1', 'label' => ['en' => 'Phase 1'], 'order' => 1],
+            ['key' => 'phase-2', 'label' => ['en' => 'Phase 2'], 'order' => 2],
+            ['key' => 'clear', 'label' => ['en' => 'Clear'], 'order' => 3],
+        ],
+    ]);
+    $type->update([
+        'current_published_version_id' => $version->id,
+    ]);
+
+    $kevin = Character::factory()->primary()->create([
+        'name' => 'Kevin Clear',
+    ]);
+    $alice = Character::factory()->primary()->create([
+        'name' => 'Alice Anchor',
+    ]);
+    $mira = Character::factory()->primary()->create([
+        'name' => 'Mira Marker',
+    ]);
+
+    $createRun = function (
+        Character $character,
+        ?string $targetProgPoint,
+        ?string $furthestProgress,
+        string $status = Activity::STATUS_COMPLETE,
+        bool $isHost = false,
+        bool $isRaidLeader = false,
+    ) use ($group, $type, $version, $owner): Activity {
+        $activity = Activity::factory()->create([
+            'group_id' => $group->id,
+            'activity_type_id' => $type->id,
+            'activity_type_version_id' => $version->id,
+            'organized_by_user_id' => $owner->id,
+            'status' => $status,
+            'target_prog_point_key' => $targetProgPoint,
+            'furthest_progress_key' => $furthestProgress,
+            'starts_at' => now()->subDays(fake()->numberBetween(1, 20)),
+        ]);
+        $activity->forceFill([
+            'target_prog_point_key' => $targetProgPoint,
+            'furthest_progress_key' => $furthestProgress,
+        ])->save();
+
+        $activity->slots()->orderBy('sort_order')->firstOrFail()->update([
+            'assigned_character_id' => $character->id,
+            'assigned_by_user_id' => $owner->id,
+            'is_host' => $isHost,
+            'is_raid_leader' => $isRaidLeader,
+        ]);
+
+        return $activity;
+    };
+
+    $createRun($kevin, 'phase-2', 'clear', isHost: true, isRaidLeader: true);
+    $createRun($kevin, 'clear', 'phase-2', isHost: true);
+    $createRun($kevin, null, null, isHost: true);
+    $createRun($kevin, 'phase-1', 'phase-2', Activity::STATUS_ASSIGNED, isHost: true);
+    $createRun($alice, null, null, isHost: true, isRaidLeader: true);
+    $createRun($alice, 'phase-1', 'phase-2', isRaidLeader: true);
+    $createRun($mira, 'phase-1', 'phase-1');
+
+    $this->actingAs($owner)
+        ->get(route('groups.dashboard.leaderboard', $group))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->component('Dashboard/Groups/Leaderboard')
+            ->where('leaderboard.summary.total_participations', 7)
+            ->where('leaderboard.summary.ranked_participants', 3)
+            ->where('leaderboard.summary.raid_leader_participations', 3)
+            ->where('leaderboard.summary.host_participations', 5)
+            ->where('leaderboard.summary.completed_hosted_runs', 4)
+            ->where('leaderboard.rankings.overall.0.character.name', 'Kevin Clear')
+            ->where('leaderboard.rankings.overall.0.count', 4)
+            ->where('leaderboard.rankings.raid_leaders.0.character.name', 'Alice Anchor')
+            ->where('leaderboard.rankings.raid_leaders.0.count', 2)
+            ->where('leaderboard.rankings.hosts.0.character.name', 'Kevin Clear')
+            ->where('leaderboard.rankings.hosts.0.count', 4)
+            ->has('leaderboard.rankings.host_success', 1)
+            ->where('leaderboard.rankings.host_success.0.character.name', 'Kevin Clear')
+            ->where('leaderboard.rankings.host_success.0.hosted_runs', 3)
+            ->where('leaderboard.rankings.host_success.0.successful_runs', 2)
+            ->where('leaderboard.rankings.host_success.0.documented_successes', 1)
+            ->where('leaderboard.rankings.host_success.0.auto_successes', 1)
+            ->where('leaderboard.rankings.host_success.0.failed_runs', 1)
+            ->where('leaderboard.rankings.host_success.0.success_rate', 66.7)
+            ->where('leaderboard.rankings.host_success.0.weighted_success_rate', 50)
+            ->where('leaderboard.rankings.host_success.0.performance_score', 50)
+        );
+});
+
+it('caches the group leaderboard and refreshes it with a cooldown', function () {
+    Carbon::setTestNow(Carbon::parse('2026-05-26 12:00:00'));
+    CarbonImmutable::setTestNow(CarbonImmutable::parse('2026-05-26 12:00:00'));
+
+    try {
+        $owner = User::factory()->create();
+        $group = Group::factory()->open()->create([
+            'owner_id' => $owner->id,
+        ]);
+
+        $type = ActivityType::factory()->create([
+            'created_by_user_id' => $owner->id,
+        ]);
+        $version = ActivityTypeVersion::factory()->create([
+            'activity_type_id' => $type->id,
+            'published_by_user_id' => $owner->id,
+            'prog_points' => [],
+        ]);
+        $type->update([
+            'current_published_version_id' => $version->id,
+        ]);
+
+        $host = Character::factory()->primary()->create([
+            'name' => 'Cache Host',
+        ]);
+
+        $createHostedRun = function () use ($group, $type, $version, $owner, $host): Activity {
+            $activity = Activity::factory()->complete()->create([
+                'group_id' => $group->id,
+                'activity_type_id' => $type->id,
+                'activity_type_version_id' => $version->id,
+                'organized_by_user_id' => $owner->id,
+                'target_prog_point_key' => null,
+                'furthest_progress_key' => null,
+                'starts_at' => now()->subDay(),
+            ]);
+
+            $activity->slots()->orderBy('sort_order')->firstOrFail()->update([
+                'assigned_character_id' => $host->id,
+                'assigned_by_user_id' => $owner->id,
+                'is_host' => true,
+            ]);
+
+            return $activity;
+        };
+
+        $createHostedRun();
+        $createHostedRun();
+
+        $this->actingAs($owner)
+            ->get(route('groups.dashboard.leaderboard', $group))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('leaderboard.summary.completed_hosted_runs', 2)
+                ->where('leaderboard.rankings.host_success.0.hosted_runs', 2)
+                ->where('leaderboard_cache.can_refresh', true)
+                ->where('leaderboard_cache.refresh_cooldown_seconds', 0)
+            );
+
+        $createHostedRun();
+
+        $this->actingAs($owner)
+            ->get(route('groups.dashboard.leaderboard', $group))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('leaderboard.summary.completed_hosted_runs', 2)
+            );
+
+        $this->actingAs($owner)
+            ->post(route('groups.dashboard.leaderboard.refresh', $group))
+            ->assertRedirect(route('groups.dashboard.leaderboard', $group))
+            ->assertSessionHas('success', 'group_leaderboard_refreshed');
+
+        $this->actingAs($owner)
+            ->get(route('groups.dashboard.leaderboard', $group))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('leaderboard.summary.completed_hosted_runs', 3)
+                ->where('leaderboard_cache.can_refresh', false)
+                ->where('leaderboard_cache.refresh_cooldown_seconds', 300)
+            );
+
+        $createHostedRun();
+
+        $this->actingAs($owner)
+            ->post(route('groups.dashboard.leaderboard.refresh', $group))
+            ->assertRedirect(route('groups.dashboard.leaderboard', $group))
+            ->assertSessionHas('error', 'group_leaderboard_refresh_cooldown');
+
+        $this->actingAs($owner)
+            ->get(route('groups.dashboard.leaderboard', $group))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('leaderboard.summary.completed_hosted_runs', 3)
+            );
+
+        Carbon::setTestNow(Carbon::parse('2026-05-26 12:05:01'));
+        CarbonImmutable::setTestNow(CarbonImmutable::parse('2026-05-26 12:05:01'));
+
+        $this->actingAs($owner)
+            ->post(route('groups.dashboard.leaderboard.refresh', $group))
+            ->assertRedirect(route('groups.dashboard.leaderboard', $group))
+            ->assertSessionHas('success', 'group_leaderboard_refreshed');
+
+        $this->actingAs($owner)
+            ->get(route('groups.dashboard.leaderboard', $group))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('leaderboard.summary.completed_hosted_runs', 4)
+                ->where('leaderboard_cache.can_refresh', false)
+                ->where('leaderboard_cache.refresh_cooldown_seconds', 300)
+            );
+    } finally {
+        Cache::flush();
+        CarbonImmutable::setTestNow();
+        Carbon::setTestNow();
+    }
+});

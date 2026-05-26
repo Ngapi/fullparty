@@ -1,0 +1,63 @@
+{
+  "title": "Leaderboard",
+  "subtitle": "{group} participation rankings across rostered runs.",
+  "summary": {
+    "total_participations": "Total Participations",
+    "ranked_participants": "Ranked Participants",
+    "raid_leaders": "Raid Leader Runs",
+    "hosts": "Hosted Runs"
+  },
+  "common": {
+    "participations": "participations",
+    "runs": "runs",
+    "complete_runs_only": "Complete runs only",
+    "no_date": "No recent run"
+  },
+  "cache": {
+    "refresh": "Refresh Leaderboard",
+    "refreshing": "Refreshing...",
+    "cooldown": "Refresh in {time}",
+    "tooltip": "Cached {cached}. Expires {expires}.",
+    "unknown": "Unknown"
+  },
+  "featured": {
+    "mvp_title": "Most Present Player",
+    "mvp_subtitle": "The character with the most rostered run appearances.",
+    "host_success_title": "Best Host Performance",
+    "host_success_subtitle": "Highest weighted performance score among completed hosted runs.",
+    "last_seen": "Last participated on {date}"
+  },
+  "boards": {
+    "overall": {
+      "title": "Overall Participation",
+      "subtitle": "Most rostered run appearances."
+    },
+    "raid_leaders": {
+      "title": "Raid Leaders",
+      "subtitle": "Most runs marked as raid leader."
+    },
+    "hosts": {
+      "title": "Hosts",
+      "subtitle": "Most runs marked as host."
+    }
+  },
+  "host_success": {
+    "title": "Host Performance",
+    "subtitle": "Completed hosted runs ranked by weighted success and Bayesian smoothing. Hosts need at least two completed hosted runs to appear.",
+    "record": "{successes}/{total} successful",
+    "failed": "{count} missed target",
+    "minimum": "2+ completed hosted runs",
+    "formula_label": "Host performance formula",
+    "formula_hint": "Score = (documented successes + auto-successes x 0.5 + prior) / (completed hosted runs + 10). One-run hosts are hidden.",
+    "raw_success": "Raw success {rate}",
+    "documented": "{count} documented",
+    "auto": "{count} auto",
+    "breakdown": "{documented} documented / {auto} auto / {failed} missed"
+  },
+  "empty": {
+    "overall": "Rostered participants will appear here once runs have assigned slots.",
+    "raid_leaders": "Raid leader rankings appear once roster slots are marked as raid leader.",
+    "hosts": "Host rankings appear once roster slots are marked as host.",
+    "host_success": "Host success appears after completed hosted runs exist."
+  }
+}
