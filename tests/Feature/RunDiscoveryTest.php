@@ -254,13 +254,13 @@ it('only exposes private moderator-visible runs to moderators of that group', fu
             'datacenter' => 'Light',
         ]);
 
-    $privatePlannedActivity = Activity::factory()
+    $privateDraftActivity = Activity::factory()
         ->private()
         ->create([
             'group_id' => $group->id,
             'activity_type_id' => $activityType->id,
             'activity_type_version_id' => $activityType->current_published_version_id,
-            'status' => Activity::STATUS_PLANNED,
+            'status' => Activity::STATUS_DRAFT,
             'starts_at' => now()->addWeek()->startOfWeek()->addDays(1)->setTime(19, 0),
             'datacenter' => 'Light',
         ]);
@@ -280,8 +280,8 @@ it('only exposes private moderator-visible runs to moderators of that group', fu
     $this->actingAs($moderator)
         ->getJson(route('dashboard.runs.discover', $params))
         ->assertOk()
-        ->assertJsonPath('ids', [$privatePlannedActivity->id])
-        ->assertJsonPath('items.0.id', $privatePlannedActivity->id)
+        ->assertJsonPath('ids', [$privateDraftActivity->id])
+        ->assertJsonPath('items.0.id', $privateDraftActivity->id)
         ->assertJsonPath('items.0.can_apply', true);
 });
 

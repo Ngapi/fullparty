@@ -304,7 +304,7 @@ export type GroupDashboardGroup = {
 		member_count: number
 		moderator_count: number
 		activity_count: number
-		planned_count: number
+		draft_count: number
 		scheduled_count: number
 		assigned_count: number
 		upcoming_count: number
@@ -368,7 +368,7 @@ export type GroupDiscoveryRecentRun = {
 }
 
 export type GroupDiscoveryContentStatusCount = {
-	status: "planned" | "scheduled" | "active" | "complete" | "cancelled"
+	status: "draft" | "scheduled" | "active" | "complete" | "cancelled"
 	count: number
 }
 

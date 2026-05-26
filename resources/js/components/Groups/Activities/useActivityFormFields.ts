@@ -60,7 +60,7 @@ export const useActivityFormFields = (
 
 	const statusItems = computed(() => options.mode === 'create'
 		? [
-			{ label: t('groups.activities.statuses.planned'), value: 'planned' },
+			{ label: t('groups.activities.statuses.draft'), value: 'draft' },
 			{ label: t('groups.activities.statuses.scheduled'), value: 'scheduled' },
 		]
 		: []);

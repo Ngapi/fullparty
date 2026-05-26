@@ -33,6 +33,8 @@
   "navigation": {
     "general": "Général",
     "activities": "Runs",
+    "statistics": "Statistiques",
+    "leaderboard": "Classement",
     "members": "Membres",
     "membership_applications": "Membership Applications",
     "application_form": "Application Form",
@@ -140,7 +142,7 @@
         "run_plural": "runs",
         "empty": "No public run history yet.",
         "statuses": {
-          "planned": "Brouillon",
+          "draft": "Brouillon",
           "scheduled": "Scheduled",
           "active": "Active",
           "complete": "Completed",

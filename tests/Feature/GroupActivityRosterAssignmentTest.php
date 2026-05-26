@@ -117,7 +117,7 @@ function createRosterAssignmentSetup(): array
         'activity_type_id' => $activityType->id,
         'activity_type_version_id' => $version->id,
         'organized_by_user_id' => $owner->id,
-        'status' => Activity::STATUS_PLANNED,
+        'status' => Activity::STATUS_DRAFT,
     ]);
 
     $benchSlot = $activity->slots()->create([
@@ -296,7 +296,7 @@ it('lets moderators swap a party composition preset without changing assignments
         'activity_type_id' => $activityType->id,
         'activity_type_version_id' => $version->id,
         'organized_by_user_id' => $owner->id,
-        'status' => Activity::STATUS_PLANNED,
+        'status' => Activity::STATUS_DRAFT,
     ]);
     $assignedCharacter = Character::factory()->primary()->create([
         'user_id' => $owner->id,
@@ -429,7 +429,7 @@ it('lets moderators apply a party composition to other compatible parties withou
         'activity_type_id' => $activityType->id,
         'activity_type_version_id' => $version->id,
         'organized_by_user_id' => $owner->id,
-        'status' => Activity::STATUS_PLANNED,
+        'status' => Activity::STATUS_DRAFT,
     ]);
     $assignedCharacter = Character::factory()->primary()->create([
         'user_id' => $owner->id,
@@ -547,7 +547,7 @@ it('lets moderators customize empty slot composition hints without changing assi
         'activity_type_id' => $activityType->id,
         'activity_type_version_id' => $version->id,
         'organized_by_user_id' => $owner->id,
-        'status' => Activity::STATUS_PLANNED,
+        'status' => Activity::STATUS_DRAFT,
     ]);
     $slot = $activity->slots()
         ->where('group_key', 'party-a')
@@ -643,7 +643,7 @@ it('rejects composition hint changes on assigned slots', function () {
         'activity_type_id' => $activityType->id,
         'activity_type_version_id' => $version->id,
         'organized_by_user_id' => $owner->id,
-        'status' => Activity::STATUS_PLANNED,
+        'status' => Activity::STATUS_DRAFT,
     ]);
     $assignedCharacter = Character::factory()->primary()->create([
         'user_id' => $owner->id,

@@ -32,7 +32,9 @@
   },
   "navigation": {
     "general": "概要",
-        "activities": "Runs",
+    "activities": "Runs",
+    "statistics": "統計",
+    "leaderboard": "リーダーボード",
     "members": "メンバー",
     "membership_applications": "Membership Applications",
     "application_form": "Application Form",
@@ -140,7 +142,7 @@
         "run_plural": "runs",
         "empty": "No public run history yet.",
         "statuses": {
-          "planned": "下書き",
+          "draft": "下書き",
           "scheduled": "Scheduled",
           "active": "Active",
           "complete": "Completed",

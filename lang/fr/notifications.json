@@ -139,8 +139,8 @@
     }
   },
   "groups": {
-    "run_planned": {
-      "title": "Brouillon de run mis à jour",
+    "run_draft": {
+      "title": "Brouillon de run créé",
       "body": "{activity} est actuellement à l'état de brouillon pour {group}."
     },
     "run_scheduled": {

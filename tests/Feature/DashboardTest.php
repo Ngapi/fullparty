@@ -93,7 +93,7 @@ it('renders the personal dashboard summary with participation and group data', f
         'group_id' => $moderatedGroup->id,
         'activity_type_id' => $type->id,
         'activity_type_version_id' => $version->id,
-        'status' => Activity::STATUS_PLANNED,
+        'status' => Activity::STATUS_DRAFT,
         'title' => 'Saturday Fill',
         'starts_at' => now()->addDays(2),
     ]);

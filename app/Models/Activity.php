@@ -13,7 +13,7 @@ class Activity extends Model
 {
     use HasFactory;
 
-    public const STATUS_PLANNED = 'planned';
+    public const STATUS_DRAFT = 'draft';
 
     public const STATUS_SCHEDULED = 'scheduled';
 
@@ -28,7 +28,7 @@ class Activity extends Model
     public const STATUS_CANCELLED = 'cancelled';
 
     public const STATUSES = [
-        self::STATUS_PLANNED,
+        self::STATUS_DRAFT,
         self::STATUS_SCHEDULED,
         self::STATUS_ASSIGNED,
         self::STATUS_UPCOMING,
@@ -43,11 +43,11 @@ class Activity extends Model
     ];
 
     public const MODERATOR_ONLY_STATUSES = [
-        self::STATUS_PLANNED,
+        self::STATUS_DRAFT,
     ];
 
     public const APPLICATION_OPEN_STATUSES = [
-        self::STATUS_PLANNED,
+        self::STATUS_DRAFT,
         self::STATUS_SCHEDULED,
     ];
 
@@ -56,7 +56,7 @@ class Activity extends Model
     ];
 
     public const SCHEDULABLE_STATUSES = [
-        self::STATUS_PLANNED,
+        self::STATUS_DRAFT,
     ];
 
     public const COMPLETABLE_STATUSES = [
@@ -72,7 +72,7 @@ class Activity extends Model
     ];
 
     public const DELETABLE_STATUSES = [
-        self::STATUS_PLANNED,
+        self::STATUS_DRAFT,
         self::STATUS_SCHEDULED,
     ];
 

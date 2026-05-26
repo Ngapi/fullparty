@@ -93,7 +93,7 @@ it('returns discovery details for visible groups', function () {
         ->assertJsonPath('data.recent_runs.0.activity_image_url', $completedActivity->activityTypeVersion?->small_image_url)
         ->assertJsonPath('data.recent_runs.0.turnout_count', 1)
         ->assertJsonPath('data.content_summary.total_runs', 3)
-        ->assertJsonPath('data.content_summary.status_breakdown.0.status', 'planned')
+        ->assertJsonPath('data.content_summary.status_breakdown.0.status', 'draft')
         ->assertJsonPath('data.content_summary.status_breakdown.0.count', 0)
         ->assertJsonPath('data.content_summary.status_breakdown.1.status', 'scheduled')
         ->assertJsonPath('data.content_summary.status_breakdown.1.count', 1)

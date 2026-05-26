@@ -139,8 +139,8 @@
     }
   },
   "groups": {
-    "run_planned": {
-      "title": "ランの下書きが更新されました",
+    "run_draft": {
+      "title": "ランの下書きが作成されました",
       "body": "{activity} は {group} 用の下書き状態です。"
     },
     "run_scheduled": {

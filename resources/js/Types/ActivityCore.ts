@@ -1,6 +1,6 @@
 import type { LocalizedText } from "@/Types/Common"
 
-export type ActivityStatus = "planned" | "scheduled" | "assigned" | "upcoming" | "ongoing" | "complete" | "cancelled"
+export type ActivityStatus = "draft" | "scheduled" | "assigned" | "upcoming" | "ongoing" | "complete" | "cancelled"
 
 export type ActivityIntensity = "casual" | "midcore" | "hardcore"
 

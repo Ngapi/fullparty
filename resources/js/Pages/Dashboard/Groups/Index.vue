@@ -46,7 +46,7 @@ const toPlaceholderDetailRecord = (group: GroupIndexRecord): GroupDiscoveryDetai
 	content_summary: {
 		total_runs: 0,
 		status_breakdown: [
-			{ status: "planned", count: 0 },
+			{ status: "draft", count: 0 },
 			{ status: "scheduled", count: 0 },
 			{ status: "active", count: 0 },
 			{ status: "complete", count: 0 },

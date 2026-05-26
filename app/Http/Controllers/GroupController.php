@@ -393,7 +393,7 @@ class GroupController extends Controller
         $recentWindowRuns = (clone $publicRunsQuery)
             ->where('starts_at', '>=', now()->subDays(28))
             ->whereNotIn('status', [
-                Activity::STATUS_PLANNED,
+                Activity::STATUS_DRAFT,
                 Activity::STATUS_CANCELLED,
             ])
             ->count();
@@ -432,8 +432,8 @@ class GroupController extends Controller
     {
         $statusBreakdown = [
             [
-                'status' => 'planned',
-                'count' => (int) $publicRuns->where('status', Activity::STATUS_PLANNED)->count(),
+                'status' => 'draft',
+                'count' => (int) $publicRuns->where('status', Activity::STATUS_DRAFT)->count(),
             ],
             [
                 'status' => 'scheduled',
@@ -486,7 +486,7 @@ class GroupController extends Controller
                     'total_runs' => (int) $runs->count(),
                     'completed_runs' => (int) $runs->where('status', Activity::STATUS_COMPLETE)->count(),
                     'active_runs' => (int) $runs->whereIn('status', [
-                        Activity::STATUS_PLANNED,
+                        Activity::STATUS_DRAFT,
                         Activity::STATUS_SCHEDULED,
                         Activity::STATUS_ASSIGNED,
                         Activity::STATUS_UPCOMING,
@@ -502,7 +502,7 @@ class GroupController extends Controller
                         ->filter(fn (Activity $run) => $run->starts_at !== null
                             && $run->starts_at->gt($now)
                             && in_array($run->status, [
-                                Activity::STATUS_PLANNED,
+                                Activity::STATUS_DRAFT,
                                 Activity::STATUS_SCHEDULED,
                                 Activity::STATUS_ASSIGNED,
                                 Activity::STATUS_UPCOMING,

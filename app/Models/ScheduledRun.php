@@ -11,16 +11,19 @@ class ScheduledRun extends Model
     use HasFactory;
 
     public const STATUS_DRAFT = 'draft';
-    public const STATUS_PLANNED = 'planned';
+
     public const STATUS_SCHEDULED = 'scheduled';
+
     public const STATUS_UPCOMING = 'upcoming';
+
     public const STATUS_ONGOING = 'ongoing';
+
     public const STATUS_COMPLETE = 'complete';
+
     public const STATUS_CANCELLED = 'cancelled';
 
     public const STATUSES = [
         self::STATUS_DRAFT,
-        self::STATUS_PLANNED,
         self::STATUS_SCHEDULED,
         self::STATUS_UPCOMING,
         self::STATUS_ONGOING,

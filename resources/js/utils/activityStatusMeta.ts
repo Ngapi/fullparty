@@ -1,7 +1,7 @@
 import type { ActivityStatus, ActivityStatusMeta } from "@/Types/ActivityCore"
 
 const STATUS_META: Record<ActivityStatus, ActivityStatusMeta> = {
-	planned: {
+	draft: {
 		color: 'neutral',
 		icon: 'i-lucide-clipboard-list',
 		borderClass: 'border-t-zinc-950 dark:border-t-white',

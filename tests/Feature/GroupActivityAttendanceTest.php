@@ -64,7 +64,7 @@ function createAttendanceTestSetup(int $partySize = 2, bool $withBench = true): 
         'activity_type_id' => $activityType->id,
         'activity_type_version_id' => $version->id,
         'organized_by_user_id' => $owner->id,
-        'status' => Activity::STATUS_PLANNED,
+        'status' => Activity::STATUS_DRAFT,
     ]);
 
     $benchSlot = null;

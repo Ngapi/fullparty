@@ -147,8 +147,8 @@
     }
   },
   "groups": {
-    "run_planned": {
-      "title": "Run draft updated",
+    "run_draft": {
+      "title": "Run draft created",
       "body": "{activity} is currently in draft for {group}."
     },
     "run_scheduled": {

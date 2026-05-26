@@ -28,7 +28,7 @@ function resolveStatusWidth(item: GroupDiscoveryContentStatusCount) {
 
 function resolveStatusClasses(status: GroupDiscoveryContentStatusCount["status"]) {
 	switch (status) {
-		case "planned":
+		case "draft":
 			return "bg-sky-300/80";
 		case "scheduled":
 			return "bg-violet-300/80";

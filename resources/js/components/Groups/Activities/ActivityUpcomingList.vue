@@ -76,7 +76,7 @@ const selectedDateLabel = computed(() => {
 });
 
 const statusLegendItems = computed(() => [
-	{ key: 'planned', colorClass: getActivityStatusDotClass('planned') },
+	{ key: 'draft', colorClass: getActivityStatusDotClass('draft') },
 	{ key: 'scheduled', colorClass: getActivityStatusDotClass('scheduled') },
 	{ key: 'assigned', colorClass: getActivityStatusDotClass('assigned') },
 	{ key: 'ongoing', colorClass: getActivityStatusDotClass('ongoing') },

@@ -165,7 +165,7 @@ class GroupDashboardController extends Controller
                             ->count()
                         : 0,
                     'activity_count' => $activities->count(),
-                    'planned_count' => (int) $statusCounts->get(Activity::STATUS_PLANNED, 0),
+                    'draft_count' => (int) $statusCounts->get(Activity::STATUS_DRAFT, 0),
                     'scheduled_count' => (int) $statusCounts->get(Activity::STATUS_SCHEDULED, 0),
                     'assigned_count' => (int) $statusCounts->get(Activity::STATUS_ASSIGNED, 0),
                     'upcoming_count' => (int) $statusCounts->get(Activity::STATUS_UPCOMING, 0),
@@ -227,6 +227,50 @@ class GroupDashboardController extends Controller
         ]);
     }
 
+    public function leaderboard(Group $group): Response
+    {
+        return $this->renderEmptyDashboardPage($group, 'Dashboard/Groups/Leaderboard');
+    }
+
+    private function renderEmptyDashboardPage(Group $group, string $component): Response
+    {
+        $group->loadMissing('memberships');
+
+        $currentUserId = auth()->id();
+
+        if (! $group->hasMember($currentUserId)) {
+            abort(403);
+        }
+
+        return Inertia::render($component, [
+            'group' => $this->serializeNavigationGroup($group, $currentUserId),
+        ]);
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function serializeNavigationGroup(Group $group, ?int $currentUserId): array
+    {
+        return [
+            'id' => $group->id,
+            'name' => $group->name,
+            'slug' => $group->slug,
+            'current_user_role' => $group->memberships
+                ->firstWhere('user_id', $currentUserId)
+                ?->role,
+            'permissions' => [
+                'can_manage_group' => $group->isOwnedBy($currentUserId),
+                'can_manage_members' => $group->hasModeratorAccess($currentUserId),
+                'can_manage_discovery' => $group->hasAdminAccess($currentUserId),
+                'can_manage_activities' => $group->hasModeratorAccess($currentUserId),
+                'can_view_members' => true,
+                'can_review_membership_applications' => $group->usesMembershipApplications() && $group->hasModeratorAccess($currentUserId),
+                'can_manage_membership_application_form' => $group->usesMembershipApplications() && $group->hasAdminAccess($currentUserId),
+            ],
+        ];
+    }
+
     private function activityHistoryTimestamp(Activity $activity): int
     {
         return $activity->completed_at?->getTimestamp()
@@ -245,8 +289,8 @@ class GroupDashboardController extends Controller
             'total_runs' => (int) $visibleActivities->count(),
             'status_breakdown' => [
                 [
-                    'status' => 'planned',
-                    'count' => (int) $visibleActivities->where('status', Activity::STATUS_PLANNED)->count(),
+                    'status' => 'draft',
+                    'count' => (int) $visibleActivities->where('status', Activity::STATUS_DRAFT)->count(),
                 ],
                 [
                     'status' => 'scheduled',
@@ -307,7 +351,7 @@ class GroupDashboardController extends Controller
                     'total_runs' => (int) $runs->count(),
                     'completed_runs' => (int) $runs->where('status', Activity::STATUS_COMPLETE)->count(),
                     'active_runs' => (int) $runs->whereIn('status', [
-                        Activity::STATUS_PLANNED,
+                        Activity::STATUS_DRAFT,
                         Activity::STATUS_SCHEDULED,
                         Activity::STATUS_ASSIGNED,
                         Activity::STATUS_UPCOMING,
@@ -323,7 +367,7 @@ class GroupDashboardController extends Controller
                         ->filter(fn (Activity $run) => $run->starts_at !== null
                             && $run->starts_at->gt($now)
                             && in_array($run->status, [
-                                Activity::STATUS_PLANNED,
+                                Activity::STATUS_DRAFT,
                                 Activity::STATUS_SCHEDULED,
                                 Activity::STATUS_ASSIGNED,
                                 Activity::STATUS_UPCOMING,

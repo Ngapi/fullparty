@@ -2,14 +2,19 @@
 
 use App\Models\Activity;
 use App\Models\ActivityApplication;
+use App\Models\ActivitySlotAssignment;
 use App\Models\ActivityType;
 use App\Models\ActivityTypeVersion;
 use App\Models\Character;
+use App\Models\CharacterClass;
 use App\Models\Group;
 use App\Models\GroupMembership;
+use App\Models\PhantomJob;
 use App\Models\User;
+use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Cache;
 use Inertia\Testing\AssertableInertia as Assert;
 
 uses(RefreshDatabase::class);
@@ -73,12 +78,12 @@ it('renders the group dashboard with activity-driven overview data', function ()
         'current_published_version_id' => $version->id,
     ]);
 
-    $plannedActivity = Activity::factory()->create([
+    $draftActivity = Activity::factory()->create([
         'group_id' => $group->id,
         'activity_type_id' => $type->id,
         'activity_type_version_id' => $version->id,
         'organized_by_user_id' => $owner->id,
-        'status' => Activity::STATUS_PLANNED,
+        'status' => Activity::STATUS_DRAFT,
         'title' => 'Planning Night',
         'allow_guest_applications' => true,
         'is_public' => true,
@@ -87,7 +92,7 @@ it('renders the group dashboard with activity-driven overview data', function ()
     ]);
 
     ActivityApplication::factory()->create([
-        'activity_id' => $plannedActivity->id,
+        'activity_id' => $draftActivity->id,
         'user_id' => $owner->id,
         'selected_character_id' => $ownerCharacter->id,
     ]);
@@ -146,7 +151,7 @@ it('renders the group dashboard with activity-driven overview data', function ()
     ]);
 
     ActivityApplication::factory()->create([
-        'activity_id' => $plannedActivity->id,
+        'activity_id' => $draftActivity->id,
         'user_id' => $member->id,
         'selected_character_id' => $memberCharacter->id,
     ]);
@@ -162,7 +167,7 @@ it('renders the group dashboard with activity-driven overview data', function ()
                 ->component('Dashboard/Groups/CommunityDashboard')
                 ->where('group.name', $group->name)
                 ->where('group.stats.activity_count', 5)
-                ->where('group.stats.planned_count', 1)
+                ->where('group.stats.draft_count', 1)
                 ->where('group.stats.scheduled_count', 1)
                 ->where('group.stats.assigned_count', 1)
                 ->where('group.stats.completed_count', 1)
@@ -176,7 +181,7 @@ it('renders the group dashboard with activity-driven overview data', function ()
                 ->where('group.member_role_breakdown.moderator', 1)
                 ->where('group.member_role_breakdown.member', 1)
                 ->where('group.content_summary.total_runs', 5)
-                ->where('group.content_summary.status_breakdown.0.status', 'planned')
+                ->where('group.content_summary.status_breakdown.0.status', 'draft')
                 ->where('group.content_summary.status_breakdown.0.count', 1)
                 ->where('group.content_summary.status_breakdown.1.status', 'scheduled')
                 ->where('group.content_summary.status_breakdown.1.count', 1)
@@ -192,7 +197,7 @@ it('renders the group dashboard with activity-driven overview data', function ()
                 ->where('group.current_week_activities.1.id', $completeActivity->id)
                 ->where('group.current_week_activities.2.id', $scheduledActivity->id)
                 ->where('group.current_week_activities.3.id', $assignedActivity->id)
-                ->where('group.current_week_activities.4.id', $plannedActivity->id)
+                ->where('group.current_week_activities.4.id', $draftActivity->id)
                 ->has('group.upcoming_activities', 3)
                 ->where('group.upcoming_activities.0.id', $scheduledActivity->id)
                 ->where('group.upcoming_activities.0.title', 'Soon Pull')
@@ -207,7 +212,7 @@ it('renders the group dashboard with activity-driven overview data', function ()
                 ->where('group.upcoming_activities.1.id', $assignedActivity->id)
                 ->where('group.upcoming_activities.1.can_view_overview', true)
                 ->where('group.upcoming_activities.1.secret_key', $assignedActivity->secret_key)
-                ->where('group.upcoming_activities.2.id', $plannedActivity->id)
+                ->where('group.upcoming_activities.2.id', $draftActivity->id)
                 ->where('group.upcoming_activities.2.has_existing_application', true)
                 ->where('group.upcoming_activities.2.can_apply', false)
                 ->where('group.upcoming_activities.2.can_view_overview', true)
@@ -216,7 +221,7 @@ it('renders the group dashboard with activity-driven overview data', function ()
                 ->where('group.upcoming_activities.2.slot_count', 4)
                 ->where('group.upcoming_activities.2.links.apply', route('groups.activities.application', [
                     'group' => $group->slug,
-                    'activity' => $plannedActivity->id,
+                    'activity' => $draftActivity->id,
                 ], false))
                 ->has('group.history_activities', 2)
                 ->where('group.history_activities.0.id', $completeActivity->id)
@@ -230,7 +235,7 @@ it('renders the group dashboard with activity-driven overview data', function ()
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page
                 ->where('group.stats.activity_count', 4)
-                ->where('group.stats.planned_count', 0)
+                ->where('group.stats.draft_count', 0)
                 ->where('group.stats.scheduled_count', 1)
                 ->where('group.stats.assigned_count', 1)
                 ->where('group.stats.completed_count', 1)
@@ -281,4 +286,284 @@ it('renders the community dashboard page for static groups', function () {
             ->where('group.id', $group->id)
             ->where('group.group_type', Group::TYPE_STATIC)
         );
+});
+
+it('renders the group statistics page when no participants have been rostered', function () {
+    Cache::flush();
+
+    try {
+        $owner = User::factory()->create();
+        $group = Group::factory()->open()->create([
+            'owner_id' => $owner->id,
+        ]);
+
+        Activity::factory()->create([
+            'group_id' => $group->id,
+            'starts_at' => now()->addDay(),
+        ]);
+
+        $this->actingAs($owner)
+            ->get(route('groups.dashboard.statistics', $group))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('Dashboard/Groups/Statistics')
+                ->where('group.slug', $group->slug)
+                ->where('statistics.summary.total_runs', 1)
+                ->where('statistics.summary.total_participants', 0)
+                ->where('statistics.summary.unique_participants', 0)
+                ->where('statistics.classes.total', 0)
+                ->where('statistics.phantom_jobs.total', 0)
+            );
+    } finally {
+        Cache::flush();
+    }
+});
+
+it('renders the group statistics page with participation application and loadout data', function () {
+    Carbon::setTestNow(Carbon::parse('2026-05-26 12:00:00'));
+    CarbonImmutable::setTestNow(CarbonImmutable::parse('2026-05-26 12:00:00'));
+    Cache::flush();
+
+    try {
+        $owner = User::factory()->create();
+        $group = Group::factory()->open()->create([
+            'owner_id' => $owner->id,
+        ]);
+        $member = User::factory()->create();
+        $group->memberships()->create([
+            'user_id' => $member->id,
+            'role' => GroupMembership::ROLE_MEMBER,
+            'joined_at' => now()->subMonths(2),
+        ]);
+        $whiteMage = CharacterClass::query()->create([
+            'name' => 'White Mage',
+            'shorthand' => 'WHM',
+            'role' => 'healer',
+            'icon_url' => null,
+            'flaticon_url' => null,
+        ]);
+        $warrior = CharacterClass::query()->create([
+            'name' => 'Warrior',
+            'shorthand' => 'WAR',
+            'role' => 'tank',
+            'icon_url' => null,
+            'flaticon_url' => null,
+        ]);
+        $phantomBard = PhantomJob::query()->create([
+            'name' => 'Phantom Bard',
+            'max_level' => 10,
+            'icon_url' => null,
+            'black_icon_url' => null,
+            'transparent_icon_url' => null,
+            'sprite_url' => null,
+        ]);
+        $phantomKnight = PhantomJob::query()->create([
+            'name' => 'Phantom Mystic Knight',
+            'max_level' => 10,
+            'icon_url' => null,
+            'black_icon_url' => null,
+            'transparent_icon_url' => null,
+            'sprite_url' => null,
+        ]);
+        $ownerCharacter = Character::factory()->primary()->create([
+            'user_id' => $owner->id,
+        ]);
+        $memberCharacter = Character::factory()->primary()->create([
+            'user_id' => $member->id,
+        ]);
+        $recentRun = Activity::factory()->complete()->create([
+            'group_id' => $group->id,
+            'starts_at' => now()->subDays(10),
+        ]);
+        $newerRun = Activity::factory()->complete()->create([
+            'group_id' => $group->id,
+            'starts_at' => now()->subDays(3),
+        ]);
+        Activity::factory()->create([
+            'group_id' => $group->id,
+            'starts_at' => now()->subMonths(2),
+        ]);
+
+        $createAssignment = function (
+            Activity $activity,
+            Character $character,
+            CharacterClass $class,
+            PhantomJob $phantomJob,
+            int $slotIndex,
+        ) use ($group): void {
+            $slot = $activity->slots()->orderBy('sort_order')->skip($slotIndex)->firstOrFail();
+            $snapshot = [
+                'character_class' => [
+                    'id' => $class->id,
+                    'name' => $class->name,
+                    'role' => $class->role,
+                    'shorthand' => $class->shorthand,
+                ],
+                'phantom_job' => [
+                    'id' => $phantomJob->id,
+                    'name' => $phantomJob->name,
+                ],
+            ];
+
+            $slot->fieldValues()->where('field_key', 'character_class')->update(['value' => $snapshot['character_class']]);
+            $slot->fieldValues()->where('field_key', 'phantom_job')->update(['value' => $snapshot['phantom_job']]);
+
+            ActivitySlotAssignment::query()->create([
+                'activity_id' => $activity->id,
+                'group_id' => $group->id,
+                'activity_slot_id' => $slot->id,
+                'character_id' => $character->id,
+                'application_id' => null,
+                'assignment_source' => ActivitySlotAssignment::SOURCE_MANUAL,
+                'field_values_snapshot' => $snapshot,
+                'attendance_status' => ActivitySlotAssignment::STATUS_CHECKED_IN,
+                'assigned_at' => $activity->starts_at,
+                'assigned_by_user_id' => $group->owner_id,
+            ]);
+        };
+
+        $createAssignment($recentRun, $ownerCharacter, $whiteMage, $phantomBard, 0);
+        $createAssignment($recentRun, $memberCharacter, $warrior, $phantomKnight, 1);
+        $createAssignment($newerRun, $ownerCharacter, $whiteMage, $phantomBard, 0);
+
+        $unmaterializedSlot = $newerRun->slots()->orderBy('sort_order')->skip(1)->firstOrFail();
+        $unmaterializedSlot->update([
+            'assigned_character_id' => $memberCharacter->id,
+            'assigned_by_user_id' => $owner->id,
+        ]);
+        $unmaterializedSlot->fieldValues()->where('field_key', 'character_class')->update([
+            'value' => [
+                'id' => $whiteMage->id,
+                'name' => $whiteMage->name,
+                'role' => $whiteMage->role,
+                'shorthand' => $whiteMage->shorthand,
+            ],
+        ]);
+        $unmaterializedSlot->fieldValues()->where('field_key', 'phantom_job')->update([
+            'value' => [
+                'id' => $phantomBard->id,
+                'name' => $phantomBard->name,
+            ],
+        ]);
+
+        ActivityApplication::factory()->create([
+            'activity_id' => $recentRun->id,
+            'user_id' => $owner->id,
+            'selected_character_id' => $ownerCharacter->id,
+            'status' => ActivityApplication::STATUS_PENDING,
+            'submitted_at' => now()->subDays(8),
+        ]);
+        ActivityApplication::factory()->approved($owner)->create([
+            'activity_id' => $recentRun->id,
+            'user_id' => $member->id,
+            'selected_character_id' => $memberCharacter->id,
+            'submitted_at' => now()->subDays(7),
+        ]);
+        ActivityApplication::factory()->declined($owner)->create([
+            'activity_id' => $newerRun->id,
+            'user_id' => User::factory()->create()->id,
+            'submitted_at' => now()->subDays(2),
+        ]);
+
+        $this->actingAs($owner)
+            ->get(route('groups.dashboard.statistics', $group))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('Dashboard/Groups/Statistics')
+                ->where('group.slug', $group->slug)
+                ->where('statistics.summary.total_runs', 3)
+                ->where('statistics.summary.total_participants', 4)
+                ->where('statistics.summary.unique_participants', 2)
+                ->where('statistics.summary.active_players_past_month', 2)
+                ->where('statistics.summary.average_participants_per_raid', 1.3)
+                ->where('statistics.participation_trend.0.participant_count', 2)
+                ->where('statistics.participation_trend.1.participant_count', 2)
+                ->where('statistics.applications.distribution.0.key', 'pending')
+                ->where('statistics.applications.distribution.0.count', 1)
+                ->where('statistics.applications.distribution.1.key', 'approved')
+                ->where('statistics.applications.distribution.1.count', 1)
+                ->where('statistics.applications.distribution.2.key', 'declined')
+                ->where('statistics.applications.distribution.2.count', 1)
+                ->where('statistics.classes.distribution.0.label', 'White Mage')
+                ->where('statistics.classes.distribution.0.count', 3)
+                ->where('statistics.classes.distribution.1.label', 'Warrior')
+                ->where('statistics.classes.distribution.1.count', 1)
+                ->where('statistics.phantom_jobs.distribution.0.label', 'Phantom Bard')
+                ->where('statistics.phantom_jobs.distribution.0.count', 3)
+                ->where('statistics_cache.can_refresh', true)
+                ->where('statistics_cache.refresh_cooldown_seconds', 0)
+            );
+
+        Activity::factory()->complete()->create([
+            'group_id' => $group->id,
+            'starts_at' => now()->subDay(),
+        ]);
+
+        $this->actingAs($owner)
+            ->get(route('groups.dashboard.statistics', $group))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('statistics.summary.total_runs', 3)
+            );
+
+        $this->actingAs($owner)
+            ->post(route('groups.dashboard.statistics.refresh', $group))
+            ->assertRedirect(route('groups.dashboard.statistics', $group))
+            ->assertSessionHas('success', 'group_statistics_refreshed');
+
+        $this->actingAs($owner)
+            ->get(route('groups.dashboard.statistics', $group))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('statistics.summary.total_runs', 4)
+                ->where('statistics_cache.can_refresh', false)
+                ->where('statistics_cache.refresh_cooldown_seconds', 300)
+            );
+
+        Activity::factory()->complete()->create([
+            'group_id' => $group->id,
+            'starts_at' => now()->subHours(12),
+        ]);
+
+        $this->actingAs($owner)
+            ->post(route('groups.dashboard.statistics.refresh', $group))
+            ->assertRedirect(route('groups.dashboard.statistics', $group))
+            ->assertSessionHas('error', 'group_statistics_refresh_cooldown');
+
+        $this->actingAs($owner)
+            ->get(route('groups.dashboard.statistics', $group))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('statistics.summary.total_runs', 4)
+            );
+
+        Carbon::setTestNow(Carbon::parse('2026-05-26 12:05:01'));
+        CarbonImmutable::setTestNow(CarbonImmutable::parse('2026-05-26 12:05:01'));
+
+        $this->actingAs($owner)
+            ->post(route('groups.dashboard.statistics.refresh', $group))
+            ->assertRedirect(route('groups.dashboard.statistics', $group))
+            ->assertSessionHas('success', 'group_statistics_refreshed');
+
+        $this->actingAs($owner)
+            ->get(route('groups.dashboard.statistics', $group))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('statistics.summary.total_runs', 5)
+                ->where('statistics_cache.can_refresh', false)
+                ->where('statistics_cache.refresh_cooldown_seconds', 300)
+            );
+
+        $this->actingAs($owner)
+            ->get(route('groups.dashboard.leaderboard', $group))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('Dashboard/Groups/Leaderboard')
+                ->where('group.slug', $group->slug)
+            );
+    } finally {
+        Cache::flush();
+        CarbonImmutable::setTestNow();
+        Carbon::setTestNow();
+    }
 });

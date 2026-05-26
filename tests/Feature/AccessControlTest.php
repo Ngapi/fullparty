@@ -144,9 +144,9 @@ it('requires membership to view public activities that belong to hidden groups',
     $response->assertNotFound();
 });
 
-it('only exposes planned activity overviews to moderators', function () {
+it('only exposes draft activity overviews to moderators', function () {
     extract(createAccessControlActivity([], [
-        'status' => Activity::STATUS_PLANNED,
+        'status' => Activity::STATUS_DRAFT,
         'is_public' => true,
     ]));
 

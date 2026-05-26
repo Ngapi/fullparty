@@ -1,0 +1,80 @@
+{
+  "title": "Statistiques",
+  "subtitle": "Activite, participation, candidatures et tendances de loadout pour {group}.",
+  "common": {
+    "other": "Autres"
+  },
+  "cache": {
+    "refresh": "Actualiser les statistiques",
+    "refreshing": "Actualisation...",
+    "cooldown": "Actualisation dans {time}",
+    "tooltip": "Mis en cache {cached}. Expire {expires}.",
+    "unknown": "Inconnu"
+  },
+  "metrics": {
+    "total_runs": {
+      "label": "Runs totaux",
+      "description": "{count} avec participants"
+    },
+    "total_participants": {
+      "label": "Participations totales",
+      "description": "Presences roster en slots principaux"
+    },
+    "unique_participants": {
+      "label": "Participants uniques",
+      "description": "Personnages distincts roster"
+    },
+    "average_participants": {
+      "label": "Moyenne / raid",
+      "description": "Sur tous les runs"
+    },
+    "active_players": {
+      "label": "Joueurs actifs",
+      "description": "Participation dans le mois passe"
+    }
+  },
+  "participation": {
+    "title": "Tendance de participation",
+    "subtitle": "Personnes par jour les jours ou des runs ont eu lieu pendant le mois passe.",
+    "badge": "30 derniers jours",
+    "tooltip": "{date}: {participants} participants sur {runs} runs",
+    "empty_title": "Aucune participation recente",
+    "empty_description": "Les runs avec des participants roster apparaitront ici apres avoir eu lieu."
+  },
+  "applications": {
+    "distribution_title": "Distribution des candidatures",
+    "distribution_subtitle": "Resultats actuels des candidatures sur les runs du groupe.",
+    "volume_title": "Volume des candidatures",
+    "volume_subtitle": "Volume mensuel des candidatures sur les 12 derniers mois.",
+    "total_label": "candidatures",
+    "empty_title": "Aucune candidature",
+    "empty_description": "L'activite des candidatures apparaitra ici quand des joueurs postuleront aux runs.",
+    "statuses": {
+      "pending": "En attente",
+      "approved": "Approuvees",
+      "declined": "Refusees",
+      "cancelled": "Annulees",
+      "withdrawn": "Retirees"
+    }
+  },
+  "loadouts": {
+    "total_label": "affectations",
+    "assignment_count": "{count} utilisations"
+  },
+  "classes": {
+    "title": "Distribution des classes",
+    "subtitle": "Classes de combat les plus jouees depuis les affectations roster.",
+    "trend_title": "Tendance detaillee des classes",
+    "trend_subtitle": "Tendance mensuelle des classes les plus jouees.",
+    "empty_title": "Aucune donnee de classe",
+    "empty_description": "L'utilisation des classes apparait quand les affectations incluent une selection de classe."
+  },
+  "phantom_jobs": {
+    "title": "Distribution des jobs fantomes",
+    "subtitle": "Jobs fantomes les plus joues depuis les affectations roster.",
+    "trend_title": "Tendance detaillee des jobs fantomes",
+    "trend_subtitle": "Tendance mensuelle des jobs fantomes les plus joues.",
+    "empty_title": "Aucune donnee de job fantome",
+    "empty_description": "L'utilisation des jobs fantomes apparait quand les affectations incluent une selection de job fantome."
+  }
+}

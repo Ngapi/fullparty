@@ -42,6 +42,7 @@ use App\Http\Controllers\GroupMembershipApplicationFormController;
 use App\Http\Controllers\GroupMembershipApplicationReviewController;
 use App\Http\Controllers\GroupMembershipController;
 use App\Http\Controllers\GroupSettingsController;
+use App\Http\Controllers\GroupStatisticsController;
 use App\Http\Controllers\LocaleController;
 use App\Http\Controllers\PhantomJobController;
 use App\Http\Controllers\RunDiscoveryController;
@@ -342,6 +343,9 @@ Route::prefix('{locale?}')
                 // Group dashboard landing and non-activity sections.
                 Route::get('/', [GroupDashboardController::class, 'show'])->name('groups.dashboard');
                 Route::get('/members', [GroupMemberController::class, 'index'])->name('groups.dashboard.members');
+                Route::get('/statistics', GroupStatisticsController::class)->name('groups.dashboard.statistics');
+                Route::post('/statistics/refresh', [GroupStatisticsController::class, 'refresh'])->name('groups.dashboard.statistics.refresh');
+                Route::get('/leaderboard', [GroupDashboardController::class, 'leaderboard'])->name('groups.dashboard.leaderboard');
                 Route::get('/membership-applications', [GroupMembershipApplicationReviewController::class, 'index'])->name('groups.dashboard.membership-applications.index');
                 Route::post('/membership-applications/{application}/approve', [GroupMembershipApplicationReviewController::class, 'approve'])->name('groups.dashboard.membership-applications.approve');
                 Route::post('/membership-applications/{application}/decline', [GroupMembershipApplicationReviewController::class, 'decline'])->name('groups.dashboard.membership-applications.decline');

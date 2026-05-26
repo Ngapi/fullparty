@@ -139,8 +139,8 @@
     }
   },
   "groups": {
-    "run_planned": {
-      "title": "Run-Entwurf aktualisiert",
+    "run_draft": {
+      "title": "Run-Entwurf erstellt",
       "body": "{activity} ist für {group} aktuell noch im Entwurf."
     },
     "run_scheduled": {

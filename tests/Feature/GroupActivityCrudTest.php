@@ -11,6 +11,7 @@ use App\Models\Group;
 use App\Models\GroupMembership;
 use App\Models\User;
 use App\Support\Input\TextInputSanitizer;
+use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Inertia\Testing\AssertableInertia as Assert;
 
@@ -117,7 +118,7 @@ it('allows moderators to create private application activities with guest applic
         'activity_type_id' => $activityType->id,
         'organized_by_user_id' => $owner->id,
         'organized_by_character_id' => $organizerCharacter->id,
-        'status' => Activity::STATUS_PLANNED,
+        'status' => Activity::STATUS_DRAFT,
         'title' => 'Tuesday Savage Prog',
         'notes' => 'Bring food and pots.',
         'starts_at' => '2026-06-15T20:30',
@@ -187,7 +188,7 @@ it('defaults activity discovery metadata from the group and activity type versio
         'group' => $group->slug,
     ]), [
         'activity_type_id' => $activityType->id,
-        'status' => Activity::STATUS_PLANNED,
+        'status' => Activity::STATUS_DRAFT,
     ])->assertRedirect(route('groups.dashboard.activities.index', [
         'group' => $group->slug,
     ]));
@@ -200,6 +201,32 @@ it('defaults activity discovery metadata from the group and activity type versio
         ->and($activity->min_item_level)->toBe(710)
         ->and($activity->beginner_friendly)->toBeFalse()
         ->and($activity->run_style)->toBe(Activity::RUN_STYLE_PROGRESSION);
+});
+
+it('rejects creating activities with past start times', function () {
+    CarbonImmutable::setTestNow(CarbonImmutable::parse('2026-05-26 12:00:30', 'UTC'));
+
+    try {
+        $owner = User::factory()->create();
+        $group = Group::factory()->open()->create([
+            'owner_id' => $owner->id,
+        ]);
+        $activityType = createCrudActivityType($owner);
+
+        $this->actingAs($owner)
+            ->post(route('groups.dashboard.activities.store', [
+                'group' => $group->slug,
+            ]), [
+                'activity_type_id' => $activityType->id,
+                'status' => Activity::STATUS_DRAFT,
+                'starts_at' => '2026-05-26T11:59',
+            ])
+            ->assertSessionHasErrors(['starts_at']);
+
+        expect($group->activities()->count())->toBe(0);
+    } finally {
+        CarbonImmutable::setTestNow();
+    }
 });
 
 it('shows only non-bench slot counts on the group runs page', function () {
@@ -257,7 +284,7 @@ it('sanitizes activity free-text fields when creating and updating activities', 
         'group' => $group->slug,
     ]), [
         'activity_type_id' => $activityType->id,
-        'status' => Activity::STATUS_PLANNED,
+        'status' => Activity::STATUS_DRAFT,
         'title' => "  Tues\u{200B}day   Savage  ",
         'description' => " Line one\u{200B}\r\nLine\t two ",
         'notes' => " Bring\t food \r\n\r\n And pots ",
@@ -303,7 +330,7 @@ it('rejects activity descriptions and notes that exceed the configured limits', 
         'group' => $group->slug,
     ]), [
         'activity_type_id' => $activityType->id,
-        'status' => Activity::STATUS_PLANNED,
+        'status' => Activity::STATUS_DRAFT,
         'description' => str_repeat('d', Activity::DESCRIPTION_MAX_LENGTH + 1),
         'notes' => str_repeat('n', Activity::NOTES_MAX_LENGTH + 1),
     ])->assertSessionHasErrors(['description', 'notes']);
@@ -315,7 +342,7 @@ it('rejects activity descriptions and notes that exceed the configured limits', 
         'activity_type_id' => $activityType->id,
         'activity_type_version_id' => $activityType->current_published_version_id,
         'organized_by_user_id' => $owner->id,
-        'status' => Activity::STATUS_PLANNED,
+        'status' => Activity::STATUS_DRAFT,
         'description' => 'Original description',
         'notes' => 'Original notes',
     ]);
@@ -351,7 +378,7 @@ it('forbids non moderators from creating activities', function () {
         'group' => $group->slug,
     ]), [
         'activity_type_id' => $activityType->id,
-        'status' => Activity::STATUS_PLANNED,
+        'status' => Activity::STATUS_DRAFT,
     ]);
 
     $response->assertForbidden();
@@ -375,7 +402,7 @@ it('prefills the create run page starts_at value from the requested calendar slo
             ->where('prefilledStartsAt', '2026-06-15T20:00'));
 });
 
-it('hides planned activities from non moderators on the dashboard runs page', function () {
+it('hides draft activities from non moderators on the dashboard runs page', function () {
     $owner = User::factory()->create();
     $member = User::factory()->create();
     $group = Group::factory()->open()->create([
@@ -404,7 +431,7 @@ it('hides planned activities from non moderators on the dashboard runs page', fu
         'activity_type_id' => $activityType->id,
         'activity_type_version_id' => $activityType->current_published_version_id,
         'organized_by_user_id' => $owner->id,
-        'status' => Activity::STATUS_PLANNED,
+        'status' => Activity::STATUS_DRAFT,
         'is_public' => true,
     ]);
 
@@ -453,7 +480,7 @@ it('rejects organizer characters that do not belong to the organizer user', func
         'activity_type_id' => $activityType->id,
         'organized_by_user_id' => $owner->id,
         'organized_by_character_id' => $foreignCharacter->id,
-        'status' => Activity::STATUS_PLANNED,
+        'status' => Activity::STATUS_DRAFT,
     ]);
 
     $response->assertStatus(422);
@@ -548,6 +575,39 @@ it('updates mutable activity fields while keeping private access intact', functi
         ->and($auditLog->metadata['changes']['allow_guest_applications']['new'])->toBeFalse();
 });
 
+it('rejects updating activities with past start times', function () {
+    CarbonImmutable::setTestNow(CarbonImmutable::parse('2026-05-26 12:00:30', 'UTC'));
+
+    try {
+        $owner = User::factory()->create();
+        $group = Group::factory()->open()->create([
+            'owner_id' => $owner->id,
+        ]);
+        $activityType = createCrudActivityType($owner);
+        $activity = Activity::factory()->create([
+            'group_id' => $group->id,
+            'activity_type_id' => $activityType->id,
+            'activity_type_version_id' => $activityType->current_published_version_id,
+            'organized_by_user_id' => $owner->id,
+            'status' => Activity::STATUS_DRAFT,
+            'starts_at' => '2026-05-27 20:00:00',
+        ]);
+
+        $this->actingAs($owner)
+            ->put(route('groups.dashboard.activities.update', [
+                'group' => $group->slug,
+                'activity' => $activity->id,
+            ]), [
+                'starts_at' => '2026-05-26T11:59',
+            ])
+            ->assertSessionHasErrors(['starts_at']);
+
+        expect($activity->fresh()->starts_at?->format('Y-m-d H:i'))->toBe('2026-05-27 20:00');
+    } finally {
+        CarbonImmutable::setTestNow();
+    }
+});
+
 it('accepts half-hour durations and rejects values outside the half-hour step', function () {
     $owner = User::factory()->create();
     $group = Group::factory()->open()->create([
@@ -561,7 +621,7 @@ it('accepts half-hour durations and rejects values outside the half-hour step', 
         'group' => $group->slug,
     ]), [
         'activity_type_id' => $activityType->id,
-        'status' => Activity::STATUS_PLANNED,
+        'status' => Activity::STATUS_DRAFT,
         'duration_hours' => 2.5,
     ])->assertRedirect(route('groups.dashboard.activities.index', [
         'group' => $group->slug,
@@ -581,7 +641,7 @@ it('accepts half-hour durations and rejects values outside the half-hour step', 
     expect($activity->fresh()->duration_hours)->toBe(2.5);
 });
 
-it('allows moderators to schedule a planned activity', function () {
+it('allows moderators to schedule a draft activity', function () {
     $owner = User::factory()->create();
     $group = Group::factory()->open()->create([
         'owner_id' => $owner->id,
@@ -593,7 +653,7 @@ it('allows moderators to schedule a planned activity', function () {
         'activity_type_id' => $activityType->id,
         'activity_type_version_id' => $activityType->current_published_version_id,
         'organized_by_user_id' => $owner->id,
-        'status' => Activity::STATUS_PLANNED,
+        'status' => Activity::STATUS_DRAFT,
     ]);
 
     $this->actingAs($owner)
@@ -612,7 +672,7 @@ it('allows moderators to schedule a planned activity', function () {
 
     $auditLog = AuditLog::query()->where('action', 'group.activity.updated')->sole();
 
-    expect($auditLog->metadata['changes']['status']['old'])->toBe(Activity::STATUS_PLANNED)
+    expect($auditLog->metadata['changes']['status']['old'])->toBe(Activity::STATUS_DRAFT)
         ->and($auditLog->metadata['changes']['status']['new'])->toBe(Activity::STATUS_SCHEDULED);
 });
 
@@ -647,7 +707,7 @@ it('allows moderators to delete runs before roster publish', function (string $s
     expect($auditLog->actor_user_id)->toBe($owner->id)
         ->and($auditLog->subject_id)->toBe($activity->id);
 })->with([
-    'planned' => [Activity::STATUS_PLANNED],
+    'draft' => [Activity::STATUS_DRAFT],
     'scheduled' => [Activity::STATUS_SCHEDULED],
 ]);
 
@@ -677,7 +737,7 @@ it('forbids cancelling runs before roster publish', function (string $status) {
 
     expect($activity->fresh()->status)->toBe($status);
 })->with([
-    'planned' => [Activity::STATUS_PLANNED],
+    'draft' => [Activity::STATUS_DRAFT],
     'scheduled' => [Activity::STATUS_SCHEDULED],
 ]);
 
@@ -750,7 +810,7 @@ it('rejects invalid target prog points during activity creation', function () {
         'group' => $group->slug,
     ]), [
         'activity_type_id' => $activityType->id,
-        'status' => Activity::STATUS_PLANNED,
+        'status' => Activity::STATUS_DRAFT,
         'target_prog_point_key' => 'not-a-real-prog-point',
     ]);
 
@@ -770,7 +830,7 @@ it('rejects prohibited fields during activity updates', function () {
         'activity_type_id' => $activityType->id,
         'activity_type_version_id' => $activityType->current_published_version_id,
         'organized_by_user_id' => $owner->id,
-        'status' => Activity::STATUS_PLANNED,
+        'status' => Activity::STATUS_DRAFT,
         'is_public' => true,
         'needs_application' => true,
     ]);
@@ -792,7 +852,7 @@ it('rejects prohibited fields during activity updates', function () {
 
     $activity->refresh();
 
-    expect($activity->status)->toBe(Activity::STATUS_PLANNED)
+    expect($activity->status)->toBe(Activity::STATUS_DRAFT)
         ->and($activity->is_public)->toBeTrue()
         ->and($activity->needs_application)->toBeTrue();
     expect(AuditLog::query()->count())->toBe(0);

@@ -3,7 +3,7 @@
     "subtitle": "{group}'s upcoming schedule and monthly calendar at a glance.",
     "header_badge": "{count} upcoming",
     "statuses": {
-        "planned": "下書き",
+        "draft": "下書き",
         "scheduled": "Scheduled",
         "assigned": "Assigned",
         "upcoming": "Upcoming",
@@ -155,7 +155,7 @@
             "confirm": "Yes, Cancel Run"
         },
         "messages": {
-            "check_in_planned_tooltip": "Planned for the in-game plugin",
+            "check_in_plugin_tooltip": "Prepared for the in-game plugin",
             "load_failed": "Unable to load run details.",
             "retry": "Retry",
             "complete_failed": "Unable to complete this run.",
@@ -608,6 +608,9 @@
         "submit": "Create Run",
         "no_types_title": "No activity types available",
         "no_types_description": "Create and publish an activity type from the admin area before creating activities for groups.",
+        "validation": {
+            "starts_at_not_past": "過去の日時にRunを予定することはできません。"
+        },
         "roles": {
             "owner": "Owner",
             "moderator": "Moderator"

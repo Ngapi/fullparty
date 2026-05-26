@@ -33,6 +33,8 @@
   "navigation": {
     "general": "Allgemein",
     "activities": "Runs",
+    "statistics": "Statistiken",
+    "leaderboard": "Bestenliste",
     "members": "Mitglieder",
     "membership_applications": "Membership Applications",
     "application_form": "Application Form",
@@ -140,7 +142,7 @@
         "run_plural": "runs",
         "empty": "No public run history yet.",
         "statuses": {
-          "planned": "Entwurf",
+          "draft": "Entwurf",
           "scheduled": "Scheduled",
           "active": "Active",
           "complete": "Completed",

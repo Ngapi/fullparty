@@ -541,7 +541,7 @@ class GroupSeeder extends Seeder
         $statuses = [
             ScheduledRun::STATUS_SCHEDULED,
             ScheduledRun::STATUS_UPCOMING,
-            ScheduledRun::STATUS_PLANNED,
+            ScheduledRun::STATUS_DRAFT,
         ];
 
         foreach (range(1, $runCount) as $runIndex) {

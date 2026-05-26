@@ -27,6 +27,8 @@
   "navigation": {
     "general": "General",
     "activities": "Runs",
+    "statistics": "Statistics",
+    "leaderboard": "Leaderboard",
     "members": "Members",
     "membership_applications": "Membership Applications",
     "application_form": "Application Form",
@@ -134,7 +136,7 @@
         "run_plural": "runs",
         "empty": "No public run history yet.",
         "statuses": {
-          "planned": "Draft",
+          "draft": "Draft",
           "scheduled": "Scheduled",
           "active": "Active",
           "complete": "Completed",

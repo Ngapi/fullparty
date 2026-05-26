@@ -37,7 +37,7 @@ function createGroupUpdateActivityType(User $owner): array
     return compact('type', 'version');
 }
 
-it('notifies moderators and the owner when a run is created in planning state', function () {
+it('notifies moderators and the owner when a run is created in draft state', function () {
     $owner = User::factory()->create([
         'group_update_notifications' => true,
     ]);
@@ -69,15 +69,15 @@ it('notifies moderators and the owner when a run is created in planning state', 
     $this->actingAs($actor)
         ->post(route('groups.dashboard.activities.store', $group), [
             'activity_type_id' => $type->id,
-            'status' => Activity::STATUS_PLANNED,
-            'title' => 'Planning Run',
+            'status' => Activity::STATUS_DRAFT,
+            'title' => 'Draft Run',
             'is_public' => true,
             'needs_application' => true,
             'allow_guest_applications' => false,
         ])
         ->assertRedirect(route('groups.dashboard.activities.index', $group));
 
-    $event = NotificationEvent::query()->where('type', 'groups.run_planned')->sole();
+    $event = NotificationEvent::query()->where('type', 'groups.run_draft')->sole();
 
     $recipientIds = UserNotification::query()
         ->where('notification_event_id', $event->id)
@@ -146,7 +146,7 @@ it('notifies members when a run is created in scheduled state', function () {
     );
 });
 
-it('notifies members when a planned run is later scheduled', function () {
+it('notifies members when a draft run is later scheduled', function () {
     $owner = User::factory()->create([
         'group_update_notifications' => true,
     ]);
@@ -181,8 +181,8 @@ it('notifies members when a planned run is later scheduled', function () {
         'activity_type_id' => $type->id,
         'activity_type_version_id' => $version->id,
         'organized_by_user_id' => $moderator->id,
-        'status' => Activity::STATUS_PLANNED,
-        'title' => 'Planned Into Scheduled',
+        'status' => Activity::STATUS_DRAFT,
+        'title' => 'Draft Into Scheduled',
     ]);
 
     $this->actingAs($moderator)

@@ -30,6 +30,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -255,7 +256,7 @@ class GroupActivityController extends Controller
 
         $validated = $request->validate($this->rules($group));
         $validated = $this->normalizeAndValidateOrganizerCharacter($validated);
-        $validated = $this->normalizeStartsAt($validated);
+        $validated = $this->normalizeAndValidateStartsAt($validated);
 
         $activityType = ActivityType::query()
             ->with('currentPublishedVersion')
@@ -335,7 +336,7 @@ class GroupActivityController extends Controller
 
         $validated = $request->validate($this->rules($group, false, true));
         $validated = $this->normalizeAndValidateOrganizerCharacter($validated);
-        $validated = $this->normalizeStartsAt($validated);
+        $validated = $this->normalizeAndValidateStartsAt($validated);
 
         $activityTypeVersion = null;
 
@@ -594,7 +595,7 @@ class GroupActivityController extends Controller
             'status' => $isUpdate
                 ? ['prohibited']
                 : ['required', Rule::in([
-                    Activity::STATUS_PLANNED,
+                    Activity::STATUS_DRAFT,
                     Activity::STATUS_SCHEDULED,
                 ])],
             'title' => ['sometimes', 'nullable', 'string', 'max:'.Activity::TITLE_MAX_LENGTH],
@@ -684,7 +685,7 @@ class GroupActivityController extends Controller
      * @param  array<string, mixed>  $validated
      * @return array<string, mixed>
      */
-    private function normalizeStartsAt(array $validated): array
+    private function normalizeAndValidateStartsAt(array $validated): array
     {
         $startsAt = $validated['starts_at'] ?? null;
 
@@ -692,8 +693,16 @@ class GroupActivityController extends Controller
             return $validated;
         }
 
-        $validated['starts_at'] = CarbonImmutable::createFromFormat('Y-m-d\TH:i', (string) $startsAt, 'UTC')
+        $normalizedStartsAt = CarbonImmutable::createFromFormat('Y-m-d\TH:i', (string) $startsAt, 'UTC')
             ->utc();
+
+        if ($normalizedStartsAt->lt(CarbonImmutable::now('UTC')->startOfMinute())) {
+            throw ValidationException::withMessages([
+                'starts_at' => __('groups.activities.create.validation.starts_at_not_past'),
+            ]);
+        }
+
+        $validated['starts_at'] = $normalizedStartsAt;
 
         return $validated;
     }

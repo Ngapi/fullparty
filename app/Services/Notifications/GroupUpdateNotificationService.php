@@ -19,9 +19,9 @@ class GroupUpdateNotificationService
     {
         $activity->loadMissing('group');
 
-        $isPlanningNotification = $activity->status === Activity::STATUS_PLANNED;
+        $isDraftNotification = $activity->status === Activity::STATUS_DRAFT;
 
-        $recipients = $isPlanningNotification
+        $recipients = $isDraftNotification
             ? $this->moderatorRecipients($activity->group, $actor instanceof User ? $actor->id : null)
             : $this->memberRecipients($activity->group, $actor instanceof User ? $actor->id : null);
 
@@ -30,13 +30,13 @@ class GroupUpdateNotificationService
         }
 
         $event = $this->notificationService->createEvent(
-            type: $isPlanningNotification ? 'groups.run_planned' : 'groups.run_scheduled',
+            type: $isDraftNotification ? 'groups.run_draft' : 'groups.run_scheduled',
             category: NotificationCategory::GROUP_UPDATES,
-            titleKey: $isPlanningNotification
-                ? 'notifications.groups.run_planned.title'
+            titleKey: $isDraftNotification
+                ? 'notifications.groups.run_draft.title'
                 : 'notifications.groups.run_scheduled.title',
-            bodyKey: $isPlanningNotification
-                ? 'notifications.groups.run_planned.body'
+            bodyKey: $isDraftNotification
+                ? 'notifications.groups.run_draft.body'
                 : 'notifications.groups.run_scheduled.body',
             messageParams: [
                 'group' => $activity->group?->name,

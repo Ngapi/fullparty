@@ -204,7 +204,7 @@ const rosterViewOptions = computed(() => ([
 				</div>
 
 				<div class="flex flex-wrap items-center gap-2 xl:justify-end">
-					<UTooltip :text="t('groups.activities.management.messages.check_in_planned_tooltip')">
+					<UTooltip :text="t('groups.activities.management.messages.check_in_plugin_tooltip')">
 						<span class="inline-flex">
 							<UButton
 								color="neutral"

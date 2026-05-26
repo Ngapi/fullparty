@@ -17,9 +17,9 @@ it('renders localized public urls in the sitemap and excludes non-indexable acti
         'is_public' => true,
     ]);
 
-    $plannedActivity = Activity::factory()->create([
+    $draftActivity = Activity::factory()->create([
         'group_id' => $publicGroup->id,
-        'status' => Activity::STATUS_PLANNED,
+        'status' => Activity::STATUS_DRAFT,
         'is_public' => true,
     ]);
 
@@ -43,7 +43,7 @@ it('renders localized public urls in the sitemap and excludes non-indexable acti
         ->assertDontSee(route('groups.activities.overview', [
             'locale' => 'en',
             'group' => $publicGroup,
-            'activity' => $plannedActivity,
+            'activity' => $draftActivity,
         ]), false)
         ->assertDontSee(route('groups.activities.overview', [
             'locale' => 'en',

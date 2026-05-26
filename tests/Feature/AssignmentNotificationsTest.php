@@ -61,7 +61,7 @@ function createAssignmentNotificationActivity(User $owner, Group $group, array $
         'activity_type_id' => $type->id,
         'activity_type_version_id' => $version->id,
         'organized_by_user_id' => $owner->id,
-        'status' => Activity::STATUS_PLANNED,
+        'status' => Activity::STATUS_DRAFT,
         'title' => 'Weekly Savage',
         'needs_application' => true,
         'allow_guest_applications' => false,
@@ -558,7 +558,7 @@ it('does not create assignment notifications while the roster is still unpublish
         'owner_id' => $owner->id,
     ]);
     $activity = createAssignmentNotificationActivity($owner, $group, [
-        'status' => Activity::STATUS_PLANNED,
+        'status' => Activity::STATUS_DRAFT,
     ]);
 
     $applicant = User::factory()->create([

@@ -86,7 +86,7 @@ function createModerationEndpointSetup(array $versionOverrides = [], array $acti
         'activity_type_id' => $activityType->id,
         'activity_type_version_id' => $version->id,
         'organized_by_user_id' => $owner->id,
-        'status' => Activity::STATUS_PLANNED,
+        'status' => Activity::STATUS_DRAFT,
         'allow_guest_applications' => true,
     ], $activityOverrides));
 

@@ -41,7 +41,7 @@ class SitemapController extends Controller
     {
         return Activity::query()
             ->where('is_public', true)
-            ->where('status', '!=', Activity::STATUS_PLANNED)
+            ->where('status', '!=', Activity::STATUS_DRAFT)
             ->whereHas('group', fn ($query) => $query
                 ->where('is_visible', true))
             ->with('group:id,slug')

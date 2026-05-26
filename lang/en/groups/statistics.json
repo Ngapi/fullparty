@@ -1,0 +1,80 @@
+{
+  "title": "Statistics",
+  "subtitle": "{group} activity, attendance, applications, and loadout trends.",
+  "common": {
+    "other": "Other"
+  },
+  "cache": {
+    "refresh": "Refresh Statistics",
+    "refreshing": "Refreshing...",
+    "cooldown": "Refresh in {time}",
+    "tooltip": "Cached {cached}. Expires {expires}.",
+    "unknown": "Unknown"
+  },
+  "metrics": {
+    "total_runs": {
+      "label": "Total Runs",
+      "description": "{count} with participants"
+    },
+    "total_participants": {
+      "label": "Total Participants",
+      "description": "Rostered main-slot appearances"
+    },
+    "unique_participants": {
+      "label": "Unique Participants",
+      "description": "Distinct characters rostered"
+    },
+    "average_participants": {
+      "label": "Avg Participants / Raid",
+      "description": "Across every run"
+    },
+    "active_players": {
+      "label": "Active Players",
+      "description": "Participated within the past month"
+    }
+  },
+  "participation": {
+    "title": "Participation Trend",
+    "subtitle": "People per day on days where runs happened during the past month.",
+    "badge": "Last 30 days",
+    "tooltip": "{date}: {participants} participants across {runs} runs",
+    "empty_title": "No recent participation",
+    "empty_description": "Runs with rostered participants will appear here once they happen."
+  },
+  "applications": {
+    "distribution_title": "Application Distribution",
+    "distribution_subtitle": "Current application outcomes across the group's runs.",
+    "volume_title": "Application Volume",
+    "volume_subtitle": "Monthly application volume for the past 12 months.",
+    "total_label": "applications",
+    "empty_title": "No applications yet",
+    "empty_description": "Application activity will appear here once players apply to runs.",
+    "statuses": {
+      "pending": "Pending",
+      "approved": "Approved",
+      "declined": "Denied",
+      "cancelled": "Cancelled",
+      "withdrawn": "Withdrawn"
+    }
+  },
+  "loadouts": {
+    "total_label": "assignments",
+    "assignment_count": "{count} uses"
+  },
+  "classes": {
+    "title": "Class Distribution",
+    "subtitle": "Most played combat classes from rostered assignments.",
+    "trend_title": "Class Detail Trend",
+    "trend_subtitle": "Monthly trend for the top played classes.",
+    "empty_title": "No class data yet",
+    "empty_description": "Class usage appears when assignments include class slot selections."
+  },
+  "phantom_jobs": {
+    "title": "Phantom Job Distribution",
+    "subtitle": "Most played phantom jobs from rostered assignments.",
+    "trend_title": "Phantom Job Detail Trend",
+    "trend_subtitle": "Monthly trend for the top played phantom jobs.",
+    "empty_title": "No phantom job data yet",
+    "empty_description": "Phantom job usage appears when assignments include phantom job slot selections."
+  }
+}

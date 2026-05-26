@@ -958,7 +958,7 @@ class ActivitySeeder extends Seeder
             return Activity::STATUS_SCHEDULED;
         }
 
-        return Activity::STATUS_PLANNED;
+        return Activity::STATUS_DRAFT;
     }
 
     /**

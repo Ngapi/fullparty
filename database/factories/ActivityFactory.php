@@ -34,7 +34,7 @@ class ActivityFactory extends Factory
             'organized_by_user_id' => null,
             'organized_by_character_id' => null,
             'status' => fake()->randomElement([
-                Activity::STATUS_PLANNED,
+                Activity::STATUS_DRAFT,
                 Activity::STATUS_SCHEDULED,
                 Activity::STATUS_UPCOMING,
             ]),

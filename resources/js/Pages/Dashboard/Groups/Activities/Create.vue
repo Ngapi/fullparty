@@ -33,7 +33,7 @@ const form = useForm({
 	activity_type_id: defaultActivityType?.id ?? null,
 	organized_by_user_id: defaultOrganizerCharacter?.user_id ?? null,
 	organized_by_character_id: defaultOrganizerCharacter?.id ?? null,
-	status: 'planned',
+	status: 'draft',
 	title: '',
 	notes: '',
 	starts_at: props.prefilledStartsAt,

@@ -41,6 +41,18 @@ const leftitems = computed(() => [
 		href: route('groups.dashboard.activities.index', props.group.slug),
 		active: isRouteActive(route('groups.dashboard.activities.index', props.group.slug, false)),
 	},
+	{
+		label: t('groups.index.navigation.statistics'),
+		icon: 'i-lucide-chart-no-axes-combined',
+		href: route('groups.dashboard.statistics', props.group.slug),
+		active: isRouteActive(route('groups.dashboard.statistics', props.group.slug, false)),
+	},
+	{
+		label: t('groups.index.navigation.leaderboard'),
+		icon: 'i-lucide-trophy',
+		href: route('groups.dashboard.leaderboard', props.group.slug),
+		active: isRouteActive(route('groups.dashboard.leaderboard', props.group.slug, false)),
+	},
 	...(props.group.permissions?.can_view_members ? [{
 		label: t('groups.index.navigation.members'),
 		icon: 'i-lucide-users',
