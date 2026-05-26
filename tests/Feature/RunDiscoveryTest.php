@@ -164,6 +164,7 @@ it('returns matching discoverable run ids for the filter payload', function () {
         ->assertJsonPath('items.0.id', $matchingActivity->id)
         ->assertJsonPath('items.0.title', 'Moon Enrage Push')
         ->assertJsonPath('items.0.group_name', $matchingGroup->name)
+        ->assertJsonPath('items.0.group_slug', $matchingGroup->slug)
         ->assertJsonPath('items.0.can_apply', true);
 
     $responseImageUrl = $this->actingAs($viewer)

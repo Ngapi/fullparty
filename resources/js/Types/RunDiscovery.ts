@@ -80,6 +80,7 @@ export type RunDiscoveryResultItemData = {
 	activity_type_name: string
 	difficulty: string | null
 	group_name: string | null
+	group_slug: string | null
 	group_type: string | null
 	description: string | null
 	min_item_level: number | null

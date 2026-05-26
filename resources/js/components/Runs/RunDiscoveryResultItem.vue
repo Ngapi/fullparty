@@ -109,6 +109,17 @@ const goToApply = () => {
 
 	router.get(props.item.links.apply);
 };
+
+const goToGroup = () => {
+	if (!props.item.group_slug) {
+		return;
+	}
+
+	router.get(route("groups.index", {
+		locale: locale.value,
+		group: props.item.group_slug,
+	}));
+};
 </script>
 
 <template>
@@ -145,7 +156,16 @@ const goToApply = () => {
 								<span>{{ contentName }}</span>
 							</div>
 
-							<div v-if="item.group_name" class="flex items-center gap-2">
+							<button
+								v-if="item.group_name && item.group_slug"
+								type="button"
+								class="flex cursor-pointer items-center gap-2 text-left transition-colors hover:text-white"
+								@click="goToGroup"
+							>
+								<UIcon name="i-lucide-users" class="size-4 text-white/50" />
+								<span>{{ item.group_name }}</span>
+							</button>
+							<div v-else-if="item.group_name" class="flex items-center gap-2">
 								<UIcon name="i-lucide-users" class="size-4 text-white/50" />
 								<span>{{ item.group_name }}</span>
 							</div>

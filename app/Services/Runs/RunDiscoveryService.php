@@ -519,6 +519,7 @@ final class RunDiscoveryService
             'difficulty' => $activity->activityTypeVersion?->difficulty
                 ?? $activity->activityType?->currentPublishedVersion?->difficulty,
             'group_name' => $group?->name,
+            'group_slug' => $group?->slug,
             'group_type' => $group?->group_type,
             'description' => filled($activity->description) ? (string) $activity->description : null,
             'min_item_level' => $activity->min_item_level,

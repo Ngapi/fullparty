@@ -154,7 +154,10 @@ class HandleInertiaRequests extends Middleware
      */
     private function serializeAuthenticatedUser(User $user): array
     {
-        $user->loadMissing(['primaryCharacter', 'socialAccounts']);
+        $user->loadMissing('primaryCharacter');
+        $socialAccounts = $user->socialAccounts()
+            ->safeSummary()
+            ->get();
 
         return [
             'id' => $user->id,
@@ -180,7 +183,7 @@ class HandleInertiaRequests extends Middleware
                 'datacenter' => $user->primaryCharacter->datacenter,
                 'avatar_url' => $user->primaryCharacter->avatar_url,
             ] : null,
-            'social_accounts' => $user->socialAccounts
+            'social_accounts' => $socialAccounts
                 ->map(fn (SocialAccount $socialAccount) => [
                     'id' => $socialAccount->id,
                     'provider' => $socialAccount->provider,

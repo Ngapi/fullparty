@@ -50,6 +50,7 @@ class XIVAuthController extends Controller
         $attributes = $xivauthUser->user ?? [];
 
         $socialAccount = SocialAccount::query()
+            ->safeSummary()
             ->with('user')
             ->where('provider', $provider)
             ->where('provider_user_id', $providerUserId)

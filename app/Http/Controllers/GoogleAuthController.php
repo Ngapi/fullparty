@@ -40,6 +40,7 @@ class GoogleAuthController extends Controller
         }
 
         $socialAccount = SocialAccount::query()
+            ->safeSummary()
             ->with('user')
             ->where('provider', $provider)
             ->where('provider_user_id', $providerUserId)
