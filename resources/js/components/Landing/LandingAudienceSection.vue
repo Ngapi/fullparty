@@ -58,45 +58,61 @@ const goToRegister = () => {
 						</div>
 					</div>
 
-					<div class="mt-10 grid gap-0 lg:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)]">
-						<div class="flex min-h-80 flex-col justify-start py-4 md:px-8 xl:px-10">
-							<h3 class="text-2xl font-semibold text-violet-300">
-								{{ t("landing.audience.players.title") }}
-							</h3>
-							<ul class="mt-7 space-y-4">
-								<li
-									v-for="point in playerPoints"
-									:key="point.key"
-									class="flex items-start gap-3 text-sm leading-6 text-neutral-300"
-								>
-									<UIcon :name="point.icon" class="mt-1 size-4 shrink-0 text-violet-300" />
-									<span>{{ t(`landing.audience.players.points.${point.key}`) }}</span>
-								</li>
-							</ul>
+					<div class="mt-10 grid gap-8 xl:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] xl:gap-0">
+						<div class="grid gap-6 md:grid-cols-[minmax(0,0.9fr)_minmax(0,1fr)] md:items-center xl:block">
+							<div
+								class="hidden min-h-72 bg-cover bg-center opacity-45 mix-blend-screen md:block xl:hidden"
+								:style="{ backgroundImage: `linear-gradient(90deg, rgba(10, 10, 10, 0.1), rgba(10, 10, 10, 0.86)), url(${imageUrl})` }"
+								aria-hidden="true"
+							/>
+
+							<div class="mx-auto flex max-w-md flex-col justify-start py-4 md:mx-0 md:max-w-none md:px-8 xl:min-h-80 xl:px-10">
+								<h3 class="text-center text-2xl font-semibold text-violet-300 md:text-left">
+									{{ t("landing.audience.players.title") }}
+								</h3>
+								<ul class="mt-7 space-y-4">
+									<li
+										v-for="point in playerPoints"
+										:key="point.key"
+										class="flex items-start gap-3 text-sm leading-6 text-neutral-300"
+									>
+										<UIcon :name="point.icon" class="mt-1 size-4 shrink-0 text-violet-300" />
+										<span>{{ t(`landing.audience.players.points.${point.key}`) }}</span>
+									</li>
+								</ul>
+							</div>
 						</div>
 
-						<div class="my-8 flex items-center justify-center gap-5 lg:my-0 lg:w-28 lg:flex-col">
-							<div class="h-px flex-1 bg-violet-500/25 lg:h-24 lg:w-px lg:flex-none" />
+						<div class="flex items-center justify-center gap-5 xl:w-28 xl:flex-col">
+							<div class="h-px flex-1 bg-violet-500/25 xl:h-24 xl:w-px xl:flex-none" />
 							<div class="flex size-20 shrink-0 items-center justify-center rounded-full bg-violet-700/10 blur-out-2xl border border-white/10 shadow-lg shadow-violet-700/40">
 								<img :src="logoUrl" alt="FullParty" class="max-h-9 max-w-14 object-contain">
 							</div>
-							<div class="h-px flex-1 bg-violet-500/25 lg:h-24 lg:w-px lg:flex-none" />
+							<div class="h-px flex-1 bg-violet-500/25 xl:h-24 xl:w-px xl:flex-none" />
 						</div>
 
-						<div class="flex min-h-80 flex-col justify-start py-4 md:px-8 xl:px-10">
-							<h3 class="text-2xl font-semibold text-violet-300">
-								{{ t("landing.audience.leaders.title") }}
-							</h3>
-							<ul class="mt-7 space-y-4">
-								<li
-									v-for="point in leaderPoints"
-									:key="point.key"
-									class="flex items-start gap-3 text-sm leading-6 text-neutral-300"
-								>
-									<UIcon :name="point.icon" class="mt-1 size-4 shrink-0 text-violet-300" />
-									<span>{{ t(`landing.audience.leaders.points.${point.key}`) }}</span>
-								</li>
-							</ul>
+						<div class="grid gap-6 md:grid-cols-[minmax(0,1fr)_minmax(0,0.9fr)] md:items-center xl:block">
+							<div class="mx-auto flex max-w-md flex-col justify-start py-4 md:mx-0 md:max-w-none md:px-8 xl:min-h-80 xl:px-10">
+								<h3 class="text-center text-2xl font-semibold text-violet-300 md:text-left">
+									{{ t("landing.audience.leaders.title") }}
+								</h3>
+								<ul class="mt-7 space-y-4">
+									<li
+										v-for="point in leaderPoints"
+										:key="point.key"
+										class="flex items-start gap-3 text-sm leading-6 text-neutral-300"
+									>
+										<UIcon :name="point.icon" class="mt-1 size-4 shrink-0 text-violet-300" />
+										<span>{{ t(`landing.audience.leaders.points.${point.key}`) }}</span>
+									</li>
+								</ul>
+							</div>
+
+							<div
+								class="hidden min-h-72 -scale-x-100 bg-cover bg-center opacity-45 mix-blend-screen md:block xl:hidden"
+								:style="{ backgroundImage: `linear-gradient(90deg, rgba(10, 10, 10, 0.1), rgba(10, 10, 10, 0.86)), url(${imageUrl})` }"
+								aria-hidden="true"
+							/>
 						</div>
 					</div>
 				</div>
