@@ -27,7 +27,7 @@ const page = usePage()
 
 const fallbackLocale = computed(() => String(page.props.locale?.fallback ?? "en"))
 const isOverviewLoading = computed(() => props.overview === undefined)
-const upcomingRuns = computed(() => props.overview?.upcoming_runs ?? [])
+const userRuns = computed(() => props.overview?.runs ?? [])
 const applications = computed(() => props.overview?.applications ?? [])
 const recentGroups = computed(() => props.overview?.groups.slice(0, 3) ?? [])
 const recentGroupActivities = computed(() => props.overview?.notifications.slice(0, 20) ?? [])
@@ -194,10 +194,10 @@ const notificationCategoryLabel = (notification: NotificationRecord) => {
 				<div class="mb-4 flex items-center justify-between gap-3">
 					<div>
 						<p class="text-sm font-semibold text-white">
-							{{ t("dashboard.home_sections.upcoming.title") }}
+							{{ t("dashboard.home_sections.runs.title") }}
 						</p>
 						<p class="mt-1 text-xs text-neutral-400">
-							{{ t("dashboard.home_sections.upcoming.subtitle") }}
+							{{ t("dashboard.home_sections.runs.subtitle") }}
 						</p>
 					</div>
 				</div>
@@ -206,7 +206,7 @@ const notificationCategoryLabel = (notification: NotificationRecord) => {
 					<div v-if="isOverviewLoading" class="flex flex-col gap-2">
 						<div
 							v-for="row in skeletonRows"
-							:key="`upcoming-skeleton-${row}`"
+							:key="`run-skeleton-${row}`"
 							class="flex min-w-0 items-center gap-4 border border-white/10 bg-elevated/25 p-3 shadow-xl"
 						>
 							<USkeleton class="h-16 w-16 shrink-0" />
@@ -221,9 +221,9 @@ const notificationCategoryLabel = (notification: NotificationRecord) => {
 						</div>
 					</div>
 
-					<div v-else-if="upcomingRuns.length > 0" class="flex flex-col gap-2">
+					<div v-else-if="userRuns.length > 0" class="flex flex-col gap-2">
 						<button
-							v-for="run in upcomingRuns"
+							v-for="run in userRuns"
 							:key="run.id"
 							type="button"
 							class="group flex min-w-0 items-center gap-4 border border-white/10 bg-elevated/25 p-3 text-left shadow-xl transition hover:border-violet-300/35 hover:bg-elevated/75"
@@ -252,7 +252,7 @@ const notificationCategoryLabel = (notification: NotificationRecord) => {
 								<UBadge
 									:color="run.status_color"
 									variant="soft"
-									:label="t(`dashboard.home_sections.upcoming.statuses.${run.status_key}`)"
+									:label="t(`dashboard.home_sections.runs.statuses.${run.status_key}`)"
 								/>
 								<p class="mt-2 text-xs text-neutral-400">
 									{{ formatStartsAt(run.starts_at) }}
@@ -264,7 +264,7 @@ const notificationCategoryLabel = (notification: NotificationRecord) => {
 					</div>
 
 					<div v-else class="flex h-full items-center justify-center border border-white/10 bg-elevated/25 p-6 text-sm text-neutral-400">
-						{{ t("dashboard.home_sections.upcoming.empty") }}
+						{{ t("dashboard.home_sections.runs.empty") }}
 					</div>
 				</div>
 			</div>

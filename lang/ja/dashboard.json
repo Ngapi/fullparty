@@ -142,14 +142,17 @@
     }
   },
   "home_sections": {
-    "upcoming": {
-      "title": "今後のラン",
-      "subtitle": "現在参加予定になっているラン。",
-      "empty": "今後のランはまだありません。",
+    "runs": {
+      "title": "あなたのラン",
+      "subtitle": "参加しているランを日付順に表示します。",
+      "empty": "ランはまだありません。",
       "statuses": {
         "confirmed": "確定",
         "benched": "控え",
-        "pending": "保留中"
+        "pending": "保留中",
+        "ongoing": "進行中",
+        "completed": "完了",
+        "cancelled": "キャンセル"
       }
     },
     "applications": {

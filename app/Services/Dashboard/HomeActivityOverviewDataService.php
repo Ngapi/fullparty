@@ -22,7 +22,7 @@ final class HomeActivityOverviewDataService
 
     /**
      * @return array{
-     *     upcoming_runs: array<int, array<string, mixed>>,
+     *     runs: array<int, array<string, mixed>>,
      *     applications: array<int, array<string, mixed>>,
      *     groups: array<int, array<string, mixed>>,
      *     notifications: array<int, array<string, mixed>>
@@ -31,7 +31,7 @@ final class HomeActivityOverviewDataService
     public function forUser(User $user): array
     {
         return [
-            'upcoming_runs' => $this->serializeUpcomingRuns($user),
+            'runs' => $this->serializeUserRuns($user),
             'applications' => $this->serializeRecentApplications($user),
             'groups' => $this->serializeRecentGroups($user),
             'notifications' => $this->notificationInboxService->latest($user, 20),
@@ -41,20 +41,19 @@ final class HomeActivityOverviewDataService
     /**
      * @return array<int, array<string, mixed>>
      */
-    private function serializeUpcomingRuns(User $user): array
+    private function serializeUserRuns(User $user): array
     {
-        $now = CarbonImmutable::now();
         $characterIds = $user->characters()
             ->pluck('id')
             ->map(fn ($id) => (int) $id)
             ->all();
 
         return collect([
-            ...$this->upcomingApplicationRuns($user, $now),
-            ...$this->upcomingAssignmentRuns($characterIds, $now),
-            ...$this->upcomingCurrentSlotRuns($characterIds, $now),
+            ...$this->applicationRuns($user),
+            ...$this->assignmentRuns($characterIds),
+            ...$this->currentSlotRuns($characterIds),
         ])
-            ->sortBy(fn (array $run) => $this->timestampFor($run['starts_at']))
+            ->sortByDesc(fn (array $run) => $this->timestampFor($run['starts_at']))
             ->unique('activity_id')
             ->values()
             ->take(20)
@@ -64,7 +63,7 @@ final class HomeActivityOverviewDataService
     /**
      * @return array<int, array<string, mixed>>
      */
-    private function upcomingApplicationRuns(User $user, CarbonImmutable $now): array
+    private function applicationRuns(User $user): array
     {
         return ActivityApplication::query()
             ->select('activity_applications.*')
@@ -78,13 +77,11 @@ final class HomeActivityOverviewDataService
                 ActivityApplication::STATUS_APPROVED,
                 ActivityApplication::STATUS_ON_BENCH,
             ])
-            ->whereNotIn('activities.status', Activity::ARCHIVED_STATUSES)
             ->whereNotNull('activities.starts_at')
-            ->where('activities.starts_at', '>=', $now)
-            ->orderBy('activities.starts_at')
-            ->limit(20)
+            ->orderByDesc('activities.starts_at')
+            ->limit(40)
             ->get()
-            ->map(fn (ActivityApplication $application) => $this->serializeUpcomingActivity(
+            ->map(fn (ActivityApplication $application) => $this->serializeUserActivity(
                 $application->activity,
                 $application->status === ActivityApplication::STATUS_ON_BENCH ? 'benched' : 'confirmed',
             ))
@@ -97,7 +94,7 @@ final class HomeActivityOverviewDataService
      * @param  array<int, int>  $characterIds
      * @return array<int, array<string, mixed>>
      */
-    private function upcomingAssignmentRuns(array $characterIds, CarbonImmutable $now): array
+    private function assignmentRuns(array $characterIds): array
     {
         if ($characterIds === []) {
             return [];
@@ -117,13 +114,11 @@ final class HomeActivityOverviewDataService
                 ActivitySlotAssignment::STATUS_CHECKED_IN,
                 ActivitySlotAssignment::STATUS_LATE,
             ])
-            ->whereNotIn('activities.status', Activity::ARCHIVED_STATUSES)
             ->whereNotNull('activities.starts_at')
-            ->where('activities.starts_at', '>=', $now)
-            ->orderBy('activities.starts_at')
-            ->limit(20)
+            ->orderByDesc('activities.starts_at')
+            ->limit(40)
             ->get()
-            ->map(fn (ActivitySlotAssignment $assignment) => $this->serializeUpcomingActivity(
+            ->map(fn (ActivitySlotAssignment $assignment) => $this->serializeUserActivity(
                 $assignment->activity,
                 'confirmed',
             ))
@@ -136,7 +131,7 @@ final class HomeActivityOverviewDataService
      * @param  array<int, int>  $characterIds
      * @return array<int, array<string, mixed>>
      */
-    private function upcomingCurrentSlotRuns(array $characterIds, CarbonImmutable $now): array
+    private function currentSlotRuns(array $characterIds): array
     {
         if ($characterIds === []) {
             return [];
@@ -145,13 +140,11 @@ final class HomeActivityOverviewDataService
         return Activity::query()
             ->with(['group', 'activityTypeVersion'])
             ->whereHas('slots', fn ($query) => $query->whereIn('assigned_character_id', $characterIds))
-            ->whereNotIn('status', Activity::ARCHIVED_STATUSES)
             ->whereNotNull('starts_at')
-            ->where('starts_at', '>=', $now)
-            ->orderBy('starts_at')
-            ->limit(20)
+            ->orderByDesc('starts_at')
+            ->limit(40)
             ->get()
-            ->map(fn (Activity $activity) => $this->serializeUpcomingActivity($activity, 'confirmed'))
+            ->map(fn (Activity $activity) => $this->serializeUserActivity($activity, 'confirmed'))
             ->values()
             ->all();
     }
@@ -159,21 +152,23 @@ final class HomeActivityOverviewDataService
     /**
      * @return array<string, mixed>|null
      */
-    private function serializeUpcomingActivity(?Activity $activity, string $statusKey): ?array
+    private function serializeUserActivity(?Activity $activity, string $participationStatusKey): ?array
     {
         if (! $activity) {
             return null;
         }
 
+        $status = $this->runDisplayStatus($activity, $participationStatusKey);
+
         return [
-            'id' => sprintf('activity:%d:%s', $activity->id, $statusKey),
+            'id' => sprintf('activity:%d:%s', $activity->id, $status['key']),
             'activity_id' => $activity->id,
             'title' => $activity->title,
             'activity_type_name' => $activity->activityTypeVersion?->name,
             'image_url' => $this->activityImageUrl($activity),
             'starts_at' => $activity->starts_at?->toIso8601String(),
-            'status_key' => $statusKey,
-            'status_color' => $statusKey === 'benched' ? 'warning' : 'success',
+            'status_key' => $status['key'],
+            'status_color' => $status['color'],
             'group' => [
                 'name' => $activity->group?->name,
                 'slug' => $activity->group?->slug,
@@ -183,6 +178,21 @@ final class HomeActivityOverviewDataService
             'difficulty' => $activity->activityTypeVersion?->difficulty,
             'href' => $this->activityOverviewUrl($activity),
         ];
+    }
+
+    /**
+     * @return array{key: string, color: string}
+     */
+    private function runDisplayStatus(Activity $activity, string $participationStatusKey): array
+    {
+        return match ($activity->status) {
+            Activity::STATUS_COMPLETE => ['key' => 'completed', 'color' => 'success'],
+            Activity::STATUS_CANCELLED => ['key' => 'cancelled', 'color' => 'neutral'],
+            Activity::STATUS_ONGOING => ['key' => 'ongoing', 'color' => 'primary'],
+            default => $participationStatusKey === 'benched'
+                ? ['key' => 'benched', 'color' => 'warning']
+                : ['key' => 'confirmed', 'color' => 'success'],
+        };
     }
 
     /**

@@ -283,6 +283,14 @@ const showAccountCompletionBadge = computed(() => (
 		&& !isAccountCompletionChecklistCelebrating.value
 		&& !isAccountCompletionAnimating.value
 ))
+const shouldRenderAccountCompletionBadgeTarget = computed(() => (
+	!isAccountCompletionLoading.value
+		&& (isAccountSetupComplete.value || isAccountCompletionAnimating.value)
+))
+const shouldShowAccountCompletionPanel = computed(() => (
+	!isAccountCompletionLoading.value
+		&& !showAccountCompletionBadge.value
+))
 const accountCompletionTaskRoutes: Record<string, string> = {
 	verified_character: route("account.characters"),
 	primary_character: route("account.characters"),
@@ -645,7 +653,7 @@ onBeforeUnmount(() => {
 									{{ selectedCharacter.name }}
 								</h1>
 								<span
-									v-if="isAccountSetupComplete || isAccountCompletionAnimating"
+									v-if="shouldRenderAccountCompletionBadgeTarget"
 									ref="accountCompletionBadgeTarget"
 									class="absolute -right-1 top-0 flex h-5 w-5 items-center justify-center"
 								>
@@ -721,22 +729,8 @@ onBeforeUnmount(() => {
 					</div>
 
 					<div class="m-6 flex w-auto max-w-xs flex-col gap-3 self-start">
-						<div
-							v-if="isHomeBannerDetailsLoading"
-							class="border border-white/10 bg-neutral-950/45 p-4 shadow-xl shadow-neutral-950/30 backdrop-blur"
-						>
-							<USkeleton class="h-4 w-28" />
-							<div class="mt-3 flex items-center justify-between gap-3">
-								<div class="min-w-0 flex-1 space-y-2">
-									<USkeleton class="h-4 w-40" />
-									<USkeleton class="h-3 w-24" />
-								</div>
-								<USkeleton class="h-4 w-4 shrink-0" />
-							</div>
-						</div>
-
 						<button
-							v-else-if="nextRunWithinSixHours"
+							v-if="nextRunWithinSixHours"
 							type="button"
 							class="border border-white/10 bg-neutral-950/45 p-4 text-left shadow-xl shadow-neutral-950/30 backdrop-blur transition hover:border-violet-300/40 hover:bg-neutral-950/60"
 							@click="openNextRun"
@@ -755,7 +749,7 @@ onBeforeUnmount(() => {
 						</button>
 
 						<div
-							v-if="!showAccountCompletionBadge"
+							v-if="shouldShowAccountCompletionPanel"
 							ref="accountCompletionPanel"
 							class="border border-white/10 bg-neutral-950/45 shadow-xl shadow-neutral-950/30 backdrop-blur transition duration-300"
 							:class="{
@@ -773,11 +767,7 @@ onBeforeUnmount(() => {
 									<p class="text-sm font-medium text-neutral-200">
 										{{ t('dashboard.account_status.title') }}
 									</p>
-									<USkeleton
-										v-if="isAccountCompletionLoading"
-										class="mt-2 h-3 w-20"
-									/>
-									<p v-else class="mt-1 text-xs text-neutral-400">
+									<p class="mt-1 text-xs text-neutral-400">
 										{{ t('dashboard.account_status.percent_ready', { percent: displayedAccountChecklistPercent }) }}
 									</p>
 								</div>
@@ -799,22 +789,7 @@ onBeforeUnmount(() => {
 									/>
 								</div>
 
-								<div
-									v-if="isAccountCompletionLoading"
-									class="flex flex-col gap-2"
-								>
-									<div
-										v-for="index in 6"
-										:key="`account-completion-skeleton-${index}`"
-										class="flex items-center gap-3 text-sm"
-									>
-										<USkeleton class="h-4 w-4 shrink-0" />
-										<USkeleton class="h-4 min-w-0 flex-1" />
-										<USkeleton class="h-3 w-16 shrink-0" />
-									</div>
-								</div>
-
-								<div v-else class="flex flex-col gap-2">
+								<div class="flex flex-col gap-2">
 									<button
 										v-for="item in displayedAccountChecklistItems"
 										:key="item.key"

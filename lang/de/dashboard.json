@@ -142,14 +142,17 @@
     }
   },
   "home_sections": {
-    "upcoming": {
-      "title": "Kommende Runs",
-      "subtitle": "Runs, in denen du aktuell eingeplant bist.",
-      "empty": "Noch keine kommenden Runs.",
+    "runs": {
+      "title": "Deine Runs",
+      "subtitle": "Runs, in denen du bist, nach Run-Datum sortiert.",
+      "empty": "Noch keine Runs.",
       "statuses": {
         "confirmed": "Bestätigt",
         "benched": "Bank",
-        "pending": "Ausstehend"
+        "pending": "Ausstehend",
+        "ongoing": "Läuft",
+        "completed": "Abgeschlossen",
+        "cancelled": "Abgesagt"
       }
     },
     "applications": {

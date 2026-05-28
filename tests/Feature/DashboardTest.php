@@ -234,10 +234,12 @@ it('renders the home banner eagerly and loads home activity data as deferred pro
                     && collect($weeks)->sum('count') >= 1)
             )
             ->loadDeferredProps('home-activity-overview', fn (Assert $page) => $page
-                ->has('homeActivityOverview.upcoming_runs', 1)
-                ->where('homeActivityOverview.upcoming_runs.0.activity_id', $approvedActivity->id)
-                ->where('homeActivityOverview.upcoming_runs.0.status_key', 'confirmed')
-                ->where('homeActivityOverview.upcoming_runs.0.activity_type_name.en', 'Criterion Night')
+                ->has('homeActivityOverview.runs', 2)
+                ->where('homeActivityOverview.runs.0.activity_id', $approvedActivity->id)
+                ->where('homeActivityOverview.runs.0.status_key', 'confirmed')
+                ->where('homeActivityOverview.runs.0.activity_type_name.en', 'Criterion Night')
+                ->where('homeActivityOverview.runs.1.activity_id', $completeActivity->id)
+                ->where('homeActivityOverview.runs.1.status_key', 'completed')
                 ->has('homeActivityOverview.applications', 3)
                 ->where('homeActivityOverview.applications.0.id', $pendingApplication->id)
                 ->where('homeActivityOverview.applications.0.status_key', 'pending')
@@ -334,9 +336,9 @@ it('shows the next run blob for a manual roster assignment', function () {
                 ->where('homeBannerDetails.next_run.group.slug', $group->slug)
             )
             ->loadDeferredProps('home-activity-overview', fn (Assert $page) => $page
-                ->has('homeActivityOverview.upcoming_runs', 1)
-                ->where('homeActivityOverview.upcoming_runs.0.activity_id', $activity->id)
-                ->where('homeActivityOverview.upcoming_runs.0.status_key', 'confirmed')
+                ->has('homeActivityOverview.runs', 1)
+                ->where('homeActivityOverview.runs.0.activity_id', $activity->id)
+                ->where('homeActivityOverview.runs.0.status_key', 'confirmed')
             )
         );
 });

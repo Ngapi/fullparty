@@ -142,14 +142,17 @@
     }
   },
   "home_sections": {
-    "upcoming": {
-      "title": "Upcoming Runs",
-      "subtitle": "Runs you are currently placed in.",
-      "empty": "No upcoming runs yet.",
+    "runs": {
+      "title": "Your Runs",
+      "subtitle": "Runs you are in, sorted by run date.",
+      "empty": "No runs yet.",
       "statuses": {
         "confirmed": "Confirmed",
         "benched": "Benched",
-        "pending": "Pending"
+        "pending": "Pending",
+        "ongoing": "Ongoing",
+        "completed": "Completed",
+        "cancelled": "Cancelled"
       }
     },
     "applications": {

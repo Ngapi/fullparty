@@ -178,7 +178,7 @@ export type DashboardActivityOverviewGroup = {
 }
 
 export type DashboardActivityOverview = {
-	upcoming_runs: DashboardActivityOverviewRun[]
+	runs: DashboardActivityOverviewRun[]
 	applications: DashboardActivityOverviewApplication[]
 	groups: DashboardActivityOverviewGroup[]
 	notifications: NotificationRecord[]

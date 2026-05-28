@@ -142,14 +142,17 @@
     }
   },
   "home_sections": {
-    "upcoming": {
-      "title": "Runs à venir",
-      "subtitle": "Runs où vous êtes actuellement placé.",
-      "empty": "Aucun run à venir pour l'instant.",
+    "runs": {
+      "title": "Vos runs",
+      "subtitle": "Runs où vous êtes inscrit, triés par date.",
+      "empty": "Aucun run pour l'instant.",
       "statuses": {
         "confirmed": "Confirmé",
         "benched": "Remplaçant",
-        "pending": "En attente"
+        "pending": "En attente",
+        "ongoing": "En cours",
+        "completed": "Terminé",
+        "cancelled": "Annulé"
       }
     },
     "applications": {
