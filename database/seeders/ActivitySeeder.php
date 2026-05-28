@@ -56,12 +56,8 @@ class ActivitySeeder extends Seeder
             ->get()
             ->keyBy('slug');
 
-        $forkedTower = $activityTypes->get('forked-tower');
-        $chaotic = $activityTypes->get('cloud-of-darkness-chaotic');
-        $savage = $activityTypes->get('savage-raids');
-
-        if (! $forkedTower?->currentPublishedVersion || ! $chaotic?->currentPublishedVersion || ! $savage?->currentPublishedVersion) {
-            throw new RuntimeException('Expected published activity types for forked tower, chaotic, and savage.');
+        if ($activityTypes->isEmpty()) {
+            throw new RuntimeException('Expected published activity types before seeding activities.');
         }
 
         $characterClasses = CharacterClass::query()->get()->keyBy('id');
@@ -70,11 +66,16 @@ class ActivitySeeder extends Seeder
         );
         $phantomJobs = PhantomJob::query()->get()->keyBy('id');
 
-        $activityTypeContexts = [
-            'forked-tower' => $this->buildActivityTypeContext($forkedTower, $characterClassesByShorthand),
-            'cloud-of-darkness-chaotic' => $this->buildActivityTypeContext($chaotic, $characterClassesByShorthand),
-            'savage-raids' => $this->buildActivityTypeContext($savage, $characterClassesByShorthand),
-        ];
+        $activityTypeContexts = $activityTypes
+            ->filter(fn (ActivityType $activityType): bool => $activityType->currentPublishedVersion !== null)
+            ->mapWithKeys(fn (ActivityType $activityType): array => [
+                $activityType->slug => $this->buildActivityTypeContext($activityType, $characterClassesByShorthand),
+            ])
+            ->all();
+
+        if ($activityTypeContexts === []) {
+            throw new RuntimeException('Expected published activity type versions before seeding activities.');
+        }
 
         $characterLoadouts = $this->ensureCharacterLoadouts(
             $groups
@@ -128,19 +129,17 @@ class ActivitySeeder extends Seeder
             $futureActivityCount = $totalActivityCount - $historicalActivityCount;
 
             foreach (range(1, $futureActivityCount) as $activityIndex) {
-                $context = $group->slug === 'ftel'
-                    ? $activityTypeContexts['forked-tower']
-                    : $this->pickActivityTypeContext($activityTypeContexts);
+                $context = $this->pickGroupActivityTypeContext($activityTypeContexts, $group);
 
                 /** @var GroupMembership $organizerMembership */
                 $organizerMembership = $organizerPool->random();
                 $organizer = $organizerMembership->user;
                 $startsAt = $this->futureStartsAt($activityIndex);
                 $runStyle = $this->seededRunStyle($context['activity_type']->slug, false);
-                $intensity = $this->seededIntensity($context['activity_type']->slug, $runStyle, false);
+                $intensity = $this->seededIntensity($context, $runStyle, false);
                 $beginnerFriendly = $this->seededBeginnerFriendly($runStyle, $intensity, false);
                 $durationHours = $this->seededDurationHours($runStyle);
-                $minItemLevel = $this->seededMinimumItemLevel($context['activity_type']->slug, $runStyle, $intensity);
+                $minItemLevel = $this->seededMinimumItemLevel($context, $runStyle, $intensity);
                 $allowGuestApplications = $this->seededGuestApplicationsAllowed($group, $runStyle, false);
                 $status = $this->resolveFutureStatus($startsAt);
                 $slotGroups = $context['layout_groups'];
@@ -155,7 +154,7 @@ class ActivitySeeder extends Seeder
                     'organized_by_user_id' => $organizer->id,
                     'organized_by_character_id' => $organizer->primaryCharacter->id,
                     'status' => $status,
-                    'title' => $this->activityTitleForType($context['activity_type']->slug),
+                    'title' => $this->activityTitleForType($context),
                     'description' => fake()->sentence(),
                     'notes' => fake()->boolean(35) ? fake()->paragraph() : null,
                     'starts_at' => $startsAt,
@@ -197,19 +196,17 @@ class ActivitySeeder extends Seeder
             }
 
             foreach (range(1, $historicalActivityCount) as $activityIndex) {
-                $context = $group->slug === 'ftel'
-                    ? $activityTypeContexts['forked-tower']
-                    : $this->pickActivityTypeContext($activityTypeContexts);
+                $context = $this->pickGroupActivityTypeContext($activityTypeContexts, $group);
 
                 /** @var GroupMembership $organizerMembership */
                 $organizerMembership = $organizerPool->random();
                 $organizer = $organizerMembership->user;
                 $startsAt = $this->historicalStartsAt($referenceDate, $activityIndex);
                 $runStyle = $this->seededRunStyle($context['activity_type']->slug, true);
-                $intensity = $this->seededIntensity($context['activity_type']->slug, $runStyle, true);
+                $intensity = $this->seededIntensity($context, $runStyle, true);
                 $beginnerFriendly = $this->seededBeginnerFriendly($runStyle, $intensity, true);
                 $durationHours = $this->seededDurationHours($runStyle);
-                $minItemLevel = $this->seededMinimumItemLevel($context['activity_type']->slug, $runStyle, $intensity);
+                $minItemLevel = $this->seededMinimumItemLevel($context, $runStyle, $intensity);
                 $slotGroups = $context['layout_groups'];
                 $minAssignedSlots = $this->historicalMinimumAssignedSlotCount($slotGroups);
                 $maxAssignedSlots = $this->historicalMaximumAssignedSlotCount($slotGroups, $minAssignedSlots);
@@ -228,7 +225,7 @@ class ActivitySeeder extends Seeder
                     'organized_by_user_id' => $organizer->id,
                     'organized_by_character_id' => $organizer->primaryCharacter->id,
                     'status' => Activity::STATUS_COMPLETE,
-                    'title' => $this->historicalActivityTitleForType($context['activity_type']->slug),
+                    'title' => $this->historicalActivityTitleForType($context),
                     'description' => fake()->sentence(),
                     'notes' => fake()->boolean(30) ? fake()->paragraph() : null,
                     'starts_at' => $startsAt,
@@ -1023,22 +1020,25 @@ class ActivitySeeder extends Seeder
     }
 
     /**
-     * @param  array<string, mixed>  $context
+     * @param  array<string, array<string, mixed>>  $context
      * @return array<string, mixed>
      */
     private function pickActivityTypeContext(array $context): array
     {
-        $roll = fake()->numberBetween(1, 100);
+        return fake()->randomElement(array_values($context));
+    }
 
-        if ($roll <= 60) {
-            return $context['savage-raids'];
+    /**
+     * @param  array<string, array<string, mixed>>  $context
+     * @return array<string, mixed>
+     */
+    private function pickGroupActivityTypeContext(array $context, Group $group): array
+    {
+        if ($group->slug === 'ftel' && isset($context['forked-tower'])) {
+            return $context['forked-tower'];
         }
 
-        if ($roll <= 80) {
-            return $context['cloud-of-darkness-chaotic'];
-        }
-
-        return $context['forked-tower'];
+        return $this->pickActivityTypeContext($context);
     }
 
     /**
@@ -1393,8 +1393,13 @@ class ActivitySeeder extends Seeder
         return fake()->randomElement($weightedStyles);
     }
 
-    private function seededIntensity(string $slug, string $runStyle, bool $isHistorical): string
+    /**
+     * @param  array<string, mixed>  $context
+     */
+    private function seededIntensity(array $context, string $runStyle, bool $isHistorical): string
     {
+        $slug = (string) $context['activity_type']->slug;
+        $difficulty = (string) ($context['version']->difficulty ?? ActivityType::DIFFICULTY_NORMAL);
         $weightedIntensities = match ($runStyle) {
             Activity::RUN_STYLE_BLIND,
             Activity::RUN_STYLE_SPEEDRUN => [
@@ -1426,7 +1431,10 @@ class ActivitySeeder extends Seeder
             ],
         };
 
-        if (! $isHistorical && in_array($slug, ['forked-tower', 'savage-raids'], true)) {
+        if (! $isHistorical && ($slug === 'forked-tower' || in_array($difficulty, [
+            ActivityType::DIFFICULTY_SAVAGE,
+            ActivityType::DIFFICULTY_ULTIMATE,
+        ], true))) {
             $weightedIntensities[] = Activity::INTENSITY_MIDCORE;
             $weightedIntensities[] = Activity::INTENSITY_HARDCORE;
         }
@@ -1467,7 +1475,10 @@ class ActivitySeeder extends Seeder
         });
     }
 
-    private function seededMinimumItemLevel(string $slug, string $runStyle, string $intensity): ?int
+    /**
+     * @param  array<string, mixed>  $context
+     */
+    private function seededMinimumItemLevel(array $context, string $runStyle, string $intensity): ?int
     {
         if ($runStyle === Activity::RUN_STYLE_PRACTICE && fake()->boolean(65)) {
             return null;
@@ -1480,6 +1491,19 @@ class ActivitySeeder extends Seeder
         if (fake()->boolean(35)) {
             return null;
         }
+
+        $defaultItemLevel = (int) ($context['version']->default_min_item_level ?? 0);
+
+        if ($defaultItemLevel > 0) {
+            return fake()->randomElement([
+                $defaultItemLevel,
+                $defaultItemLevel,
+                $defaultItemLevel + 5,
+                $defaultItemLevel + 10,
+            ]);
+        }
+
+        $slug = (string) $context['activity_type']->slug;
 
         return fake()->randomElement(match ($slug) {
             'forked-tower' => [720, 725, 730, 735],
@@ -1526,8 +1550,14 @@ class ActivitySeeder extends Seeder
         return [$hour, fake()->randomElement([0, 15, 30, 45])];
     }
 
-    private function activityTitleForType(string $slug): string
+    /**
+     * @param  array<string, mixed>  $context
+     */
+    private function activityTitleForType(array $context): string
     {
+        $slug = (string) $context['activity_type']->slug;
+        $activityTypeName = $this->activityTypeDisplayName($context);
+
         return match ($slug) {
             'forked-tower' => fake()->randomElement([
                 'Forked Tower Weekly Clear',
@@ -1543,16 +1573,22 @@ class ActivitySeeder extends Seeder
                 'Alliance Night Pulls',
             ]),
             default => fake()->randomElement([
-                'Savage Weekly Reclear',
-                'Savage Prog Night',
-                'Savage Alt Run',
-                'Savage Static Fill',
+                "{$activityTypeName} Weekly Reclear",
+                "{$activityTypeName} Prog Night",
+                "{$activityTypeName} Alt Run",
+                "{$activityTypeName} Static Fill",
             ]),
         };
     }
 
-    private function historicalActivityTitleForType(string $slug): string
+    /**
+     * @param  array<string, mixed>  $context
+     */
+    private function historicalActivityTitleForType(array $context): string
     {
+        $slug = (string) $context['activity_type']->slug;
+        $activityTypeName = $this->activityTypeDisplayName($context);
+
         return match ($slug) {
             'forked-tower' => fake()->randomElement([
                 'Forked Tower Reclear Night',
@@ -1566,11 +1602,25 @@ class ActivitySeeder extends Seeder
                 'Chaotic Reclear Night',
             ]),
             default => fake()->randomElement([
-                'Savage Reclear Archive',
-                'Savage Historical Farm',
-                'Savage Weekly Log Run',
+                "{$activityTypeName} Reclear Archive",
+                "{$activityTypeName} Historical Farm",
+                "{$activityTypeName} Weekly Log Run",
             ]),
         };
+    }
+
+    /**
+     * @param  array<string, mixed>  $context
+     */
+    private function activityTypeDisplayName(array $context): string
+    {
+        $name = $context['version']->name ?? null;
+
+        if (is_array($name)) {
+            return (string) ($name['en'] ?? reset($name) ?: $context['activity_type']->slug);
+        }
+
+        return (string) ($name ?: $context['activity_type']->slug);
     }
 
     /**

@@ -3,6 +3,7 @@
 use App\Models\Activity;
 use App\Models\ActivityApplication;
 use App\Models\ActivitySlot;
+use App\Models\ActivityTag;
 use App\Models\ActivityType;
 use App\Models\Character;
 use App\Models\CharacterClass;
@@ -178,6 +179,48 @@ it('returns matching discoverable run ids for the filter payload', function () {
         ->not->toEndWith('.svg');
 
     Storage::disk('public')->assertExists(str_replace('storage/', '', $imagePath));
+});
+
+it('matches discoverable runs by activity tags', function () {
+    $viewer = User::factory()->create();
+
+    $activityType = createRunDiscoveryActivityType([
+        'slug' => 'aac-light-heavyweight-m4-savage',
+        'draft_name' => ['en' => 'AAC Light-heavyweight M4 (Savage)'],
+    ]);
+    $activityType->tags()->attach(ActivityTag::query()->create(['name' => 'M4S']));
+
+    $group = Group::factory()
+        ->open()
+        ->create([
+            'datacenter' => 'Light',
+            'group_type' => Group::TYPE_COMMUNITY,
+            'preferred_languages' => ['en'],
+        ]);
+
+    $activity = Activity::factory()->create([
+        'group_id' => $group->id,
+        'activity_type_id' => $activityType->id,
+        'activity_type_version_id' => $activityType->current_published_version_id,
+        'status' => Activity::STATUS_SCHEDULED,
+        'title' => 'Late Night Prog',
+        'starts_at' => now()->addWeek()->startOfWeek()->addDays(2)->setTime(20, 0),
+        'datacenter' => 'Light',
+        'is_public' => true,
+        'needs_application' => true,
+    ]);
+
+    $this->actingAs($viewer)
+        ->getJson(route('dashboard.runs.discover', [
+            'query' => 'M4S',
+            'timezone' => 'Europe/London',
+            'date_range' => 'next_week',
+            'group_type' => Group::TYPE_COMMUNITY,
+        ]))
+        ->assertOk()
+        ->assertJsonPath('ids', [$activity->id])
+        ->assertJsonPath('items.0.title', 'Late Night Prog')
+        ->assertJsonPath('items.0.activity_type_name', 'AAC Light-heavyweight M4 (Savage)');
 });
 
 it('treats melee-style role hints as dps slots in discovery', function () {

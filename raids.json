@@ -1,0 +1,1023 @@
+{
+  "Pandemonium": [
+    {
+      "Name": "Asphodelos: The First Circle (Savage)",
+      "image_url": "https://ffxiv.consolegameswiki.com/mediawiki/images/thumb/3/35/Asphodelos_The_First_Circle_%28Savage%29.png/280px-Asphodelos_The_First_Circle_%28Savage%29.png",
+      "tags": "P1S",
+      "min_ilvl": 570,
+      "description": "A heightened retelling of the battle with Erichthonios at the Gates of Pandaemonium, shaped by Nemjiji's enthusiastic embellishments.",
+      "slug": "asphodelos-the-first-circle-savage",
+      "fflogs_zone_id": 44,
+      "fflogs_encounters": [
+        {
+          "key": "p1s",
+          "name": "Erichthonios",
+          "encounter_id": 78
+        }
+      ]
+    },
+    {
+      "Name": "Asphodelos: The Second Circle (Savage)",
+      "image_url": "https://ffxiv.consolegameswiki.com/mediawiki/images/thumb/e/e3/Asphodelos_The_Second_Circle_%28Savage%29.png/280px-Asphodelos_The_Second_Circle_%28Savage%29.png",
+      "tags": "P2S",
+      "min_ilvl": 575,
+      "description": "An exaggerated recounting of the fight against Hippokampos, with Nemjiji adding dramatic flair to the original encounter.",
+      "slug": "asphodelos-the-second-circle-savage",
+      "fflogs_zone_id": 44,
+      "fflogs_encounters": [
+        {
+          "key": "p2s",
+          "name": "Hippokampos",
+          "encounter_id": 79
+        }
+      ]
+    },
+    {
+      "Name": "Asphodelos: The Third Circle (Savage)",
+      "image_url": "https://ffxiv.consolegameswiki.com/mediawiki/images/thumb/6/6a/Asphodelos_The_Third_Circle_%28Savage%29.png/280px-Asphodelos_The_Third_Circle_%28Savage%29.png",
+      "tags": "P3S",
+      "min_ilvl": 580,
+      "description": "A fiery embellished version of the clash with the Phoinix, born from Nemjiji's frenzied account of the battle.",
+      "slug": "asphodelos-the-third-circle-savage",
+      "fflogs_zone_id": 44,
+      "fflogs_encounters": [
+        {
+          "key": "p3s",
+          "name": "Phoinix",
+          "encounter_id": 80
+        }
+      ]
+    },
+    {
+      "Name": "Asphodelos: The Fourth Circle (Savage)",
+      "image_url": "https://ffxiv.consolegameswiki.com/mediawiki/images/thumb/2/2f/Asphodelos_The_Fourth_Circle_%28Savage%29.png/280px-Asphodelos_The_Fourth_Circle_%28Savage%29.png",
+      "tags": "P4S",
+      "min_ilvl": 580,
+      "description": "The dramatic conclusion of Asphodelos, retelling the confrontation with Hesperos through Nemjiji's increasingly excitable lens.",
+      "slug": "asphodelos-the-fourth-circle-savage",
+      "fflogs_zone_id": 44,
+      "fflogs_encounters": [
+        {
+          "key": "hesperos",
+          "name": "Hesperos",
+          "encounter_id": 81
+        },
+        {
+          "key": "hesperos2",
+          "name": "Hesperos II",
+          "encounter_id": 82
+        }
+      ]
+    },
+    {
+      "Name": "Abyssos: The Fifth Circle (Savage)",
+      "image_url": "https://ffxiv.consolegameswiki.com/mediawiki/images/thumb/5/5d/Abyssos_The_Fifth_Circle_%28Savage%29.png/280px-Abyssos_The_Fifth_Circle_%28Savage%29.png",
+      "tags": "P5S",
+      "min_ilvl": 600,
+      "description": "A more fantastical account of the battle with Proto-Carbuncle, colored by Nemjiji's fascination with mythic creations.",
+      "slug": "abyssos-the-fifth-circle-savage",
+      "fflogs_zone_id": 49,
+      "fflogs_encounters": [
+        {
+          "key": "p5s",
+          "name": "Proto-Carbuncle",
+          "encounter_id": 83
+        }
+      ]
+    },
+    {
+      "Name": "Abyssos: The Sixth Circle (Savage)",
+      "image_url": "https://ffxiv.consolegameswiki.com/mediawiki/images/thumb/a/a5/Abyssos_The_Sixth_Circle_%28Savage%29.png/280px-Abyssos_The_Sixth_Circle_%28Savage%29.png",
+      "tags": "P6S",
+      "min_ilvl": 605,
+      "description": "An animated retelling of the battle with Hegemone, made more vivid by Nemjiji's dramatic interpretation.",
+      "slug": "abyssos-the-sixth-circle-savage",
+      "fflogs_zone_id": 49,
+      "fflogs_encounters": [
+        {
+          "key": "p6s",
+          "name": "Hegemone",
+          "encounter_id": 84
+        }
+      ]
+    },
+    {
+      "Name": "Abyssos: The Seventh Circle (Savage)",
+      "image_url": "https://ffxiv.consolegameswiki.com/mediawiki/images/thumb/6/65/Abyssos_The_Seventh_Circle_%28Savage%29.png/280px-Abyssos_The_Seventh_Circle_%28Savage%29.png",
+      "tags": "P7S",
+      "min_ilvl": 610,
+      "description": "A legendary retelling of Agdistis's fall, with Nemjiji blending scientific notes and embellishments into the account.",
+      "slug": "abyssos-the-seventh-circle-savage",
+      "fflogs_zone_id": 49,
+      "fflogs_encounters": [
+        {
+          "key": "p7s",
+          "name": "Agdistis",
+          "encounter_id": 85
+        }
+      ]
+    },
+    {
+      "Name": "Abyssos: The Eighth Circle (Savage)",
+      "image_url": "https://ffxiv.consolegameswiki.com/mediawiki/images/thumb/6/65/Abyssos_The_Eighth_Circle_%28Savage%29.png/280px-Abyssos_The_Eighth_Circle_%28Savage%29.png",
+      "tags": "P8S",
+      "min_ilvl": 610,
+      "description": "The conclusion of Abyssos, reimagined through Nemjiji's theories after Pandæmonium drifts into the modern age.",
+      "slug": "abyssos-the-eighth-circle-savage",
+      "fflogs_zone_id": 49,
+      "fflogs_encounters": [
+        {
+          "key": "hephaistos",
+          "name": "Hephaistos",
+          "encounter_id": 86
+        },
+        {
+          "key": "hephaistos2",
+          "name": "Hephaistos II",
+          "encounter_id": 87
+        }
+      ]
+    },
+    {
+      "Name": "Anabaseios: The Ninth Circle (Savage)",
+      "image_url": "https://ffxiv.consolegameswiki.com/mediawiki/images/thumb/7/7a/Anabaseios_The_Ninth_Circle_%28Savage%29.png/280px-Anabaseios_The_Ninth_Circle_%28Savage%29.png",
+      "tags": "P9S",
+      "min_ilvl": 630,
+      "description": "A theoretical retelling of the battle with Kokytos, sparked by renewed research into the Heart of Sabik.",
+      "slug": "anabaseios-the-ninth-circle-savage",
+      "fflogs_zone_id": 54,
+      "fflogs_encounters": [
+        {
+          "key": "p9s",
+          "name": "Kokytos",
+          "encounter_id": 88
+        }
+      ]
+    },
+    {
+      "Name": "Anabaseios: The Tenth Circle (Savage)",
+      "image_url": "https://ffxiv.consolegameswiki.com/mediawiki/images/thumb/9/9a/Anabaseios_The_Tenth_Circle_%28Savage%29.png/280px-Anabaseios_The_Tenth_Circle_%28Savage%29.png",
+      "tags": "P10S",
+      "min_ilvl": 635,
+      "description": "A dramatic account of the battle with Pandæmonium itself, exploring the strange idea of a living prison.",
+      "slug": "anabaseios-the-tenth-circle-savage",
+      "fflogs_zone_id": 54,
+      "fflogs_encounters": [
+        {
+          "key": "p10s",
+          "name": "Pandaemonium",
+          "encounter_id": 89
+        }
+      ]
+    },
+    {
+      "Name": "Anabaseios: The Eleventh Circle (Savage)",
+      "image_url": "https://ffxiv.consolegameswiki.com/mediawiki/images/thumb/4/45/Anabaseios_The_Eleventh_Circle_%28Savage%29.png/280px-Anabaseios_The_Eleventh_Circle_%28Savage%29.png",
+      "tags": "P11S",
+      "min_ilvl": 640,
+      "description": "A tragic and embellished retelling of the battle with Themis, framed as a tale of friendship, manipulation, and triumph.",
+      "slug": "anabaseios-the-eleventh-circle-savage",
+      "fflogs_zone_id": 54,
+      "fflogs_encounters": [
+        {
+          "key": "p11s",
+          "name": "Themis",
+          "encounter_id": 90
+        }
+      ]
+    },
+    {
+      "Name": "Anabaseios: The Twelfth Circle (Savage)",
+      "image_url": "https://ffxiv.consolegameswiki.com/mediawiki/images/thumb/3/30/Anabaseios_The_Twelfth_Circle_%28Savage%29.png/280px-Anabaseios_The_Twelfth_Circle_%28Savage%29.png",
+      "tags": "P12S",
+      "min_ilvl": 640,
+      "description": "The final Savage battle of Pandæmonium, reimagining the confrontation with Athena through Nemjiji's boundless imagination.",
+      "slug": "anabaseios-the-twelfth-circle-savage",
+      "fflogs_zone_id": 54,
+      "fflogs_encounters": [
+        {
+          "key": "athena",
+          "name": "Athena",
+          "encounter_id": 91
+        },
+        {
+          "key": "pallas-athena",
+          "name": "Pallas Athena",
+          "encounter_id": 92
+        }
+      ]
+    }
+  ],
+  "Eden": [
+    {
+      "Name": "Eden's Gate: Resurrection (Savage)",
+      "image_url": "https://ffxiv.consolegameswiki.com/mediawiki/images/thumb/d/d6/Eden%27s_Gate-_Resurrection_%28Savage%29.png/280px-Eden%27s_Gate-_Resurrection_%28Savage%29.png",
+      "tags": "E1S",
+      "min_ilvl": 440,
+      "description": "A savage memory from Eden's core, twisting your encounter with Eden Prime into a far more ferocious illusion.",
+      "slug": "edens-gate-resurrection-savage",
+      "fflogs_zone_id": 29,
+      "fflogs_encounters": [
+        {
+          "key": "e1s",
+          "name": "Eden Prime",
+          "encounter_id": 65
+        }
+      ]
+    },
+    {
+      "Name": "Eden's Gate: Descent (Savage)",
+      "image_url": "https://ffxiv.consolegameswiki.com/mediawiki/images/thumb/1/18/Eden%27s_Gate_Descent_%28Savage%29.png/280px-Eden%27s_Gate_Descent_%28Savage%29.png",
+      "tags": "E2S",
+      "min_ilvl": 445,
+      "description": "A more dangerous vision of the battle against Voidwalker, drawn from the distorted memories within Eden's core.",
+      "slug": "edens-gate-descent-savage",
+      "fflogs_zone_id": 29,
+      "fflogs_encounters": [
+        {
+          "key": "e2s",
+          "name": "Voidwalker",
+          "encounter_id": 66
+        }
+      ]
+    },
+    {
+      "Name": "Eden's Gate: Inundation (Savage)",
+      "image_url": "https://ffxiv.consolegameswiki.com/mediawiki/images/thumb/3/32/Eden%27s_Gate_Inundation_%28Savage%29.png/280px-Eden%27s_Gate_Inundation_%28Savage%29.png",
+      "tags": "E3S",
+      "min_ilvl": 450,
+      "description": "A savage illusion of Leviathan, reshaping your memory of the Empty into a deadlier watery trial.",
+      "slug": "edens-gate-inundation-savage",
+      "fflogs_zone_id": 29,
+      "fflogs_encounters": [
+        {
+          "key": "e3s",
+          "name": "Leviathan",
+          "encounter_id": 67
+        }
+      ]
+    },
+    {
+      "Name": "Eden's Gate: Sepulture (Savage)",
+      "image_url": "https://ffxiv.consolegameswiki.com/mediawiki/images/thumb/7/7a/Eden%27s_Gate_Sepulture_%28Savage%29.png/280px-Eden%27s_Gate_Sepulture_%28Savage%29.png",
+      "tags": "E4S",
+      "min_ilvl": 450,
+      "description": "A savage vision of Titan and Titan Maximum, turning your restored memory of earth into a brutal final Gate encounter.",
+      "slug": "edens-gate-sepulture-savage",
+      "fflogs_zone_id": 29,
+      "fflogs_encounters": [
+        {
+          "key": "e4s",
+          "name": "Titan",
+          "encounter_id": 68
+        }
+      ]
+    },
+    {
+      "Name": "Eden's Verse: Fulmination (Savage)",
+      "image_url": "https://ffxiv.consolegameswiki.com/mediawiki/images/thumb/c/c2/Eden%27s_Verse_Fulmination_%28Savage%29.png/280px-Eden%27s_Verse_Fulmination_%28Savage%29.png",
+      "tags": "E5S",
+      "min_ilvl": 470,
+      "description": "A savage crystal vision that revives Ramuh as a more brutal and unrelenting foe.",
+      "slug": "edens-verse-fulmination-savage",
+      "fflogs_zone_id": 33,
+      "fflogs_encounters": [
+        {
+          "key": "e5s",
+          "name": "Ramuh",
+          "encounter_id": 69
+        }
+      ]
+    },
+    {
+      "Name": "Eden's Verse: Furor (Savage)",
+      "image_url": "https://ffxiv.consolegameswiki.com/mediawiki/images/thumb/4/4a/Eden%27s_Verse_Furor_%28Savage%29.png/280px-Eden%27s_Verse_Furor_%28Savage%29.png",
+      "tags": "E6S",
+      "min_ilvl": 475,
+      "description": "A savage retelling of the elemental clash against Garuda and Ifrit, culminating in Raktapaksa.",
+      "slug": "edens-verse-furor-savage",
+      "fflogs_zone_id": 33,
+      "fflogs_encounters": [
+        {
+          "key": "e6s",
+          "name": "Ifrit and Garuda",
+          "encounter_id": 70
+        }
+      ]
+    },
+    {
+      "Name": "Eden's Verse: Iconoclasm (Savage)",
+      "image_url": "https://ffxiv.consolegameswiki.com/mediawiki/images/thumb/c/cd/Eden%27s_Verse_Iconoclasm_%28Savage%29.png/280px-Eden%27s_Verse_Iconoclasm_%28Savage%29.png",
+      "tags": "E7S",
+      "min_ilvl": 480,
+      "description": "A savage manifestation of the Idol of Darkness, rebuilt from Eden's distorted crystal memories.",
+      "slug": "edens-verse-iconoclasm-savage",
+      "fflogs_zone_id": 33,
+      "fflogs_encounters": [
+        {
+          "key": "e7s",
+          "name": "The Idol of Darkness",
+          "encounter_id": 71
+        }
+      ]
+    },
+    {
+      "Name": "Eden's Verse: Refulgence (Savage)",
+      "image_url": "https://ffxiv.consolegameswiki.com/mediawiki/images/thumb/d/d9/Eden%27s_Verse_Refulgence_%28Savage%29.png/280px-Eden%27s_Verse_Refulgence_%28Savage%29.png",
+      "tags": "E8S",
+      "min_ilvl": 480,
+      "description": "A savage vision of Shiva, transforming the memory of ice and light into the climactic battle of Eden's Verse.",
+      "slug": "edens-verse-refulgence-savage",
+      "fflogs_zone_id": 33,
+      "fflogs_encounters": [
+        {
+          "key": "e8s",
+          "name": "Shiva",
+          "encounter_id": 72
+        }
+      ]
+    },
+    {
+      "Name": "Eden's Promise: Umbra (Savage)",
+      "image_url": "https://ffxiv.consolegameswiki.com/mediawiki/images/thumb/7/76/Eden%27s_Promise_Umbra_%28Savage%29.png/280px-Eden%27s_Promise_Umbra_%28Savage%29.png",
+      "tags": "E9S",
+      "min_ilvl": 500,
+      "description": "A perilous distorted memory from the Empty, confronting you with a savage Cloud of Darkness.",
+      "slug": "edens-promise-umbra-savage",
+      "fflogs_zone_id": 38,
+      "fflogs_encounters": [
+        {
+          "key": "e9s",
+          "name": "Cloud of Darkness",
+          "encounter_id": 73
+        }
+      ]
+    },
+    {
+      "Name": "Eden's Promise: Litany (Savage)",
+      "image_url": "https://ffxiv.consolegameswiki.com/mediawiki/images/thumb/2/2d/Eden%27s_Promise_Litany_%28Savage%29.png/280px-Eden%27s_Promise_Litany_%28Savage%29.png",
+      "tags": "E10S",
+      "min_ilvl": 505,
+      "description": "A savage distorted memory of the Shadowkeeper, revisiting the struggle in a far more dangerous form.",
+      "slug": "edens-promise-litany-savage",
+      "fflogs_zone_id": 38,
+      "fflogs_encounters": [
+        {
+          "key": "e10s",
+          "name": "Shadowkeeper",
+          "encounter_id": 74
+        }
+      ]
+    },
+    {
+      "Name": "Eden's Promise: Anamorphosis (Savage)",
+      "image_url": "https://ffxiv.consolegameswiki.com/mediawiki/images/thumb/2/2d/Eden%27s_Promise_Anamorphosis_%28Savage%29.png/280px-Eden%27s_Promise_Anamorphosis_%28Savage%29.png",
+      "tags": "E11S",
+      "min_ilvl": 510,
+      "description": "A savage memory of Fatebreaker, reimagining the battle with elemental power and greater peril.",
+      "slug": "edens-promise-anamorphosis-savage",
+      "fflogs_zone_id": 38,
+      "fflogs_encounters": [
+        {
+          "key": "e11s",
+          "name": "Fatebreaker",
+          "encounter_id": 75
+        }
+      ]
+    },
+    {
+      "Name": "Eden's Promise: Eternity (Savage)",
+      "image_url": "https://ffxiv.consolegameswiki.com/mediawiki/images/thumb/a/a1/Eden%27s_Promise_Eternity_%28Savage%29.png/280px-Eden%27s_Promise_Eternity_%28Savage%29.png",
+      "tags": "E12S",
+      "min_ilvl": 510,
+      "description": "The final savage memory of Eden's Promise, beginning with Eden's Promise and culminating in the Oracle of Darkness.",
+      "slug": "edens-promise-eternity-savage",
+      "fflogs_zone_id": 38,
+      "fflogs_encounters": [
+        {
+          "key": "edens-promise",
+          "name": "Eden's Promise",
+          "encounter_id": 76
+        },
+        {
+          "key": "oracle-of-darkness",
+          "name": "Oracle of Darkness",
+          "encounter_id": 77
+        }
+      ]
+    }
+  ],
+  "Omega": [
+    {
+      "Name": "Deltascape V1.0 (Savage)",
+      "image_url": "https://ffxiv.consolegameswiki.com/wiki/Special:Redirect/file/Deltascape_V1.0_%28Savage%29.png",
+      "tags": "O1S",
+      "min_ilvl": 310,
+      "description": "A Savage Initiative simulation of the first Deltascape trial, turning the battle against Alte Roite into a heightened challenge.",
+      "slug": "deltascape-v10-savage",
+      "fflogs_zone_id": 17,
+      "fflogs_encounters": [
+        {
+          "key": "o1s",
+          "name": "Alte Roite",
+          "encounter_id": 42
+        }
+      ]
+    },
+    {
+      "Name": "Deltascape V2.0 (Savage)",
+      "image_url": "https://ffxiv.consolegameswiki.com/wiki/Special:Redirect/file/Deltascape_V2.0_%28Savage%29.png",
+      "tags": "O2S",
+      "min_ilvl": 315,
+      "description": "A Savage Initiative version of the second Deltascape trial, reimagining Catastrophe as a more punishing opponent.",
+      "slug": "deltascape-v20-savage",
+      "fflogs_zone_id": 17,
+      "fflogs_encounters": [
+        {
+          "key": "o2s",
+          "name": "Catastrophe",
+          "encounter_id": 43
+        }
+      ]
+    },
+    {
+      "Name": "Deltascape V3.0 (Savage)",
+      "image_url": "https://ffxiv.consolegameswiki.com/wiki/Special:Redirect/file/Deltascape_V3.0_%28Savage%29.png",
+      "tags": "O3S",
+      "min_ilvl": 320,
+      "description": "A Savage Initiative version of the third Deltascape trial, amplifying the battle against Halicarnassus.",
+      "slug": "deltascape-v30-savage",
+      "fflogs_zone_id": 17,
+      "fflogs_encounters": [
+        {
+          "key": "o3s",
+          "name": "Halicarnassus",
+          "encounter_id": 44
+        }
+      ]
+    },
+    {
+      "Name": "Deltascape V4.0 (Savage)",
+      "image_url": "https://ffxiv.consolegameswiki.com/wiki/Special:Redirect/file/Deltascape_V4.0_%28Savage%29.png",
+      "tags": "O4S",
+      "min_ilvl": 320,
+      "description": "The Savage Initiative conclusion of Deltascape, beginning with Exdeath and escalating into Neo Exdeath.",
+      "slug": "deltascape-v40-savage",
+      "fflogs_zone_id": 17,
+      "fflogs_encounters": [
+        {
+          "key": "exdeath",
+          "name": "Exdeath",
+          "encounter_id": 45
+        },
+        {
+          "key": "neo-exdeath",
+          "name": "Neo Exdeath",
+          "encounter_id": 46
+        }
+      ]
+    },
+    {
+      "Name": "Sigmascape V1.0 (Savage)",
+      "image_url": "https://ffxiv.consolegameswiki.com/wiki/Special:Redirect/file/Sigmascape_V1.0_%28Savage%29.png",
+      "tags": "O5S",
+      "min_ilvl": 340,
+      "description": "A Savage Initiative version of the first Sigmascape trial, sending you into a deadlier encounter with Phantom Train.",
+      "slug": "sigmascape-v10-savage",
+      "fflogs_zone_id": 21,
+      "fflogs_encounters": [
+        {
+          "key": "o5s",
+          "name": "Phantom Train",
+          "encounter_id": 47
+        }
+      ]
+    },
+    {
+      "Name": "Sigmascape V2.0 (Savage)",
+      "image_url": "https://ffxiv.consolegameswiki.com/wiki/Special:Redirect/file/Sigmascape_V2.0_%28Savage%29.png",
+      "tags": "O6S",
+      "min_ilvl": 345,
+      "description": "A Savage Initiative version of the second Sigmascape trial, intensifying the battle against Demon Chadarnook.",
+      "slug": "sigmascape-v20-savage",
+      "fflogs_zone_id": 21,
+      "fflogs_encounters": [
+        {
+          "key": "o6s",
+          "name": "Demon Chadarnook",
+          "encounter_id": 48
+        }
+      ]
+    },
+    {
+      "Name": "Sigmascape V3.0 (Savage)",
+      "image_url": "https://ffxiv.consolegameswiki.com/wiki/Special:Redirect/file/Sigmascape_V3.0_%28Savage%29.png",
+      "tags": "O7S",
+      "min_ilvl": 350,
+      "description": "A Savage Initiative version of the third Sigmascape trial, reworking Guardian into a more complex test.",
+      "slug": "sigmascape-v30-savage",
+      "fflogs_zone_id": 21,
+      "fflogs_encounters": [
+        {
+          "key": "o7s",
+          "name": "Guardian",
+          "encounter_id": 49
+        }
+      ]
+    },
+    {
+      "Name": "Sigmascape V4.0 (Savage)",
+      "image_url": "https://ffxiv.consolegameswiki.com/wiki/Special:Redirect/file/Sigmascape_V4.0_%28Savage%29.png",
+      "tags": "O8S",
+      "min_ilvl": 350,
+      "description": "The Savage Initiative finale of Sigmascape, beginning with Kefka and culminating in God Kefka.",
+      "slug": "sigmascape-v40-savage",
+      "fflogs_zone_id": 21,
+      "fflogs_encounters": [
+        {
+          "key": "kefka",
+          "name": "Kefka",
+          "encounter_id": 50
+        },
+        {
+          "key": "god-kefka",
+          "name": "God Kefka",
+          "encounter_id": 51
+        }
+      ]
+    },
+    {
+      "Name": "Alphascape V1.0 (Savage)",
+      "image_url": "https://ffxiv.consolegameswiki.com/wiki/Special:Redirect/file/Alphascape_V1.0_%28Savage%29.png",
+      "tags": "O9S",
+      "min_ilvl": 370,
+      "description": "A Savage Initiative version of the first Alphascape trial, turning Chaos into a sharper and more dangerous challenge.",
+      "slug": "alphascape-v10-savage",
+      "fflogs_zone_id": 25,
+      "fflogs_encounters": [
+        {
+          "key": "o9s",
+          "name": "Chaos",
+          "encounter_id": 60
+        }
+      ]
+    },
+    {
+      "Name": "Alphascape V2.0 (Savage)",
+      "image_url": "https://ffxiv.consolegameswiki.com/wiki/Special:Redirect/file/Alphascape_V2.0_%28Savage%29.png",
+      "tags": "O10S",
+      "min_ilvl": 375,
+      "description": "A Savage Initiative version of the second Alphascape trial, reimagining Midgardsormr as a more severe opponent.",
+      "slug": "alphascape-v20-savage",
+      "fflogs_zone_id": 25,
+      "fflogs_encounters": [
+        {
+          "key": "o10s",
+          "name": "Midgardsormr",
+          "encounter_id": 61
+        }
+      ]
+    },
+    {
+      "Name": "Alphascape V3.0 (Savage)",
+      "image_url": "https://ffxiv.consolegameswiki.com/wiki/Special:Redirect/file/Alphascape_V3.0_%28Savage%29.png",
+      "tags": "O11S",
+      "min_ilvl": 380,
+      "description": "A Savage Initiative version of the third Alphascape trial, forcing a more demanding battle against Omega.",
+      "slug": "alphascape-v30-savage",
+      "fflogs_zone_id": 25,
+      "fflogs_encounters": [
+        {
+          "key": "o11s",
+          "name": "Omega",
+          "encounter_id": 62
+        }
+      ]
+    },
+    {
+      "Name": "Alphascape V4.0 (Savage)",
+      "image_url": "https://ffxiv.consolegameswiki.com/wiki/Special:Redirect/file/Alphascape_V4.0_%28Savage%29.png",
+      "tags": "O12S",
+      "min_ilvl": 380,
+      "description": "The Savage Initiative finale of Omega, starting with Omega-M and Omega-F before reaching The Final Omega.",
+      "slug": "alphascape-v40-savage",
+      "fflogs_zone_id": 25,
+      "fflogs_encounters": [
+        {
+          "key": "omega-m-and-omega-f",
+          "name": "Omega-M and Omega-F",
+          "encounter_id": 63
+        },
+        {
+          "key": "the-final-omega",
+          "name": "The Final Omega",
+          "encounter_id": 64
+        }
+      ]
+    }
+  ],
+  "Alexander": [
+    {
+      "Name": "Alexander - The Fist of the Father (Savage)",
+      "image_url": "https://ffxiv.consolegameswiki.com/wiki/Special:Redirect/file/Alexander_-_The_Fist_of_the_Father_%28Savage%29.png",
+      "tags": "A1S",
+      "min_ilvl": 190,
+      "description": "The first Gordias Savage encounter, pitting you against Faust and Oppressor in a tougher version of the Father’s opening sector.",
+      "slug": "alexander-the-fist-of-the-father-savage",
+      "fflogs_zone_id": 7,
+      "fflogs_encounters": [
+        {
+          "key": "a1s",
+          "name": "Oppressor",
+          "encounter_id": 18
+        }
+      ]
+    },
+    {
+      "Name": "Alexander - The Cuff of the Father (Savage)",
+      "image_url": "https://ffxiv.consolegameswiki.com/wiki/Special:Redirect/file/Alexander_-_The_Cuff_of_the_Father_%28Savage%29.png",
+      "tags": "A2S",
+      "min_ilvl": 195,
+      "description": "A Savage version of the Father’s second sector, focused on waves of Illuminati forces and battlefield control.",
+      "slug": "alexander-the-cuff-of-the-father-savage",
+      "fflogs_zone_id": 7,
+      "fflogs_encounters": [
+        {
+          "key": "a2s",
+          "name": "The Cuff of the Father",
+          "encounter_id": 19
+        }
+      ]
+    },
+    {
+      "Name": "Alexander - The Arm of the Father (Savage)",
+      "image_url": "https://ffxiv.consolegameswiki.com/wiki/Special:Redirect/file/Alexander_-_The_Arm_of_the_Father_%28Savage%29.png",
+      "tags": "A3S",
+      "min_ilvl": 200,
+      "description": "A punishing Savage battle against Living Liquid, one of Gordias’s most infamous mechanical and damage checks.",
+      "slug": "alexander-the-arm-of-the-father-savage",
+      "fflogs_zone_id": 7,
+      "fflogs_encounters": [
+        {
+          "key": "a3s",
+          "name": "Living Liquid",
+          "encounter_id": 20
+        }
+      ]
+    },
+    {
+      "Name": "Alexander - The Burden of the Father (Savage)",
+      "image_url": "https://ffxiv.consolegameswiki.com/wiki/Special:Redirect/file/Alexander_-_The_Burden_of_the_Father_%28Savage%29.png",
+      "tags": "A4S",
+      "min_ilvl": 205,
+      "description": "The final Gordias Savage encounter, challenging you with The Manipulator and the climax of the Father tier.",
+      "slug": "alexander-the-burden-of-the-father-savage",
+      "fflogs_zone_id": 7,
+      "fflogs_encounters": [
+        {
+          "key": "a4s",
+          "name": "The Manipulator",
+          "encounter_id": 21
+        }
+      ]
+    },
+    {
+      "Name": "Alexander - The Fist of the Son (Savage)",
+      "image_url": "https://ffxiv.consolegameswiki.com/wiki/Special:Redirect/file/Alexander_-_The_Fist_of_the_Son_%28Savage%29.png",
+      "tags": "A5S",
+      "min_ilvl": 215,
+      "description": "The first Midas Savage encounter, beginning with Hummelfaust before the main battle against Ratfinx Twinkledinks.",
+      "slug": "alexander-the-fist-of-the-son-savage",
+      "fflogs_zone_id": 10,
+      "fflogs_encounters": [
+        {
+          "key": "a5s",
+          "name": "Ratfinx Twinkledinks",
+          "encounter_id": 26
+        }
+      ]
+    },
+    {
+      "Name": "Alexander - The Cuff of the Son (Savage)",
+      "image_url": "https://ffxiv.consolegameswiki.com/wiki/Special:Redirect/file/Alexander_-_The_Cuff_of_the_Son_%28Savage%29.png",
+      "tags": "A6S",
+      "min_ilvl": 220,
+      "description": "A multi-boss Midas Savage encounter featuring Blaster, Brawler, Swindler, and Vortexer.",
+      "slug": "alexander-the-cuff-of-the-son-savage",
+      "fflogs_zone_id": 10,
+      "fflogs_encounters": [
+        {
+          "key": "a6s",
+          "name": "Vortexer",
+          "encounter_id": 27
+        }
+      ]
+    },
+    {
+      "Name": "Alexander - The Arm of the Son (Savage)",
+      "image_url": "https://ffxiv.consolegameswiki.com/wiki/Special:Redirect/file/Alexander_-_The_Arm_of_the_Son_%28Savage%29.png",
+      "tags": "A7S",
+      "min_ilvl": 225,
+      "description": "A Savage battle against Quickthinx Allthoughts, built around traps, jails, and arena hazards.",
+      "slug": "alexander-the-arm-of-the-son-savage",
+      "fflogs_zone_id": 10,
+      "fflogs_encounters": [
+        {
+          "key": "a7s",
+          "name": "Quickthinx Allthoughts",
+          "encounter_id": 28
+        }
+      ]
+    },
+    {
+      "Name": "Alexander - The Burden of the Son (Savage)",
+      "image_url": "https://ffxiv.consolegameswiki.com/wiki/Special:Redirect/file/Alexander_-_The_Burden_of_the_Son_%28Savage%29.png",
+      "tags": "A8S",
+      "min_ilvl": 225,
+      "description": "The Midas Savage finale, culminating in the iconic battle against Brute Justice.",
+      "slug": "alexander-the-burden-of-the-son-savage",
+      "fflogs_zone_id": 10,
+      "fflogs_encounters": [
+        {
+          "key": "a8s",
+          "name": "Brute Justice",
+          "encounter_id": 29
+        }
+      ]
+    },
+    {
+      "Name": "Alexander - The Eyes of the Creator (Savage)",
+      "image_url": "https://ffxiv.consolegameswiki.com/wiki/Special:Redirect/file/Alexander_-_The_Eyes_of_the_Creator_%28Savage%29.png",
+      "tags": "A9S",
+      "min_ilvl": 245,
+      "description": "The opening Creator Savage encounter, beginning with Faust Z before the fight against Refurbisher 0.",
+      "slug": "alexander-the-eyes-of-the-creator-savage",
+      "fflogs_zone_id": 13,
+      "fflogs_encounters": [
+        {
+          "key": "a9s",
+          "name": "Refurbisher 0",
+          "encounter_id": 34
+        }
+      ]
+    },
+    {
+      "Name": "Alexander - The Breath of the Creator (Savage)",
+      "image_url": "https://ffxiv.consolegameswiki.com/wiki/Special:Redirect/file/Alexander_-_The_Breath_of_the_Creator_%28Savage%29.png",
+      "tags": "A10S",
+      "min_ilvl": 250,
+      "description": "A Creator Savage fight against Lamebrix Strikebocks, centered on platform manipulation and goblin machinery.",
+      "slug": "alexander-the-breath-of-the-creator-savage",
+      "fflogs_zone_id": 13,
+      "fflogs_encounters": [
+        {
+          "key": "a10s",
+          "name": "Lamebrix Strikebocks",
+          "encounter_id": 35
+        }
+      ]
+    },
+    {
+      "Name": "Alexander - The Heart of the Creator (Savage)",
+      "image_url": "https://ffxiv.consolegameswiki.com/wiki/Special:Redirect/file/Alexander_-_The_Heart_of_the_Creator_%28Savage%29.png",
+      "tags": "A11S",
+      "min_ilvl": 255,
+      "description": "A Savage encounter against Cruise Chaser, testing the party with high-speed transformations and precise movement.",
+      "slug": "alexander-the-heart-of-the-creator-savage",
+      "fflogs_zone_id": 13,
+      "fflogs_encounters": [
+        {
+          "key": "a11s",
+          "name": "Cruise Chaser",
+          "encounter_id": 36
+        }
+      ]
+    },
+    {
+      "Name": "Alexander - The Soul of the Creator (Savage)",
+      "image_url": "https://ffxiv.consolegameswiki.com/wiki/Special:Redirect/file/Alexander_-_The_Soul_of_the_Creator_%28Savage%29.png",
+      "tags": "A12S",
+      "min_ilvl": 255,
+      "description": "The final Alexander Savage encounter, bringing the raid series to its climax against Alexander Prime.",
+      "slug": "alexander-the-soul-of-the-creator-savage",
+      "fflogs_zone_id": 13,
+      "fflogs_encounters": [
+        {
+          "key": "a12s",
+          "name": "Alexander Prime",
+          "encounter_id": 37
+        }
+      ]
+    }
+  ],
+  "Bahamut": [
+    {
+      "Name": "The Binding Coil of Bahamut - Turn 1",
+      "image_url": "https://ffxiv.consolegameswiki.com/wiki/Special:Redirect/file/The_Binding_Coil_of_Bahamut_-_Turn_1.png",
+      "tags": "T1",
+      "min_ilvl": 70,
+      "description": "The opening turn of the Coils, taking you beneath Castrum Occidens and into Dalamud's remnants before a battle with Caduceus.",
+      "slug": "the-binding-coil-of-bahamut-turn-1",
+      "fflogs_zone_id": 1,
+      "fflogs_encounters": [
+        {
+          "key": "t1",
+          "name": "Caduceus",
+          "encounter_id": 1
+        }
+      ]
+    },
+    {
+      "Name": "The Binding Coil of Bahamut - Turn 2",
+      "image_url": "https://ffxiv.consolegameswiki.com/wiki/Special:Redirect/file/The_Binding_Coil_of_Bahamut_-_Turn_2.png",
+      "tags": "T2",
+      "min_ilvl": 73,
+      "description": "A descent through Dalamud's internal defenses, ending in a battle against ADS and its node-based systems.",
+      "slug": "the-binding-coil-of-bahamut-turn-2",
+      "fflogs_zone_id": 1,
+      "fflogs_encounters": [
+        {
+          "key": "t2",
+          "name": "ADS",
+          "encounter_id": 2
+        }
+      ]
+    },
+    {
+      "Name": "The Binding Coil of Bahamut - Turn 3",
+      "image_url": "https://ffxiv.consolegameswiki.com/wiki/Special:Redirect/file/The_Binding_Coil_of_Bahamut_-_Turn_3.png",
+      "tags": "T3",
+      "min_ilvl": 70,
+      "description": "A traversal turn through the Ragnarok-class starship, focused on exploration and enemies rather than a traditional boss.",
+      "slug": "the-binding-coil-of-bahamut-turn-3",
+      "fflogs_zone_id": 1,
+      "fflogs_encounters": [
+        {
+          "key": "t3",
+          "name": "The Ragnarok",
+          "encounter_id": 3
+        }
+      ]
+    },
+    {
+      "Name": "The Binding Coil of Bahamut - Turn 4",
+      "image_url": "https://ffxiv.consolegameswiki.com/wiki/Special:Redirect/file/The_Binding_Coil_of_Bahamut_-_Turn_4.png",
+      "tags": "T4",
+      "min_ilvl": 77,
+      "description": "A gauntlet-style encounter against waves of Allagan constructs known collectively as the Clockwork Brigade.",
+      "slug": "the-binding-coil-of-bahamut-turn-4",
+      "fflogs_zone_id": 1,
+      "fflogs_encounters": [
+        {
+          "key": "t4",
+          "name": "Clockwork Brigade",
+          "encounter_id": 4
+        }
+      ]
+    },
+    {
+      "Name": "The Binding Coil of Bahamut - Turn 5",
+      "image_url": "https://ffxiv.consolegameswiki.com/wiki/Special:Redirect/file/The_Binding_Coil_of_Bahamut_-_Turn_5.png",
+      "tags": "T5",
+      "min_ilvl": 82,
+      "description": "The final Binding Coil encounter, facing Twintania in one of A Realm Reborn's most infamous raid battles.",
+      "slug": "the-binding-coil-of-bahamut-turn-5",
+      "fflogs_zone_id": 1,
+      "fflogs_encounters": [
+        {
+          "key": "t5",
+          "name": "Twintania",
+          "encounter_id": 5
+        }
+      ]
+    },
+    {
+      "Name": "The Second Coil of Bahamut - Turn 1",
+      "image_url": "https://ffxiv.consolegameswiki.com/wiki/Special:Redirect/file/The_Second_Coil_of_Bahamut_-_Turn_1.png",
+      "tags": "T6",
+      "min_ilvl": 90,
+      "description": "The first Second Coil turn, sending the party into Dalamud's Shadow for a battle against Rafflesia.",
+      "slug": "the-second-coil-of-bahamut-turn-1",
+      "fflogs_zone_id": 3,
+      "fflogs_encounters": [
+        {
+          "key": "t6",
+          "name": "Rafflesia",
+          "encounter_id": 6
+        }
+      ]
+    },
+    {
+      "Name": "The Second Coil of Bahamut - Turn 2",
+      "image_url": "https://ffxiv.consolegameswiki.com/wiki/Special:Redirect/file/The_Second_Coil_of_Bahamut_-_Turn_2.png",
+      "tags": "T7",
+      "min_ilvl": 95,
+      "description": "A journey through the Outer Coil, culminating in a petrification-heavy battle against Melusine.",
+      "slug": "the-second-coil-of-bahamut-turn-2",
+      "fflogs_zone_id": 3,
+      "fflogs_encounters": [
+        {
+          "key": "t7",
+          "name": "Melusine",
+          "encounter_id": 7
+        }
+      ]
+    },
+    {
+      "Name": "The Second Coil of Bahamut - Turn 3",
+      "image_url": "https://ffxiv.consolegameswiki.com/wiki/Special:Redirect/file/The_Second_Coil_of_Bahamut_-_Turn_3.png",
+      "tags": "T8",
+      "min_ilvl": 100,
+      "description": "A Central Decks encounter against the Avatar, testing the party with Allagan systems and arena control.",
+      "slug": "the-second-coil-of-bahamut-turn-3",
+      "fflogs_zone_id": 3,
+      "fflogs_encounters": [
+        {
+          "key": "t8",
+          "name": "The Avatar",
+          "encounter_id": 8
+        }
+      ]
+    },
+    {
+      "Name": "The Second Coil of Bahamut - Turn 4",
+      "image_url": "https://ffxiv.consolegameswiki.com/wiki/Special:Redirect/file/The_Second_Coil_of_Bahamut_-_Turn_4.png",
+      "tags": "T9",
+      "min_ilvl": 105,
+      "description": "The Second Coil finale, confronting Nael deus Darnus in the Holocharts beneath the earth.",
+      "slug": "the-second-coil-of-bahamut-turn-4",
+      "fflogs_zone_id": 3,
+      "fflogs_encounters": [
+        {
+          "key": "t9",
+          "name": "Nael deus Darnus",
+          "encounter_id": 9
+        }
+      ]
+    },
+    {
+      "Name": "The Final Coil of Bahamut - Turn 1",
+      "image_url": "https://ffxiv.consolegameswiki.com/wiki/Special:Redirect/file/The_Final_Coil_of_Bahamut_-_Turn_1.png",
+      "tags": "T10",
+      "min_ilvl": 110,
+      "description": "The opening Final Coil battle, beginning the last push toward Bahamut with a fight against Imdugud.",
+      "slug": "the-final-coil-of-bahamut-turn-1",
+      "fflogs_zone_id": 5,
+      "fflogs_encounters": [
+        {
+          "key": "t10",
+          "name": "Imdugud",
+          "encounter_id": 14
+        }
+      ]
+    },
+    {
+      "Name": "The Final Coil of Bahamut - Turn 2",
+      "image_url": "https://ffxiv.consolegameswiki.com/wiki/Special:Redirect/file/The_Final_Coil_of_Bahamut_-_Turn_2.png",
+      "tags": "T11",
+      "min_ilvl": 115,
+      "description": "A Final Coil encounter against Kaliya, combining Allagan technology, adds, and heavy positional mechanics.",
+      "slug": "the-final-coil-of-bahamut-turn-2",
+      "fflogs_zone_id": 5,
+      "fflogs_encounters": [
+        {
+          "key": "t11",
+          "name": "Kaliya",
+          "encounter_id": 15
+        }
+      ]
+    },
+    {
+      "Name": "The Final Coil of Bahamut - Turn 3",
+      "image_url": "https://ffxiv.consolegameswiki.com/wiki/Special:Redirect/file/The_Final_Coil_of_Bahamut_-_Turn_3.png",
+      "tags": "T12",
+      "min_ilvl": 120,
+      "description": "A climactic battle against Phoenix, tied closely to the fate of Louisoix and the truth of the Calamity.",
+      "slug": "the-final-coil-of-bahamut-turn-3",
+      "fflogs_zone_id": 5,
+      "fflogs_encounters": [
+        {
+          "key": "t12",
+          "name": "Phoenix",
+          "encounter_id": 16
+        }
+      ]
+    },
+    {
+      "Name": "The Final Coil of Bahamut - Turn 4",
+      "image_url": "https://ffxiv.consolegameswiki.com/wiki/Special:Redirect/file/The_Final_Coil_of_Bahamut_-_Turn_4.png",
+      "tags": "T13",
+      "min_ilvl": 123,
+      "description": "The final Coil encounter, bringing the Seventh Umbral Era's lingering threat to a close in battle against Bahamut Prime.",
+      "slug": "the-final-coil-of-bahamut-turn-4",
+      "fflogs_zone_id": 5,
+      "fflogs_encounters": [
+        {
+          "key": "t13",
+          "name": "Bahamut Prime",
+          "encounter_id": 17
+        }
+      ]
+    }
+  ]
+}

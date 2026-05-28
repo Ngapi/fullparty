@@ -55,6 +55,7 @@ final class GlobalSearchService
             ->with([
                 'activityType:id,slug,current_published_version_id',
                 'activityType.currentPublishedVersion:id,activity_type_id,name,small_image_url,banner_image_url,difficulty',
+                'activityType.tags' => fn ($relation) => $relation->select(['activity_tags.id', 'activity_tags.name']),
                 'activityTypeVersion:id,activity_type_id,name,small_image_url,banner_image_url,difficulty',
                 'group' => fn ($relation) => $relation->select([
                     'id',
@@ -71,8 +72,14 @@ final class GlobalSearchService
                     ->select(['id', 'group_id', 'user_id'])
                     ->where('user_id', $user->id),
             ])
-            ->whereNotNull('title')
-            ->whereRaw('LOWER(COALESCE(title, \'\')) LIKE ?', [$like])
+            ->where(function (Builder $queryBuilder) use ($like): void {
+                $queryBuilder
+                    ->whereRaw('LOWER(COALESCE(title, \'\')) LIKE ?', [$like])
+                    ->orWhereHas(
+                        'activityType.tags',
+                        fn (Builder $tagQuery) => $tagQuery->whereRaw('LOWER(activity_tags.name) LIKE ?', [$like])
+                    );
+            })
             ->whereHas('group', function (Builder $queryBuilder) use ($user): void {
                 $queryBuilder
                     ->where('is_visible', true)
@@ -131,7 +138,10 @@ final class GlobalSearchService
         $normalizedQuery = mb_strtolower($query);
 
         return ActivityType::query()
-            ->with('currentPublishedVersion:id,activity_type_id,name,small_image_url,banner_image_url,difficulty')
+            ->with([
+                'currentPublishedVersion:id,activity_type_id,name,small_image_url,banner_image_url,difficulty',
+                'tags' => fn ($relation) => $relation->select(['activity_tags.id', 'activity_tags.name']),
+            ])
             ->where('is_active', true)
             ->whereNotNull('current_published_version_id')
             ->orderBy('slug')
@@ -140,7 +150,10 @@ final class GlobalSearchService
                 $label = $this->activityTypeDisplayName($activityType);
 
                 return str_contains(mb_strtolower($label), $normalizedQuery)
-                    || str_contains(mb_strtolower($activityType->slug), $normalizedQuery);
+                    || str_contains(mb_strtolower($activityType->slug), $normalizedQuery)
+                    || $activityType->tags->contains(
+                        fn ($tag): bool => str_contains(mb_strtolower((string) $tag->name), $normalizedQuery)
+                    );
             })
             ->take(self::LIMIT_PER_SECTION)
             ->map(fn (ActivityType $activityType): array => $this->serializeActivityTypeResult($activityType))

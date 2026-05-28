@@ -10,9 +10,11 @@ use App\Models\User;
 use App\Models\UserNotification;
 use App\Services\Notifications\EmailNotificationDeliveryService;
 use App\Services\Notifications\NotificationMessageRenderer;
+use App\Services\Notifications\NotificationRealtimeService;
 use App\Services\Notifications\NotificationService;
 use App\Support\Notifications\NotificationCategory;
 use App\Support\Notifications\NotificationChannel;
+use Illuminate\Broadcasting\BroadcastEvent;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Mail;
@@ -54,6 +56,19 @@ it('creates notification events with actor, subject, and rendering metadata', fu
         ->and($event->payload)->toBe([
             'activity_id' => 1,
         ]);
+});
+
+it('queues user inbox realtime broadcasts instead of sending them inline', function () {
+    Queue::fake();
+
+    $user = User::factory()->create();
+
+    app(NotificationRealtimeService::class)->broadcastUserInboxUpdated($user);
+
+    Queue::assertPushed(BroadcastEvent::class, function (BroadcastEvent $job) use ($user) {
+        return $job->event instanceof UserNotificationsUpdated
+            && $job->event->userId === $user->id;
+    });
 });
 
 it('creates in app notifications only for recipients who want the category and stays idempotent', function () {

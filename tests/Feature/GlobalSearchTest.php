@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\Activity;
+use App\Models\ActivityTag;
 use App\Models\ActivityType;
 use App\Models\Group;
 use App\Models\GroupMembership;
@@ -87,6 +88,37 @@ it('only matches runs by their actual title', function () {
         ->assertOk()
         ->assertJsonCount(0, 'runs')
         ->assertJsonPath('activities.0.title', 'Skydeep Cenote');
+});
+
+it('matches runs and activity types by activity tags', function () {
+    $viewer = User::factory()->create();
+    $activityType = createGlobalSearchActivityType([
+        'slug' => 'aac-light-heavyweight-m4-savage',
+        'draft_name' => ['en' => 'AAC Light-heavyweight M4 (Savage)'],
+    ]);
+    $tag = ActivityTag::query()->create(['name' => 'M4S']);
+    $activityType->tags()->attach($tag);
+
+    $group = Group::factory()->create([
+        'is_visible' => true,
+    ]);
+
+    $run = Activity::factory()->create([
+        'group_id' => $group->id,
+        'activity_type_id' => $activityType->id,
+        'activity_type_version_id' => $activityType->current_published_version_id,
+        'status' => Activity::STATUS_SCHEDULED,
+        'title' => 'Late Night Prog',
+        'is_public' => true,
+    ]);
+
+    $this
+        ->actingAs($viewer)
+        ->getJson(route('dashboard.search', ['query' => 'M4S']))
+        ->assertOk()
+        ->assertJsonPath('runs.0.id', $run->id)
+        ->assertJsonPath('runs.0.title', 'Late Night Prog')
+        ->assertJsonPath('activities.0.title', 'AAC Light-heavyweight M4 (Savage)');
 });
 
 it('does not leak hidden groups or private runs to non members', function () {

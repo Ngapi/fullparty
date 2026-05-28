@@ -193,6 +193,7 @@ final class RunDiscoveryService
                 'difficulty',
                 'prog_points',
             ]),
+            'activityType.tags' => fn ($query) => $query->select(['activity_tags.id', 'activity_tags.name']),
             'activityTypeVersion' => fn ($query) => $query->select([
                 'id',
                 'activity_type_id',
@@ -686,7 +687,9 @@ final class RunDiscoveryService
             $activity->description,
             $activity->group?->name,
             $activity->group?->slug,
+            $activity->activityType?->slug,
             $this->activityDisplayName($activity),
+            ...$this->activityTagNames($activity),
         ];
 
         foreach ($haystacks as $value) {
@@ -696,6 +699,24 @@ final class RunDiscoveryService
         }
 
         return false;
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    private function activityTagNames(Activity $activity): array
+    {
+        $activityType = $activity->activityType;
+
+        if (! $activityType instanceof ActivityType) {
+            return [];
+        }
+
+        return $activityType->tags
+            ->pluck('name')
+            ->filter(fn (mixed $value): bool => is_string($value) && $value !== '')
+            ->values()
+            ->all();
     }
 
     private function matchesActivityType(Activity $activity, mixed $activityType): bool

@@ -6,6 +6,7 @@ use App\Models\ActivityApplicationAnswer;
 use App\Models\ActivityProgressMilestone;
 use App\Models\ActivitySlot;
 use App\Models\ActivitySlotFieldValue;
+use App\Models\ActivityTag;
 use App\Models\ActivityType;
 use App\Models\Group;
 use App\Models\GroupMembershipApplication;
@@ -155,4 +156,23 @@ it('does not seed a duplicate custom notes application field for chaotic activit
         ->all();
 
     expect($applicationFieldKeys)->not->toContain('notes');
+});
+
+it('seeds concrete savage and ultimate activity types without the generic savage bucket', function () {
+    $this->seed(ProductionSeeder::class);
+
+    expect(ActivityType::query()->where('slug', 'savage-raids')->doesntExist())->toBeTrue()
+        ->and(ActivityType::query()->where('slug', 'like', 'aac-%-savage')->count())->toBe(12)
+        ->and(ActivityType::query()
+            ->whereHas('currentPublishedVersion', fn ($query) => $query->where('difficulty', ActivityType::DIFFICULTY_SAVAGE))
+            ->count())->toBe(73)
+        ->and(ActivityType::query()->where('slug', 'asphodelos-the-first-circle-savage')->exists())->toBeTrue()
+        ->and(ActivityType::query()->where('slug', 'the-final-coil-of-bahamut-turn-4')->exists())->toBeTrue()
+        ->and(ActivityTag::query()->where('name', 'M4S')->whereHas('activityTypes', fn ($query) => $query->where('slug', 'aac-light-heavyweight-m4-savage'))->exists())->toBeTrue()
+        ->and(ActivityTag::query()->where('name', 'FRU')->whereHas('activityTypes', fn ($query) => $query->where('slug', 'futures-rewritten-ultimate'))->exists())->toBeTrue()
+        ->and(ActivityType::query()
+            ->whereHas('currentPublishedVersion', fn ($query) => $query->where('difficulty', ActivityType::DIFFICULTY_ULTIMATE))
+            ->count())->toBe(6)
+        ->and(ActivityType::query()->where('slug', 'futures-rewritten-ultimate')->exists())->toBeTrue()
+        ->and(ActivityType::query()->where('slug', 'dancing-mad-ultimate')->doesntExist())->toBeTrue();
 });
