@@ -28,6 +28,8 @@ use Illuminate\Notifications\Notifiable;
     'system_notice_notifications',
     'email_notifications',
     'discord_notifications',
+    'notification_preferences_reviewed_at',
+    'account_completion_celebrated_at',
 ])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable implements MustVerifyEmail
@@ -56,6 +58,8 @@ class User extends Authenticatable implements MustVerifyEmail
             'system_notice_notifications' => 'boolean',
             'email_notifications' => 'boolean',
             'discord_notifications' => 'boolean',
+            'notification_preferences_reviewed_at' => 'datetime',
+            'account_completion_celebrated_at' => 'datetime',
         ];
     }
 
@@ -148,5 +152,10 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         return $this->belongsToMany(Activity::class, 'activity_saves')
             ->withTimestamps();
+    }
+
+    public function homeProfile(): HasOne
+    {
+        return $this->hasOne(UserHomeProfile::class);
     }
 }

@@ -298,6 +298,100 @@ it('requires required answers and blocks duplicate pending applications', functi
     expect(GroupMembershipApplication::query()->where('group_id', $group->id)->count())->toBe(1);
 });
 
+it('lets applicants update pending group requests', function () {
+    $owner = User::factory()->create();
+    $applicant = User::factory()->create();
+    $group = Group::factory()->applicationBased()->create([
+        'owner_id' => $owner->id,
+        'membership_application_schema' => membershipApplicationSchemaPayload(),
+    ]);
+
+    $application = GroupMembershipApplication::factory()->create([
+        'group_id' => $group->id,
+        'user_id' => $applicant->id,
+        'answers' => [
+            'intro' => 'Original intro.',
+            'favorite_role' => 'tank',
+            'are_you_a_gamer' => true,
+        ],
+        'form_snapshot' => membershipApplicationSchemaPayload(),
+    ]);
+
+    $this->actingAs($applicant)
+        ->get(route('groups.membership-applications.create', $group))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->component('Groups/MembershipApplications/Create')
+            ->where('existingApplication.id', $application->id)
+            ->where('existingApplication.answers.intro', 'Original intro.')
+        );
+
+    $this->actingAs($applicant)
+        ->put(route('groups.membership-applications.update', $group), [
+            'answers' => [
+                'intro' => 'Updated intro.',
+                'favorite_role' => 'healer',
+                'are_you_a_gamer' => false,
+            ],
+        ])
+        ->assertRedirect(route('groups.membership-applications.create', $group))
+        ->assertSessionDoesntHaveErrors();
+
+    $application->refresh();
+
+    expect($application->answers['intro'])->toBe('Updated intro.')
+        ->and($application->answers['favorite_role'])->toBe('healer')
+        ->and($application->answers['are_you_a_gamer'])->toBeFalse();
+});
+
+it('shows the current users group requests', function () {
+    $user = User::factory()->create();
+    $otherUser = User::factory()->create();
+    $activeGroup = Group::factory()->applicationBased()->create([
+        'name' => 'Active Request Group',
+    ]);
+    $reviewedGroup = Group::factory()->applicationBased()->create([
+        'name' => 'Reviewed Request Group',
+    ]);
+    $otherGroup = Group::factory()->applicationBased()->create([
+        'name' => 'Other Request Group',
+    ]);
+
+    $activeRequest = GroupMembershipApplication::factory()->create([
+        'group_id' => $activeGroup->id,
+        'user_id' => $user->id,
+        'status' => GroupMembershipApplication::STATUS_PENDING,
+        'answers' => ['intro' => 'Still waiting.'],
+        'form_snapshot' => membershipApplicationSchemaPayload(),
+    ]);
+    $reviewedRequest = GroupMembershipApplication::factory()->declined()->create([
+        'group_id' => $reviewedGroup->id,
+        'user_id' => $user->id,
+        'answers' => ['intro' => 'Not this time.'],
+        'form_snapshot' => membershipApplicationSchemaPayload(),
+    ]);
+    GroupMembershipApplication::factory()->create([
+        'group_id' => $otherGroup->id,
+        'user_id' => $otherUser->id,
+        'answers' => ['intro' => 'Not mine.'],
+        'form_snapshot' => membershipApplicationSchemaPayload(),
+    ]);
+
+    $this->actingAs($user)
+        ->get(route('groups.requests.index'))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->component('Dashboard/Groups/MembershipRequests/Index')
+            ->has('activeRequests', 1)
+            ->where('activeRequests.0.id', $activeRequest->id)
+            ->where('activeRequests.0.can_edit', true)
+            ->where('activeRequests.0.group.name', 'Active Request Group')
+            ->has('historicalRequests', 1)
+            ->where('historicalRequests.0.id', $reviewedRequest->id)
+            ->where('historicalRequests.0.group.name', 'Reviewed Request Group')
+        );
+});
+
 it('lets moderators approve and decline membership applications', function () {
     $owner = User::factory()->create();
     $moderator = User::factory()->create();

@@ -14,6 +14,7 @@ const props = defineProps<{
 	modelValue: unknown
 	multiple?: boolean
 	disabled?: boolean
+	favoriteOptionKeys?: string[]
 }>();
 
 const emit = defineEmits<{
@@ -26,11 +27,11 @@ const fallbackLocale = computed(() => String(page.props.locale?.fallback ?? 'en'
 const isOpen = ref(false);
 
 const roleGroups = [
-	{ key: 'tank', label: computed(() => t('groups.activities.application.class_picker.categories.tank')) },
-	{ key: 'healer', label: computed(() => t('groups.activities.application.class_picker.categories.healer')) },
-	{ key: 'melee dps', label: computed(() => t('groups.activities.application.class_picker.categories.melee')) },
-	{ key: 'physical ranged dps', label: computed(() => t('groups.activities.application.class_picker.categories.phys')) },
-	{ key: 'magic ranged dps', label: computed(() => t('groups.activities.application.class_picker.categories.magic')) },
+	{ key: 'tank', icon: 'i-lucide-shield', label: computed(() => t('groups.activities.application.class_picker.categories.tank')) },
+	{ key: 'healer', icon: 'i-lucide-heart-pulse', label: computed(() => t('groups.activities.application.class_picker.categories.healer')) },
+	{ key: 'melee dps', icon: 'i-lucide-swords', label: computed(() => t('groups.activities.application.class_picker.categories.melee')) },
+	{ key: 'physical ranged dps', icon: 'i-lucide-crosshair', label: computed(() => t('groups.activities.application.class_picker.categories.phys')) },
+	{ key: 'magic ranged dps', icon: 'i-lucide-sparkles', label: computed(() => t('groups.activities.application.class_picker.categories.magic')) },
 ];
 
 const selectedKeys = computed<string[]>({
@@ -57,10 +58,16 @@ const selectedKeys = computed<string[]>({
 });
 
 const selectedItems = computed(() => props.options.filter((option) => selectedKeys.value.includes(option.key)));
+const favoriteOptions = computed(() => {
+	const favoriteKeys = new Set(props.favoriteOptionKeys ?? []);
+
+	return props.options.filter((option) => favoriteKeys.has(option.key));
+});
 
 const groupedOptions = computed(() => roleGroups
 	.map((group) => ({
 		key: group.key,
+		icon: group.icon,
 		label: group.label.value,
 		options: props.options.filter((option) => option.meta?.role === group.key),
 	}))
@@ -94,6 +101,32 @@ const toggleOption = (optionKey: string) => {
 	emit('update:modelValue', selectedKeys.value.includes(optionKey) ? '' : optionKey);
 	isOpen.value = false;
 };
+
+const toggleOptionGroup = (options: ApplicationQuestionOption[]) => {
+	if (props.disabled || !props.multiple) {
+		return;
+	}
+
+	if (areOptionsSelected(options)) {
+		const optionKeys = new Set(options.map((option) => option.key));
+
+		selectedKeys.value = selectedKeys.value.filter((key) => !optionKeys.has(key));
+
+		return;
+	}
+
+	const nextKeys = [...selectedKeys.value];
+	options.forEach((option) => {
+		if (!nextKeys.includes(option.key)) {
+			nextKeys.push(option.key);
+		}
+	});
+
+	selectedKeys.value = nextKeys;
+};
+
+const areOptionsSelected = (options: ApplicationQuestionOption[]) => options.length > 0 && options
+	.every((option) => selectedKeys.value.includes(option.key));
 
 const isSelected = (optionKey: string) => selectedKeys.value.includes(optionKey);
 </script>
@@ -184,6 +217,49 @@ const isSelected = (optionKey: string) => selectedKeys.value.includes(optionKey)
 							</button>
 						</div>
 					</section>
+				</div>
+
+				<div
+					v-if="multiple && options.length > 0"
+					class="border-t border-default pt-4"
+				>
+					<p class="mb-2 text-xs font-medium uppercase text-muted">
+						{{ t('groups.activities.application.quick_select.title') }}
+					</p>
+
+					<div class="flex flex-wrap gap-2">
+						<UButton
+							color="neutral"
+							:variant="areOptionsSelected(options) ? 'solid' : 'soft'"
+							size="sm"
+							icon="i-lucide-check-check"
+							:label="t('groups.activities.application.quick_select.all')"
+							:disabled="disabled"
+							@click="toggleOptionGroup(options)"
+						/>
+
+						<UButton
+							color="neutral"
+							:variant="areOptionsSelected(favoriteOptions) ? 'solid' : 'soft'"
+							size="sm"
+							icon="i-lucide-star"
+							:label="t('groups.activities.application.quick_select.favorites')"
+							:disabled="disabled || favoriteOptions.length === 0"
+							@click="toggleOptionGroup(favoriteOptions)"
+						/>
+
+						<UButton
+							v-for="group in groupedOptions"
+							:key="`shortcut-${group.key}`"
+							color="neutral"
+							:variant="areOptionsSelected(group.options) ? 'solid' : 'soft'"
+							size="sm"
+							:icon="group.icon"
+							:label="group.label"
+							:disabled="disabled"
+							@click="toggleOptionGroup(group.options)"
+						/>
+					</div>
 				</div>
 
 				<div class="flex justify-end">

@@ -590,6 +590,8 @@ class GroupActivityApplicationController extends Controller
                     'label' => ['en' => $phantomJob->name],
                     'meta' => [
                         'icon_url' => $phantomJob->icon_url,
+                        'transparent_icon_url' => $phantomJob->transparent_icon_url,
+                        'sprite_url' => $phantomJob->sprite_url,
                     ],
                 ])
                 ->values()
@@ -697,6 +699,10 @@ class GroupActivityApplicationController extends Controller
     private function applicationCharactersForUser(int $userId): array
     {
         return Character::query()
+            ->with([
+                'classes:id',
+                'phantomJobs:id',
+            ])
             ->where('user_id', $userId)
             ->orderBy('name')
             ->get()
@@ -705,6 +711,18 @@ class GroupActivityApplicationController extends Controller
                 'name' => $character->name,
                 'avatar_url' => $character->avatar_url,
                 'world' => $character->world,
+                'preferred_character_class_ids' => $character->classes
+                    ->filter(fn (CharacterClass $characterClass) => (bool) $characterClass->pivot?->is_preferred)
+                    ->pluck('id')
+                    ->map(fn ($id) => (string) $id)
+                    ->values()
+                    ->all(),
+                'preferred_phantom_job_ids' => $character->phantomJobs
+                    ->filter(fn (PhantomJob $phantomJob) => (bool) $phantomJob->pivot?->is_preferred)
+                    ->pluck('id')
+                    ->map(fn ($id) => (string) $id)
+                    ->values()
+                    ->all(),
             ])
             ->values()
             ->all();

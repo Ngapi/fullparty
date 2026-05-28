@@ -10,34 +10,35 @@
     "no_answer": "No answer"
   },
   "apply": {
-    "title": "Apply to {group}",
-    "subtitle": "Submit a membership application for the group team to review.",
+    "title": "Request to join {group}",
+    "subtitle": "Submit a request for the group team to review.",
     "toggle_answer": "Your answer",
     "submitted_answers": "Submitted Answers",
     "actions": {
       "back": "Back to Groups",
-      "submit": "Submit Application"
+      "submit": "Submit Request",
+      "update": "Update Request"
     },
     "status_messages": {
-      "pending": "Your membership application is waiting for review.",
-      "approved": "This membership application was approved.",
-      "declined": "This membership application was declined. You can submit a new one."
+      "pending": "Your request is waiting for review. You can update your answers while it is pending.",
+      "approved": "This request was approved.",
+      "declined": "This request was declined. You can submit a new one."
     },
     "validation": {
-      "pending_exists": "You already have a pending membership application for this group."
+      "pending_exists": "You already have a pending request for this group."
     }
   },
   "review": {
-    "title": "Membership Applications",
+    "title": "Requests",
     "subtitle": "Review, approve, or decline people waiting to join this group.",
-    "pending_title": "Pending Applications",
+    "pending_title": "Pending Requests",
     "pending_subtitle": "{count} waiting for review",
-    "reviewed_title": "Reviewed Applications",
-    "reviewed_subtitle": "Recently approved and declined membership applications.",
-    "empty_pending_title": "No pending applications",
-    "empty_pending_description": "New membership applications will appear here.",
-    "empty_reviewed_title": "No reviewed applications",
-    "empty_reviewed_description": "Approved and declined membership applications will appear here.",
+    "reviewed_title": "Reviewed Requests",
+    "reviewed_subtitle": "Recently approved and declined requests.",
+    "empty_pending_title": "No pending requests",
+    "empty_pending_description": "New requests will appear here.",
+    "empty_reviewed_title": "No reviewed requests",
+    "empty_reviewed_description": "Approved and declined requests will appear here.",
     "not_reviewed": "Not reviewed",
     "unknown_user": "Unknown user",
     "submitted_at": "Submitted {date}",
@@ -49,18 +50,43 @@
       "cancel": "Cancel"
     },
     "decline_modal": {
-      "title": "Decline membership application",
+      "title": "Decline request",
       "reason_label": "Reason",
       "reason_help": "Optional. Keep it short and useful for the group record."
     },
     "validation": {
-      "already_reviewed": "This membership application has already been reviewed.",
+      "already_reviewed": "This request has already been reviewed.",
       "applicant_banned": "Banned users cannot be approved into the group."
     }
   },
+  "requests": {
+    "title": "My Requests",
+    "subtitle": "Track your group join requests and update anything still pending.",
+    "empty_title": "No requests yet",
+    "empty_description": "Groups you ask to join will show up here.",
+    "unknown_group": "Unknown group",
+    "not_available": "Not available",
+    "submitted": "Submitted {date}",
+    "reviewed": "Reviewed {date}",
+    "sections": {
+      "active_title": "Active Requests",
+      "active_description": "Requests still waiting for a group team to review.",
+      "active_empty_title": "No active requests",
+      "active_empty_description": "Pending requests will show up here.",
+      "history_title": "History",
+      "history_description": "Approved and declined requests stay here for reference.",
+      "history_empty_title": "No request history yet",
+      "history_empty_description": "Reviewed requests will move here."
+    },
+    "actions": {
+      "edit": "Edit Request",
+      "open_group": "Open Group",
+      "request_again": "Request Again"
+    }
+  },
   "form": {
-    "title": "Application Form",
-    "subtitle": "Create the membership questions people answer before joining.",
+    "title": "Request Form",
+    "subtitle": "Create the questions people answer before joining.",
     "inactive_title": "This form is ready, but the group is not application based",
     "inactive_description": "Switch the group join mode to Application Based when you want this form to appear to applicants.",
     "question_count": "{count} of {max} questions",

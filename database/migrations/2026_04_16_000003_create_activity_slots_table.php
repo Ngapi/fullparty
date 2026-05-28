@@ -22,6 +22,8 @@ return new class extends Migration
             $table->unsignedInteger('sort_order');
             $table->foreignId('assigned_character_id')->nullable()->constrained('characters')->nullOnDelete();
             $table->foreignId('assigned_by_user_id')->nullable()->constrained('users')->nullOnDelete();
+            $table->boolean('is_host')->default(false);
+            $table->boolean('is_raid_leader')->default(false);
             $table->timestamps();
 
             $table->unique(['activity_id', 'slot_key']);

@@ -10,34 +10,35 @@
     "no_answer": "No answer"
   },
   "apply": {
-    "title": "Apply to {group}",
-    "subtitle": "Submit a membership application for the group team to review.",
+    "title": "Demander à rejoindre {group}",
+    "subtitle": "Envoyez une demande à l'équipe du groupe.",
     "toggle_answer": "Your answer",
     "submitted_answers": "Submitted Answers",
     "actions": {
       "back": "Back to Groups",
-      "submit": "Submit Application"
+      "submit": "Envoyer la demande",
+      "update": "Mettre à jour la demande"
     },
     "status_messages": {
-      "pending": "Your membership application is waiting for review.",
-      "approved": "This membership application was approved.",
-      "declined": "This membership application was declined. You can submit a new one."
+      "pending": "Votre demande attend une réponse. Vous pouvez modifier vos réponses tant qu'elle est en attente.",
+      "approved": "Cette demande a été acceptée.",
+      "declined": "Cette demande a été refusée. Vous pouvez en envoyer une nouvelle."
     },
     "validation": {
-      "pending_exists": "You already have a pending membership application for this group."
+      "pending_exists": "Vous avez déjà une demande en attente pour ce groupe."
     }
   },
   "review": {
-    "title": "Membership Applications",
+    "title": "Demandes",
     "subtitle": "Review, approve, or decline people waiting to join this group.",
-    "pending_title": "Pending Applications",
+    "pending_title": "Demandes en attente",
     "pending_subtitle": "{count} waiting for review",
-    "reviewed_title": "Reviewed Applications",
-    "reviewed_subtitle": "Recently approved and declined membership applications.",
-    "empty_pending_title": "No pending applications",
-    "empty_pending_description": "New membership applications will appear here.",
-    "empty_reviewed_title": "No reviewed applications",
-    "empty_reviewed_description": "Approved and declined membership applications will appear here.",
+    "reviewed_title": "Demandes traitées",
+    "reviewed_subtitle": "Demandes récemment acceptées ou refusées.",
+    "empty_pending_title": "Aucune demande en attente",
+    "empty_pending_description": "Les nouvelles demandes apparaîtront ici.",
+    "empty_reviewed_title": "Aucune demande traitée",
+    "empty_reviewed_description": "Les demandes acceptées et refusées apparaîtront ici.",
     "not_reviewed": "Not reviewed",
     "unknown_user": "Unknown user",
     "submitted_at": "Submitted {date}",
@@ -49,18 +50,43 @@
       "cancel": "Cancel"
     },
     "decline_modal": {
-      "title": "Decline membership application",
+      "title": "Refuser la demande",
       "reason_label": "Reason",
       "reason_help": "Optional. Keep it short and useful for the group record."
     },
     "validation": {
-      "already_reviewed": "This membership application has already been reviewed.",
+      "already_reviewed": "Cette demande a déjà été traitée.",
       "applicant_banned": "Banned users cannot be approved into the group."
     }
   },
+  "requests": {
+    "title": "Mes demandes",
+    "subtitle": "Suivez vos demandes de groupe et modifiez celles qui sont encore en attente.",
+    "empty_title": "Aucune demande pour le moment",
+    "empty_description": "Les groupes que vous demandez à rejoindre apparaîtront ici.",
+    "unknown_group": "Groupe inconnu",
+    "not_available": "Non disponible",
+    "submitted": "Envoyée {date}",
+    "reviewed": "Traitée {date}",
+    "sections": {
+      "active_title": "Demandes actives",
+      "active_description": "Demandes encore en attente d'une réponse.",
+      "active_empty_title": "Aucune demande active",
+      "active_empty_description": "Les demandes en attente apparaîtront ici.",
+      "history_title": "Historique",
+      "history_description": "Les demandes acceptées et refusées restent ici.",
+      "history_empty_title": "Aucun historique de demandes",
+      "history_empty_description": "Les demandes traitées seront déplacées ici."
+    },
+    "actions": {
+      "edit": "Modifier la demande",
+      "open_group": "Ouvrir le groupe",
+      "request_again": "Redemander"
+    }
+  },
   "form": {
-    "title": "Application Form",
-    "subtitle": "Create the membership questions people answer before joining.",
+    "title": "Formulaire de demande",
+    "subtitle": "Créez les questions auxquelles les personnes répondent avant de rejoindre.",
     "inactive_title": "This form is ready, but the group is not application based",
     "inactive_description": "Switch the group join mode to Application Based when you want this form to appear to applicants.",
     "question_count": "{count} of {max} questions",

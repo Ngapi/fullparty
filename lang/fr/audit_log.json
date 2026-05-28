@@ -135,10 +135,11 @@
         "muted": "a coupé les notifications du groupe."
       },
       "membership_application": {
-        "submitted": "submitted a membership application.",
-        "approved": "approved a membership application.",
-        "declined": "declined a membership application.",
-        "form_updated": "updated the membership application form."
+        "submitted": "a envoyé une demande.",
+        "updated": "a modifié une demande.",
+        "approved": "a accepté une demande.",
+        "declined": "a refusé une demande.",
+        "form_updated": "a modifié le formulaire de demande."
       },
       "activity": {
         "created": "a créé une activité.",
@@ -265,7 +266,7 @@
     "email": "E-mail",
     "provider": "Fournisseur",
     "provider_user_id": "ID utilisateur du fournisseur",
-    "membership_application_id": "Membership Application",
+    "membership_application_id": "Demande",
     "applicant_user_id": "Applicant",
     "applicant_name": "Applicant Name",
     "field_count": "Field Count",
@@ -351,10 +352,11 @@
         "muted": "Notifications du groupe coupées"
       },
       "membership_application": {
-        "submitted": "Membership application submitted",
-        "approved": "Membership application approved",
-        "declined": "Membership application declined",
-        "form_updated": "Membership application form updated"
+        "submitted": "Demande envoyée",
+        "updated": "Demande modifiée",
+        "approved": "Demande acceptée",
+        "declined": "Demande refusée",
+        "form_updated": "Formulaire de demande modifié"
       },
       "activity": {
         "created": "Activité créée",

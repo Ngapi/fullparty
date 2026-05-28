@@ -525,6 +525,23 @@ export type MembershipApplicationRecord = {
 	} | null
 }
 
+export type GroupMembershipRequestRecord = MembershipApplicationRecord & {
+	can_edit: boolean
+	group: {
+		id: number | null
+		name: string | null
+		slug: string | null
+		profile_picture_url: string | null
+		banner_image_url: string | null
+		datacenter: string | null
+		is_visible: boolean
+	}
+	urls: {
+		edit: string | null
+		dashboard: string | null
+	}
+}
+
 export type GroupMemberNotesController = {
 	openMemberNotes: (userId: number) => void
 }

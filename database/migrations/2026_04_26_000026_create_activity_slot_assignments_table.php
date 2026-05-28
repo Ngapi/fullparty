@@ -18,6 +18,7 @@ return new class extends Migration
             $table->foreignId('activity_slot_id')->constrained('activity_slots')->cascadeOnDelete();
             $table->foreignId('character_id')->constrained('characters')->cascadeOnDelete();
             $table->foreignId('application_id')->nullable()->constrained('activity_applications')->nullOnDelete();
+            $table->string('assignment_source')->default('application');
             $table->json('field_values_snapshot')->nullable();
             $table->string('attendance_status')->default('assigned');
             $table->timestamp('assigned_at');

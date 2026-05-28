@@ -1,5 +1,216 @@
 {
   "title": "Home",
+  "welcome": "Bon retour, {name}",
+  "welcome_subtitle": "Content de vous revoir.",
+  "character_panel": {
+    "main_character": "Personnage principal",
+    "primary_badge": "Principal",
+    "keeper_tag": "Gardienne de la Lune",
+    "level": "Niv. {level}",
+    "item_level": "{level}",
+    "no_display_job": "Aucun job sélectionné",
+    "hero_quote": "Les astres nous guident, mais ce sont nos coeurs qui éclairent la voie.",
+    "view_character": "Voir le personnage",
+    "active_groups": "Actif dans {count} groupes",
+    "extra_groups": "+{count}",
+    "recent_performance": "Performance récente",
+    "view_all_runs": "Trouver plus de runs",
+    "favorite_jobs": "Jobs favoris",
+    "upcoming_runs": "Runs à venir",
+    "no_upcoming_runs": "Aucun run à venir pour ce personnage.",
+    "other_characters": "Autres personnages",
+    "member_since": "Membre depuis {date}",
+    "next_run": {
+      "title": "Votre prochain run",
+      "unknown_activity": "Run"
+    },
+    "customization": {
+      "open": "Modifier le profil d'accueil",
+      "title": "Modifier le profil d'accueil",
+      "subtitle": "Choisissez ce qui apparaît sur votre bannière d'accueil.",
+      "updated": "Profil d'accueil mis à jour.",
+      "display_job_default": "Utiliser le job par défaut",
+      "fields": {
+        "display_job": {
+          "label": "Job affiché",
+          "placeholder": "Choisir un job"
+        },
+        "description": {
+          "label": "Bio",
+          "placeholder": "Écrivez une courte phrase pour votre bannière"
+        },
+        "background_image": {
+          "label": "Image de fond",
+          "placeholder": "Choisir une image",
+          "reset": "Réinitialiser l'image",
+          "preview_alt": "Aperçu du fond du profil d'accueil"
+        }
+      },
+      "validation": {
+        "image_invalid_format": "L'image doit être un fichier JPG, PNG ou WEBP.",
+        "image_too_large": "L'image doit faire 5 Mo ou moins."
+      }
+    },
+    "performance": {
+      "encounter": "Cloud of Darkness (Chaotic)",
+      "difficulty": "Sadique",
+      "date": "18 mai 2026",
+      "best_parse": "Meilleur parse",
+      "all_stars": "Toutes étoiles",
+      "fastest_kill": "Kill le plus rapide",
+      "week": "Semaine 3",
+      "rank": "Rang",
+      "all_regions": "Toutes régions"
+    },
+    "participation": {
+      "title": "Vue de la participation",
+      "current_run": "Progression du run actuel",
+      "current_progress": "Vos groupes actifs avancent dans le contenu planifié.",
+      "updated_at": "Mis à jour aujourd'hui",
+      "runs_joined": "Runs rejoints",
+      "past_month": "30 derniers jours",
+      "average_progress": "Progression moyenne",
+      "across_joined_runs": "Sur les runs rejoints",
+      "upcoming_runs": "Runs à venir",
+      "scheduled": "Planifiés",
+      "runs": "Runs",
+      "run_singular": "run",
+      "run_plural": "runs",
+      "week_tooltip": "Semaine {range} : {count} {runLabel}"
+    },
+    "last_run": {
+      "title": "Dernier run",
+      "completed_at": "Terminé le {date}",
+      "progress": "Progression du run",
+      "class_played": "Classe jouée",
+      "phantom_job": "Job fantôme",
+      "empty": "Aucun run terminé pour l'instant",
+      "complete": "Terminé",
+      "not_recorded": "Non enregistré",
+      "no_class": "Non enregistré",
+      "no_phantom_job": "Aucun"
+    },
+    "stats": {
+      "joined": "Rejoints",
+      "hosted": "Organisés",
+      "groups": "Groupes",
+      "upcoming": "À venir"
+    }
+  },
+  "account_status": {
+    "title": "Statut du compte",
+    "subtitle": "Une courte checklist pour profiter au mieux de FullParty.",
+    "important": "Important",
+    "recommended": "Recommandé",
+    "complete": "Terminé",
+    "todo": "À faire",
+    "percent_ready": "{percent}% prêt",
+    "completed_tooltip": "Configuration du compte terminée",
+    "items": {
+      "email_verified": {
+        "title": "Vérifier votre e-mail",
+        "description": "Gardez votre compte sécurisé et recevez les mises à jour importantes."
+      },
+      "verified_character": {
+        "title": "Ajouter et vérifier un personnage",
+        "description": "Réclamez au moins un personnage pour que les organisateurs sachent qui vous jouez."
+      },
+      "primary_character": {
+        "title": "Choisir un personnage principal",
+        "description": "Indiquez aux groupes quel personnage vous représente en premier."
+      },
+      "joined_group": {
+        "title": "Rejoindre un groupe",
+        "description": "Trouvez une communauté pour donner un foyer à vos runs et candidatures."
+      },
+      "joined_run": {
+        "title": "Rejoindre ou organiser un run",
+        "description": "Commencez votre historique d'activité avec un run planifié."
+      },
+      "connected_discord": {
+        "title": "Connecter Discord",
+        "description": "Aidez les organisateurs à vous contacter plus facilement hors du site."
+      },
+      "notification_preferences_reviewed": {
+        "title": "Vérifier les préférences de notification",
+        "description": "Choisissez comment FullParty doit vous prévenir pour les runs, groupes et candidatures."
+      },
+      "public_character": {
+        "title": "Partager la visibilité du personnage",
+        "description": "Permettez aux organisateurs de consulter votre personnage lors des candidatures."
+      }
+    }
+  },
+  "home_sections": {
+    "upcoming": {
+      "title": "Runs à venir",
+      "subtitle": "Runs où vous êtes actuellement placé.",
+      "empty": "Aucun run à venir pour l'instant.",
+      "statuses": {
+        "confirmed": "Confirmé",
+        "benched": "Remplaçant",
+        "pending": "En attente"
+      }
+    },
+    "applications": {
+      "title": "Candidatures",
+      "subtitle": "Inscriptions récentes et décisions de roster.",
+      "view_all": "Voir toutes les candidatures",
+      "empty": "Aucune candidature récente pour l'instant.",
+      "statuses": {
+        "assigned": "Assigné",
+        "pending": "En attente",
+        "waitlist": "Liste d'attente",
+        "accepted": "Accepté",
+        "declined": "Refusé",
+        "cancelled": "Annulé",
+        "withdrawn": "Retiré",
+        "unknown": "Inconnu"
+      }
+    },
+    "groups": {
+      "title": "Vos groupes",
+      "subtitle": "Communautés récemment actives.",
+      "empty": "Aucun groupe pour l'instant.",
+      "members": "{count} membres",
+      "actions": {
+        "view_group": "Aller au groupe",
+        "view_runs": "Aller aux runs du groupe",
+        "settings": "Aller aux paramètres du groupe"
+      },
+      "activity": {
+        "group_updated": "Groupe mis à jour {time}",
+        "run_created": "Run créé {time}",
+        "run_completed": "Run terminé {time}",
+        "run_joined": "Run rejoint {time}",
+        "run_updated": "Activité de run {time}",
+        "application_updated": "Activité de candidature {time}",
+        "assignment_updated": "Activité du roster {time}"
+      },
+      "roles": {
+        "owner": "Propriétaire",
+        "moderator": "Modérateur",
+        "member": "Membre"
+      },
+      "mock": {
+        "roster_edited": "Roster modifié il y a 22 min",
+        "run_hosted": "Run organisé il y a 2 h",
+        "application_sent": "Candidature envoyée il y a 5 h",
+        "discovery_updated": "Discovery mis à jour hier"
+      }
+    },
+    "activity": {
+      "title": "Activité des groupes",
+      "subtitle": "Mouvements récents dans vos communautés.",
+      "empty": "Aucune notification récente pour l'instant.",
+      "items": {
+        "run_posted": "Nouveau run publié",
+        "new_applications": "Nouvelles candidatures en attente",
+        "assignment_updated": "Assignation du roster mise à jour",
+        "group_updated": "Profil du groupe modifié"
+      }
+    }
+  },
   "subtitle": "Your personal base for runs, groups, alerts, and account readiness.",
   "actions": {
     "characters": "My Characters",

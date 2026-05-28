@@ -32,9 +32,7 @@ const props = defineProps<{
 const { locale, t } = useI18n();
 
 const answerForField = (field: MembershipApplicationFormField): MembershipApplicationAnswerValue => {
-	const existingAnswer = props.existingApplication?.status !== "pending"
-		? props.existingApplication?.answers?.[field.id]
-		: null;
+	const existingAnswer = props.existingApplication?.answers?.[field.id];
 
 	if (existingAnswer !== null && existingAnswer !== undefined) {
 		return existingAnswer;
@@ -56,6 +54,10 @@ const form = useForm({
 });
 
 const hasPendingApplication = computed(() => props.existingApplication?.status === "pending");
+const isLockedApplication = computed(() => props.existingApplication?.status === "approved");
+const submitLabel = computed(() => hasPendingApplication.value
+	? t("groups.membership_applications.apply.actions.update")
+	: t("groups.membership_applications.apply.actions.submit"));
 const statusColor = computed(() => {
 	if (props.existingApplication?.status === "approved") {
 		return "success";
@@ -77,9 +79,17 @@ const optionsForField = (field: MembershipApplicationFormField) => field.options
 const fieldError = (fieldId: string) => form.errors[`answers.${fieldId}`] ?? null;
 
 const submit = () => {
-	form.post(route("groups.membership-applications.store", props.group.slug), {
+	const options = {
 		preserveScroll: true,
-	});
+	};
+
+	if (hasPendingApplication.value) {
+		form.put(route("groups.membership-applications.update", props.group.slug), options);
+
+		return;
+	}
+
+	form.post(route("groups.membership-applications.store", props.group.slug), options);
 };
 
 const backToGroups = () => {
@@ -130,7 +140,7 @@ const backToGroups = () => {
 									v-if="field.type === 'small_text'"
 									v-model="form.answers[field.id]"
 									class="w-full"
-									:disabled="hasPendingApplication || form.processing"
+									:disabled="isLockedApplication || form.processing"
 									:ui="{ base: 'rounded-none' }"
 								/>
 
@@ -139,7 +149,7 @@ const backToGroups = () => {
 									v-model="form.answers[field.id]"
 									class="w-full"
 									:rows="5"
-									:disabled="hasPendingApplication || form.processing"
+									:disabled="isLockedApplication || form.processing"
 									:ui="{ base: 'rounded-none' }"
 								/>
 
@@ -149,7 +159,7 @@ const backToGroups = () => {
 									class="w-full"
 									:items="optionsForField(field)"
 									value-key="value"
-									:disabled="hasPendingApplication || form.processing"
+									:disabled="isLockedApplication || form.processing"
 									:ui="{ base: 'rounded-none' }"
 								/>
 
@@ -159,7 +169,7 @@ const backToGroups = () => {
 									</p>
 									<USwitch
 										:model-value="Boolean(form.answers[field.id])"
-										:disabled="hasPendingApplication || form.processing"
+										:disabled="isLockedApplication || form.processing"
 										@update:model-value="(value) => form.answers[field.id] = Boolean(value)"
 									/>
 								</div>
@@ -171,15 +181,15 @@ const backToGroups = () => {
 								type="submit"
 								color="primary"
 								icon="i-lucide-send"
-								:label="t('groups.membership_applications.apply.actions.submit')"
+								:label="submitLabel"
 								:loading="form.processing"
-								:disabled="hasPendingApplication"
+								:disabled="isLockedApplication"
 							/>
 						</div>
 					</form>
 				</UCard>
 
-				<div v-if="existingApplication?.status === 'pending'" class="space-y-3">
+				<div v-if="existingApplication && !hasPendingApplication" class="space-y-3">
 					<p class="text-sm font-semibold text-highlighted">
 						{{ t("groups.membership_applications.apply.submitted_answers") }}
 					</p>

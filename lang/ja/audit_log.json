@@ -135,10 +135,11 @@
         "muted": "がグループ通知をミュートしました。"
       },
       "membership_application": {
-        "submitted": "submitted a membership application.",
-        "approved": "approved a membership application.",
-        "declined": "declined a membership application.",
-        "form_updated": "updated the membership application form."
+        "submitted": "リクエストを送信しました。",
+        "updated": "リクエストを更新しました。",
+        "approved": "リクエストを承認しました。",
+        "declined": "リクエストを却下しました。",
+        "form_updated": "リクエストフォームを更新しました。"
       },
       "activity": {
         "created": "がアクティビティを作成しました。",
@@ -265,7 +266,7 @@
     "email": "メールアドレス",
     "provider": "プロバイダー",
     "provider_user_id": "プロバイダーユーザーID",
-    "membership_application_id": "Membership Application",
+    "membership_application_id": "リクエスト",
     "applicant_user_id": "Applicant",
     "applicant_name": "Applicant Name",
     "field_count": "Field Count",
@@ -351,10 +352,11 @@
         "muted": "グループ通知をミュート"
       },
       "membership_application": {
-        "submitted": "Membership application submitted",
-        "approved": "Membership application approved",
-        "declined": "Membership application declined",
-        "form_updated": "Membership application form updated"
+        "submitted": "リクエスト送信",
+        "updated": "リクエスト更新",
+        "approved": "リクエスト承認",
+        "declined": "リクエスト却下",
+        "form_updated": "リクエストフォーム更新"
       },
       "activity": {
         "created": "アクティビティ作成",

@@ -36,8 +36,8 @@
     "statistics": "統計",
     "leaderboard": "リーダーボード",
     "members": "メンバー",
-    "membership_applications": "Membership Applications",
-    "application_form": "Application Form",
+    "membership_applications": "リクエスト",
+    "application_form": "リクエストフォーム",
     "audit_log": "監査ログ",
     "discovery_settings": "Discovery 設定",
     "settings": "設定"

@@ -2,6 +2,7 @@
 
 namespace App\Services\Notifications;
 
+use App\Jobs\DispatchRosterPublishedAssignmentNotificationJob;
 use App\Models\Activity;
 use App\Models\ActivityApplication;
 use App\Models\ActivitySlot;
@@ -21,7 +22,7 @@ class AssignmentNotificationService
             'group',
             'applications.user',
             'applications.selectedCharacter',
-            'slots.assignedCharacter',
+            'slots',
         ]);
 
         $applicationsByCharacterId = $activity->applications
@@ -33,49 +34,94 @@ class AssignmentNotificationService
             ->keyBy('selected_character_id');
 
         foreach ($activity->slots as $slot) {
-            if (!$slot->assigned_character_id) {
+            if (! $slot->assigned_character_id) {
                 continue;
             }
 
             $application = $applicationsByCharacterId->get($slot->assigned_character_id);
 
             if ($application) {
+                DispatchRosterPublishedAssignmentNotificationJob::dispatch(
+                    slotId: $slot->id,
+                    applicationId: $application->id,
+                    characterId: null,
+                    actorId: $actor instanceof User ? $actor->id : null,
+                );
+
+                continue;
+            }
+
+            DispatchRosterPublishedAssignmentNotificationJob::dispatch(
+                slotId: $slot->id,
+                applicationId: null,
+                characterId: $slot->assigned_character_id,
+                actorId: $actor instanceof User ? $actor->id : null,
+            );
+        }
+    }
+
+    public function sendRosterPublishedNotification(
+        int $slotId,
+        ?int $applicationId,
+        ?int $characterId,
+        ?int $actorId,
+    ): void {
+        $slot = ActivitySlot::query()
+            ->with([
+                'activity.group',
+                'assignedCharacter.user',
+            ])
+            ->find($slotId);
+
+        $activity = $slot?->activity;
+
+        if (! $slot || ! $activity instanceof Activity || $activity->status !== Activity::STATUS_ASSIGNED) {
+            return;
+        }
+
+        $actor = $actorId ? User::query()->find($actorId) : null;
+
+        if ($applicationId !== null) {
+            $application = ActivityApplication::query()
+                ->with(['activity.group', 'user', 'selectedCharacter'])
+                ->find($applicationId);
+
+            if ($application && $application->activity_id === $activity->id) {
                 $this->notifyApplicationPlacement(
                     $application,
                     $slot,
                     $actor,
                     published: true,
                 );
-
-                continue;
             }
 
-            if ($slot->assignedCharacter) {
-                $this->notifyCharacterPlacement(
-                    $activity,
-                    $slot->assignedCharacter,
-                    $slot,
-                    $actor,
-                    published: true,
-                );
-            }
-
-            if ($slot->assignedCharacter) {
-                $this->notifySlotDesignations(
-                    $activity,
-                    $slot->assignedCharacter,
-                    $slot,
-                    $actor,
-                );
-            }
+            return;
         }
+
+        $character = $characterId !== null
+            ? Character::query()->with('user')->find($characterId)
+            : $slot->assignedCharacter;
+
+        if (! $character || (int) $slot->assigned_character_id !== (int) $character->id) {
+            return;
+        }
+
+        $this->notifyCharacterPlacement(
+            $activity,
+            $character,
+            $slot,
+            $actor,
+            published: true,
+        );
+
+        $this->notifySlotDesignations($activity, $character, $slot, $actor);
     }
 
     public function notifyPlacementChanged(ActivityApplication $application, ?ActivitySlot $slot, mixed $actor): void
     {
         $activity = $application->activity;
 
-        if (!$activity instanceof Activity || $activity->status !== Activity::STATUS_ASSIGNED) {
+        if (! $activity instanceof Activity || $activity->status !== Activity::STATUS_ASSIGNED) {
             return;
         }
 
@@ -129,7 +175,7 @@ class AssignmentNotificationService
 
         $recipient = $this->characterRecipient($character);
 
-        if (!$recipient) {
+        if (! $recipient) {
             return;
         }
 
@@ -181,7 +227,7 @@ class AssignmentNotificationService
     ): void {
         $recipient = $this->recipient($application);
 
-        if (!$recipient) {
+        if (! $recipient) {
             return;
         }
 
@@ -216,7 +262,7 @@ class AssignmentNotificationService
     ): void {
         $recipient = $this->characterRecipient($character);
 
-        if (!$recipient) {
+        if (! $recipient) {
             return;
         }
 
@@ -313,7 +359,7 @@ class AssignmentNotificationService
 
         $recipient = $application->user;
 
-        if (!$recipient instanceof User || !$recipient->assignment_notifications) {
+        if (! $recipient instanceof User || ! $recipient->assignment_notifications) {
             return null;
         }
 
@@ -326,7 +372,7 @@ class AssignmentNotificationService
 
         $recipient = $character->user;
 
-        if (!$recipient instanceof User || !$recipient->assignment_notifications) {
+        if (! $recipient instanceof User || ! $recipient->assignment_notifications) {
             return null;
         }
 
@@ -335,7 +381,7 @@ class AssignmentNotificationService
 
     private function findAssignedSlotForApplication(Activity $activity, ActivityApplication $application): ?ActivitySlot
     {
-        if (!$application->selected_character_id) {
+        if (! $application->selected_character_id) {
             return null;
         }
 
@@ -432,7 +478,7 @@ class AssignmentNotificationService
 
     private function slotLabel(?ActivitySlot $slot): ?string
     {
-        if (!$slot) {
+        if (! $slot) {
             return null;
         }
 
@@ -441,7 +487,7 @@ class AssignmentNotificationService
 
     private function groupLabel(?ActivitySlot $slot): ?string
     {
-        if (!$slot) {
+        if (! $slot) {
             return null;
         }
 

@@ -33,19 +33,26 @@ const emit = defineEmits<{
 	}]
 }>();
 
+type MilestoneNumberInput = string | number | null | undefined;
+type MilestoneInputState = {
+	kills: MilestoneNumberInput
+	best_progress_percent: MilestoneNumberInput
+};
+
 const { t, locale } = useI18n();
 
 const step = ref(1);
 const isFetchingFflogsPreview = ref(false);
 const fflogsPreviewError = ref<string | null>(null);
 const fflogsPreviewMeta = ref<{ report_code?: string | null, report_title?: string | null } | null>(null);
+const milestoneInputErrors = ref<Record<string, string>>({});
 
 const state = reactive({
 	progressEntryMode: 'manual' as 'manual' | 'fflogs',
 	progressLinkUrl: '',
 	progressNotes: '',
 	furthestProgressKey: '',
-	milestones: {} as Record<string, { kills: string, best_progress_percent: string }>,
+	milestones: {} as Record<string, MilestoneInputState>,
 });
 
 const hasProgressMilestones = computed(() => props.progressMilestones.length > 0);
@@ -62,13 +69,131 @@ const progPointItems = computed(() => props.progPoints.map((progPoint) => ({
 	value: progPoint.key,
 })));
 
+const milestoneInputState = (milestone: ActivityProgressMilestone): MilestoneInputState => ({
+	kills: milestone.kills > 0 ? String(milestone.kills) : '',
+	best_progress_percent: milestone.best_progress_percent !== null ? String(milestone.best_progress_percent) : '',
+});
+
+const ensureMilestoneInputState = (milestoneKey: string): MilestoneInputState => {
+	if (!state.milestones[milestoneKey]) {
+		state.milestones[milestoneKey] = {
+			kills: '',
+			best_progress_percent: '',
+		};
+	}
+
+	return state.milestones[milestoneKey];
+};
+
+const seedMissingMilestones = () => {
+	for (const milestone of props.progressMilestones) {
+		if (!state.milestones[milestone.milestone_key]) {
+			state.milestones[milestone.milestone_key] = milestoneInputState(milestone);
+		}
+	}
+};
+
+const milestoneInputValue = (milestoneKey: string, field: keyof MilestoneInputState): MilestoneNumberInput => (
+	state.milestones[milestoneKey]?.[field] ?? ''
+);
+
+const updateMilestoneValue = (milestoneKey: string, field: keyof MilestoneInputState, value: MilestoneNumberInput) => {
+	ensureMilestoneInputState(milestoneKey)[field] = value;
+	delete milestoneInputErrors.value[`${milestoneKey}.${field}`];
+};
+
+const updateMilestoneFromInputEvent = (milestoneKey: string, field: keyof MilestoneInputState, event: Event) => {
+	const input = event.target instanceof HTMLInputElement ? event.target : null;
+
+	updateMilestoneValue(milestoneKey, field, input?.value ?? '');
+};
+
+const normalizeKillsInput = (value: MilestoneNumberInput): number => {
+	const numericValue = Number(value || 0);
+
+	return Number.isFinite(numericValue)
+		? Math.max(0, Math.trunc(numericValue))
+		: 0;
+};
+
+const normalizeProgressPercentInput = (value: MilestoneNumberInput): number | null => {
+	if (value === '' || value === null || value === undefined) {
+		return null;
+	}
+
+	const numericValue = Number(value);
+
+	return Number.isFinite(numericValue)
+		? Math.min(100, Math.max(0, numericValue))
+		: null;
+};
+
+const milestoneFieldError = (milestoneKey: string, field: keyof MilestoneInputState) => (
+	milestoneInputErrors.value[`${milestoneKey}.${field}`] ?? null
+);
+
+const parseKillsInput = (value: MilestoneNumberInput, milestoneKey: string): number | null => {
+	const inputValue = value === null || value === undefined ? '' : String(value).trim();
+
+	if (inputValue === '') {
+		return 0;
+	}
+
+	if (!/^\d+$/.test(inputValue)) {
+		milestoneInputErrors.value[`${milestoneKey}.kills`] = t('groups.activities.management.complete_activity_modal.errors.kills_integer');
+
+		return null;
+	}
+
+	return Math.max(0, Number(inputValue));
+};
+
+const parseProgressPercentInput = (value: MilestoneNumberInput, milestoneKey: string): number | null | undefined => {
+	const inputValue = value === null || value === undefined ? '' : String(value).trim();
+
+	if (inputValue === '') {
+		return null;
+	}
+
+	if (!/^(?:\d+|\d+\.\d+|\.\d+)$/.test(inputValue)) {
+		milestoneInputErrors.value[`${milestoneKey}.best_progress_percent`] = t('groups.activities.management.complete_activity_modal.errors.percent_numeric');
+
+		return undefined;
+	}
+
+	const numericValue = Number(inputValue);
+
+	if (numericValue < 0 || numericValue > 100) {
+		milestoneInputErrors.value[`${milestoneKey}.best_progress_percent`] = t('groups.activities.management.complete_activity_modal.errors.percent_range');
+
+		return undefined;
+	}
+
+	return numericValue;
+};
+
+const validateMilestoneInputs = () => {
+	milestoneInputErrors.value = {};
+	let isValid = true;
+
+	for (const milestone of props.progressMilestones) {
+		const values = ensureMilestoneInputState(milestone.milestone_key);
+		const kills = parseKillsInput(values.kills, milestone.milestone_key);
+		const bestProgressPercent = parseProgressPercentInput(values.best_progress_percent, milestone.milestone_key);
+
+		if (kills === null || bestProgressPercent === undefined) {
+			isValid = false;
+		}
+	}
+
+	return isValid;
+};
+
 const progressSummary = computed(() => props.progressMilestones.map((milestone) => ({
 	key: milestone.milestone_key,
 	label: localizedValue(milestone.milestone_label, locale.value) || milestone.milestone_key,
-	kills: Number(state.milestones[milestone.milestone_key]?.kills || 0),
-	bestProgressPercent: state.milestones[milestone.milestone_key]?.best_progress_percent === ''
-		? null
-		: Number(state.milestones[milestone.milestone_key]?.best_progress_percent ?? 0),
+	kills: normalizeKillsInput(milestoneInputValue(milestone.milestone_key, 'kills')),
+	bestProgressPercent: normalizeProgressPercentInput(milestoneInputValue(milestone.milestone_key, 'best_progress_percent')),
 })));
 
 const stepLabel = computed(() => {
@@ -120,10 +245,7 @@ const canConfirm = computed(() => step.value === maxSteps.value);
 const resetMilestones = () => {
 	state.milestones = Object.fromEntries(props.progressMilestones.map((milestone) => [
 		milestone.milestone_key,
-		{
-			kills: milestone.kills > 0 ? String(milestone.kills) : '',
-			best_progress_percent: milestone.best_progress_percent !== null ? String(milestone.best_progress_percent) : '',
-		},
+		milestoneInputState(milestone),
 	]));
 };
 
@@ -136,11 +258,18 @@ const resetState = () => {
 	resetMilestones();
 	fflogsPreviewError.value = null;
 	fflogsPreviewMeta.value = null;
+	milestoneInputErrors.value = {};
 };
 
 watch(() => props.open, (isOpen) => {
 	if (isOpen) {
 		resetState();
+	}
+}, { immediate: true });
+
+watch(() => props.progressMilestones.map((milestone) => milestone.milestone_key), () => {
+	if (props.open) {
+		seedMissingMilestones();
 	}
 }, { immediate: true });
 
@@ -220,6 +349,14 @@ const next = () => {
 		return;
 	}
 
+	if (
+		hasProgressMilestones.value
+		&& ((step.value === 3 && state.progressEntryMode === 'manual') || (step.value === 4 && state.progressEntryMode === 'fflogs'))
+		&& !validateMilestoneInputs()
+	) {
+		return;
+	}
+
 	step.value = Math.min(maxSteps.value, step.value + 1);
 };
 
@@ -228,6 +365,12 @@ const back = () => {
 };
 
 const submit = () => {
+	if (hasProgressMilestones.value && !validateMilestoneInputs()) {
+		step.value = state.progressEntryMode === 'fflogs' ? 4 : 3;
+
+		return;
+	}
+
 	emit('confirm', {
 		progress_entry_mode: hasProgressMilestones.value ? state.progressEntryMode : null,
 		progress_link_url: hasProgressMilestones.value && state.progressEntryMode === 'fflogs' && state.progressLinkUrl.trim().length > 0
@@ -237,10 +380,8 @@ const submit = () => {
 		furthest_progress_key: state.furthestProgressKey || null,
 		milestones: props.progressMilestones.map((milestone) => ({
 			milestone_key: milestone.milestone_key,
-			kills: Number(state.milestones[milestone.milestone_key]?.kills || 0),
-			best_progress_percent: state.milestones[milestone.milestone_key]?.best_progress_percent === ''
-				? null
-				: Number(state.milestones[milestone.milestone_key]?.best_progress_percent ?? 0),
+			kills: normalizeKillsInput(milestoneInputValue(milestone.milestone_key, 'kills')),
+			best_progress_percent: normalizeProgressPercentInput(milestoneInputValue(milestone.milestone_key, 'best_progress_percent')),
 		})),
 	});
 };
@@ -415,23 +556,31 @@ const submit = () => {
 									</p>
 								</div>
 
-								<UFormField :label="t('groups.activities.management.complete_activity_modal.kills')">
+								<UFormField
+									:label="t('groups.activities.management.complete_activity_modal.kills')"
+									:error="milestoneFieldError(milestone.milestone_key, 'kills')"
+								>
 									<UInput
-										v-model="state.milestones[milestone.milestone_key].kills"
-										type="number"
-										min="0"
+										:model-value="milestoneInputValue(milestone.milestone_key, 'kills')"
+										type="text"
+										inputmode="numeric"
 										class="w-full"
+										@input="(event) => updateMilestoneFromInputEvent(milestone.milestone_key, 'kills', event)"
+										@update:model-value="(value) => updateMilestoneValue(milestone.milestone_key, 'kills', value)"
 									/>
 								</UFormField>
 
-								<UFormField :label="t('groups.activities.management.complete_activity_modal.best_progress_percent')">
+								<UFormField
+									:label="t('groups.activities.management.complete_activity_modal.best_progress_percent')"
+									:error="milestoneFieldError(milestone.milestone_key, 'best_progress_percent')"
+								>
 									<UInput
-										v-model="state.milestones[milestone.milestone_key].best_progress_percent"
-										type="number"
-										min="0"
-										max="100"
-										step="0.01"
+										:model-value="milestoneInputValue(milestone.milestone_key, 'best_progress_percent')"
+										type="text"
+										inputmode="decimal"
 										class="w-full"
+										@input="(event) => updateMilestoneFromInputEvent(milestone.milestone_key, 'best_progress_percent', event)"
+										@update:model-value="(value) => updateMilestoneValue(milestone.milestone_key, 'best_progress_percent', value)"
 									/>
 								</UFormField>
 							</div>
@@ -503,7 +652,10 @@ const submit = () => {
 
 							<div class="text-right text-sm text-toned">
 								<p>{{ t('groups.activities.management.complete_activity_modal.kills') }}: {{ item.kills }}</p>
-								<p>{{ t('groups.activities.management.complete_activity_modal.best_progress_percent') }}: {{ item.bestProgressPercent ?? 0 }}%</p>
+								<p>
+									{{ t('groups.activities.management.complete_activity_modal.best_progress_percent') }}:
+									{{ item.bestProgressPercent !== null ? `${item.bestProgressPercent}%` : t('groups.activities.management.overview.progression.not_recorded') }}
+								</p>
 							</div>
 						</div>
 					</div>

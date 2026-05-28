@@ -169,6 +169,7 @@ class HandleInertiaRequests extends Middleware
             'system_notice_notifications' => (bool) $user->system_notice_notifications,
             'email_notifications' => (bool) $user->email_notifications,
             'discord_notifications' => (bool) $user->discord_notifications,
+            'notification_preferences_reviewed_at' => $user->notification_preferences_reviewed_at?->toIso8601String(),
             'primary_character' => $user->primaryCharacter ? [
                 'id' => $user->primaryCharacter->id,
                 'name' => $user->primaryCharacter->name,

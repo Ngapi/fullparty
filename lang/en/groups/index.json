@@ -30,8 +30,8 @@
     "statistics": "Statistics",
     "leaderboard": "Leaderboard",
     "members": "Members",
-    "membership_applications": "Membership Applications",
-    "application_form": "Application Form",
+    "membership_applications": "Requests",
+    "application_form": "Request Form",
     "audit_log": "Audit Log",
     "discovery_settings": "Discovery Settings",
     "settings": "Settings"

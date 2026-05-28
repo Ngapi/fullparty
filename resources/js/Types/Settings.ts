@@ -18,5 +18,6 @@ export type SettingsUser = {
 	system_notice_notifications: boolean
 	email_notifications: boolean
 	discord_notifications: boolean
+	notification_preferences_reviewed_at: string | null
 	social_accounts: SettingsSocialAccount[]
 }

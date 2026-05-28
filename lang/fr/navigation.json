@@ -1,12 +1,14 @@
 {
   "sidebar": {
-    "dashboard": "Tableau de bord",
+    "dashboard": "Accueil",
     "runs": "Runs",
+    "find_runs": "Trouver des runs",
     "account": "Compte",
     "characters": "Mes personnages",
     "notifications": "Notifications",
     "applications": "Candidatures",
     "groups": "Groupes",
+    "my_requests": "Mes demandes",
     "my_groups": "Mes groupes",
     "joined_groups": "Groupes rejoints",
     "members": "Membres",

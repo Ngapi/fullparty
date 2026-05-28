@@ -191,8 +191,8 @@ onBeforeUnmount(() => {
 						v-for="notification in latestNotifications"
 						:key="notification.id"
 						:href="notification.open_url"
-						class="block px-4 py-3 hover:bg-neutral-600/50 transition-colors border-b border-gray-100 dark:border-neutral-700 last:border-b-0"
-						:class="{ 'bg-blue-50/50 dark:bg-brand-950/20': notification.is_unread }"
+						class="block px-4 py-3 hover:bg-neutral-600/50 transition-colors border-b border-neutral-700 last:border-b-0"
+						:class="{ ' border-l-4 border-l-white/75 bg-brand-950/50 hover:bg-brand-950': notification.is_unread }"
 					>
 						<div class="flex gap-3">
 							<div class="flex-shrink-0 mt-0.5">

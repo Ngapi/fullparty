@@ -37,6 +37,14 @@ watch(
 				icon: 'i-lucide-check'
 			})
 		}
+		if(success.includes('notification_preferences_reviewed')){
+			toast.add({
+				title: t('settings.toasts.title'),
+				description: t('settings.toasts.notification_preferences_reviewed'),
+				color: 'success',
+				icon: 'i-lucide-check'
+			})
+		}
 		if(success.includes('privacy_settings_updated')){
 			toast.add({
 				title: t('settings.toasts.title'),

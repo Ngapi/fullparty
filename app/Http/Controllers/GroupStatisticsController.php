@@ -23,7 +23,7 @@ class GroupStatisticsController extends Controller
 {
     private const CACHE_TTL_SECONDS = 86_400;
 
-    private const CACHE_VERSION = 1;
+    private const CACHE_VERSION = 2;
 
     private const REFRESH_COOLDOWN_SECONDS = 300;
 
@@ -438,8 +438,7 @@ class GroupStatisticsController extends Controller
             ))
             ->values()
             ->all();
-        $topSeries = collect($distribution)
-            ->take(5)
+        $trendSeries = collect($distribution)
             ->map(fn (array $item) => [
                 'key' => (string) $item['key'],
                 'label' => (string) $item['label'],
@@ -455,7 +454,7 @@ class GroupStatisticsController extends Controller
             'distribution' => $distribution,
             'monthly_trend' => [
                 'months' => $months->map(fn (CarbonImmutable $month) => $month->toDateString())->all(),
-                'series' => $topSeries,
+                'series' => $trendSeries,
             ],
         ];
     }

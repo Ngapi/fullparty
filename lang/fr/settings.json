@@ -66,6 +66,7 @@
     "username_updated": "Nom d'utilisateur mis à jour avec succès",
     "password_updated": "Mot de passe mis à jour avec succès",
     "notification_updated": "Préférences de notification mises à jour avec succès",
+    "notification_preferences_reviewed": "Préférences de notification vérifiées. Configuration du compte mise à jour.",
     "privacy_updated": "Paramètres de confidentialité mis à jour avec succès",
     "social_account_unlinked": "Compte connecté dissocié avec succès",
     "social_account_unlink_blocked": "Ajoutez une autre méthode de connexion ou définissez un mot de passe avant de dissocier votre dernier compte social.",

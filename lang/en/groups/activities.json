@@ -223,6 +223,11 @@
             "manual_step_help": "Enter the final normalized progression result for this run.",
             "kills": "Kills",
             "best_progress_percent": "Best Progress %",
+            "errors": {
+                "kills_integer": "Enter kills as a whole number.",
+                "percent_numeric": "Enter progress as a number from 0 to 100, without any special symbols.",
+                "percent_range": "Progress must be between 0 and 100."
+            },
             "notes": "Notes",
             "notes_placeholder": "Optional notes about the result or evidence.",
             "confirm_title": "Final Confirmation",
@@ -520,6 +525,15 @@
                 "phys": "Physical Ranged",
                 "magic": "Magic Ranged"
             }
+        },
+        "phantom_picker": {
+            "empty": "Select phantom jobs",
+            "selected_count": "{count} selected"
+        },
+        "quick_select": {
+            "title": "Quick selectors",
+            "all": "All",
+            "favorites": "Favourites"
         },
         "form": {
             "title": "Application Form",

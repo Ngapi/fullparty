@@ -12,6 +12,7 @@ use Illuminate\Validation\ValidationException;
 class ActivityCompletionService
 {
     public const ENTRY_MODE_MANUAL = 'manual';
+
     public const ENTRY_MODE_FFLOGS = 'fflogs';
 
     /**
@@ -25,7 +26,7 @@ class ActivityCompletionService
         $hasMilestones = $activity->progressMilestones->isNotEmpty();
         $supportsFflogs = $this->supportsFflogsCompletion($activity->activityTypeVersion);
 
-        if (!$hasMilestones) {
+        if (! $hasMilestones) {
             return DB::transaction(function () use ($activity, $payload, $recordedByUserId) {
                 $previousStatus = $activity->status;
                 $previousProgressNotes = $activity->progress_notes;
@@ -58,13 +59,13 @@ class ActivityCompletionService
 
         $entryMode = (string) ($payload['progress_entry_mode'] ?? self::ENTRY_MODE_MANUAL);
 
-        if (!in_array($entryMode, [self::ENTRY_MODE_MANUAL, self::ENTRY_MODE_FFLOGS], true)) {
+        if (! in_array($entryMode, [self::ENTRY_MODE_MANUAL, self::ENTRY_MODE_FFLOGS], true)) {
             throw ValidationException::withMessages([
                 'progress_entry_mode' => 'The selected progress entry mode is invalid.',
             ]);
         }
 
-        if ($entryMode === self::ENTRY_MODE_FFLOGS && !$supportsFflogs) {
+        if ($entryMode === self::ENTRY_MODE_FFLOGS && ! $supportsFflogs) {
             throw ValidationException::withMessages([
                 'progress_entry_mode' => 'FF Logs progress is not supported for this activity type.',
             ]);
@@ -164,13 +165,12 @@ class ActivityCompletionService
     }
 
     /**
-     * @param  mixed  $milestones
      * @param  Collection<int, ActivityProgressMilestone>  $activityMilestones
      * @return Collection<string, array{milestone_key: string, kills: int, best_progress_percent: float|null}>
      */
     private function normalizeMilestonePayload(mixed $milestones, Collection $activityMilestones): Collection
     {
-        if (!is_array($milestones)) {
+        if (! is_array($milestones)) {
             throw ValidationException::withMessages([
                 'milestones' => 'Milestones must be provided as an array.',
             ]);
@@ -183,11 +183,17 @@ class ActivityCompletionService
 
         return collect($milestones)
             ->mapWithKeys(function ($entry, $key) use ($knownKeys) {
+                if (! is_array($entry)) {
+                    throw ValidationException::withMessages([
+                        'milestones' => 'Each milestone must be provided as an object.',
+                    ]);
+                }
+
                 $milestoneKey = is_string($key)
                     ? $key
                     : (string) (($entry['milestone_key'] ?? ''));
 
-                if (!in_array($milestoneKey, $knownKeys, true)) {
+                if (! in_array($milestoneKey, $knownKeys, true)) {
                     throw ValidationException::withMessages([
                         'milestones' => sprintf('Unknown milestone key [%s].', $milestoneKey),
                     ]);
@@ -221,7 +227,7 @@ class ActivityCompletionService
             ->map(fn ($value) => (string) $value)
             ->all();
 
-        if ($availableKeys !== [] && !in_array($normalizedKey, $availableKeys, true)) {
+        if ($availableKeys !== [] && ! in_array($normalizedKey, $availableKeys, true)) {
             throw ValidationException::withMessages([
                 'furthest_progress_key' => 'The selected furthest progress point is invalid for this activity type.',
             ]);

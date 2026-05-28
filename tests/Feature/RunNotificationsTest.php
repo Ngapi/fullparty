@@ -288,6 +288,77 @@ it('sanitizes completion progress notes before storing them', function () {
     expect($activity->fresh()->progress_notes)->toBe($sanitizer->sanitizeMultiline($rawNotes));
 });
 
+it('stores manually recorded completion progress', function () {
+    $owner = User::factory()->create();
+    $group = Group::factory()->open()->create([
+        'owner_id' => $owner->id,
+    ]);
+
+    $type = ActivityType::factory()->create([
+        'created_by_user_id' => $owner->id,
+    ]);
+    $version = ActivityTypeVersion::factory()->create([
+        'activity_type_id' => $type->id,
+        'published_by_user_id' => $owner->id,
+        'progress_schema' => [
+            'milestones' => [
+                ['key' => 'boss-1', 'label' => ['en' => 'Boss 1'], 'order' => 1],
+                ['key' => 'boss-2', 'label' => ['en' => 'Boss 2'], 'order' => 2],
+                ['key' => 'boss-3', 'label' => ['en' => 'Boss 3'], 'order' => 3],
+                ['key' => 'boss-4', 'label' => ['en' => 'Boss 4'], 'order' => 4],
+            ],
+        ],
+        'prog_points' => [
+            ['key' => 'boss-1', 'label' => ['en' => 'Boss 1'], 'order' => 1],
+            ['key' => 'boss-2', 'label' => ['en' => 'Boss 2'], 'order' => 2],
+            ['key' => 'boss-3', 'label' => ['en' => 'Boss 3'], 'order' => 3],
+            ['key' => 'boss-4', 'label' => ['en' => 'Boss 4'], 'order' => 4],
+        ],
+    ]);
+
+    $type->update([
+        'current_published_version_id' => $version->id,
+    ]);
+
+    $activity = Activity::factory()->create([
+        'group_id' => $group->id,
+        'activity_type_id' => $type->id,
+        'activity_type_version_id' => $version->id,
+        'organized_by_user_id' => $owner->id,
+        'status' => Activity::STATUS_ASSIGNED,
+    ]);
+
+    $this->actingAs($owner)
+        ->postJson(route('groups.dashboard.activities.complete', [
+            'group' => $group->slug,
+            'activity' => $activity->id,
+        ]), [
+            'progress_entry_mode' => 'manual',
+            'furthest_progress_key' => 'boss-1',
+            'milestones' => [
+                ['milestone_key' => 'boss-1', 'kills' => 0, 'best_progress_percent' => 10],
+                ['milestone_key' => 'boss-2', 'kills' => 0, 'best_progress_percent' => 0],
+                ['milestone_key' => 'boss-3', 'kills' => 0, 'best_progress_percent' => 0],
+                ['milestone_key' => 'boss-4', 'kills' => 0, 'best_progress_percent' => 0],
+            ],
+        ])
+        ->assertOk();
+
+    $activity->refresh()->load('progressMilestones');
+    $milestones = $activity->progressMilestones->keyBy('milestone_key');
+
+    expect($activity->status)->toBe(Activity::STATUS_COMPLETE)
+        ->and($activity->progress_entry_mode)->toBe('manual')
+        ->and($activity->furthest_progress_key)->toBe('boss-1')
+        ->and($activity->furthest_progress_percent)->toBe('10.00')
+        ->and($milestones)->toHaveCount(4)
+        ->and($milestones->get('boss-1')->kills)->toBe(0)
+        ->and($milestones->get('boss-1')->best_progress_percent)->toBe('10.00')
+        ->and($milestones->get('boss-2')->best_progress_percent)->toBe('0.00')
+        ->and($milestones->get('boss-3')->best_progress_percent)->toBe('0.00')
+        ->and($milestones->get('boss-4')->best_progress_percent)->toBe('0.00');
+});
+
 it('rejects completion progress notes that exceed the configured limit', function () {
     $owner = User::factory()->create();
     $group = Group::factory()->open()->create([

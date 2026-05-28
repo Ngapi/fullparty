@@ -1,5 +1,6 @@
 <?php
 
+use App\Jobs\DispatchRosterPublishedAssignmentNotificationJob;
 use App\Jobs\SendNotificationEmailDeliveryJob;
 use App\Models\Activity;
 use App\Models\ActivityApplication;
@@ -16,6 +17,7 @@ use App\Models\SocialAccount;
 use App\Models\User;
 use App\Models\UserNotification;
 use App\Services\Groups\ActivitySlotBench;
+use App\Services\Notifications\AssignmentNotificationService;
 use App\Support\Notifications\NotificationCategory;
 use App\Support\Notifications\NotificationChannel;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -260,7 +262,7 @@ it('notifies signed in applicants of their roster positions when the roster is p
         'provider_email' => $benchUser->email,
     ]);
 
-    ActivityApplication::factory()->approved($owner)->create([
+    $rosterApplication = ActivityApplication::factory()->approved($owner)->create([
         'activity_id' => $activity->id,
         'user_id' => $rosterUser->id,
         'selected_character_id' => $rosterCharacter->id,
@@ -270,7 +272,7 @@ it('notifies signed in applicants of their roster positions when the roster is p
         'applicant_datacenter' => $rosterCharacter->datacenter,
     ]);
 
-    ActivityApplication::factory()->create([
+    $benchApplication = ActivityApplication::factory()->create([
         'activity_id' => $activity->id,
         'user_id' => $benchUser->id,
         'selected_character_id' => $benchCharacter->id,
@@ -301,6 +303,37 @@ it('notifies signed in applicants of their roster positions when the roster is p
         'group' => $group->slug,
         'activity' => $activity->id,
     ]));
+
+    Queue::assertPushed(DispatchRosterPublishedAssignmentNotificationJob::class, 2);
+    Queue::assertPushed(
+        DispatchRosterPublishedAssignmentNotificationJob::class,
+        fn (DispatchRosterPublishedAssignmentNotificationJob $job) => $job->slotId === $mainSlot->id
+            && $job->applicationId === $rosterApplication->id
+            && $job->characterId === null
+            && $job->actorId === $owner->id,
+    );
+    Queue::assertPushed(
+        DispatchRosterPublishedAssignmentNotificationJob::class,
+        fn (DispatchRosterPublishedAssignmentNotificationJob $job) => $job->slotId === $benchSlot->id
+            && $job->applicationId === $benchApplication->id
+            && $job->characterId === null
+            && $job->actorId === $owner->id,
+    );
+
+    expect(NotificationEvent::query()->count())->toBe(0);
+
+    (new DispatchRosterPublishedAssignmentNotificationJob(
+        slotId: $mainSlot->id,
+        applicationId: $rosterApplication->id,
+        characterId: null,
+        actorId: $owner->id,
+    ))->handle(app(AssignmentNotificationService::class));
+    (new DispatchRosterPublishedAssignmentNotificationJob(
+        slotId: $benchSlot->id,
+        applicationId: $benchApplication->id,
+        characterId: null,
+        actorId: $owner->id,
+    ))->handle(app(AssignmentNotificationService::class));
 
     $events = NotificationEvent::query()
         ->whereIn('type', [
@@ -459,6 +492,23 @@ it('notifies manually assigned members when the roster is published', function (
         'group' => $group->slug,
         'activity' => $activity->id,
     ]))->assertRedirect();
+
+    Queue::assertPushed(
+        DispatchRosterPublishedAssignmentNotificationJob::class,
+        fn (DispatchRosterPublishedAssignmentNotificationJob $job) => $job->slotId === $mainSlot->id
+            && $job->applicationId === null
+            && $job->characterId === $character->id
+            && $job->actorId === $owner->id,
+    );
+
+    expect(NotificationEvent::query()->count())->toBe(0);
+
+    (new DispatchRosterPublishedAssignmentNotificationJob(
+        slotId: $mainSlot->id,
+        applicationId: null,
+        characterId: $character->id,
+        actorId: $owner->id,
+    ))->handle(app(AssignmentNotificationService::class));
 
     $event = NotificationEvent::query()->where('type', 'assignments.roster_published_assigned')->sole();
 

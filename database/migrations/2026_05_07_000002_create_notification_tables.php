@@ -30,11 +30,14 @@ return new class extends Migration
             $table->id();
             $table->foreignId('notification_event_id')->constrained()->cascadeOnDelete();
             $table->foreignId('user_id')->constrained()->cascadeOnDelete();
+            $table->string('aggregate_key')->nullable();
+            $table->unsignedInteger('aggregate_count')->default(1);
             $table->timestamp('read_at')->nullable();
             $table->timestamps();
 
             $table->unique(['notification_event_id', 'user_id']);
             $table->index(['user_id', 'read_at', 'created_at']);
+            $table->index(['user_id', 'aggregate_key', 'read_at'], 'user_notifications_aggregate_lookup_idx');
         });
 
         Schema::create('notification_deliveries', function (Blueprint $table) {

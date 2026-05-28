@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { ActivityApplicationRecord, ApplicationQuestion, GuestCharacterSearchResult, GuestWorldOption, RememberedApplicationDefaults } from "@/Types/ActivityApplications";
+import type { ActivityApplicationCharacterOption, ActivityApplicationRecord, ApplicationQuestion, GuestCharacterSearchResult, GuestWorldOption, RememberedApplicationDefaults } from "@/Types/ActivityApplications";
 import { computed, ref } from "vue";
 import { router, useForm } from "@inertiajs/vue3";
 import { route } from "ziggy-js";
@@ -13,12 +13,7 @@ const props = defineProps<{
 	activityId: number
 	secretKey?: string
 	guestAccessToken?: string
-	characters: Array<{
-		id: number
-		name: string
-		avatar_url: string | null
-		world: string | null
-	}>
+	characters: ActivityApplicationCharacterOption[]
 	questions: ApplicationQuestion[]
 	application: ActivityApplicationRecord | null
 	rememberedApplicationDefaults: RememberedApplicationDefaults | null
@@ -66,6 +61,21 @@ const form = useForm({
 });
 
 const selectedCharacter = computed(() => props.characters.find((character) => character.id === form.selected_character_id) || null);
+const favoriteOptionKeysForQuestion = (question: ApplicationQuestion): string[] => {
+	if (!selectedCharacter.value) {
+		return [];
+	}
+
+	if (question.source === "character_classes") {
+		return selectedCharacter.value.preferred_character_class_ids;
+	}
+
+	if (question.source === "phantom_jobs") {
+		return selectedCharacter.value.preferred_phantom_job_ids;
+	}
+
+	return [];
+};
 const applicationsClosed = computed(() => !props.acceptsApplications);
 const guestModeEnabled = computed(() => props.acceptsApplications && !props.canApply && props.canApplyAsGuest);
 const applicationLocked = computed(() => props.acceptsApplications && props.application !== null && !props.canEditApplication);
@@ -477,6 +487,7 @@ const submit = () => {
 						:question="question"
 						:error="form.errors[`answers.${question.key}`] || form.errors[question.key]"
 						:disabled="applicationLocked || !canSubmit"
+						:favorite-option-keys="favoriteOptionKeysForQuestion(question)"
 						:class="question.type === 'textarea' ? 'xl:col-span-2' : ''"
 					/>
 				</div>

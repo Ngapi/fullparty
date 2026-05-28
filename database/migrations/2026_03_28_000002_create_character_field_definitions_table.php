@@ -17,6 +17,12 @@ return new class extends Migration
             $table->string('slug')->unique(); // Key for storage, e.g., "phantom_level"
             $table->enum('type', ['text', 'number', 'date', 'textarea', 'select', 'checkbox'])->default('text');
             $table->text('description')->nullable();
+            $table->string('group')->default('profile');
+            $table->json('display_contexts')->nullable();
+            $table->string('source_type')->default('user');
+            $table->boolean('is_editable')->default(true);
+            $table->boolean('is_visible')->default(true);
+            $table->json('tags')->nullable();
             $table->json('validation_rules')->nullable(); // Store validation config as JSON
             $table->integer('sort_order')->default(0);
             $table->boolean('is_active')->default(true);
@@ -24,6 +30,9 @@ return new class extends Migration
 
             // Indexes
             $table->index('slug');
+            $table->index('group');
+            $table->index('source_type');
+            $table->index('is_visible');
             $table->index('is_active');
             $table->index('sort_order');
         });

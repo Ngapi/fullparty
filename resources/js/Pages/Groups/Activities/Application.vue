@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { RememberedApplicationDefaults } from "@/Types/ActivityApplications";
+import type { ActivityApplicationCharacterOption, RememberedApplicationDefaults } from "@/Types/ActivityApplications";
 import { computed, ref } from "vue";
 import { router, usePage } from "@inertiajs/vue3";
 import { route } from "ziggy-js";
@@ -93,12 +93,7 @@ const props = defineProps<{
 			value: string
 		}>
 	}
-	characters: Array<{
-		id: number
-		name: string
-		avatar_url: string | null
-		world: string | null
-	}>
+	characters: ActivityApplicationCharacterOption[]
 	permissions: {
 		can_apply: boolean
 		can_apply_as_guest: boolean

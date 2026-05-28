@@ -5,6 +5,8 @@ export type ApplicationQuestionOption = {
 	label: LocalizedText
 	meta?: {
 		icon_url?: string | null
+		transparent_icon_url?: string | null
+		sprite_url?: string | null
 		role?: string | null
 		shorthand?: string | null
 	} | null
@@ -40,6 +42,15 @@ export type ActivityApplicantCharacter = {
 	world: string
 	datacenter: string | null
 	avatar_url: string | null
+}
+
+export type ActivityApplicationCharacterOption = {
+	id: number
+	name: string
+	avatar_url: string | null
+	world: string | null
+	preferred_character_class_ids: string[]
+	preferred_phantom_job_ids: string[]
 }
 
 export type ActivityApplicationRecord = {

@@ -17,6 +17,7 @@ return new class extends Migration
             $table->foreignId('user_id')->constrained()->cascadeOnDelete();
             $table->string('role');
             $table->timestamp('joined_at')->nullable();
+            $table->boolean('notifications_enabled')->default(true);
             $table->timestamps();
 
             $table->unique(['group_id', 'user_id']);

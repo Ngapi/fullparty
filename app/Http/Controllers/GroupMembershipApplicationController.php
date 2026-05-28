@@ -26,6 +26,11 @@ class GroupMembershipApplicationController extends Controller
         $this->authorizeApplicationAccess($request, $group);
         $this->schemaService->ensureDefaultForm($group);
         $group->refresh();
+        $application = $group->membershipApplications()
+            ->where('user_id', $request->user()->id)
+            ->latest('submitted_at')
+            ->latest('id')
+            ->first();
 
         if ($group->hasMember($request->user()->id)) {
             return redirect()->route('groups.dashboard', $group);
@@ -33,14 +38,10 @@ class GroupMembershipApplicationController extends Controller
 
         return Inertia::render('Groups/MembershipApplications/Create', [
             'group' => $this->serializeGroup($group),
-            'formSchema' => $group->membership_application_schema ?? $this->schemaService->defaultSchema(),
-            'existingApplication' => $this->serializeApplication(
-                $group->membershipApplications()
-                    ->where('user_id', $request->user()->id)
-                    ->latest('submitted_at')
-                    ->latest('id')
-                    ->first()
-            ),
+            'formSchema' => $application?->isPending()
+                ? ($application->form_snapshot ?? $this->schemaService->defaultSchema())
+                : ($group->membership_application_schema ?? $this->schemaService->defaultSchema()),
+            'existingApplication' => $this->serializeApplication($application),
         ]);
     }
 
@@ -94,6 +95,54 @@ class GroupMembershipApplicationController extends Controller
         return redirect()
             ->route('groups.membership-applications.create', $group)
             ->with('success', 'membership_application_submitted');
+    }
+
+    public function update(Request $request, Group $group): RedirectResponse
+    {
+        $group->loadMissing('memberships');
+        $this->authorizeApplicationAccess($request, $group);
+
+        $user = $request->user();
+
+        if ($group->hasMember($user->id)) {
+            return redirect()->route('groups.dashboard', $group);
+        }
+
+        $application = $group->membershipApplications()
+            ->where('user_id', $user->id)
+            ->where('status', GroupMembershipApplication::STATUS_PENDING)
+            ->latest('submitted_at')
+            ->latest('id')
+            ->firstOrFail();
+
+        $schema = $application->form_snapshot ?? $group->membership_application_schema ?? $this->schemaService->defaultSchema();
+        $answers = $this->schemaService->normalizeAndValidateAnswers(
+            $request->input('answers', []),
+            $schema,
+        );
+
+        $application->forceFill([
+            'answers' => $answers,
+        ])->save();
+
+        $this->auditLogger->log(
+            action: 'group.membership_application.updated',
+            severity: AuditSeverity::INFO,
+            scopeType: AuditScope::GROUP,
+            scopeId: $group->id,
+            message: 'audit_log.events.group.membership_application.updated',
+            actor: $user,
+            subject: $application,
+            metadata: [
+                'membership_application_id' => $application->id,
+                'applicant_user_id' => $user->id,
+                'applicant_name' => $user->name,
+            ],
+        );
+
+        return redirect()
+            ->route('groups.membership-applications.create', $group)
+            ->with('success', 'membership_request_updated');
     }
 
     private function authorizeApplicationAccess(Request $request, Group $group): void

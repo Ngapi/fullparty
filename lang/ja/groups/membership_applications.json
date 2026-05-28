@@ -10,34 +10,35 @@
     "no_answer": "No answer"
   },
   "apply": {
-    "title": "Apply to {group}",
-    "subtitle": "Submit a membership application for the group team to review.",
+    "title": "{group} への参加をリクエスト",
+    "subtitle": "グループチームに確認してもらうリクエストを送信します。",
     "toggle_answer": "Your answer",
     "submitted_answers": "Submitted Answers",
     "actions": {
       "back": "Back to Groups",
-      "submit": "Submit Application"
+      "submit": "リクエストを送信",
+      "update": "リクエストを更新"
     },
     "status_messages": {
-      "pending": "Your membership application is waiting for review.",
-      "approved": "This membership application was approved.",
-      "declined": "This membership application was declined. You can submit a new one."
+      "pending": "リクエストは確認待ちです。保留中は回答を更新できます。",
+      "approved": "このリクエストは承認されました。",
+      "declined": "このリクエストは却下されました。新しいリクエストを送信できます。"
     },
     "validation": {
-      "pending_exists": "You already have a pending membership application for this group."
+      "pending_exists": "このグループには既に保留中のリクエストがあります。"
     }
   },
   "review": {
-    "title": "Membership Applications",
+    "title": "リクエスト",
     "subtitle": "Review, approve, or decline people waiting to join this group.",
-    "pending_title": "Pending Applications",
+    "pending_title": "保留中のリクエスト",
     "pending_subtitle": "{count} waiting for review",
-    "reviewed_title": "Reviewed Applications",
-    "reviewed_subtitle": "Recently approved and declined membership applications.",
-    "empty_pending_title": "No pending applications",
-    "empty_pending_description": "New membership applications will appear here.",
-    "empty_reviewed_title": "No reviewed applications",
-    "empty_reviewed_description": "Approved and declined membership applications will appear here.",
+    "reviewed_title": "確認済みリクエスト",
+    "reviewed_subtitle": "最近承認または却下されたリクエストです。",
+    "empty_pending_title": "保留中のリクエストはありません",
+    "empty_pending_description": "新しいリクエストがここに表示されます。",
+    "empty_reviewed_title": "確認済みリクエストはありません",
+    "empty_reviewed_description": "承認または却下されたリクエストがここに表示されます。",
     "not_reviewed": "Not reviewed",
     "unknown_user": "Unknown user",
     "submitted_at": "Submitted {date}",
@@ -49,18 +50,43 @@
       "cancel": "Cancel"
     },
     "decline_modal": {
-      "title": "Decline membership application",
+      "title": "リクエストを却下",
       "reason_label": "Reason",
       "reason_help": "Optional. Keep it short and useful for the group record."
     },
     "validation": {
-      "already_reviewed": "This membership application has already been reviewed.",
+      "already_reviewed": "このリクエストは既に確認済みです。",
       "applicant_banned": "Banned users cannot be approved into the group."
     }
   },
+  "requests": {
+    "title": "自分のリクエスト",
+    "subtitle": "グループ参加リクエストを確認し、保留中の内容を更新できます。",
+    "empty_title": "リクエストはまだありません",
+    "empty_description": "参加をリクエストしたグループがここに表示されます。",
+    "unknown_group": "不明なグループ",
+    "not_available": "利用不可",
+    "submitted": "送信 {date}",
+    "reviewed": "確認 {date}",
+    "sections": {
+      "active_title": "アクティブなリクエスト",
+      "active_description": "グループチームの確認待ちのリクエストです。",
+      "active_empty_title": "アクティブなリクエストはありません",
+      "active_empty_description": "保留中のリクエストがここに表示されます。",
+      "history_title": "履歴",
+      "history_description": "承認または却下されたリクエストはここに残ります。",
+      "history_empty_title": "リクエスト履歴はまだありません",
+      "history_empty_description": "確認済みのリクエストがここに移動します。"
+    },
+    "actions": {
+      "edit": "リクエストを編集",
+      "open_group": "グループを開く",
+      "request_again": "再リクエスト"
+    }
+  },
   "form": {
-    "title": "Application Form",
-    "subtitle": "Create the membership questions people answer before joining.",
+    "title": "リクエストフォーム",
+    "subtitle": "参加前に回答してもらう質問を作成します。",
     "inactive_title": "This form is ready, but the group is not application based",
     "inactive_description": "Switch the group join mode to Application Based when you want this form to appear to applicants.",
     "question_count": "{count} of {max} questions",

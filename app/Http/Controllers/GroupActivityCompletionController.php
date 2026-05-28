@@ -36,6 +36,10 @@ class GroupActivityCompletionController extends Controller
             'progress_notes' => ['sometimes', 'nullable', 'string', 'max:'.Activity::PROGRESS_NOTES_MAX_LENGTH],
             'furthest_progress_key' => ['sometimes', 'nullable', 'string', 'max:255'],
             'milestones' => ['sometimes', 'array'],
+            'milestones.*' => ['array'],
+            'milestones.*.milestone_key' => ['sometimes', 'string', 'max:255'],
+            'milestones.*.kills' => ['sometimes', 'nullable', 'integer', 'min:0'],
+            'milestones.*.best_progress_percent' => ['sometimes', 'nullable', 'numeric', 'min:0', 'max:100'],
         ]);
 
         $changes = $this->completionService->complete($activity, $validated, (int) auth()->id());

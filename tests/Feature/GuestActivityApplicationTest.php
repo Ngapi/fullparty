@@ -9,6 +9,7 @@ use App\Models\ActivityTypeVersion;
 use App\Models\Character;
 use App\Models\CharacterClass;
 use App\Models\Group;
+use App\Models\PhantomJob;
 use App\Models\User;
 use App\Models\UserActivityApplicationDefault;
 use App\Services\Lodestone\LodestoneCharacterSearchService;
@@ -283,6 +284,76 @@ it('still allows authenticated users to submit applications with their verified 
         ->and($application->applicant_character_name)->toBe('Claimed Warrior')
         ->and($application->applicant_world)->toBe('Lich')
         ->and($application->applicant_datacenter)->toBe('Light');
+});
+
+it('sends preferred class and phantom job ids for authenticated application characters', function () {
+    $activity = createGuestApplicationActivity([
+        'allow_guest_applications' => false,
+    ]);
+    $activity->activityTypeVersion->update([
+        'application_schema' => [
+            [
+                'key' => 'jobs',
+                'label' => ['en' => 'Jobs'],
+                'type' => 'multi_select',
+                'source' => 'character_classes',
+            ],
+            [
+                'key' => 'phantom_jobs',
+                'label' => ['en' => 'Phantom Jobs'],
+                'type' => 'multi_select',
+                'source' => 'phantom_jobs',
+            ],
+        ],
+    ]);
+
+    $whiteMage = CharacterClass::query()->create([
+        'name' => 'White Mage',
+        'shorthand' => 'WHM',
+        'icon_url' => 'https://example.com/whm.png',
+        'flaticon_url' => 'https://example.com/whm-flat.png',
+        'role' => 'healer',
+    ]);
+    $samurai = CharacterClass::query()->create([
+        'name' => 'Samurai',
+        'shorthand' => 'SAM',
+        'icon_url' => 'https://example.com/sam.png',
+        'flaticon_url' => 'https://example.com/sam-flat.png',
+        'role' => 'melee dps',
+    ]);
+    $phantomBard = PhantomJob::query()->create([
+        'name' => 'Phantom Bard',
+        'max_level' => 20,
+        'icon_url' => 'https://example.com/phantom-bard.png',
+    ]);
+    $phantomThief = PhantomJob::query()->create([
+        'name' => 'Phantom Thief',
+        'max_level' => 20,
+        'icon_url' => 'https://example.com/phantom-thief.png',
+    ]);
+
+    $user = User::factory()->create();
+    $character = Character::factory()->primary()->create([
+        'user_id' => $user->id,
+        'name' => 'Favourite Tester',
+    ]);
+    $character->classes()->attach($whiteMage->id, ['level' => 100, 'is_preferred' => true]);
+    $character->classes()->attach($samurai->id, ['level' => 100, 'is_preferred' => false]);
+    $character->phantomJobs()->attach($phantomBard->id, ['current_level' => 20, 'is_preferred' => true]);
+    $character->phantomJobs()->attach($phantomThief->id, ['current_level' => 20, 'is_preferred' => false]);
+
+    $this->actingAs($user);
+
+    $this->get(route('groups.activities.application', [
+        'group' => $activity->group->slug,
+        'activity' => $activity->id,
+    ]))->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->component('Groups/Activities/Application')
+            ->where('characters.0.id', $character->id)
+            ->where('characters.0.preferred_character_class_ids', [(string) $whiteMage->id])
+            ->where('characters.0.preferred_phantom_job_ids', [(string) $phantomBard->id])
+        );
 });
 
 it('stores remembered application defaults for authenticated users on create by default', function () {

@@ -13,15 +13,15 @@ return new class extends Migration
     {
         Schema::create('characters', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id')->constrained()->onDelete('cascade');
+            $table->foreignId('user_id')->nullable()->constrained()->onDelete('cascade');
             $table->string('name');
             $table->string('world');
             $table->string('datacenter');
             $table->string('lodestone_id')->unique();
             $table->string('avatar_url')->nullable();
             $table->string('token')->nullable();
-			$table->boolean('is_primary')->default(false);
-			$table->string('add_method')->default('manual');
+            $table->boolean('is_primary')->default(false);
+            $table->string('add_method')->default('manual');
             $table->timestamp('expires_at')->nullable();
             $table->timestamp('verified_at')->nullable();
             $table->timestamps();

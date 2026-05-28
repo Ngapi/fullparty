@@ -7,7 +7,6 @@ import GroupStatisticsBarChart from "@/components/Groups/Statistics/GroupStatist
 import GroupStatisticsDonutChart from "@/components/Groups/Statistics/GroupStatisticsDonutChart.vue";
 import GroupStatisticsLineChart from "@/components/Groups/Statistics/GroupStatisticsLineChart.vue";
 import GroupStatisticsMetricCard from "@/components/Groups/Statistics/GroupStatisticsMetricCard.vue";
-import GroupStatisticsRankedList from "@/components/Groups/Statistics/GroupStatisticsRankedList.vue";
 import GroupStatisticsStackedBars from "@/components/Groups/Statistics/GroupStatisticsStackedBars.vue";
 import PageHeader from "@/components/PageHeader.vue";
 import type {
@@ -136,32 +135,15 @@ const applicationVolumeItems = computed(() => props.statistics.applications.volu
 	statuses: month.statuses,
 })));
 
-const toTopSegments = (items: GroupStatisticsLoadoutItem[]) => {
-	const visible = items.slice(0, 6).map((item) => ({
+const toDistributionSegments = (items: GroupStatisticsLoadoutItem[]) => items.map((item) => ({
 		key: item.key,
 		label: item.label,
 		value: item.count,
 		percent: item.percent,
 	}));
-	const otherCount = items.slice(6).reduce((sum, item) => sum + item.count, 0);
 
-	if (otherCount > 0) {
-		const total = items.reduce((sum, item) => sum + item.count, 0);
-		visible.push({
-			key: "other",
-			label: t("groups.statistics.common.other"),
-			value: otherCount,
-			percent: total > 0 ? Math.round((otherCount / total) * 1000) / 10 : 0,
-		});
-	}
-
-	return visible;
-};
-
-const classDistributionSegments = computed(() => toTopSegments(props.statistics.classes.distribution));
-const phantomDistributionSegments = computed(() => toTopSegments(props.statistics.phantom_jobs.distribution));
-const classRankedItems = computed(() => props.statistics.classes.distribution.slice(0, 8));
-const phantomRankedItems = computed(() => props.statistics.phantom_jobs.distribution.slice(0, 8));
+const classDistributionSegments = computed(() => toDistributionSegments(props.statistics.classes.distribution));
+const phantomDistributionSegments = computed(() => toDistributionSegments(props.statistics.phantom_jobs.distribution));
 const classTrendLabels = computed(() => props.statistics.classes.monthly_trend.months.map(formatMonth));
 const phantomTrendLabels = computed(() => props.statistics.phantom_jobs.monthly_trend.months.map(formatMonth));
 
@@ -337,21 +319,12 @@ onBeforeUnmount(() => {
 						</div>
 					</template>
 
-					<div class="space-y-6">
-						<GroupStatisticsDonutChart
-							:segments="classDistributionSegments"
-							:total-label="t('groups.statistics.loadouts.total_label')"
-							:empty-title="t('groups.statistics.classes.empty_title')"
-							:empty-description="t('groups.statistics.classes.empty_description')"
-						/>
-
-						<GroupStatisticsRankedList
-							:items="classRankedItems"
-							:empty-title="t('groups.statistics.classes.empty_title')"
-							:empty-description="t('groups.statistics.classes.empty_description')"
-							:count-label="assignmentCountLabel"
-						/>
-					</div>
+					<GroupStatisticsDonutChart
+						:segments="classDistributionSegments"
+						:total-label="t('groups.statistics.loadouts.total_label')"
+						:empty-title="t('groups.statistics.classes.empty_title')"
+						:empty-description="t('groups.statistics.classes.empty_description')"
+					/>
 				</UCard>
 
 				<UCard class="dark:bg-elevated/25" :ui="{ body: 'p-4 sm:p-4' }">
@@ -366,21 +339,12 @@ onBeforeUnmount(() => {
 						</div>
 					</template>
 
-					<div class="space-y-6">
-						<GroupStatisticsDonutChart
-							:segments="phantomDistributionSegments"
-							:total-label="t('groups.statistics.loadouts.total_label')"
-							:empty-title="t('groups.statistics.phantom_jobs.empty_title')"
-							:empty-description="t('groups.statistics.phantom_jobs.empty_description')"
-						/>
-
-						<GroupStatisticsRankedList
-							:items="phantomRankedItems"
-							:empty-title="t('groups.statistics.phantom_jobs.empty_title')"
-							:empty-description="t('groups.statistics.phantom_jobs.empty_description')"
-							:count-label="assignmentCountLabel"
-						/>
-					</div>
+					<GroupStatisticsDonutChart
+						:segments="phantomDistributionSegments"
+						:total-label="t('groups.statistics.loadouts.total_label')"
+						:empty-title="t('groups.statistics.phantom_jobs.empty_title')"
+						:empty-description="t('groups.statistics.phantom_jobs.empty_description')"
+					/>
 				</UCard>
 			</div>
 

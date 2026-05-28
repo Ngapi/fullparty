@@ -5,6 +5,7 @@ import { useI18n } from "vue-i18n";
 import { usePage } from "@inertiajs/vue3";
 import { localizedValue } from "@/utils/localizedValue";
 import ApplicationClassSelector from "@/components/Groups/Activities/ApplicationClassSelector.vue";
+import ApplicationPhantomJobSelector from "@/components/Groups/Activities/ApplicationPhantomJobSelector.vue";
 import { activityTextLimits } from "@/utils/activityTextLimits";
 
 const props = defineProps<{
@@ -12,6 +13,7 @@ const props = defineProps<{
 	modelValue: unknown
 	error?: string
 	disabled?: boolean
+	favoriteOptionKeys?: string[]
 }>();
 
 const emit = defineEmits<{
@@ -34,6 +36,9 @@ const optionItems = computed(() => props.question.options
 
 const isClassSelector = computed(() => props.question.source === 'character_classes'
 	&& (props.question.type === 'single_select' || props.question.type === 'multi_select'));
+const isPhantomJobSelector = computed(() => props.question.source === 'phantom_jobs'
+	&& (props.question.type === 'single_select' || props.question.type === 'multi_select'));
+const isIconSelector = computed(() => isClassSelector.value || isPhantomJobSelector.value);
 
 const singleSelectValue = computed({
 	get: () => typeof props.modelValue === 'string' ? props.modelValue : undefined,
@@ -81,7 +86,7 @@ const booleanValue = computed({
 
 <template>
 	<UFormField
-		v-if="!isClassSelector"
+		v-if="!isIconSelector"
 		:label="label"
 		:description="helpText"
 		:error="error"
@@ -154,6 +159,20 @@ const booleanValue = computed({
 	</UFormField>
 
 	<ApplicationClassSelector
+		v-else-if="isClassSelector"
+		:label="label"
+		:description="helpText"
+		:error="error"
+		:required="Boolean(question.required)"
+		:options="question.options"
+		:model-value="modelValue"
+		:multiple="question.type === 'multi_select'"
+		:disabled="disabled"
+		:favorite-option-keys="favoriteOptionKeys ?? []"
+		@update:model-value="emit('update:modelValue', $event)"
+	/>
+
+	<ApplicationPhantomJobSelector
 		v-else
 		:label="label"
 		:description="helpText"
@@ -163,6 +182,7 @@ const booleanValue = computed({
 		:model-value="modelValue"
 		:multiple="question.type === 'multi_select'"
 		:disabled="disabled"
+		:favorite-option-keys="favoriteOptionKeys ?? []"
 		@update:model-value="emit('update:modelValue', $event)"
 	/>
 </template>

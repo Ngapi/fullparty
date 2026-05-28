@@ -1,12 +1,14 @@
 {
   "sidebar": {
-    "dashboard": "Dashboard",
+    "dashboard": "Home",
     "runs": "Runs",
+    "find_runs": "Find Runs",
     "account": "Account",
     "characters": "My Characters",
     "notifications": "Notifications",
     "applications": "Applications",
     "groups": "Groups",
+    "my_requests": "My Requests",
     "my_groups": "My Groups",
     "joined_groups": "Joined Groups",
     "members": "Members",

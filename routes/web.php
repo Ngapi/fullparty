@@ -9,6 +9,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CharacterClassController;
 use App\Http\Controllers\CharacterController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\DashboardProfileCustomizationController;
 use App\Http\Controllers\DiscordAuthController;
 use App\Http\Controllers\GoogleAuthController;
 use App\Http\Controllers\GroupActivityApplicantQueueController;
@@ -42,6 +43,7 @@ use App\Http\Controllers\GroupMembershipApplicationController;
 use App\Http\Controllers\GroupMembershipApplicationFormController;
 use App\Http\Controllers\GroupMembershipApplicationReviewController;
 use App\Http\Controllers\GroupMembershipController;
+use App\Http\Controllers\GroupMembershipRequestController;
 use App\Http\Controllers\GroupSettingsController;
 use App\Http\Controllers\GroupStatisticsController;
 use App\Http\Controllers\LocaleController;
@@ -94,6 +96,7 @@ Route::post('/locale', [LocaleController::class, 'update'])->name('locale.legacy
 Route::get('/privacy-policy', fn (Request $request) => $redirectToLocalizedPath($request, 'privacy-policy'));
 Route::get('/cookies', fn (Request $request) => $redirectToLocalizedPath($request, 'cookies'));
 Route::get('/group-search-results', fn (Request $request) => $redirectToLocalizedPath($request, 'group-search-results'));
+Route::get('/dashboard', fn (Request $request) => $redirectToLocalizedPath($request, 'home'));
 
 Route::get('/auth/email/verify/{id}/{hash}', function (EmailVerificationRequest $request) {
     $request->fulfill();
@@ -265,11 +268,13 @@ Route::prefix('{locale?}')
         Route::middleware(['auth', 'verified'])->group(function () {
             /*
             |--------------------------------------------------------------------------
-            | Main Dashboard
+            | Home
             |--------------------------------------------------------------------------
             */
 
-            Route::get('/dashboard', [DashboardController::class, 'show'])->name('dashboard');
+            Route::get('/home', [DashboardController::class, 'show'])->name('dashboard');
+            Route::put('/home/profile', [DashboardProfileCustomizationController::class, 'update'])->name('dashboard.profile.update');
+            Route::get('/dashboard', fn () => redirect()->route('dashboard'));
             Route::get('/dashboard/runs', [RunDiscoveryController::class, 'index'])->name('dashboard.runs.index');
             Route::get('/dashboard/runs/discovery', [RunDiscoveryController::class, 'discover'])->name('dashboard.runs.discover');
             Route::post('/dashboard/runs/{activity}/save', [RunDiscoveryController::class, 'save'])->name('dashboard.runs.save');
@@ -282,6 +287,7 @@ Route::prefix('{locale?}')
             */
 
             Route::get('/groups', [GroupController::class, 'index'])->name('groups.index');
+            Route::get('/groups/requests', [GroupMembershipRequestController::class, 'index'])->name('groups.requests.index');
             Route::get('/groups/featured', [GroupController::class, 'featured'])->name('groups.featured');
             Route::get('/groups/{group:slug}/details', [GroupController::class, 'details'])->name('groups.details');
             Route::get('/group-search-results', [GroupController::class, 'search'])->name('groups.search');
@@ -310,6 +316,7 @@ Route::prefix('{locale?}')
             Route::post('/groups/{group:slug}/join', [GroupMembershipController::class, 'join'])->name('groups.join');
             Route::get('/groups/{group:slug}/membership-application', [GroupMembershipApplicationController::class, 'create'])->name('groups.membership-applications.create');
             Route::post('/groups/{group:slug}/membership-application', [GroupMembershipApplicationController::class, 'store'])->name('groups.membership-applications.store');
+            Route::put('/groups/{group:slug}/membership-application', [GroupMembershipApplicationController::class, 'update'])->name('groups.membership-applications.update');
             Route::post('/groups/{group:slug}/leave', [GroupMembershipController::class, 'leave'])->name('groups.leave');
             Route::patch('/groups/{group:slug}/notifications', [GroupMembershipController::class, 'updateNotifications'])->name('groups.notifications.update');
             Route::put('/groups/{group:slug}/members/{user}', [GroupMembershipController::class, 'update'])->name('groups.members.update');

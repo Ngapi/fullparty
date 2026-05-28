@@ -221,6 +221,11 @@
             "manual_step_help": "Enter the final normalized progression result for this run.",
             "kills": "Kills",
             "best_progress_percent": "Best Progress %",
+            "errors": {
+                "kills_integer": "Killsは整数で入力してください。",
+                "percent_numeric": "進捗は特殊記号を使わずに0から100の数値で入力してください。",
+                "percent_range": "進捗は0から100の範囲で入力してください。"
+            },
             "notes": "Notes",
             "notes_placeholder": "Optional notes about the result or evidence.",
             "confirm_title": "Final Confirmation",
@@ -512,6 +517,15 @@
                 "phys": "Physical Ranged",
                 "magic": "Magic Ranged"
             }
+        },
+        "phantom_picker": {
+            "empty": "Phantom Jobを選択",
+            "selected_count": "{count}件選択中"
+        },
+        "quick_select": {
+            "title": "クイック選択",
+            "all": "すべて",
+            "favorites": "お気に入り"
         },
         "form": {
             "title": "Application Form",

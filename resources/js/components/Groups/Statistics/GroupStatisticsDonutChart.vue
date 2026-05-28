@@ -1,5 +1,7 @@
 <script setup lang="ts">
+import type { ApexOptions } from "apexcharts";
 import { computed } from "vue";
+import VueApexCharts from "vue3-apexcharts";
 import GroupStatisticsEmptyState from "@/components/Groups/Statistics/GroupStatisticsEmptyState.vue";
 
 const props = defineProps<{
@@ -14,25 +16,89 @@ const props = defineProps<{
 	emptyDescription: string
 }>();
 
-const palette = ["#7c3aed", "#059669", "#2563eb", "#d97706", "#dc2626", "#0891b2", "#be185d"];
+const palette = [
+	"#7c3aed",
+	"#059669",
+	"#2563eb",
+	"#d97706",
+	"#dc2626",
+	"#0891b2",
+	"#be185d",
+	"#65a30d",
+	"#9333ea",
+	"#0d9488",
+	"#ea580c",
+	"#4f46e5",
+	"#e11d48",
+	"#16a34a",
+	"#0284c7",
+	"#ca8a04",
+	"#db2777",
+	"#64748b",
+];
 const total = computed(() => props.segments.reduce((sum, segment) => sum + segment.value, 0));
 const visibleSegments = computed(() => props.segments.filter((segment) => segment.value > 0));
-const gradient = computed(() => {
-	if (total.value === 0) {
-		return "#1f2937";
-	}
+const chartSeries = computed(() => visibleSegments.value.map((segment) => segment.value));
+const chartLabels = computed(() => visibleSegments.value.map((segment) => segment.label));
 
-	let cursor = 0;
-	const stops = visibleSegments.value.map((segment, index) => {
-		const start = cursor;
-		cursor += (segment.value / total.value) * 100;
-		const color = palette[index % palette.length];
-
-		return `${color} ${start}% ${cursor}%`;
-	});
-
-	return `conic-gradient(${stops.join(", ")})`;
-});
+const chartOptions = computed<ApexOptions>(() => ({
+	chart: {
+		type: "donut",
+		background: "transparent",
+		toolbar: {
+			show: false,
+		},
+	},
+	colors: visibleSegments.value.map((_, index) => palette[index % palette.length]),
+	dataLabels: {
+		enabled: false,
+	},
+	labels: chartLabels.value,
+	legend: {
+		show: false,
+	},
+	plotOptions: {
+		pie: {
+			donut: {
+				size: "68%",
+				labels: {
+					show: true,
+					name: {
+						show: true,
+						color: "#a3a3a3",
+						fontSize: "12px",
+						offsetY: 16,
+					},
+					value: {
+						show: true,
+						color: "#e5e5e5",
+						fontSize: "28px",
+						fontWeight: 600,
+						offsetY: -12,
+						formatter: (value: string) => value,
+					},
+					total: {
+						show: true,
+						label: props.totalLabel,
+						color: "#a3a3a3",
+						fontSize: "12px",
+						formatter: () => total.value.toString(),
+					},
+				},
+			},
+		},
+	},
+	stroke: {
+		colors: ["rgba(10,10,10,0.7)"],
+		width: 2,
+	},
+	tooltip: {
+		theme: "dark",
+		y: {
+			formatter: (value: number) => value.toString(),
+		},
+	},
+}));
 </script>
 
 <template>
@@ -42,22 +108,21 @@ const gradient = computed(() => {
 		:description="emptyDescription"
 		icon="i-lucide-chart-pie"
 	/>
-	<div v-else class="grid gap-5 sm:grid-cols-[12rem_minmax(0,1fr)] sm:items-center">
-		<div class="relative mx-auto size-44 rounded-full" :style="{ background: gradient }">
-			<div class="absolute inset-6 flex flex-col items-center justify-center rounded-full bg-background text-center">
-				<p class="text-2xl font-semibold text-toned">
-					{{ total }}
-				</p>
-				<p class="text-xs text-muted">
-					{{ totalLabel }}
-				</p>
-			</div>
+	<div v-else class="space-y-5">
+		<div class="mx-auto w-48">
+			<VueApexCharts
+				type="donut"
+				height="210"
+				width="100%"
+				:options="chartOptions"
+				:series="chartSeries"
+			/>
 		</div>
-		<div class="space-y-2">
+		<div class="grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
 			<div
 				v-for="(segment, index) in visibleSegments"
 				:key="segment.key"
-				class="flex items-center justify-between gap-3 rounded-sm border border-default bg-muted/10 px-3 py-2 text-sm"
+				class="flex min-w-0 items-center justify-between gap-3 rounded-sm border border-default bg-muted/10 px-3 py-2 text-sm"
 			>
 				<div class="flex min-w-0 items-center gap-2">
 					<span

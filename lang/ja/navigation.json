@@ -1,12 +1,14 @@
 {
   "sidebar": {
-    "dashboard": "ダッシュボード",
+    "dashboard": "ホーム",
     "runs": "Runs",
+    "find_runs": "ランを探す",
     "account": "アカウント",
     "characters": "マイキャラクター",
     "notifications": "通知",
     "applications": "応募",
     "groups": "グループ",
+    "my_requests": "自分のリクエスト",
     "my_groups": "マイグループ",
     "joined_groups": "参加中のグループ",
     "members": "メンバー",

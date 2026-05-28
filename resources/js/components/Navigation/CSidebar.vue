@@ -28,16 +28,20 @@ const isRouteActive = (patterns) => {
 
 const top = computed(() => [
 	authLink(localizedRoute('dashboard'), 'i-lucide-house', t('navigation.sidebar.dashboard'), ['dashboard']),
-	authLink(localizedRoute('dashboard.runs.index'), 'i-lucide-calendar-days', t('navigation.sidebar.runs'), ['dashboard.runs.*']),
+])
+
+const runs = computed(() => [
+	authLink(localizedRoute('dashboard.runs.index'), 'i-lucide-search', t('navigation.sidebar.find_runs'), ['dashboard.runs.*']),
+	authLink(localizedRoute('account.applications'), 'i-lucide-file-text', t('navigation.sidebar.applications'), ['account.applications*']),
 ])
 
 const account = computed(() => [
 	authLink(localizedRoute('account.characters'), 'i-lucide-user-circle', t('navigation.sidebar.characters'), ['account.characters*']),
-	authLink(localizedRoute('account.applications'), 'i-lucide-file-text', t('navigation.sidebar.applications'), ['account.applications*']),
 ])
 
 const groups = computed(() => [
 	{ label: t('navigation.sidebar.groups'), href: localizedRoute('groups.index'), icon: 'i-lucide-shield', activePatterns: ['groups.index'] },
+	{ label: t('navigation.sidebar.my_requests'), href: localizedRoute('groups.requests.index'), icon: 'i-lucide-inbox', activePatterns: ['groups.requests.*'] },
 ])
 
 const admin = computed(() => [
@@ -102,6 +106,20 @@ watch([currentUrl, groupQuickLinkSections], () => {
 			<div class="mt-4 flex flex-col w-full h-full ">
 				<Link
 					v-for="item in top"
+					:key="item.href"
+					:href="item.href"
+					class="sidebar-link"
+					:class="isRouteActive(item.activePatterns) ? 'link-highlighted': 'link-default'"
+				>
+					<UIcon :name="item.icon" :class="!collapsed ? 'sidebar-link-icon' : 'sidebar-link-icon-large'" />
+					<span v-if="!collapsed">{{ item.label }}</span>
+				</Link>
+
+				<h1 v-if="!collapsed" class="sidebar-separator">{{t('navigation.sidebar.runs')}}</h1>
+				<div v-else class="sidebar-line-separator"></div>
+
+				<Link
+					v-for="item in runs"
 					:key="item.href"
 					:href="item.href"
 					class="sidebar-link"

@@ -66,6 +66,7 @@
     "username_updated": "Username updated successfully",
     "password_updated": "Password updated successfully",
     "notification_updated": "Notification preferences updated successfully",
+    "notification_preferences_reviewed": "Notification preferences reviewed. Account setup updated.",
     "privacy_updated": "Privacy settings updated successfully",
     "social_account_unlinked": "Connected account unlinked successfully",
     "social_account_unlink_blocked": "Add another sign-in method or set a password before unlinking your last social account.",

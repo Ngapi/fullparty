@@ -16,9 +16,13 @@ return new class extends Migration
             $table->foreignId('character_id')->constrained()->cascadeOnDelete()->unique();
             $table->unsignedInteger('knowledge_level')->default(0);
             $table->unsignedInteger('demon_tablet_kills')->default(0);
+            $table->unsignedInteger('demon_tablet_progress')->default(0);
             $table->unsignedInteger('dead_stars_kills')->default(0);
+            $table->unsignedInteger('dead_stars_progress')->default(0);
             $table->unsignedInteger('marble_dragon_kills')->default(0);
+            $table->unsignedInteger('marble_dragon_progress')->default(0);
             $table->unsignedInteger('magitaur_kills')->default(0);
+            $table->unsignedInteger('magitaur_progress')->default(0);
             $table->timestamps();
         });
     }

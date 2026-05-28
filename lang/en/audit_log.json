@@ -135,10 +135,11 @@
         "muted": "muted group notifications."
       },
       "membership_application": {
-        "submitted": "submitted a membership application.",
-        "approved": "approved a membership application.",
-        "declined": "declined a membership application.",
-        "form_updated": "updated the membership application form."
+        "submitted": "submitted a request.",
+        "updated": "updated a request.",
+        "approved": "approved a request.",
+        "declined": "declined a request.",
+        "form_updated": "updated the request form."
       },
       "activity": {
         "created": "created an activity.",
@@ -282,7 +283,7 @@
     "email": "Email",
     "provider": "Provider",
     "provider_user_id": "Provider User ID",
-    "membership_application_id": "Membership Application",
+    "membership_application_id": "Request",
     "applicant_user_id": "Applicant",
     "applicant_name": "Applicant Name",
     "field_count": "Field Count",
@@ -368,10 +369,11 @@
         "muted": "Group notifications muted"
       },
       "membership_application": {
-        "submitted": "Membership application submitted",
-        "approved": "Membership application approved",
-        "declined": "Membership application declined",
-        "form_updated": "Membership application form updated"
+        "submitted": "Request submitted",
+        "updated": "Request updated",
+        "approved": "Request approved",
+        "declined": "Request declined",
+        "form_updated": "Request form updated"
       },
       "activity": {
         "created": "Activity created",

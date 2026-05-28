@@ -66,6 +66,7 @@
     "username_updated": "ユーザー名を更新しました",
     "password_updated": "パスワードを更新しました",
     "notification_updated": "通知設定を更新しました",
+    "notification_preferences_reviewed": "通知設定を確認しました。アカウント設定が更新されました。",
     "privacy_updated": "プライバシー設定を更新しました",
     "social_account_unlinked": "連携アカウントを解除しました",
     "social_account_unlink_blocked": "最後のソーシャルアカウントを解除する前に、別のサインイン方法を追加するかパスワードを設定してください。",
