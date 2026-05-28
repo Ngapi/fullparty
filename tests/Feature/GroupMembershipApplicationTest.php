@@ -298,6 +298,52 @@ it('requires required answers and blocks duplicate pending applications', functi
     expect(GroupMembershipApplication::query()->where('group_id', $group->id)->count())->toBe(1);
 });
 
+it('rejects membership application free text answers above one thousand characters', function () {
+    $owner = User::factory()->create();
+    $applicant = User::factory()->create();
+    $schema = [[
+        'id' => 'intro',
+        'type' => 'small_text',
+        'name' => ['en' => 'Short intro'],
+        'description' => [],
+        'required' => true,
+        'options' => [],
+    ], [
+        'id' => 'details',
+        'type' => 'big_text',
+        'name' => ['en' => 'More detail'],
+        'description' => [],
+        'required' => true,
+        'options' => [],
+    ], [
+        'id' => 'are_you_a_gamer',
+        'type' => 'toggle',
+        'name' => ['en' => 'Are you a gamer?'],
+        'description' => [],
+        'required' => true,
+        'options' => [],
+    ]];
+    $group = Group::factory()->applicationBased()->create([
+        'owner_id' => $owner->id,
+        'membership_application_schema' => $schema,
+    ]);
+
+    $this->actingAs($applicant)
+        ->from(route('groups.membership-applications.create', $group))
+        ->post(route('groups.membership-applications.store', $group), [
+            'answers' => [
+                'intro' => str_repeat('a', 1001),
+                'details' => str_repeat('b', 1001),
+                'are_you_a_gamer' => true,
+            ],
+        ])
+        ->assertRedirect(route('groups.membership-applications.create', $group))
+        ->assertSessionHasErrors([
+            'answers.intro' => 'This answer must be 1000 characters or fewer.',
+            'answers.details' => 'This answer must be 1000 characters or fewer.',
+        ]);
+});
+
 it('lets applicants update pending group requests', function () {
     $owner = User::factory()->create();
     $applicant = User::factory()->create();

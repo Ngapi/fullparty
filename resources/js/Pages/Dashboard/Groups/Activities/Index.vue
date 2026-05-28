@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref } from "vue";
+import { computed, onBeforeUnmount, onMounted, ref } from "vue";
 import { router } from "@inertiajs/vue3";
 import { route } from "ziggy-js";
 import { useI18n } from "vue-i18n";
@@ -24,6 +24,31 @@ const props = defineProps<{
 
 const { t } = useI18n();
 const selectedDateKey = ref<string | null>(null);
+const desktopMediaQueryString = '(min-width: 1280px)';
+const shouldRenderUpcomingList = ref(
+	typeof window !== 'undefined'
+		? window.matchMedia(desktopMediaQueryString).matches
+		: false,
+);
+let desktopMediaQuery: MediaQueryList | null = null;
+
+const syncDesktopLayout = () => {
+	shouldRenderUpcomingList.value = desktopMediaQuery?.matches ?? false;
+};
+
+onMounted(() => {
+	if (typeof window === 'undefined') {
+		return;
+	}
+
+	desktopMediaQuery = window.matchMedia(desktopMediaQueryString);
+	syncDesktopLayout();
+	desktopMediaQuery.addEventListener('change', syncDesktopLayout);
+});
+
+onBeforeUnmount(() => {
+	desktopMediaQuery?.removeEventListener('change', syncDesktopLayout);
+});
 
 const goToCreatePage = () => {
 	router.get(route('groups.dashboard.activities.create', { group: props.group.slug }));
@@ -73,6 +98,7 @@ const upcomingCount = computed(() => {
 
 		<div class="mt-4 flex flex-col xl:flex-row items-start gap-6 ">
 			<ActivityUpcomingList
+				v-if="shouldRenderUpcomingList"
 				class="w-full xl:w-1/3"
 				:group-slug="group.slug"
 				:can-manage-activities="group.permissions.can_manage_activities"

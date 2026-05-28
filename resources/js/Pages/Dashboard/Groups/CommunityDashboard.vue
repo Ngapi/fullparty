@@ -14,10 +14,13 @@ defineProps<{
 <template>
 	<div class="w-full">
 		<GroupDashboardBanner :group="group" />
-		<div class="flex flex-row  pl-4">
-			<GroupDashboardInfoCard class="-mt-20 sm:-mt-24 sm:pl-6 lg:-mt-28 lg:pl-8" :group="group" />
+		<div class="flex flex-col gap-6 px-1 sm:px-3 xl:flex-row xl:gap-0 xl:pl-4 xl:pr-0">
+			<GroupDashboardInfoCard
+				class="-mt-20 mx-auto w-[calc(100%-0.5rem)] max-w-md sm:-mt-24 sm:w-full lg:-mt-28 xl:mx-0 xl:w-full xl:pl-8"
+				:group="group"
+			/>
 
-			<div class="overflow-hidden">
+			<div class="overflow-hidden xl:min-w-0 xl:flex-1">
 				<GroupDashboardUpcomingRunsSection :activities="group.upcoming_activities" />
 			</div>
 		</div>

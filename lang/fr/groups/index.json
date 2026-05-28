@@ -32,10 +32,13 @@
   },
   "navigation": {
     "general": "Général",
+    "home": "Accueil",
+    "info": "Infos",
     "activities": "Runs",
     "statistics": "Statistiques",
     "leaderboard": "Classement",
     "members": "Membres",
+    "moderation": "Modération",
     "membership_applications": "Demandes",
     "application_form": "Formulaire de demande",
     "audit_log": "Journal d'audit",

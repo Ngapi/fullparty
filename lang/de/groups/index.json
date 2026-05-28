@@ -32,10 +32,13 @@
   },
   "navigation": {
     "general": "Allgemein",
+    "home": "Start",
+    "info": "Info",
     "activities": "Runs",
     "statistics": "Statistiken",
     "leaderboard": "Bestenliste",
     "members": "Mitglieder",
+    "moderation": "Moderation",
     "membership_applications": "Anfragen",
     "application_form": "Anfrageformular",
     "audit_log": "Audit-Log",

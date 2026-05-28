@@ -17,10 +17,17 @@ const links = computed(() => [
 	{ label: t('navigation.footer.privacy'), href: route('legal.privacy') },
 	...(siteLinks.value.discord ? [{ label: t('navigation.footer.discord'), href: siteLinks.value.discord, external: true }] : []),
 ]);
+
+defineProps<{
+	hasBottomNavigation?: boolean
+}>();
 </script>
 
 <template>
-	<footer class="border-t border-default/70 px-6 py-4 sm:px-8">
+	<footer
+		class="shrink-0 border-t border-default/70 px-3 pt-4 sm:px-4 xl:px-8"
+		:class="hasBottomNavigation ? 'pb-24 xl:pb-4' : 'pb-4'"
+	>
 		<div class="flex flex-col gap-3 text-sm text-muted md:flex-row md:items-center md:justify-between">
 			<nav class="flex flex-wrap items-center gap-x-5 gap-y-2">
 				<a

@@ -72,24 +72,31 @@ function openGroup() {
 
 <template>
 	<div
-		class="border border-neutral-900 bg-neutral-900/50 hover:scale-101 transition-all cursor-pointer hover:border-neutral-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+		class="relative isolate overflow-hidden border border-neutral-900 bg-neutral-950/72 hover:scale-101 transition-all cursor-pointer hover:border-neutral-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary xl:bg-neutral-900/50"
 		role="button"
 		tabindex="0"
 		@click="openGroup"
 		@keydown.enter.prevent="openGroup"
 		@keydown.space.prevent="openGroup"
 	>
-		<div class="flex flex-col lg:flex-row">
-			<div class="h-32 w-full shrink-0 border-b border-neutral-900 lg:h-auto lg:w-56 lg:border-r lg:border-b-0">
+		<img
+			:src="bannerUrl"
+			:alt="group.name"
+			class="absolute inset-0 h-full w-full object-cover xl:hidden"
+		>
+		<div class="absolute inset-0 bg-linear-to-b from-neutral-950/60 via-neutral-950/78 to-neutral-950/96 xl:hidden" />
+
+		<div class="relative z-10 flex flex-col xl:flex-row">
+			<div class="relative hidden min-h-56 w-56 shrink-0 border-r border-neutral-900 xl:block">
 				<img
 					:src="bannerUrl"
 					:alt="group.name"
-					class="h-full w-full object-cover"
+					class="absolute inset-0 h-full w-full object-cover"
 				>
 			</div>
 
-			<div class="flex min-w-0 flex-1 items-stretch">
-				<div class="w-4/12 flex min-w-0 flex-col justify-evenly gap-3 px-4 py-4">
+			<div class="grid min-w-0 flex-1 grid-cols-1 items-stretch md:flex">
+				<div class="flex min-w-0 flex-col justify-evenly gap-3 px-4 py-4 md:w-5/12 xl:w-4/12">
 					<div class="flex min-w-0 flex-col gap-1">
 						<h3 class="line-clamp-2 text-lg font-semibold text-highlighted break-words [overflow-wrap:anywhere]">
 							{{ group.name }}
@@ -132,7 +139,7 @@ function openGroup() {
 
 				<div class="hidden w-px bg-neutral-900 xl:block" />
 
-				<div class="w-3/12 flex flex-col justify-between gap-1 p-4">
+				<div class="flex flex-col justify-between gap-1 p-4 md:w-4/12 xl:w-3/12">
 					<div class="flex flex-col">
 						<h3 class="text-md font-semibold">
 							About Us
@@ -153,7 +160,7 @@ function openGroup() {
 
 				<div class="hidden w-px bg-neutral-900 xl:block" />
 
-				<div class="w-2/12 flex flex-col justify-between gap-1 p-4">
+				<div class="hidden flex-col justify-between gap-1 p-4 md:flex md:w-2/12">
 					<div class="flex flex-col">
 						<p class="text-[11px] font-semibold text-dimmed">
 							{{ t("groups.index.discovery.placeholder.owner_label") }}
@@ -176,7 +183,7 @@ function openGroup() {
 
 				<div class="hidden w-px bg-neutral-900 xl:block" />
 
-				<div class="w-2/12 flex flex-col justify-between gap-1 p-4">
+				<div class="hidden flex-col justify-between gap-1 p-4 xl:flex xl:w-2/12">
 					<div class="flex flex-col">
 						<p class="text-[11px] font-semibold text-dimmed">
 							{{ t("groups.index.discovery.placeholder.activity_label") }}
@@ -196,7 +203,7 @@ function openGroup() {
 					</div>
 				</div>
 
-				<div class="w-1/12 hidden shrink-0 items-center justify-center px-4 lg:flex">
+				<div class="hidden w-1/12 shrink-0 items-center justify-center px-4 md:flex">
 					<UIcon name="i-lucide-chevron-right" class="size-5 text-dimmed" />
 				</div>
 			</div>

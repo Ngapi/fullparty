@@ -26,10 +26,13 @@
   },
   "navigation": {
     "general": "General",
+    "home": "Home",
+    "info": "Info",
     "activities": "Runs",
     "statistics": "Statistics",
     "leaderboard": "Leaderboard",
     "members": "Members",
+    "moderation": "Moderation",
     "membership_applications": "Requests",
     "application_form": "Request Form",
     "audit_log": "Audit Log",

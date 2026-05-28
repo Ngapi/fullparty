@@ -88,11 +88,11 @@ function formatRunTime(value: string | null) {
 					/>
 				</div>
 
-				<div class="grid gap-3 px-4 py-4 sm:grid-cols-2 xl:grid-cols-5">
+				<div class="flex flex-row flex-wrap gap-x-5 gap-y-3 px-4 py-4">
 					<div
 						v-for="item in statusItems"
 						:key="item.status"
-						class="flex items-center gap-3"
+						class="flex min-w-32 items-center gap-3"
 					>
 						<span
 							class="size-2.5 shrink-0 rounded-full"

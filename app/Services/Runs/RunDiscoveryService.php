@@ -145,11 +145,12 @@ final class RunDiscoveryService
             ->orderBy('id')
             ->get();
 
-        return $activities
+        $filteredActivities = $activities
             ->filter(fn (Activity $activity) => $this->canUserDiscoverActivity($activity, $user->id))
             ->filter(fn (Activity $activity) => $this->matchesFilters($activity, $filters))
-            ->filter(fn (Activity $activity) => $this->canUserTakeDiscoveryAction($activity, $user))
-            ->values();
+            ->filter(fn (Activity $activity) => $this->canUserTakeDiscoveryAction($activity, $user));
+
+        return $this->sortActivities($filteredActivities, $filters['sort'] ?? null);
     }
 
     /**
@@ -253,6 +254,57 @@ final class RunDiscoveryService
             self::RESULTS_PER_PAGE,
             $currentPage,
         );
+    }
+
+    /**
+     * @param  Collection<int, Activity>  $activities
+     * @return Collection<int, Activity>
+     */
+    private function sortActivities(Collection $activities, mixed $sort): Collection
+    {
+        $normalizedSort = is_string($sort) && $sort !== '' ? $sort : 'starting_soonest';
+
+        return $activities
+            ->sort(function (Activity $left, Activity $right) use ($normalizedSort): int {
+                return match ($normalizedSort) {
+                    'newest_posted' => $this->compareDateDesc($left->created_at, $right->created_at)
+                        ?: ($right->id <=> $left->id),
+                    'recently_updated' => $this->compareDateDesc($left->updated_at, $right->updated_at)
+                        ?: ($right->id <=> $left->id),
+                    'open_slots' => ($this->openMainSlotCount($right) <=> $this->openMainSlotCount($left))
+                        ?: $this->compareDateAsc($left->starts_at, $right->starts_at)
+                        ?: ($left->id <=> $right->id),
+                    default => $this->compareDateAsc($left->starts_at, $right->starts_at)
+                        ?: ($left->id <=> $right->id),
+                };
+            })
+            ->values();
+    }
+
+    private function openMainSlotCount(Activity $activity): int
+    {
+        return $activity->slots
+            ->filter(fn (ActivitySlot $slot) => $slot->group_key !== 'bench' && $slot->assigned_character_id === null)
+            ->count();
+    }
+
+    private function compareDateAsc(mixed $left, mixed $right): int
+    {
+        return $this->dateTimestamp($left, PHP_INT_MAX) <=> $this->dateTimestamp($right, PHP_INT_MAX);
+    }
+
+    private function compareDateDesc(mixed $left, mixed $right): int
+    {
+        return $this->dateTimestamp($right, PHP_INT_MIN) <=> $this->dateTimestamp($left, PHP_INT_MIN);
+    }
+
+    private function dateTimestamp(mixed $value, int $fallback): int
+    {
+        if ($value instanceof \DateTimeInterface) {
+            return $value->getTimestamp();
+        }
+
+        return $fallback;
     }
 
     /**
@@ -466,6 +518,10 @@ final class RunDiscoveryService
             return false;
         }
 
+        if (! $this->hasOpenMainSlot($activity)) {
+            return false;
+        }
+
         return $activity->applications->isEmpty();
     }
 
@@ -479,16 +535,29 @@ final class RunDiscoveryService
             return false;
         }
 
-        $mainSlots = $activity->slots
-            ->filter(fn (ActivitySlot $slot) => $slot->group_key !== 'bench');
-
-        if (! $mainSlots->contains(fn (ActivitySlot $slot) => $slot->assigned_character_id === null)) {
+        if (! $this->hasOpenMainSlot($activity)) {
             return false;
         }
 
-        return ! $mainSlots->contains(
+        return ! $this->mainSlots($activity)->contains(
             fn (ActivitySlot $slot) => (int) ($slot->assignedCharacter?->user_id ?? 0) === $user->id
         );
+    }
+
+    private function hasOpenMainSlot(Activity $activity): bool
+    {
+        return $this->mainSlots($activity)->contains(
+            fn (ActivitySlot $slot) => $slot->assigned_character_id === null
+        );
+    }
+
+    /**
+     * @return Collection<int, ActivitySlot>
+     */
+    private function mainSlots(Activity $activity): Collection
+    {
+        return $activity->slots
+            ->filter(fn (ActivitySlot $slot) => $slot->group_key !== 'bench');
     }
 
     private function canUserAccessOverviewWithoutSecret(Activity $activity, int $userId): bool
@@ -548,6 +617,10 @@ final class RunDiscoveryService
             'group_name' => $group?->name,
             'group_slug' => $group?->slug,
             'group_type' => $group?->group_type,
+            'organizer' => $activity->organizerCharacter ? [
+                'name' => $activity->organizerCharacter->name,
+                'avatar_url' => $activity->organizerCharacter->avatar_url,
+            ] : null,
             'description' => filled($activity->description) ? (string) $activity->description : null,
             'min_item_level' => $activity->min_item_level,
             'run_style' => $activity->run_style,

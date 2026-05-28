@@ -47,8 +47,18 @@ const items = computed<DropdownMenuItem[][]>(() => [
 
 <template>
 	<UDropdownMenu arrow v-if="user" :items="items" :ui="{content:'min-w-[var(--reka-dropdown-menu-trigger-width)] bg-linear-to-b to-brand-900/50 from-neutral-950 rounded-none', item:'before:rounded-none'}">
-		<div class="flex items-center gap-2 cursor-pointer hover:bg-neutral-100 dark:hover:bg-neutral-800 rounded-sm px-2 py-2">
+		<div class="flex items-center gap-2 cursor-pointer hover:bg-neutral-100 dark:hover:bg-neutral-800 rounded-sm px-1.5 py-1.5 sm:px-2 sm:py-2">
+			<div class="relative sm:hidden">
+				<UAvatar
+					:src="user.primary_character ? user.primary_character.avatar_url : user.avatar_url"
+					icon="i-lucide-image"
+					size="md"
+					:alt="user.primary_character ? user.primary_character.name : user.name"
+				/>
+				<span class="absolute -right-0.5 -top-0.5 h-2.5 w-2.5 rounded-full border-2 border-neutral-950 bg-emerald-400" />
+			</div>
 			<UUser
+				class="hidden sm:flex"
 				:name="user.primary_character ? user.primary_character.name : user.name"
 				:avatar="{
 					src: user.primary_character ? user.primary_character.avatar_url : user.avatar_url,
@@ -61,7 +71,7 @@ const items = computed<DropdownMenuItem[][]>(() => [
 					position: 'top-right'
 				}"
 			/>
-			<UIcon name="i-lucide-chevron-down" class="w-4 h-4" />
+			<UIcon name="i-lucide-chevron-down" class="h-4 w-4" />
 		</div>
 	</UDropdownMenu>
 

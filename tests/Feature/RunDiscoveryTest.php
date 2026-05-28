@@ -399,6 +399,154 @@ it('shows runs the viewer can apply to, self-assign to, or already has an applic
         ->assertJsonPath('items.2.can_apply', false);
 });
 
+it('does not return full application runs in discovery search', function () {
+    $viewer = User::factory()->create();
+    $otherUser = User::factory()->create();
+    $otherCharacter = Character::factory()->primary()->create([
+        'user_id' => $otherUser->id,
+    ]);
+
+    $activityType = createRunDiscoveryActivityType([
+        'slug' => 'full-search-check',
+        'draft_name' => ['en' => 'Full Search Check'],
+    ]);
+
+    $group = Group::factory()
+        ->open()
+        ->create([
+            'datacenter' => 'Light',
+            'group_type' => Group::TYPE_COMMUNITY,
+            'preferred_languages' => ['en'],
+        ]);
+
+    $openRun = Activity::factory()->create([
+        'group_id' => $group->id,
+        'activity_type_id' => $activityType->id,
+        'activity_type_version_id' => $activityType->current_published_version_id,
+        'status' => Activity::STATUS_SCHEDULED,
+        'title' => 'Need One More',
+        'starts_at' => now()->addWeek()->startOfWeek()->addDays(2)->setTime(19, 0),
+        'datacenter' => 'Light',
+        'is_public' => true,
+        'needs_application' => true,
+    ]);
+
+    $fullRun = Activity::factory()->create([
+        'group_id' => $group->id,
+        'activity_type_id' => $activityType->id,
+        'activity_type_version_id' => $activityType->current_published_version_id,
+        'status' => Activity::STATUS_SCHEDULED,
+        'title' => 'Need Nobody',
+        'starts_at' => now()->addWeek()->startOfWeek()->addDays(3)->setTime(19, 0),
+        'datacenter' => 'Light',
+        'is_public' => true,
+        'needs_application' => true,
+    ]);
+
+    $fullRun->slots()->update([
+        'assigned_character_id' => $otherCharacter->id,
+        'assigned_by_user_id' => $otherUser->id,
+    ]);
+
+    $this->actingAs($viewer)
+        ->getJson(route('dashboard.runs.discover', [
+            'query' => 'Need',
+            'timezone' => 'Europe/London',
+            'date_range' => 'next_week',
+            'group_type' => Group::TYPE_COMMUNITY,
+        ]))
+        ->assertOk()
+        ->assertJsonPath('ids', [$openRun->id])
+        ->assertJsonPath('items.0.id', $openRun->id)
+        ->assertJsonPath('items.0.can_apply', true);
+});
+
+it('sorts discovery results by the selected sort option before pagination', function () {
+    $viewer = User::factory()->create();
+
+    $activityType = createRunDiscoveryActivityType([
+        'slug' => 'sort-check',
+        'draft_name' => ['en' => 'Sort Check'],
+        'draft_layout_schema' => [
+            'groups' => [],
+        ],
+    ]);
+
+    $group = Group::factory()
+        ->open()
+        ->create([
+            'datacenter' => 'Light',
+            'group_type' => Group::TYPE_COMMUNITY,
+            'preferred_languages' => ['en'],
+        ]);
+
+    $makeRun = function (string $title, int $startDay, int $createdDaysAgo, int $updatedDaysAgo, int $openSlots) use ($activityType, $group): Activity {
+        $activity = Activity::factory()->create([
+            'group_id' => $group->id,
+            'activity_type_id' => $activityType->id,
+            'activity_type_version_id' => $activityType->current_published_version_id,
+            'status' => Activity::STATUS_SCHEDULED,
+            'title' => $title,
+            'starts_at' => now()->addWeek()->startOfWeek()->addDays($startDay)->setTime(19, 0),
+            'created_at' => now()->subDays($createdDaysAgo),
+            'updated_at' => now()->subDays($updatedDaysAgo),
+            'datacenter' => 'Light',
+            'is_public' => true,
+            'needs_application' => true,
+        ]);
+
+        foreach (range(1, $openSlots) as $slotIndex) {
+            ActivitySlot::factory()->create([
+                'activity_id' => $activity->id,
+                'slot_key' => sprintf('%s-slot-%d', str($title)->slug(), $slotIndex),
+                'position_in_group' => $slotIndex,
+                'sort_order' => $slotIndex,
+            ]);
+        }
+
+        return $activity;
+    };
+
+    $soonest = $makeRun('Soonest', 1, 4, 4, 1);
+    $newestPosted = $makeRun('Newest Posted', 3, 1, 3, 2);
+    $recentlyUpdated = $makeRun('Recently Updated', 2, 2, 0, 3);
+    $mostOpenSlots = $makeRun('Most Open Slots', 4, 0, 1, 5);
+
+    $params = [
+        'timezone' => 'Europe/London',
+        'date_range' => 'next_week',
+        'group_type' => Group::TYPE_COMMUNITY,
+    ];
+
+    $this->actingAs($viewer)
+        ->getJson(route('dashboard.runs.discover', array_merge($params, [
+            'sort' => 'starting_soonest',
+        ])))
+        ->assertOk()
+        ->assertJsonPath('ids', [$soonest->id, $recentlyUpdated->id, $newestPosted->id, $mostOpenSlots->id]);
+
+    $this->actingAs($viewer)
+        ->getJson(route('dashboard.runs.discover', array_merge($params, [
+            'sort' => 'newest_posted',
+        ])))
+        ->assertOk()
+        ->assertJsonPath('ids', [$mostOpenSlots->id, $newestPosted->id, $recentlyUpdated->id, $soonest->id]);
+
+    $this->actingAs($viewer)
+        ->getJson(route('dashboard.runs.discover', array_merge($params, [
+            'sort' => 'recently_updated',
+        ])))
+        ->assertOk()
+        ->assertJsonPath('ids', [$recentlyUpdated->id, $mostOpenSlots->id, $newestPosted->id, $soonest->id]);
+
+    $this->actingAs($viewer)
+        ->getJson(route('dashboard.runs.discover', array_merge($params, [
+            'sort' => 'open_slots',
+        ])))
+        ->assertOk()
+        ->assertJsonPath('ids', [$mostOpenSlots->id, $recentlyUpdated->id, $newestPosted->id, $soonest->id]);
+});
+
 it('matches time-of-day filters in the user timezone instead of the app timezone', function () {
     config(['app.timezone' => 'UTC']);
 

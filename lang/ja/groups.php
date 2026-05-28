@@ -1,0 +1,37 @@
+<?php
+
+return [
+    'membership_applications' => [
+        'apply' => [
+            'validation' => [
+                'pending_exists' => 'このグループには既に保留中のリクエストがあります。',
+            ],
+        ],
+        'review' => [
+            'validation' => [
+                'already_reviewed' => 'このリクエストは既に確認済みです。',
+                'applicant_banned' => '禁止されたユーザーはグループに承認できません。',
+            ],
+        ],
+        'form' => [
+            'validation' => [
+                'fields_required' => '少なくとも1つの質問を追加してください。',
+                'minimum_fields' => 'リクエストフォームには少なくとも1つの質問が必要です。',
+                'max_fields' => 'リクエストフォームの質問は:max件までです。',
+                'field_invalid' => '各質問は有効なオブジェクトである必要があります。',
+                'type_invalid' => '有効な入力タイプを選択してください。',
+                'name_required' => '英語名は必須です。',
+                'localized_text_invalid' => 'ローカライズされたテキストは文字列である必要があります。',
+                'localized_text_max' => 'ローカライズされたテキストは:max文字以内で入力してください。',
+                'options_required' => '選択式の質問には少なくとも1つの選択肢が必要です。',
+                'options_max' => '選択式の質問の選択肢は:max件までです。',
+                'option_invalid' => '各選択肢は有効なオブジェクトである必要があります。',
+                'answer_unknown' => 'この回答は現在のリクエストフォームと一致しません。',
+                'answer_required' => 'この回答は必須です。',
+                'answer_invalid' => '有効な回答を入力してください。',
+                'answer_max' => 'この回答は:max文字以内で入力してください。',
+                'answer_option_invalid' => '利用可能な選択肢から選んでください。',
+            ],
+        ],
+    ],
+];

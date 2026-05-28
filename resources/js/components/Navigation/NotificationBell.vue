@@ -141,7 +141,7 @@ onBeforeUnmount(() => {
 	<UPopover
 		v-if="user"
 		arrow
-		:popper="{ placement: 'bottom-end' }"
+		:content="{ side: 'bottom', align: 'end', collisionPadding: 8 }"
 	>
 		<template #default="{ open }">
 			<UButton
@@ -163,7 +163,7 @@ onBeforeUnmount(() => {
 		</template>
 
 		<template #content>
-			<div class="w-96 max-w-md bg-linear-to-b from-neutral-900 to-brand-800 ">
+			<div class="w-[calc(100vw-1rem)] max-w-md sm:w-96 bg-linear-to-b from-neutral-900 to-brand-800">
 				<div class="flex items-center justify-between px-4 py-3 bg-neutral-950/50 border-b  border-neutral-800">
 					<h3 class="text-sm font-semibold  text-brand-100">
 						{{ t('notifications.ui.title') }}

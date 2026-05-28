@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { RunDiscoveryDiscoverResponse, RunDiscoveryFilterState, RunDiscoveryPageProps } from "../../../Types/RunDiscovery";
+import type { RunDiscoveryDiscoverResponse, RunDiscoveryFilterState, RunDiscoveryPageProps, RunDiscoverySort } from "../../../Types/RunDiscovery";
 import axios from "axios";
 import { onBeforeUnmount, ref } from "vue";
 import { Head } from "@inertiajs/vue3";
@@ -23,6 +23,7 @@ const paginationMeta = ref<RunDiscoveryDiscoverResponse["meta"]>({
 const activeFilters = ref<RunDiscoveryFilterState | null>(null);
 const isLoading = ref(true);
 const currentPage = ref(1);
+const currentSort = ref<RunDiscoverySort>("starting_soonest");
 const pendingSavedItemIds = ref<number[]>([]);
 let discoveryRequestCounter = 0;
 let scheduledDiscoveryTimeout: ReturnType<typeof setTimeout> | null = null;
@@ -67,6 +68,7 @@ async function fetchRunIds() {
 		const response = await axios.get<RunDiscoveryDiscoverResponse>(route("dashboard.runs.discover"), {
 			params: {
 				...activeFilters.value,
+				sort: currentSort.value,
 				page: currentPage.value,
 			},
 		});
@@ -114,6 +116,16 @@ function handlePageChange(page: number) {
 	void fetchRunIds();
 }
 
+function handleSortChange(sort: RunDiscoverySort) {
+	if (sort === currentSort.value) {
+		return;
+	}
+
+	currentSort.value = sort;
+	currentPage.value = 1;
+	scheduleDiscoveryFetch();
+}
+
 async function handleToggleSaved(item: RunDiscoveryDiscoverResponse["items"][number]) {
 	if (pendingSavedItemIds.value.includes(item.id)) {
 		return;
@@ -150,7 +162,7 @@ onBeforeUnmount(() => {
 <template>
 	<Head :title="`${t('runs.discovery.title')} -`" />
 
-	<div class="flex h-[calc(100dvh-10rem)] min-h-0 flex-row gap-6 overflow-hidden">
+	<div class="flex min-h-0 flex-col gap-6 lg:h-[calc(100dvh-10rem)] lg:flex-row lg:overflow-hidden">
 		<RunDiscoveryFilterPanel
 			:lookups="props.lookups"
 			@filters-change="handleFiltersChange"
@@ -163,6 +175,7 @@ onBeforeUnmount(() => {
 			:loading="isLoading"
 			:pending-saved-item-ids="pendingSavedItemIds"
 			@page-change="handlePageChange"
+			@sort-change="handleSortChange"
 			@toggle-saved="handleToggleSaved"
 		/>
 	</div>

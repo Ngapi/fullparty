@@ -105,8 +105,8 @@ function formatTime(value: string) {
 
 		<div class="h-px bg-default/80" />
 
-		<section class="flex flex-row gap-4">
-			<div class="flex items-start gap-3">
+		<section class="flex flex-col gap-4 sm:flex-row">
+			<div class="flex items-start gap-3 sm:flex-1">
 				<div class="mt-0.5 flex size-8 shrink-0 items-center justify-center border border-default bg-muted/40 text-dimmed">
 					<UIcon name="i-lucide-activity" class="size-4" />
 				</div>
@@ -120,7 +120,7 @@ function formatTime(value: string) {
 				</div>
 			</div>
 
-			<div class="flex items-start gap-3">
+			<div class="flex items-start gap-3 sm:flex-1">
 				<div class="mt-0.5 flex size-8 shrink-0 items-center justify-center border border-default bg-muted/40 text-dimmed">
 					<UIcon name="i-lucide-link-2" class="size-4" />
 				</div>
@@ -144,7 +144,7 @@ function formatTime(value: string) {
 				</div>
 			</div>
 
-			<div class="flex items-start gap-3">
+			<div class="flex items-start gap-3 sm:flex-1">
 				<div class="mt-0.5 flex size-8 shrink-0 items-center justify-center border border-default bg-muted/40 text-dimmed">
 					<UIcon name="i-lucide-languages" class="size-4" />
 				</div>

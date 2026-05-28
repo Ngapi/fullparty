@@ -2,14 +2,15 @@
 import NotificationBell from "@/components/Navigation/NotificationBell.vue";
 import UserMenu from "@/components/Navigation/UserMenu.vue";
 import AppLocaleSelect from "@/components/Navigation/AppLocaleSelect.vue";
-import { usePersistentLocale } from "@/composables/usePersistentLocale";
 import { usePage } from "@inertiajs/vue3";
-import { computed } from "vue";
+import { computed, ref } from "vue";
 import { useI18n } from "vue-i18n";
 
 const { t } = useI18n({ useScope: 'global' })
 const page = usePage();
 const user = computed(() => page.props.auth?.user ?? null);
+const isSearchModalOpen = ref(false);
+const searchQuery = ref('');
 
 defineProps({
 	title: {
@@ -23,7 +24,24 @@ defineProps({
 	<UDashboardNavbar>
 		<template #leading>
 <!--			<UDashboardSidebarCollapse />-->
-			<UInput :placeholder="t('navigation.topbar.search_bar')" :ui="{base: 'rounded-none placeholder:text-neutral-500'}" leading-icon="i-lucide-search" size="xl"  class="min-w-96"/>
+			<div class="min-w-0">
+				<UButton
+					color="neutral"
+					variant="ghost"
+					icon="i-lucide-search"
+					size="lg"
+					class="sm:hidden"
+					:aria-label="t('navigation.topbar.search_bar')"
+					@click="isSearchModalOpen = true"
+				/>
+				<UInput
+					:placeholder="t('navigation.topbar.search_bar')"
+					:ui="{base: 'rounded-none placeholder:text-neutral-500'}"
+					leading-icon="i-lucide-search"
+					size="xl"
+					class="hidden w-48 sm:block md:w-56 lg:w-72 xl:w-96"
+				/>
+			</div>
 		</template>
 
 		<template #trailing>
@@ -32,10 +50,33 @@ defineProps({
 
 		<template #right>
 			<NotificationBell v-if="user" />
-			<AppLocaleSelect variant="ghost" />
+			<div class="hidden sm:inline-flex">
+				<AppLocaleSelect variant="ghost" />
+			</div>
+			<div class="inline-flex sm:hidden">
+				<AppLocaleSelect variant="ghost" compact />
+			</div>
 			<UserMenu />
 		</template>
 	</UDashboardNavbar>
+
+	<UModal
+		v-model:open="isSearchModalOpen"
+		:title="t('navigation.topbar.search')"
+		:ui="{ content: 'max-w-lg', body: 'p-4 sm:p-4' }"
+	>
+		<template #body>
+			<UInput
+				v-model="searchQuery"
+				autofocus
+				:placeholder="t('navigation.topbar.search_bar')"
+				:ui="{base: 'rounded-none placeholder:text-neutral-500'}"
+				leading-icon="i-lucide-search"
+				size="xl"
+				class="w-full"
+			/>
+		</template>
+	</UModal>
 </template>
 
 <style scoped>

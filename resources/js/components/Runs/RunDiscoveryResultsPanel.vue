@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import type { RunDiscoveryResultItemData } from "../../Types/RunDiscovery";
-import { computed, ref } from "vue";
+import type { RunDiscoveryResultItemData, RunDiscoverySort } from "../../Types/RunDiscovery";
+import { computed, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import RunDiscoveryPagination from "@/components/Runs/RunDiscoveryPagination.vue";
 import RunDiscoveryResultItem from "@/components/Runs/RunDiscoveryResultItem.vue";
@@ -17,10 +17,11 @@ const props = defineProps<{
 const emit = defineEmits<{
 	pageChange: [page: number]
 	toggleSaved: [item: RunDiscoveryResultItemData]
+	sortChange: [sort: RunDiscoverySort]
 }>();
 
 const { t } = useI18n();
-const selectedSort = ref("starting_soonest");
+const selectedSort = ref<RunDiscoverySort>("starting_soonest");
 const hasResults = computed(() => props.items.length > 0);
 
 const sortOptions = computed(() => [
@@ -29,11 +30,15 @@ const sortOptions = computed(() => [
 	{ label: t("runs.discovery.results.sort_options.recently_updated"), value: "recently_updated" },
 	{ label: t("runs.discovery.results.sort_options.open_slots"), value: "open_slots" },
 ]);
+
+watch(selectedSort, (sort) => {
+	emit("sortChange", sort);
+});
 </script>
 
 <template>
-	<section class="min-w-0 flex-1 h-full min-h-0">
-		<div class="flex h-full min-h-0 flex-col overflow-hidden">
+	<section class="min-w-0 flex-1 lg:h-full lg:min-h-0">
+		<div class="flex flex-col lg:h-full lg:min-h-0 lg:overflow-hidden">
 			<div class="grid gap-4 lg:grid-cols-[minmax(0,1fr)_auto_auto] lg:items-center lg:gap-6">
 				<div class="min-w-0 flex flex-col gap-1">
 					<h1 class="text-2xl font-semibold text-white">
@@ -60,7 +65,7 @@ const sortOptions = computed(() => [
 				</div>
 			</div>
 
-			<div class="min-h-0 flex-1 space-y-4 overflow-y-auto  py-6">
+			<div class="space-y-4 py-6 lg:min-h-0 lg:flex-1 lg:overflow-y-auto">
 				<div v-if="props.loading" class="space-y-4">
 					<div
 						v-for="index in 4"

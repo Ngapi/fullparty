@@ -30,6 +30,7 @@ const props = defineProps<{
 }>();
 
 const { locale, t } = useI18n();
+const FREE_TEXT_ANSWER_MAX_LENGTH = 1000;
 
 const answerForField = (field: MembershipApplicationFormField): MembershipApplicationAnswerValue => {
 	const existingAnswer = props.existingApplication?.answers?.[field.id];
@@ -77,6 +78,19 @@ const optionsForField = (field: MembershipApplicationFormField) => field.options
 }));
 
 const fieldError = (fieldId: string) => form.errors[`answers.${fieldId}`] ?? null;
+const isFreeTextField = (field: MembershipApplicationFormField) => field.type === "small_text" || field.type === "big_text";
+const answerTextLength = (fieldId: string) => {
+	const value = form.answers[fieldId];
+
+	return typeof value === "string" ? Array.from(value).length : 0;
+};
+const answerCounter = (field: MembershipApplicationFormField) => {
+	if (!isFreeTextField(field)) {
+		return undefined;
+	}
+
+	return `${answerTextLength(field.id)} / ${FREE_TEXT_ANSWER_MAX_LENGTH}`;
+};
 
 const submit = () => {
 	const options = {
@@ -133,6 +147,7 @@ const backToGroups = () => {
 							<UFormField
 								:label="localizedValue(field.name, locale)"
 								:help="localizedValue(field.description, locale)"
+								:hint="answerCounter(field)"
 								:error="fieldError(field.id)"
 								:required="field.required"
 							>
@@ -140,6 +155,7 @@ const backToGroups = () => {
 									v-if="field.type === 'small_text'"
 									v-model="form.answers[field.id]"
 									class="w-full"
+									:maxlength="FREE_TEXT_ANSWER_MAX_LENGTH"
 									:disabled="isLockedApplication || form.processing"
 									:ui="{ base: 'rounded-none' }"
 								/>
@@ -149,6 +165,7 @@ const backToGroups = () => {
 									v-model="form.answers[field.id]"
 									class="w-full"
 									:rows="5"
+									:maxlength="FREE_TEXT_ANSWER_MAX_LENGTH"
 									:disabled="isLockedApplication || form.processing"
 									:ui="{ base: 'rounded-none' }"
 								/>

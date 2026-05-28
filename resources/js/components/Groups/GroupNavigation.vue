@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import { route } from 'ziggy-js'
 import { Link, usePage } from '@inertiajs/vue3'
 import { useI18n } from 'vue-i18n'
@@ -9,8 +9,10 @@ const props = defineProps<{
 		slug: string
 		name?: string
 		permissions?: {
+			can_manage_group?: boolean
 			can_manage_members?: boolean
 			can_manage_discovery?: boolean
+			can_manage_activities?: boolean
 			can_view_members?: boolean
 			can_review_membership_applications?: boolean
 			can_manage_membership_application_form?: boolean
@@ -20,6 +22,7 @@ const props = defineProps<{
 
 const page = usePage()
 const { t } = useI18n()
+const activeMobileMenu = ref<"info" | "moderation" | null>(null)
 
 const isRouteActive = (href: string) => (
 	page.url === href
@@ -28,42 +31,73 @@ const isRouteActive = (href: string) => (
 	|| page.url.startsWith(`${href}#`)
 )
 
+const routePath = (name: string) => route(name, props.group.slug, false)
+
+const dashboardHref = computed(() => route('groups.dashboard', props.group.slug))
+const dashboardPath = computed(() => routePath('groups.dashboard'))
+const activitiesHref = computed(() => route('groups.dashboard.activities.index', props.group.slug))
+const activitiesPath = computed(() => routePath('groups.dashboard.activities.index'))
+const statisticsHref = computed(() => route('groups.dashboard.statistics', props.group.slug))
+const statisticsPath = computed(() => routePath('groups.dashboard.statistics'))
+const leaderboardHref = computed(() => route('groups.dashboard.leaderboard', props.group.slug))
+const leaderboardPath = computed(() => routePath('groups.dashboard.leaderboard'))
+const membersHref = computed(() => route('groups.dashboard.members', props.group.slug))
+const membersPath = computed(() => routePath('groups.dashboard.members'))
+const membershipApplicationsHref = computed(() => route('groups.dashboard.membership-applications.index', props.group.slug))
+const membershipApplicationsPath = computed(() => routePath('groups.dashboard.membership-applications.index'))
+const membershipApplicationFormPath = computed(() => routePath('groups.dashboard.membership-application-form.edit'))
+const auditLogHref = computed(() => route('groups.dashboard.audit-log', props.group.slug))
+const auditLogPath = computed(() => routePath('groups.dashboard.audit-log'))
+const discoverySettingsHref = computed(() => route('groups.dashboard.discovery-settings', props.group.slug))
+const discoverySettingsPath = computed(() => routePath('groups.dashboard.discovery-settings'))
+const settingsHref = computed(() => route('groups.dashboard.settings', props.group.slug))
+const settingsPath = computed(() => routePath('groups.dashboard.settings'))
+
+const isManagementUser = computed(() => Boolean(
+	props.group.permissions?.can_manage_group
+	|| props.group.permissions?.can_manage_members
+	|| props.group.permissions?.can_manage_discovery
+	|| props.group.permissions?.can_manage_activities
+	|| props.group.permissions?.can_review_membership_applications
+	|| props.group.permissions?.can_manage_membership_application_form,
+))
+
 const leftitems = computed(() => [
 	{
 		label: t('groups.index.navigation.general'),
 		icon: 'i-lucide-layout-dashboard',
-		href: route('groups.dashboard', props.group.slug),
-		active: page.url === route('groups.dashboard', props.group.slug, false),
+		href: dashboardHref.value,
+		active: page.url === dashboardPath.value,
 	},
 	{
 		label: t('groups.index.navigation.activities'),
 		icon: 'i-lucide-calendar-range',
-		href: route('groups.dashboard.activities.index', props.group.slug),
-		active: isRouteActive(route('groups.dashboard.activities.index', props.group.slug, false)),
+		href: activitiesHref.value,
+		active: isRouteActive(activitiesPath.value),
 	},
 	{
 		label: t('groups.index.navigation.statistics'),
 		icon: 'i-lucide-chart-no-axes-combined',
-		href: route('groups.dashboard.statistics', props.group.slug),
-		active: isRouteActive(route('groups.dashboard.statistics', props.group.slug, false)),
+		href: statisticsHref.value,
+		active: isRouteActive(statisticsPath.value),
 	},
 	{
 		label: t('groups.index.navigation.leaderboard'),
 		icon: 'i-lucide-trophy',
-		href: route('groups.dashboard.leaderboard', props.group.slug),
-		active: isRouteActive(route('groups.dashboard.leaderboard', props.group.slug, false)),
+		href: leaderboardHref.value,
+		active: isRouteActive(leaderboardPath.value),
 	},
 	...(props.group.permissions?.can_view_members ? [{
 		label: t('groups.index.navigation.members'),
 		icon: 'i-lucide-users',
-		href: route('groups.dashboard.members', props.group.slug),
-		active: isRouteActive(route('groups.dashboard.members', props.group.slug, false)),
+		href: membersHref.value,
+		active: isRouteActive(membersPath.value),
 	}] : []),
 	...(props.group.permissions?.can_review_membership_applications ? [{
 		label: t('groups.index.navigation.membership_applications'),
 		icon: 'i-lucide-clipboard-check',
-		href: route('groups.dashboard.membership-applications.index', props.group.slug),
-		active: isRouteActive(route('groups.dashboard.membership-applications.index', props.group.slug, false)),
+		href: membershipApplicationsHref.value,
+		active: isRouteActive(membershipApplicationsPath.value),
 	}] : []),
 ])
 
@@ -77,32 +111,181 @@ const rightitems = computed(() => {
 			label: t('groups.index.navigation.application_form'),
 			icon: 'i-lucide-list-checks',
 			href: route('groups.dashboard.membership-application-form.edit', props.group.slug),
-			active: isRouteActive(route('groups.dashboard.membership-application-form.edit', props.group.slug, false)),
+			active: isRouteActive(membershipApplicationFormPath.value),
 		}] : []),
 		{
 			label: t('groups.index.navigation.audit_log'),
 			icon: 'i-lucide-scroll-text',
-			href: route('groups.dashboard.audit-log', props.group.slug),
-			active: isRouteActive(route('groups.dashboard.audit-log', props.group.slug, false)),
+			href: auditLogHref.value,
+			active: isRouteActive(auditLogPath.value),
 		},
 		...(props.group.permissions?.can_manage_discovery ? [{
 			label: t('groups.index.navigation.discovery_settings'),
 			icon: 'i-lucide-radar',
-			href: route('groups.dashboard.discovery-settings', props.group.slug),
-			active: isRouteActive(route('groups.dashboard.discovery-settings', props.group.slug, false)),
+			href: discoverySettingsHref.value,
+			active: isRouteActive(discoverySettingsPath.value),
 		}] : []),
 		{
 			label: t('groups.index.navigation.settings'),
 			icon: 'i-lucide-settings-2',
-			href: route('groups.dashboard.settings', props.group.slug),
-			active: isRouteActive(route('groups.dashboard.settings', props.group.slug, false)),
+			href: settingsHref.value,
+			active: isRouteActive(settingsPath.value),
 		}
 	]
 })
+
+const settingsActive = computed(() => isRouteActive(settingsPath.value))
+
+const infoMenuItems = computed(() => [
+	{
+		label: t('groups.index.navigation.statistics'),
+		icon: 'i-lucide-chart-no-axes-combined',
+		href: statisticsHref.value,
+		active: isRouteActive(statisticsPath.value),
+	},
+	{
+		label: t('groups.index.navigation.leaderboard'),
+		icon: 'i-lucide-trophy',
+		href: leaderboardHref.value,
+		active: isRouteActive(leaderboardPath.value),
+	},
+	...(props.group.permissions?.can_manage_members ? [{
+		label: t('groups.index.navigation.audit_log'),
+		icon: 'i-lucide-scroll-text',
+		href: auditLogHref.value,
+		active: isRouteActive(auditLogPath.value),
+	}] : []),
+])
+
+const moderationMenuItems = computed(() => [
+	...(props.group.permissions?.can_manage_discovery ? [{
+		label: t('groups.index.navigation.discovery_settings'),
+		icon: 'i-lucide-radar',
+		href: discoverySettingsHref.value,
+		active: isRouteActive(discoverySettingsPath.value),
+	}] : []),
+	...(props.group.permissions?.can_manage_membership_application_form ? [{
+		label: t('groups.index.navigation.application_form'),
+		icon: 'i-lucide-list-checks',
+		href: route('groups.dashboard.membership-application-form.edit', props.group.slug),
+		active: isRouteActive(membershipApplicationFormPath.value),
+	}] : []),
+	...(props.group.permissions?.can_review_membership_applications ? [{
+		label: t('groups.index.navigation.membership_applications'),
+		icon: 'i-lucide-clipboard-check',
+		href: membershipApplicationsHref.value,
+		active: isRouteActive(membershipApplicationsPath.value),
+	}] : []),
+	...(props.group.permissions?.can_view_members ? [{
+		label: t('groups.index.navigation.members'),
+		icon: 'i-lucide-users',
+		href: membersHref.value,
+		active: isRouteActive(membersPath.value),
+	}] : []),
+])
+
+const activeMobileMenuItems = computed(() => {
+	if (activeMobileMenu.value === "info") {
+		return infoMenuItems.value
+	}
+
+	if (activeMobileMenu.value === "moderation") {
+		return moderationMenuItems.value
+	}
+
+	return []
+})
+
+const toggleMobileMenu = (menu: "info" | "moderation") => {
+	activeMobileMenu.value = activeMobileMenu.value === menu ? null : menu
+}
+
+const closeMobileMenu = () => {
+	activeMobileMenu.value = null
+}
+
+const memberMobileItems = computed(() => [
+	{
+		label: t('groups.index.navigation.home'),
+		icon: 'i-lucide-house',
+		href: dashboardHref.value,
+		active: page.url === dashboardPath.value,
+	},
+	{
+		label: t('groups.index.navigation.leaderboard'),
+		icon: 'i-lucide-trophy',
+		href: leaderboardHref.value,
+		active: isRouteActive(leaderboardPath.value),
+	},
+	{
+		label: t('groups.index.navigation.activities'),
+		icon: 'i-lucide-swords',
+		href: activitiesHref.value,
+		active: isRouteActive(activitiesPath.value),
+		primary: true,
+	},
+	{
+		label: t('groups.index.navigation.members'),
+		icon: 'i-lucide-users',
+		href: membersHref.value,
+		active: isRouteActive(membersPath.value),
+	},
+	{
+		label: t('groups.index.navigation.statistics'),
+		icon: 'i-lucide-chart-no-axes-combined',
+		href: statisticsHref.value,
+		active: isRouteActive(statisticsPath.value),
+	},
+])
+
+const managerMobileItems = computed(() => [
+	{
+		label: t('groups.index.navigation.home'),
+		icon: 'i-lucide-house',
+		href: dashboardHref.value,
+		active: page.url === dashboardPath.value,
+	},
+	{
+		label: t('groups.index.navigation.info'),
+		icon: 'i-lucide-info',
+		href: null,
+		menu: "info" as const,
+		active: activeMobileMenu.value === "info"
+			|| isRouteActive(statisticsPath.value)
+			|| isRouteActive(leaderboardPath.value)
+			|| isRouteActive(auditLogPath.value),
+	},
+	{
+		label: t('groups.index.navigation.activities'),
+		icon: 'i-lucide-swords',
+		href: activitiesHref.value,
+		active: isRouteActive(activitiesPath.value),
+		primary: true,
+	},
+	{
+		label: t('groups.index.navigation.moderation'),
+		icon: 'i-lucide-shield-check',
+		href: null,
+		menu: "moderation" as const,
+		active: activeMobileMenu.value === "moderation"
+			|| isRouteActive(discoverySettingsPath.value)
+			|| isRouteActive(membershipApplicationFormPath.value)
+			|| isRouteActive(membershipApplicationsPath.value)
+			|| isRouteActive(membersPath.value),
+	},
+	{
+		label: t('groups.index.navigation.settings'),
+		icon: 'i-lucide-settings-2',
+		href: settingsHref.value,
+		active: settingsActive.value,
+	},
+])
+
+const mobileItems = computed(() => isManagementUser.value ? managerMobileItems.value : memberMobileItems.value)
 </script>
 
 <template>
-	<UDashboardToolbar>
+	<UDashboardToolbar class="hidden xl:flex">
 		<div class="flex h-full flex-wrap items-stretch gap-2 ">
 			<Link
 				v-for="item in leftitems"
@@ -128,6 +311,112 @@ const rightitems = computed(() => {
 			</Link>
 		</div>
 	</UDashboardToolbar>
+
+	<nav class="fixed inset-x-0 bottom-0 z-50 border-t border-white/10 bg-neutral-950/94 px-3 pt-2 pb-[calc(0.5rem+env(safe-area-inset-bottom))] shadow-[0_-18px_42px_rgba(0,0,0,0.38)] backdrop-blur-xl xl:hidden">
+		<Transition
+			enter-active-class="transition duration-200 ease-out"
+			enter-from-class="translate-y-full opacity-0"
+			enter-to-class="translate-y-0 opacity-100"
+			leave-active-class="transition duration-150 ease-in"
+			leave-from-class="translate-y-0 opacity-100"
+			leave-to-class="translate-y-full opacity-0"
+		>
+			<div
+				v-if="activeMobileMenuItems.length > 0"
+				class="absolute inset-x-0 bottom-full -z-10 border-t border-white/10 bg-neutral-950/94 px-3 pt-2 pb-2 shadow-[0_-14px_34px_rgba(0,0,0,0.32)] backdrop-blur-xl"
+			>
+				<div
+					class="mx-auto grid max-w-md items-end gap-1"
+					:class="[
+						activeMobileMenuItems.length === 1 ? 'grid-cols-1' : '',
+						activeMobileMenuItems.length === 2 ? 'grid-cols-2' : '',
+						activeMobileMenuItems.length === 3 ? 'grid-cols-3' : '',
+						activeMobileMenuItems.length >= 4 ? 'grid-cols-4' : '',
+					]"
+				>
+					<Link
+						v-for="item in activeMobileMenuItems"
+						:key="item.href"
+						:href="item.href"
+						class="group flex min-w-0 flex-col items-center justify-end gap-1 pt-1 text-center transition"
+						@click="closeMobileMenu"
+					>
+						<span
+							class="flex size-8 shrink-0 items-center justify-center rounded-sm border transition group-hover:text-toned"
+							:class="item.active ? 'border-brand-400/35 bg-brand-500/10 text-brand' : 'border-transparent bg-transparent text-muted'"
+						>
+							<UIcon :name="item.icon" class="size-5" />
+						</span>
+						<span
+							class="max-w-full truncate text-[10px] font-semibold leading-none"
+							:class="item.active ? 'text-highlighted' : 'text-muted'"
+						>
+							{{ item.label }}
+						</span>
+					</Link>
+				</div>
+			</div>
+		</Transition>
+
+		<div class="mx-auto grid max-w-md grid-cols-5 items-end gap-1">
+			<template
+				v-for="item in mobileItems"
+				:key="`${item.label}-${item.href ?? 'button'}`"
+			>
+				<Link
+					v-if="item.href"
+					:href="item.href"
+					class="group flex min-w-0 flex-col items-center justify-end gap-1 text-center transition"
+					:class="item.primary ? '-mt-5' : 'pt-1'"
+					@click="closeMobileMenu"
+				>
+					<span
+						class="flex shrink-0 items-center justify-center border transition"
+						:class="[
+							item.primary
+								? 'size-14 rounded-full border-brand-300/70 bg-brand-500 text-white shadow-lg shadow-brand-500/35'
+								: 'size-8 rounded-sm border-transparent bg-transparent',
+							item.active && !item.primary
+								? 'text-brand'
+								: item.primary
+									? ''
+									: 'text-muted group-hover:text-toned'
+						]"
+					>
+						<UIcon :name="item.icon" :class="item.primary ? 'size-6' : 'size-5'" />
+					</span>
+					<span
+						class="max-w-full truncate text-[10px] font-semibold leading-none"
+						:class="[
+							item.primary ? 'uppercase tracking-[0.16em]' : '',
+							item.active || item.primary ? 'text-highlighted' : 'text-muted'
+						]"
+					>
+						{{ item.label }}
+					</span>
+				</Link>
+				<button
+					v-else
+					type="button"
+					class="group flex min-w-0 flex-col items-center justify-end gap-1 pt-1 text-center transition"
+					@click="item.menu ? toggleMobileMenu(item.menu) : undefined"
+				>
+					<span
+						class="flex size-8 shrink-0 items-center justify-center rounded-sm border transition group-hover:text-toned"
+						:class="item.active ? 'border-brand-400/35 bg-brand-500/10 text-brand' : 'border-transparent bg-transparent text-muted'"
+					>
+						<UIcon :name="item.icon" class="size-5" />
+					</span>
+					<span
+						class="max-w-full truncate text-[10px] font-semibold leading-none"
+						:class="item.active ? 'text-highlighted' : 'text-muted'"
+					>
+						{{ item.label }}
+					</span>
+				</button>
+			</template>
+		</div>
+	</nav>
 </template>
 
 <style scoped>

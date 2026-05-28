@@ -45,6 +45,7 @@ class RunDiscoveryFilterRequest extends FormRequest
             'application_status' => ['nullable', 'string', Rule::in(['applications_open', 'direct_join'])],
             'intensity' => ['nullable', 'string', Rule::in(Activity::INTENSITIES)],
             'voice_expectation' => ['nullable', 'string', Rule::in(config('group_discovery.voice_expectations', []))],
+            'sort' => ['nullable', 'string', Rule::in(['starting_soonest', 'newest_posted', 'recently_updated', 'open_slots'])],
             'page' => ['nullable', 'integer', 'min:1'],
         ];
     }
@@ -71,6 +72,7 @@ class RunDiscoveryFilterRequest extends FormRequest
                 'application_status',
                 'intensity',
                 'voice_expectation',
+                'sort',
             ],
         );
 
@@ -92,6 +94,7 @@ class RunDiscoveryFilterRequest extends FormRequest
             'application_status',
             'intensity',
             'voice_expectation',
+            'sort',
         ] as $field) {
             if ($this->filled($field) && in_array($this->input($field), ['any', 'all'], true)) {
                 $normalized[$field] = null;

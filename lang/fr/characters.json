@@ -131,6 +131,7 @@
   },
   "card": {
     "view_lodestone_profile": "Voir le profil Lodestone",
+    "refresh_character": "Actualiser le personnage",
     "make_primary": "Définir comme principal",
     "unclaim_character": "Dissocier le personnage",
     "unclaim_title": "Dissocier le personnage",

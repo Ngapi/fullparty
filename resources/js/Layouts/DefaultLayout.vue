@@ -30,7 +30,7 @@ defineProps({
 			<UDashboardGroup>
 				<CSidebar />
 
-				<UDashboardPanel >
+				<UDashboardPanel :ui="{ body: 'p-2 sm:p-3 lg:p-4 xl:p-6' }">
 					<template #header>
 						<SystemBanner
 							v-if="systemBanner"
@@ -49,7 +49,10 @@ defineProps({
 								<slot />
 							</div>
 
-							<DashboardFooter class="mt-8" />
+							<DashboardFooter
+								class="mt-8"
+								:has-bottom-navigation="showGroupNavigation"
+							/>
 						</div>
 					</template>
 				</UDashboardPanel>

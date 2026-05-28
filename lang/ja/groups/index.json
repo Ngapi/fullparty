@@ -32,10 +32,13 @@
   },
   "navigation": {
     "general": "概要",
+    "home": "ホーム",
+    "info": "情報",
     "activities": "Runs",
     "statistics": "統計",
     "leaderboard": "リーダーボード",
     "members": "メンバー",
+    "moderation": "モデレーション",
     "membership_applications": "リクエスト",
     "application_form": "リクエストフォーム",
     "audit_log": "監査ログ",

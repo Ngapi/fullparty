@@ -103,6 +103,8 @@ const timezoneLabel = computed(() => {
 });
 
 const memberCountLabel = computed(() => `${props.item.filled_slots} / ${props.item.total_slots}`);
+const organizerName = computed(() => props.item.organizer?.name || t("groups.activities.cards.no_organizer"));
+const organizerAvatarUrl = computed(() => props.item.organizer?.avatar_url ?? null);
 
 const goToViewDetails = () => {
 	router.get(props.item.links.view);
@@ -134,11 +136,23 @@ const toggleSaved = () => {
 
 <template>
 	<article
-		class="h-38 overflow-hidden border border-white/10 bg-neutral-950/72 shadow-[0_20px_40px_rgba(0,0,0,0.2)]"
+		class="relative isolate overflow-hidden border border-white/10 bg-neutral-950/72 shadow-[0_20px_40px_rgba(0,0,0,0.2)]"
 		:class="props.item.has_existing_application ? 'border-l-4 border-l-brand-400' : ''"
 	>
-		<div class="grid gap-4 xl:grid-cols-[7rem_minmax(0,1.6fr)_11rem_10rem_11rem] xl:items-center">
-			<div class="relative border border-white/8 bg-neutral-900/70">
+		<img
+			v-if="item.image_url"
+			:src="item.image_url"
+			:alt="item.title"
+			class="absolute inset-0 h-full w-full object-cover xl:hidden"
+		>
+		<div
+			v-else
+			class="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(123,97,153,0.34),transparent_46%),radial-gradient(circle_at_center_right,rgba(84,136,184,0.28),transparent_38%),linear-gradient(180deg,#201c24_0%,#151217_100%)] xl:hidden"
+		/>
+		<div class="absolute inset-0 bg-linear-to-b from-neutral-950/58 via-neutral-950/74 to-neutral-950/94 xl:hidden" />
+
+		<div class="relative z-10 grid grid-cols-2 gap-3 p-4 sm:grid-cols-[minmax(0,1.5fr)_minmax(8rem,0.85fr)_minmax(8rem,0.85fr)] sm:items-center sm:gap-4 sm:p-5 xl:grid-cols-[7rem_minmax(0,1.6fr)_11rem_10rem_11rem] xl:p-0">
+			<div class="relative hidden border border-white/8 bg-neutral-900/70 xl:block">
 				<img
 					v-if="item.image_url"
 					:src="item.image_url"
@@ -154,7 +168,7 @@ const toggleSaved = () => {
 				</div>
 			</div>
 
-			<div class="min-w-0 space-y-3 xl:pr-2 py-4">
+			<div class="col-span-2 min-w-0 space-y-3 sm:col-span-1 xl:py-4 xl:pr-2">
 				<div class="flex items-start justify-between gap-3">
 					<div class="min-w-0 space-y-2">
 						<div class="flex flex-wrap items-center gap-2">
@@ -211,7 +225,7 @@ const toggleSaved = () => {
 				</div>
 			</div>
 
-			<div class="space-y-3 border-t border-white/8 pt-3 xl:border-l xl:border-t-0 xl:pt-0 xl:pl-5">
+			<div class="col-span-1 space-y-3 border-t border-white/10 pt-3 sm:border-l sm:border-t-0 sm:pl-5 xl:border-white/8 xl:pt-0">
 				<div class="flex items-start gap-3">
 					<UIcon name="i-lucide-calendar-days" class="mt-0.5 size-4 text-white/46" />
 					<div class="space-y-1">
@@ -227,7 +241,26 @@ const toggleSaved = () => {
 					</div>
 				</div>
 
-				<div class="flex items-start gap-3 text-white/70">
+				<div class="flex items-start gap-3 text-white/70 xl:hidden">
+					<UAvatar
+						v-if="organizerAvatarUrl"
+						:src="organizerAvatarUrl"
+						:alt="organizerName"
+						size="xs"
+						class="mt-0.5 shrink-0"
+					/>
+					<UIcon v-else name="i-lucide-user-round" class="mt-0.5 size-4 shrink-0 text-white/46" />
+					<div class="min-w-0 space-y-1">
+						<p class="text-xs font-semibold uppercase tracking-[0.16em] text-white/46">
+							{{ t("groups.activities.context_menu.summary_labels.host") }}
+						</p>
+						<p class="truncate text-sm font-medium text-white sm:text-base">
+							{{ organizerName }}
+						</p>
+					</div>
+				</div>
+
+				<div class="hidden items-start gap-3 text-white/70 xl:flex">
 					<UIcon name="i-lucide-globe" class="mt-0.5 size-4 text-white/46" />
 					<div class="space-y-1">
 						<p class="text-base font-medium text-white">
@@ -240,7 +273,7 @@ const toggleSaved = () => {
 				</div>
 			</div>
 
-			<div class="border-t border-white/8 pt-3 xl:border-l xl:border-t-0 xl:pt-0 xl:pl-5">
+			<div class="hidden border-t border-white/10 pt-3 xl:block xl:border-l xl:border-t-0 xl:border-white/8 xl:pt-0 xl:pl-5">
 				<div class=" p-3">
 					<p class="mb-3 text-xs font-semibold uppercase tracking-[0.16em] text-white/48">
 						{{ t("runs.discovery.results.placeholder_item.open_slots") }}
@@ -264,7 +297,7 @@ const toggleSaved = () => {
 				</div>
 			</div>
 
-			<div class="border-t border-white/8 pt-3 xl:border-l xl:border-t-0 xl:pt-0 xl:pl-5">
+			<div class="col-span-1 border-t border-white/10 pt-3 sm:border-l sm:border-t-0 sm:pl-5 xl:border-white/8 xl:pt-0">
 				<div class="flex h-full flex-col justify-between gap-4">
 					<div class="flex items-center justify-center">
 						<p class="text-md font-semibold text-white">
@@ -272,7 +305,7 @@ const toggleSaved = () => {
 						</p>
 					</div>
 
-					<div class="space-y-2 pr-4">
+					<div class="space-y-2 xl:pr-4">
 						<UButton
 							color="primary"
 							class="w-full justify-center rounded-none"

@@ -5,7 +5,8 @@ import { useI18n } from "vue-i18n"
 
 const { t } = useI18n()
 
-const imageUrl = "/profile_bg.jpg"
+const imageUrl_l = "/fmiqo.png"
+const imageUrl_r = "/mmiqo.png"
 const logoUrl = "/logos/compact.png"
 
 const playerPoints = [
@@ -40,11 +41,14 @@ const goToRegister = () => {
 
 		<div class="overflow-hidden">
 			<div class="grid gap-0 py-10 xl:grid-cols-[minmax(14rem,1fr)_minmax(0,58rem)_minmax(14rem,1fr)]">
-				<div
-					class="hidden min-h-80 bg-cover bg-center opacity-45 mix-blend-screen xl:block"
-					:style="{ backgroundImage: `linear-gradient(90deg, rgba(10, 10, 10, 0.1), rgba(10, 10, 10, 0.86)), url(${imageUrl})` }"
-					aria-hidden="true"
-				/>
+				<div class="relative hidden min-h-80 overflow-hidden xl:flex xl:items-end xl:justify-end" aria-hidden="true">
+					<img
+						:src="imageUrl_l"
+						alt=""
+						class="h-full max-h-[34rem] w-full object-contain object-bottom opacity-90"
+					>
+					<div class="absolute inset-x-8 bottom-0 h-px bg-linear-to-r from-transparent via-violet-300/70 to-transparent" />
+				</div>
 
 				<div class="px-6 py-4 md:px-8 xl:px-10">
 					<div class="text-center">
@@ -60,11 +64,14 @@ const goToRegister = () => {
 
 					<div class="mt-10 grid gap-8 xl:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] xl:gap-0">
 						<div class="grid gap-6 md:grid-cols-[minmax(0,0.9fr)_minmax(0,1fr)] md:items-center xl:block">
-							<div
-								class="hidden min-h-72 bg-cover bg-center opacity-45 mix-blend-screen md:block xl:hidden"
-								:style="{ backgroundImage: `linear-gradient(90deg, rgba(10, 10, 10, 0.1), rgba(10, 10, 10, 0.86)), url(${imageUrl})` }"
-								aria-hidden="true"
-							/>
+							<div class="relative hidden min-h-72 overflow-hidden md:flex md:items-end md:justify-center xl:hidden" aria-hidden="true">
+								<img
+									:src="imageUrl_l"
+									alt=""
+									class="h-full max-h-80 w-full object-contain object-bottom opacity-90"
+								>
+								<div class="absolute inset-x-8 bottom-0 h-px bg-linear-to-r from-transparent via-violet-300/70 to-transparent" />
+							</div>
 
 							<div class="mx-auto flex max-w-md flex-col justify-start py-4 md:mx-0 md:max-w-none md:px-8 xl:min-h-80 xl:px-10">
 								<h3 class="text-center text-2xl font-semibold text-violet-300 md:text-left">
@@ -108,20 +115,26 @@ const goToRegister = () => {
 								</ul>
 							</div>
 
-							<div
-								class="hidden min-h-72 -scale-x-100 bg-cover bg-center opacity-45 mix-blend-screen md:block xl:hidden"
-								:style="{ backgroundImage: `linear-gradient(90deg, rgba(10, 10, 10, 0.1), rgba(10, 10, 10, 0.86)), url(${imageUrl})` }"
-								aria-hidden="true"
-							/>
+							<div class="relative hidden min-h-72 overflow-hidden md:flex md:items-end md:justify-center xl:hidden" aria-hidden="true">
+								<img
+									:src="imageUrl_r"
+									alt=""
+									class="h-full max-h-80 w-full object-contain object-bottom opacity-90"
+								>
+								<div class="absolute inset-x-8 bottom-0 h-px bg-linear-to-r from-transparent via-violet-300/70 to-transparent" />
+							</div>
 						</div>
 					</div>
 				</div>
 
-				<div
-					class="hidden min-h-80 -scale-x-100 bg-cover bg-center opacity-45 mix-blend-screen xl:block"
-					:style="{ backgroundImage: `linear-gradient(90deg, rgba(10, 10, 10, 0.1), rgba(10, 10, 10, 0.86)), url(${imageUrl})` }"
-					aria-hidden="true"
-				/>
+				<div class="relative hidden min-h-80 overflow-hidden xl:flex xl:items-end xl:justify-start" aria-hidden="true">
+					<img
+						:src="imageUrl_r"
+						alt=""
+						class="h-full max-h-[34rem] w-full object-contain object-bottom opacity-90"
+					>
+					<div class="absolute inset-x-8 bottom-0 h-px bg-linear-to-r from-transparent via-violet-300/70 to-transparent" />
+				</div>
 			</div>
 
 			<div class="flex flex-col items-center justify-center gap-5 border-t border-white/10 px-6 py-7 text-center md:flex-row md:text-left">

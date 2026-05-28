@@ -131,6 +131,7 @@
   },
   "card": {
     "view_lodestone_profile": "Lodestone プロフィールを見る",
+    "refresh_character": "キャラクターを更新",
     "make_primary": "メインに設定",
     "unclaim_character": "キャラクターの紐付けを解除",
     "unclaim_title": "キャラクターの紐付けを解除",

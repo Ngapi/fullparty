@@ -2,6 +2,7 @@ export type RunDiscoveryDateRange = "today" | "this_week" | "next_week" | "this_
 export type RunDiscoveryTimeOfDay = "any" | "morning" | "afternoon" | "evening" | "night"
 export type RunDiscoveryRoleCategory = "any" | "tank" | "healer" | "dps" | null
 export type RunDiscoveryClassRoleGroup = "tank" | "healer" | "melee" | "phys" | "magic"
+export type RunDiscoverySort = "starting_soonest" | "newest_posted" | "recently_updated" | "open_slots"
 
 export type RunDiscoveryFilterState = {
 	query: string
@@ -23,6 +24,7 @@ export type RunDiscoveryFilterState = {
 	application_status: string | null
 	intensity: string | null
 	voice_expectation: string | null
+	sort?: RunDiscoverySort
 	page?: number
 }
 
@@ -83,6 +85,10 @@ export type RunDiscoveryResultItemData = {
 	group_name: string | null
 	group_slug: string | null
 	group_type: string | null
+	organizer: {
+		name: string | null
+		avatar_url: string | null
+	} | null
 	description: string | null
 	min_item_level: number | null
 	run_style: string | null

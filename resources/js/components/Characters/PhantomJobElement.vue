@@ -15,6 +15,7 @@ const props = defineProps({
 });
 
 const isUpdating = ref(false);
+const lastTapAt = ref(0);
 
 const togglePreferred = () => {
 	if (!props.phantomJob || isUpdating.value) {
@@ -33,11 +34,54 @@ const togglePreferred = () => {
 		}
 	});
 };
+
+const handleCompactTap = () => {
+	const now = Date.now();
+
+	if (now - lastTapAt.value <= 320) {
+		lastTapAt.value = 0;
+		togglePreferred();
+
+		return;
+	}
+
+	lastTapAt.value = now;
+};
 </script>
 
 <template>
+	<div
+		v-if="phantomJob"
+		class="relative flex flex-col items-center justify-center gap-1 rounded-sm border bg-neutral-800/50 px-2 py-2 text-center xl:hidden"
+		:class="[phantomJob.current_level === 0 ? 'opacity-50' : 'opacity-100', phantomJob.is_preferred ? 'border-rose-400/50 ' : 'border-default']"
+		@click="handleCompactTap"
+	>
+		<div class="relative">
+			<img
+				v-if="phantomJob.icon_url"
+				:src="phantomJob.is_maxed ? phantomJob.icon_url : phantomJob.black_icon_url"
+				:alt="`${phantomJob.name} icon`"
+				class="size-10 rounded-sm object-contain"
+			>
+			<div
+				v-else
+				class="flex size-10 items-center justify-center rounded-sm bg-elevated text-[10px] font-semibold text-muted"
+			>
+				PJ
+			</div>
+			<UIcon
+				v-if="phantomJob.is_preferred"
+				name="i-lucide-heart"
+				class="absolute -right-1 -top-1 size-4 fill-rose-500 text-rose-500"
+			/>
+		</div>
+		<p class="text-xs font-semibold leading-none text-white/86">
+			{{ phantomJob.current_level }} / {{ phantomJob.max_level }}
+		</p>
+	</div>
+
 	<div v-if="phantomJob"
-		 class="group relative flex items-center gap-2 rounded-sm border bg-muted/20 px-3 py-2 pr-11"
+		 class="group relative hidden items-center gap-2 rounded-sm border bg-neutral-800/50 px-3 py-2 pr-11 xl:flex"
 		 :class="[phantomJob.current_level === 0 ? 'opacity-50' : 'opacity-100', phantomJob.is_preferred ? 'border-rose-400/50 ' : 'border-default']"
 	>
 		<img

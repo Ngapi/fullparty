@@ -15,6 +15,7 @@ const props = defineProps<{
 }>();
 
 const { t, locale } = useI18n();
+const UPCOMING_ACTIVITY_LIMIT = 20;
 
 const toLocalDateKey = (date: Date) => {
 	const year = date.getFullYear();
@@ -39,7 +40,8 @@ const upcomingActivities = computed(() => {
 
 			return new Date(activity.starts_at).getTime() >= now;
 		})
-		.sort((left, right) => new Date(left.starts_at ?? 0).getTime() - new Date(right.starts_at ?? 0).getTime());
+		.sort((left, right) => new Date(left.starts_at ?? 0).getTime() - new Date(right.starts_at ?? 0).getTime())
+		.slice(0, UPCOMING_ACTIVITY_LIMIT);
 });
 
 const selectedDateActivities = computed(() => {

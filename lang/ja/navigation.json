@@ -29,6 +29,7 @@
     }
   },
   "topbar": {
+    "search": "検索",
     "search_bar": "レイド、プレイヤー、イベントを検索...",
     "menu": {
       "profile": "プロフィール",

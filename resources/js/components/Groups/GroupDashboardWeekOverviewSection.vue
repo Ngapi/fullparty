@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { GroupDashboardActivity } from "@/Types/Groups";
-import { computed } from "vue";
+import { computed, ref } from "vue";
 import { Link, usePage } from "@inertiajs/vue3";
 import { useI18n } from "vue-i18n";
 import { localizedValue } from "@/utils/localizedValue";
@@ -16,6 +16,7 @@ const props = defineProps<{
 const { t, locale } = useI18n();
 const page = usePage();
 const fallbackLocale = computed(() => String(page.props.locale?.fallback ?? "en"));
+const scrollContainer = ref<HTMLElement | null>(null);
 
 const parseDateKey = (value: string) => {
 	const [year, month, day] = value.split("-").map((segment) => Number.parseInt(segment, 10));
@@ -112,6 +113,19 @@ const activityStartsAtLabel = (activity: GroupDashboardActivity) => {
 		minute: "2-digit",
 	}).format(new Date(activity.starts_at));
 };
+
+const scrollByDirection = (direction: "left" | "right") => {
+	if (! scrollContainer.value) {
+		return;
+	}
+
+	const amount = Math.round(scrollContainer.value.clientWidth * 0.92);
+
+	scrollContainer.value.scrollBy({
+		left: direction === "left" ? -amount : amount,
+		behavior: "smooth",
+	});
+};
 </script>
 
 <template>
@@ -141,12 +155,32 @@ const activityStartsAtLabel = (activity: GroupDashboardActivity) => {
 				</div>
 			</div>
 
-			<div class="overflow-x-auto">
-				<div class="grid min-w-[56rem] grid-cols-7 gap-px bg-white/8">
+			<div class="relative">
+				<UButton
+					class="absolute top-1/2 left-2 z-10 inline-flex -translate-y-1/2 border border-white/10 bg-neutral-950/85 backdrop-blur-sm xl:hidden"
+					color="neutral"
+					variant="soft"
+					icon="i-lucide-chevron-left"
+					:aria-label="t('groups.index.featured.previous')"
+					@click="scrollByDirection('left')"
+				/>
+				<UButton
+					class="absolute top-1/2 right-2 z-10 inline-flex -translate-y-1/2 border border-white/10 bg-neutral-950/85 backdrop-blur-sm xl:hidden"
+					color="neutral"
+					variant="soft"
+					icon="i-lucide-chevron-right"
+					:aria-label="t('groups.index.featured.next')"
+					@click="scrollByDirection('right')"
+				/>
+
+				<div
+					ref="scrollContainer"
+					class="flex snap-x snap-mandatory gap-3 overflow-x-auto scroll-smooth px-3 pb-2 [scroll-padding-inline:0.75rem] [scrollbar-width:none] xl:grid xl:snap-none xl:grid-cols-7 xl:gap-px xl:overflow-visible xl:bg-white/8 xl:px-0 xl:pb-0 [&::-webkit-scrollbar]:hidden"
+				>
 					<div
 						v-for="day in weekDays"
 						:key="day.key"
-						class="flex min-h-[17rem] flex-col bg-neutral-950/72"
+						class="flex min-h-[17rem] w-full flex-none snap-start flex-col bg-neutral-950/72 sm:w-[calc((100%-0.75rem)/2)] md:w-[calc((100%-1.5rem)/3)] lg:w-[calc((100%-2.25rem)/4)] xl:w-auto xl:snap-none"
 					>
 						<div class="flex items-center justify-between border-b border-white/8 px-3 py-3">
 							<div class="flex flex-col">
@@ -186,7 +220,7 @@ const activityStartsAtLabel = (activity: GroupDashboardActivity) => {
 										/>
 									</div>
 
-									<p class="mt-1 text-sm font-semibold leading-5 text-white break-words [overflow-wrap:anywhere]">
+									<p class="mt-1 line-clamp-2 text-sm font-semibold leading-5 text-white break-words [overflow-wrap:anywhere]">
 										{{ activityLabel(activity) }}
 									</p>
 									<p

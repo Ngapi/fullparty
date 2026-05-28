@@ -41,6 +41,7 @@ const selectedGroup = ref("any");
 const selectedTimeOfDay = ref("any");
 const selectedLanguage = ref("any");
 const detectedTimezone = ref("");
+const isAdvancedFiltersOpen = ref(false);
 
 const activityTypeDefinitions = computed<RunDiscoveryActivityTypeOption[]>(() => props.lookups.activity_types ?? []);
 const classOptions = computed<RunDiscoveryClassOption[]>(() => props.lookups.class_options ?? []);
@@ -276,9 +277,9 @@ const resetFilters = () => {
 </script>
 
 <template>
-	<aside class="h-full w-full lg:max-w-[22rem] lg:shrink-0">
-		<div class="flex h-full min-h-0 flex-col overflow-hidden border border-white/10 bg-neutral-950/82 shadow-[0_24px_48px_rgba(0,0,0,0.32)]">
-			<div class="min-h-0 flex-1 space-y-6 overflow-y-auto px-5 py-5">
+	<aside class="w-full lg:h-full lg:max-w-[22rem] lg:shrink-0">
+		<div class="flex min-h-0 flex-col overflow-hidden border border-white/10 bg-neutral-950/82 shadow-[0_24px_48px_rgba(0,0,0,0.32)] lg:h-full">
+			<div class="min-h-0 space-y-6 overflow-y-auto px-5 py-5 lg:flex-1">
 				<section class="space-y-3">
 					<div class="flex items-center justify-between gap-3">
 						<p class="text-sm font-semibold text-white">
@@ -304,313 +305,327 @@ const resetFilters = () => {
 					/>
 				</section>
 
-				<section class="space-y-3">
-					<div class="flex items-center justify-between gap-3">
-						<p class="text-sm font-semibold text-white">
-							{{ t("runs.discovery.filters.sections.activity_type") }}
-						</p>
-					</div>
+				<UButton
+					color="neutral"
+					variant="outline"
+					class="w-full justify-between rounded-none border-white/10 bg-neutral-950/50 text-white/72 hover:bg-neutral-900 lg:hidden"
+					:label="t('runs.discovery.filters.title')"
+					:trailing-icon="isAdvancedFiltersOpen ? 'i-lucide-chevron-up' : 'i-lucide-chevron-down'"
+					@click="isAdvancedFiltersOpen = !isAdvancedFiltersOpen"
+				/>
 
-						<USelectMenu
-							v-model="selectedActivityType"
-							class="w-full"
-							:items="activityTypeOptions"
-							value-key="value"
-							:placeholder="t('runs.discovery.filters.options.any.activity_type')"
-						/>
+				<div
+					class="space-y-6"
+					:class="isAdvancedFiltersOpen ? 'block' : 'hidden lg:block'"
+				>
+					<section class="space-y-3">
+						<div class="flex items-center justify-between gap-3">
+							<p class="text-sm font-semibold text-white">
+								{{ t("runs.discovery.filters.sections.activity_type") }}
+							</p>
+						</div>
 
-						<USelectMenu
-							v-if="selectedActivityTypeHasProgPoints"
-							v-model="selectedProgPoint"
-							class="w-full"
-							:items="progPointOptions"
-							value-key="value"
-							:placeholder="t('runs.discovery.filters.options.any.prog_point')"
-						/>
-				</section>
+							<USelectMenu
+								v-model="selectedActivityType"
+								class="w-full"
+								:items="activityTypeOptions"
+								value-key="value"
+								:placeholder="t('runs.discovery.filters.options.any.activity_type')"
+							/>
 
-				<section class="space-y-3">
-					<div class="flex items-center justify-between gap-3">
-						<p class="text-sm font-semibold text-white">
-							{{ t("runs.discovery.filters.sections.datacenter_world") }}
-						</p>
-					</div>
+							<USelectMenu
+								v-if="selectedActivityTypeHasProgPoints"
+								v-model="selectedProgPoint"
+								class="w-full"
+								:items="progPointOptions"
+								value-key="value"
+								:placeholder="t('runs.discovery.filters.options.any.prog_point')"
+							/>
+					</section>
 
-					<div class="space-y-3">
-						<USelect
-							v-model="selectedRegion"
-							class="w-full"
-							:items="regionOptions"
-							value-key="value"
-							:ui="{ base: 'rounded-none' }"
-						/>
-						<USelect
-							v-model="selectedDatacenter"
-							class="w-full"
-							:items="datacenterOptions"
-							value-key="value"
-							:ui="{ base: 'rounded-none' }"
-						/>
-					</div>
-				</section>
+					<section class="space-y-3">
+						<div class="flex items-center justify-between gap-3">
+							<p class="text-sm font-semibold text-white">
+								{{ t("runs.discovery.filters.sections.datacenter_world") }}
+							</p>
+						</div>
 
-				<section class="space-y-3">
-					<div class="flex items-center justify-between gap-3">
-						<p class="text-sm font-semibold text-white">
-							{{ t("runs.discovery.filters.sections.group") }}
-						</p>
-					</div>
-
-					<USelect
-						v-model="selectedGroup"
-						class="w-full"
-						:items="groupOptions"
-						value-key="value"
-						:ui="{ base: 'rounded-none' }"
-					/>
-				</section>
-
-				<section class="space-y-3">
-					<div class="flex items-center justify-between gap-3">
-						<p class="text-sm font-semibold text-white">
-							{{ t("runs.discovery.filters.sections.day_time") }}
-						</p>
-					</div>
-
-					<div class="grid grid-cols-2 gap-2">
-						<UButton
-							v-for="option in dateRangeOptions"
-							:key="option.value"
-							color="neutral"
-							:variant="selectedDateRange === option.value ? 'solid' : 'outline'"
-							class="justify-center rounded-none"
-							:class="selectedDateRange === option.value ? 'bg-brand-600 hover:bg-brand-500 border-brand-400/70 text-white' : 'border-white/10 bg-neutral-950/50 text-white/72 hover:bg-neutral-900'"
-							:label="option.label"
-							@click="selectedDateRange = option.value"
-						/>
-					</div>
-
-					<USelect
-						v-model="selectedTimeOfDay"
-						class="w-full"
-						:items="timeOfDayOptions"
-						value-key="value"
-						:ui="{ base: 'rounded-none' }"
-					/>
-
-					<div class="flex items-center justify-between border border-white/10 bg-neutral-950/50 px-3 py-2.5 text-sm text-white/66">
-						<span>{{ detectedTimezone || t("runs.discovery.filters.placeholders.timezone") }}</span>
-						<UIcon name="i-lucide-globe" class="size-4 text-white/38" />
-					</div>
-				</section>
-
-				<section class="space-y-3">
-					<div class="flex items-center justify-between gap-3">
-						<p class="text-sm font-semibold text-white">
-							{{ t("runs.discovery.filters.sections.run_style") }}
-						</p>
-					</div>
-
-					<USelect
-						v-model="selectedRunStyle"
-						class="w-full"
-						:items="runStyleOptions"
-						value-key="value"
-						:ui="{ base: 'rounded-none' }"
-					/>
-
-					<div class="flex items-center justify-between gap-4 mt-2">
-						<p class="text-sm font-medium text-white">
-							{{ t("runs.discovery.filters.labels.beginner_friendly") }}
-						</p>
-						<USwitch v-model="beginnerFriendlyOnly" />
-					</div>
-				</section>
-
-				<section class="space-y-3">
-					<div class="flex items-center justify-between gap-3">
-						<p class="text-sm font-semibold text-white">
-							{{ t("runs.discovery.filters.sections.language") }}
-						</p>
-					</div>
-
-					<USelect
-						v-model="selectedLanguage"
-						class="w-full"
-						:items="languageOptions"
-						value-key="value"
-						:ui="{ base: 'rounded-none' }"
-					/>
-				</section>
-
-				<section class="space-y-3">
-					<div class="flex items-center justify-between gap-3">
-						<p class="text-sm font-semibold text-white">
-							{{ t("runs.discovery.filters.sections.role_needed") }}
-						</p>
-					</div>
-
-					<div class="grid grid-cols-4 gap-2">
-						<UButton
-							v-for="option in roleCategoryOptions"
-							:key="option.value"
-							color="neutral"
-							:variant="selectedRoleCategory === option.value ? 'solid' : 'outline'"
-							class="flex-col items-center justify-center gap-2 rounded-none px-3 py-3"
-							:class="selectedRoleCategory === option.value ? 'bg-brand-600 hover:bg-brand-500 border-brand-400/70 text-white' : 'border-white/10 bg-neutral-950/50 text-white/72 hover:bg-neutral-900'"
-							:icon="option.icon"
-							:label="option.label"
-							@click="selectRoleCategory(option.value as RunDiscoveryRoleCategory)"
-						/>
-					</div>
-
-					<div class="space-y-2">
-						<UButton
-							color="neutral"
-							variant="outline"
-							class="w-full justify-between rounded-none"
-							:label="classSummaryLabel"
-							trailing-icon="i-lucide-chevron-down"
-							@click="isClassPickerOpen = true"
-						/>
-
-						<div
-							v-if="selectedClassOptions.length > 0"
-							class="flex flex-wrap gap-2"
-						>
-							<UBadge
-								v-for="option in selectedClassOptions"
-								:key="option.key"
-								color="neutral"
-								variant="soft"
-								:label="option.shorthand"
+						<div class="space-y-3">
+							<USelect
+								v-model="selectedRegion"
+								class="w-full"
+								:items="regionOptions"
+								value-key="value"
+								:ui="{ base: 'rounded-none' }"
+							/>
+							<USelect
+								v-model="selectedDatacenter"
+								class="w-full"
+								:items="datacenterOptions"
+								value-key="value"
+								:ui="{ base: 'rounded-none' }"
 							/>
 						</div>
-					</div>
-				</section>
+					</section>
 
-				<section class="space-y-3">
-					<div class="flex items-center justify-between gap-3">
-						<p class="text-sm font-semibold text-white">
-							{{ t("runs.discovery.filters.sections.group_type") }}
-						</p>
-					</div>
+					<section class="space-y-3">
+						<div class="flex items-center justify-between gap-3">
+							<p class="text-sm font-semibold text-white">
+								{{ t("runs.discovery.filters.sections.group") }}
+							</p>
+						</div>
 
-					<div class="grid grid-cols-2 gap-2">
+						<USelect
+							v-model="selectedGroup"
+							class="w-full"
+							:items="groupOptions"
+							value-key="value"
+							:ui="{ base: 'rounded-none' }"
+						/>
+					</section>
+
+					<section class="space-y-3">
+						<div class="flex items-center justify-between gap-3">
+							<p class="text-sm font-semibold text-white">
+								{{ t("runs.discovery.filters.sections.day_time") }}
+							</p>
+						</div>
+
+						<div class="grid grid-cols-2 gap-2">
+							<UButton
+								v-for="option in dateRangeOptions"
+								:key="option.value"
+								color="neutral"
+								:variant="selectedDateRange === option.value ? 'solid' : 'outline'"
+								class="justify-center rounded-none"
+								:class="selectedDateRange === option.value ? 'bg-brand-600 hover:bg-brand-500 border-brand-400/70 text-white' : 'border-white/10 bg-neutral-950/50 text-white/72 hover:bg-neutral-900'"
+								:label="option.label"
+								@click="selectedDateRange = option.value"
+							/>
+						</div>
+
+						<USelect
+							v-model="selectedTimeOfDay"
+							class="w-full"
+							:items="timeOfDayOptions"
+							value-key="value"
+							:ui="{ base: 'rounded-none' }"
+						/>
+
+						<div class="flex items-center justify-between border border-white/10 bg-neutral-950/50 px-3 py-2.5 text-sm text-white/66">
+							<span>{{ detectedTimezone || t("runs.discovery.filters.placeholders.timezone") }}</span>
+							<UIcon name="i-lucide-globe" class="size-4 text-white/38" />
+						</div>
+					</section>
+
+					<section class="space-y-3">
+						<div class="flex items-center justify-between gap-3">
+							<p class="text-sm font-semibold text-white">
+								{{ t("runs.discovery.filters.sections.run_style") }}
+							</p>
+						</div>
+
+						<USelect
+							v-model="selectedRunStyle"
+							class="w-full"
+							:items="runStyleOptions"
+							value-key="value"
+							:ui="{ base: 'rounded-none' }"
+						/>
+
+						<div class="flex items-center justify-between gap-4 mt-2">
+							<p class="text-sm font-medium text-white">
+								{{ t("runs.discovery.filters.labels.beginner_friendly") }}
+							</p>
+							<USwitch v-model="beginnerFriendlyOnly" />
+						</div>
+					</section>
+
+					<section class="space-y-3">
+						<div class="flex items-center justify-between gap-3">
+							<p class="text-sm font-semibold text-white">
+								{{ t("runs.discovery.filters.sections.language") }}
+							</p>
+						</div>
+
+						<USelect
+							v-model="selectedLanguage"
+							class="w-full"
+							:items="languageOptions"
+							value-key="value"
+							:ui="{ base: 'rounded-none' }"
+						/>
+					</section>
+
+					<section class="space-y-3">
+						<div class="flex items-center justify-between gap-3">
+							<p class="text-sm font-semibold text-white">
+								{{ t("runs.discovery.filters.sections.role_needed") }}
+							</p>
+						</div>
+
+						<div class="grid grid-cols-4 gap-2">
+							<UButton
+								v-for="option in roleCategoryOptions"
+								:key="option.value"
+								color="neutral"
+								:variant="selectedRoleCategory === option.value ? 'solid' : 'outline'"
+								class="flex-col items-center justify-center gap-2 rounded-none px-3 py-3"
+								:class="selectedRoleCategory === option.value ? 'bg-brand-600 hover:bg-brand-500 border-brand-400/70 text-white' : 'border-white/10 bg-neutral-950/50 text-white/72 hover:bg-neutral-900'"
+								:icon="option.icon"
+								:label="option.label"
+								@click="selectRoleCategory(option.value as RunDiscoveryRoleCategory)"
+							/>
+						</div>
+
+						<div class="space-y-2">
+							<UButton
+								color="neutral"
+								variant="outline"
+								class="w-full justify-between rounded-none"
+								:label="classSummaryLabel"
+								trailing-icon="i-lucide-chevron-down"
+								@click="isClassPickerOpen = true"
+							/>
+
+							<div
+								v-if="selectedClassOptions.length > 0"
+								class="flex flex-wrap gap-2"
+							>
+								<UBadge
+									v-for="option in selectedClassOptions"
+									:key="option.key"
+									color="neutral"
+									variant="soft"
+									:label="option.shorthand"
+								/>
+							</div>
+						</div>
+					</section>
+
+					<section class="space-y-3">
+						<div class="flex items-center justify-between gap-3">
+							<p class="text-sm font-semibold text-white">
+								{{ t("runs.discovery.filters.sections.group_type") }}
+							</p>
+						</div>
+
+						<div class="grid grid-cols-2 gap-2">
+							<UButton
+								v-for="option in groupTypeOptions"
+								:key="option.value"
+								color="neutral"
+								:variant="selectedGroupType === option.value ? 'solid' : 'outline'"
+								class="justify-center rounded-none"
+								:disabled="option.value === 'static'"
+								:class="option.value === 'static'
+									? 'border-white/8 bg-neutral-950/35 text-white/28 opacity-60'
+									: selectedGroupType === option.value
+										? 'bg-brand-600 hover:bg-brand-500 border-brand-400/70 text-white'
+										: 'border-white/10 bg-neutral-950/50 text-white/72 hover:bg-neutral-900'"
+								:label="option.label"
+								@click="selectedGroupType = option.value"
+							/>
+						</div>
+					</section>
+
+					<section class="space-y-3">
+						<div class="flex items-center justify-between gap-3">
+							<p class="text-sm font-semibold text-white">
+								{{ t("runs.discovery.filters.sections.application_status") }}
+							</p>
+							<button
+								type="button"
+								class="text-xs uppercase tracking-[0.14em] transition-colors"
+								:class="selectedApplicationStatus === null ? 'text-brand-300' : 'text-white/38 hover:text-white/68'"
+								@click="selectedApplicationStatus = null"
+							>
+								{{ t("runs.discovery.filters.all") }}
+							</button>
+						</div>
+
+						<div class="grid grid-cols-2 gap-2">
+							<UButton
+								v-for="option in applicationStatusOptions"
+								:key="option.value"
+								color="neutral"
+								:variant="selectedApplicationStatus === option.value ? 'solid' : 'outline'"
+								class="justify-center rounded-none"
+								:class="selectedApplicationStatus === option.value ? 'bg-brand-600 hover:bg-brand-500 border-brand-400/70 text-white' : 'border-white/10 bg-neutral-950/50 text-white/72 hover:bg-neutral-900'"
+								:label="option.label"
+								@click="selectedApplicationStatus = option.value"
+							/>
+						</div>
+					</section>
+
+					<section class="space-y-3">
+						<div class="flex items-center justify-between gap-3">
+							<p class="text-sm font-semibold text-white">
+								{{ t("runs.discovery.filters.sections.intensity") }}
+							</p>
+							<button
+								type="button"
+								class="text-xs uppercase tracking-[0.14em] transition-colors"
+								:class="selectedIntensity === null ? 'text-brand-300' : 'text-white/38 hover:text-white/68'"
+								@click="selectedIntensity = null"
+							>
+								{{ t("runs.discovery.filters.all") }}
+							</button>
+						</div>
+
+						<div class="grid grid-cols-3 gap-2">
+							<UButton
+								v-for="option in intensityOptions"
+								:key="option.value"
+								color="neutral"
+								:variant="selectedIntensity === option.value ? 'solid' : 'outline'"
+								class="justify-center rounded-none"
+								:class="selectedIntensity === option.value ? 'bg-brand-600 hover:bg-brand-500 border-brand-400/70 text-white' : 'border-white/10 bg-neutral-950/50 text-white/72 hover:bg-neutral-900'"
+								:label="option.label"
+								@click="selectedIntensity = option.value"
+							/>
+						</div>
+					</section>
+
+					<section class="space-y-3">
+						<div class="flex items-center justify-between gap-3">
+							<p class="text-sm font-semibold text-white">
+								{{ t("runs.discovery.filters.sections.voice_expectation") }}
+							</p>
+							<button
+								type="button"
+								class="text-xs uppercase tracking-[0.14em] transition-colors"
+								:class="selectedVoiceExpectation === null ? 'text-brand-300' : 'text-white/38 hover:text-white/68'"
+								@click="selectedVoiceExpectation = null"
+							>
+								{{ t("runs.discovery.filters.all") }}
+							</button>
+						</div>
+
+						<div class="space-y-2">
+							<UButton
+								v-for="option in voiceExpectationOptions"
+								:key="option.value"
+								color="neutral"
+								:variant="selectedVoiceExpectation === option.value ? 'solid' : 'outline'"
+								class="w-full justify-start rounded-none"
+								:class="selectedVoiceExpectation === option.value ? 'bg-brand-600 hover:bg-brand-500 border-brand-400/70 text-white' : 'border-white/10 bg-neutral-950/50 text-white/72 hover:bg-neutral-900'"
+								:label="option.label"
+								@click="selectedVoiceExpectation = option.value"
+							/>
+						</div>
+					</section>
+
+					<div class="pt-2">
 						<UButton
-							v-for="option in groupTypeOptions"
-							:key="option.value"
 							color="neutral"
-							:variant="selectedGroupType === option.value ? 'solid' : 'outline'"
-							class="justify-center rounded-none"
-							:disabled="option.value === 'static'"
-							:class="option.value === 'static'
-								? 'border-white/8 bg-neutral-950/35 text-white/28 opacity-60'
-								: selectedGroupType === option.value
-									? 'bg-brand-600 hover:bg-brand-500 border-brand-400/70 text-white'
-									: 'border-white/10 bg-neutral-950/50 text-white/72 hover:bg-neutral-900'"
-							:label="option.label"
-							@click="selectedGroupType = option.value"
+							variant="ghost"
+							icon="i-lucide-rotate-ccw"
+							class="rounded-none px-0 text-white/68 hover:text-white"
+							:label="t('runs.discovery.filters.reset')"
+							@click="resetFilters"
 						/>
 					</div>
-				</section>
-
-				<section class="space-y-3">
-					<div class="flex items-center justify-between gap-3">
-						<p class="text-sm font-semibold text-white">
-							{{ t("runs.discovery.filters.sections.application_status") }}
-						</p>
-						<button
-							type="button"
-							class="text-xs uppercase tracking-[0.14em] transition-colors"
-							:class="selectedApplicationStatus === null ? 'text-brand-300' : 'text-white/38 hover:text-white/68'"
-							@click="selectedApplicationStatus = null"
-						>
-							{{ t("runs.discovery.filters.all") }}
-						</button>
-					</div>
-
-					<div class="grid grid-cols-2 gap-2">
-						<UButton
-							v-for="option in applicationStatusOptions"
-							:key="option.value"
-							color="neutral"
-							:variant="selectedApplicationStatus === option.value ? 'solid' : 'outline'"
-							class="justify-center rounded-none"
-							:class="selectedApplicationStatus === option.value ? 'bg-brand-600 hover:bg-brand-500 border-brand-400/70 text-white' : 'border-white/10 bg-neutral-950/50 text-white/72 hover:bg-neutral-900'"
-							:label="option.label"
-							@click="selectedApplicationStatus = option.value"
-						/>
-					</div>
-				</section>
-
-				<section class="space-y-3">
-					<div class="flex items-center justify-between gap-3">
-						<p class="text-sm font-semibold text-white">
-							{{ t("runs.discovery.filters.sections.intensity") }}
-						</p>
-						<button
-							type="button"
-							class="text-xs uppercase tracking-[0.14em] transition-colors"
-							:class="selectedIntensity === null ? 'text-brand-300' : 'text-white/38 hover:text-white/68'"
-							@click="selectedIntensity = null"
-						>
-							{{ t("runs.discovery.filters.all") }}
-						</button>
-					</div>
-
-					<div class="grid grid-cols-3 gap-2">
-						<UButton
-							v-for="option in intensityOptions"
-							:key="option.value"
-							color="neutral"
-							:variant="selectedIntensity === option.value ? 'solid' : 'outline'"
-							class="justify-center rounded-none"
-							:class="selectedIntensity === option.value ? 'bg-brand-600 hover:bg-brand-500 border-brand-400/70 text-white' : 'border-white/10 bg-neutral-950/50 text-white/72 hover:bg-neutral-900'"
-							:label="option.label"
-							@click="selectedIntensity = option.value"
-						/>
-					</div>
-				</section>
-
-				<section class="space-y-3">
-					<div class="flex items-center justify-between gap-3">
-						<p class="text-sm font-semibold text-white">
-							{{ t("runs.discovery.filters.sections.voice_expectation") }}
-						</p>
-						<button
-							type="button"
-							class="text-xs uppercase tracking-[0.14em] transition-colors"
-							:class="selectedVoiceExpectation === null ? 'text-brand-300' : 'text-white/38 hover:text-white/68'"
-							@click="selectedVoiceExpectation = null"
-						>
-							{{ t("runs.discovery.filters.all") }}
-						</button>
-					</div>
-
-					<div class="space-y-2">
-						<UButton
-							v-for="option in voiceExpectationOptions"
-							:key="option.value"
-							color="neutral"
-							:variant="selectedVoiceExpectation === option.value ? 'solid' : 'outline'"
-							class="w-full justify-start rounded-none"
-							:class="selectedVoiceExpectation === option.value ? 'bg-brand-600 hover:bg-brand-500 border-brand-400/70 text-white' : 'border-white/10 bg-neutral-950/50 text-white/72 hover:bg-neutral-900'"
-							:label="option.label"
-							@click="selectedVoiceExpectation = option.value"
-						/>
-					</div>
-				</section>
-
-				<div class="pt-2">
-					<UButton
-						color="neutral"
-						variant="ghost"
-						icon="i-lucide-rotate-ccw"
-						class="rounded-none px-0 text-white/68 hover:text-white"
-						:label="t('runs.discovery.filters.reset')"
-						@click="resetFilters"
-					/>
 				</div>
 			</div>
 		</div>

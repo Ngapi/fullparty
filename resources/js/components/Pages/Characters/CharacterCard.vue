@@ -87,8 +87,8 @@ const removeCharacter = () => {
 <!--	<UCard :ui="{ root: 'border border-white/10 bg-white/5 p-8 backdrop-blur-xl shadow-[0_10px_30px_rgba(0,0,0,0.35)]' }">-->
 
 		<UCollapsible v-model:open="open" class="flex flex-col gap-2 w-full">
-			<div class="w-full flex flex-row items-stretch">
-				<div id="div1" class="flex flex-row items-start border-2 border-blue-800 shadow-lg shadow-blue-800">
+			<div class="w-full flex flex-row items-stretch gap-3 sm:gap-0">
+				<div id="div1" class="flex shrink-0 flex-row items-start border-2 border-blue-800 shadow-lg shadow-blue-800">
 					<img
 						class="h-24 w-24 rounded-sm object-cover"
 						:src="character.avatar_url"
@@ -96,19 +96,22 @@ const removeCharacter = () => {
 					>
 				</div>
 
-				<div id="div2" class="ml-4 flex h-24 flex-col justify-between items-start">
-					<div class="flex flex-row gap-1">
-						<p class="text-lg font-semibold">{{character.name}}</p>
-						<UBadge v-if="character.is_primary" :ui="{base:'rounded-sm'}" icon="i-lucide-star" size="md" color="neutral" variant="soft">{{ t('general.primary') }}</UBadge>
-						<UBadge v-if="character.verified_at!==null" :ui="{base:'rounded-sm'}" icon="i-lucide-check-circle" size="md" color="success" variant="soft">{{ t('general.verified') }}</UBadge>
-						<UBadge v-else :ui="{base:'rounded-sm'}" icon="i-lucide-x-circle" size="md" color="error" variant="soft">{{ t('general.unverified') }}</UBadge>
+				<div id="div2" class="flex h-24 min-w-0 flex-1 flex-col justify-between items-start sm:ml-4">
+					<div class="flex min-w-0 flex-row items-center gap-1">
+						<p class="truncate text-lg font-semibold">{{character.name}}</p>
+						<UBadge v-if="character.is_primary" class="hidden sm:inline-flex" :ui="{base:'rounded-sm'}" icon="i-lucide-star" size="md" color="neutral" variant="soft">{{ t('general.primary') }}</UBadge>
+						<UIcon v-if="character.is_primary" name="i-lucide-star" class="size-4 shrink-0 text-brand-300 sm:hidden" />
+						<UBadge v-if="character.verified_at!==null" class="hidden sm:inline-flex" :ui="{base:'rounded-sm'}" icon="i-lucide-check-circle" size="md" color="success" variant="soft">{{ t('general.verified') }}</UBadge>
+						<UIcon v-if="character.verified_at!==null" name="i-lucide-check-circle" class="size-4 shrink-0 text-success sm:hidden" />
+						<UBadge v-if="character.verified_at===null" class="hidden sm:inline-flex" :ui="{base:'rounded-sm'}" icon="i-lucide-x-circle" size="md" color="error" variant="soft">{{ t('general.unverified') }}</UBadge>
+						<UIcon v-if="character.verified_at===null" name="i-lucide-x-circle" class="size-4 shrink-0 text-error sm:hidden" />
 					</div>
 
-					<div class="flex flex-row gap-1 text-muted text-sm gap-2">
-						<span>{{character.datacenter}}</span>
-						<span>&middot;</span>
-						<span>{{character.world}}</span>
-						<span>&middot;</span>
+					<div class="flex flex-row gap-1 text-muted text-sm sm:gap-2">
+						<span class="hidden sm:inline">{{character.datacenter}}</span>
+						<span class="hidden sm:inline">&middot;</span>
+						<span class="hidden sm:inline">{{character.world}}</span>
+						<span class="hidden sm:inline">&middot;</span>
 						<span>{{ character.add_method === 'manual' ? t('characters.added_manually') : t('characters.from_xivauth') }}</span>
 					</div>
 
@@ -125,13 +128,24 @@ const removeCharacter = () => {
 						<UButton
 							v-if="!character.is_primary && character.verified_at !== null"
 							@click.stop="makePrimary"
+							:loading="isMakingPrimary"
+							:disabled="isMakingPrimary"
+							color="neutral"
+							variant="soft"
+							icon="i-lucide-star"
+							class="sm:hidden"
+							:aria-label="t('characters.card.make_primary')"
+						/>
+						<UButton
+							v-if="!character.is_primary && character.verified_at !== null"
+							@click.stop="makePrimary"
 							:label="t('characters.card.make_primary')"
 							:loading="isMakingPrimary"
 							:disabled="isMakingPrimary"
 							color="neutral"
 							variant="soft"
 							icon="i-lucide-star"
-							class="mr-2"
+							class="mr-2 hidden sm:inline-flex"
 						/>
 						<UButton
 							@click.stop="refreshCharacterData"
@@ -140,6 +154,8 @@ const removeCharacter = () => {
 							icon="i-lucide-refresh-ccw"
 							variant="ghost"
 							color="neutral"
+							class="hidden sm:inline-flex"
+							:aria-label="t('characters.card.refresh_character')"
 						/>
 						<UButton
 							@click.stop="removeModalOpen = true"
@@ -147,7 +163,7 @@ const removeCharacter = () => {
 							color="error"
 							variant="ghost"
 							icon="i-lucide-trash-2"
-							class="mr-2"
+							class="mr-2 hidden sm:inline-flex"
 						/>
 					</div>
 					<UButton
@@ -165,6 +181,27 @@ const removeCharacter = () => {
 
 			<template #content>
 				<div class="mt-6 space-y-6">
+					<div class="flex gap-2 sm:hidden">
+						<UButton
+							@click.stop="refreshCharacterData"
+							:loading="isRefreshing"
+							:disabled="isRefreshing"
+							icon="i-lucide-refresh-ccw"
+							variant="soft"
+							color="neutral"
+							class="flex-1 justify-center"
+							:label="t('characters.card.refresh_character')"
+						/>
+						<UButton
+							@click.stop="removeModalOpen = true"
+							:label="t('characters.card.unclaim_character')"
+							color="error"
+							variant="soft"
+							icon="i-lucide-trash-2"
+							class="flex-1 justify-center"
+						/>
+					</div>
+
 					<div class="grid gap-6 xl:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)]">
 					<section class="space-y-3">
 						<div class="flex items-center gap-2">
@@ -180,9 +217,8 @@ const removeCharacter = () => {
 								:key="group.role"
 								class="space-y-2 mb-4"
 							>
-								<div class="grid gap-2 sm:grid-cols-2 2xl:grid-cols-4">
+								<div class="grid grid-cols-4 gap-2 sm:grid-cols-6 lg:grid-cols-8 xl:grid-cols-2 2xl:grid-cols-4">
 									<ClassElement
-										class="bg-neutral-800/50"
 										v-for="characterClass in group.classes"
 										:key="characterClass.id"
 										:character-id="character.id"
@@ -206,9 +242,8 @@ const removeCharacter = () => {
 							<p class="text-sm font-semibold">{{ character.occult.knowledge_level }}</p>
 						</div>
 
-						<div class="grid gap-2 sm:grid-cols-3">
+						<div class="grid grid-cols-4 gap-2 sm:grid-cols-6 lg:grid-cols-8 xl:grid-cols-3">
 							<PhantomJobElement
-								class="bg-neutral-800/50"
 								v-for="phantomJob in character.occult.phantom_jobs"
 								:key="phantomJob.id"
 								:character-id="character.id"

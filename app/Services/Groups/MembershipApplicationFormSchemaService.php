@@ -25,9 +25,9 @@ final class MembershipApplicationFormSchemaService
 
     private const MAX_DESCRIPTION_LENGTH = 500;
 
-    private const MAX_SMALL_TEXT_ANSWER_LENGTH = 255;
+    private const MAX_SMALL_TEXT_ANSWER_LENGTH = 1000;
 
-    private const MAX_BIG_TEXT_ANSWER_LENGTH = 2000;
+    private const MAX_BIG_TEXT_ANSWER_LENGTH = 1000;
 
     private const LOCALES = ['en', 'de', 'fr', 'ja'];
 

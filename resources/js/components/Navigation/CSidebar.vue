@@ -64,6 +64,7 @@ const groupDrawerOpen = ref({
 	my: false,
 	joined: false,
 })
+const sidebarOpen = ref(false)
 
 const groupQuickLinkSections = computed(() => [
 	{
@@ -91,10 +92,14 @@ const syncActiveGroupDrawer = () => {
 watch([currentUrl, groupQuickLinkSections], () => {
 	syncActiveGroupDrawer()
 }, { immediate: true })
+
+const closeSidebarMenu = () => {
+	sidebarOpen.value = false
+}
 </script>
 
 <template>
-	<UDashboardSidebar :default-size="15"  :ui="{ footer: '',  body: 'px-4' }" class="border-0">
+	<UDashboardSidebar v-model:open="sidebarOpen" :default-size="15"  :ui="{ footer: '',  body: 'px-4' }" class="border-0">
 		<template #header="{ collapsed }">
 			<div v-if="!collapsed" class="w-full h-full mt-8">
 				<img :src="full_logo" class="h-full w-auto mx-auto " alt="FullParty Logo">
@@ -110,6 +115,7 @@ watch([currentUrl, groupQuickLinkSections], () => {
 					:href="item.href"
 					class="sidebar-link"
 					:class="isRouteActive(item.activePatterns) ? 'link-highlighted': 'link-default'"
+					@click="closeSidebarMenu"
 				>
 					<UIcon :name="item.icon" :class="!collapsed ? 'sidebar-link-icon' : 'sidebar-link-icon-large'" />
 					<span v-if="!collapsed">{{ item.label }}</span>
@@ -124,6 +130,7 @@ watch([currentUrl, groupQuickLinkSections], () => {
 					:href="item.href"
 					class="sidebar-link"
 					:class="isRouteActive(item.activePatterns) ? 'link-highlighted': 'link-default'"
+					@click="closeSidebarMenu"
 				>
 					<UIcon :name="item.icon" :class="!collapsed ? 'sidebar-link-icon' : 'sidebar-link-icon-large'" />
 					<span v-if="!collapsed">{{ item.label }}</span>
@@ -138,6 +145,7 @@ watch([currentUrl, groupQuickLinkSections], () => {
 					:href="item.href"
 					class="sidebar-link"
 					:class="isRouteActive(item.activePatterns) ? 'link-highlighted': 'link-default'"
+					@click="closeSidebarMenu"
 				>
 					<UIcon :name="item.icon" :class="!collapsed ? 'sidebar-link-icon' : 'sidebar-link-icon-large'" />
 					<span v-if="!collapsed">{{ item.label }}</span>
@@ -153,6 +161,7 @@ watch([currentUrl, groupQuickLinkSections], () => {
 					:href="item.href"
 					class="sidebar-link"
 					:class="isRouteActive(item.activePatterns) ? 'link-highlighted': 'link-default'"
+					@click="closeSidebarMenu"
 				>
 					<UIcon :name="item.icon" :class="!collapsed ? 'sidebar-link-icon' : 'sidebar-link-icon-large'" />
 					<span v-if="!collapsed">{{ item.label }}</span>
@@ -188,6 +197,7 @@ watch([currentUrl, groupQuickLinkSections], () => {
 									:href="group.href"
 									class="sidebar-sublink"
 									:class="currentUrl.startsWith(group.href) ? 'sublink-highlighted' : 'sublink-default'"
+									@click="closeSidebarMenu"
 								>
 									<span class="truncate">{{ group.name }}</span>
 								</Link>
@@ -209,6 +219,7 @@ watch([currentUrl, groupQuickLinkSections], () => {
 						:class="!item.external && isRouteActive(item.activePatterns) ? 'link-highlighted': 'link-default'"
 						:target="item.external ? '_blank' : undefined"
 						:rel="item.external ? 'noopener noreferrer' : undefined"
+						@click="closeSidebarMenu"
 					>
 						<UIcon :name="item.icon" :class="!collapsed ? 'sidebar-link-icon' : 'sidebar-link-icon-large'" />
 						<span v-if="!collapsed" class="flex min-w-0 items-center gap-2">

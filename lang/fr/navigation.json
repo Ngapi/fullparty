@@ -29,6 +29,7 @@
     }
   },
   "topbar": {
+    "search": "Rechercher",
     "search_bar": "Rechercher des raids, des joueurs ou des événements...",
     "menu": {
       "profile": "Profil",

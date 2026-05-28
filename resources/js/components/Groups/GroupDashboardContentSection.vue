@@ -1,10 +1,12 @@
 <script setup lang="ts">
+import type { ApexOptions } from "apexcharts";
 import type {
 	GroupDiscoveryContentItem,
 	GroupDiscoveryContentStatusCount,
 	GroupDiscoveryContentSummary,
 } from "@/Types/Groups";
 import { computed } from "vue";
+import VueApexCharts from "vue3-apexcharts";
 import { useI18n } from "vue-i18n";
 import { formatRelativeTime } from "@/utils/formatRelativeTime";
 
@@ -20,29 +22,86 @@ const totalRuns = computed(() => props.summary.total_runs);
 const statusItems = computed(() => props.summary.status_breakdown.map((item) => ({
 	...item,
 	label: t(`groups.dashboard.content.statuses.${item.status}`),
-	width: resolveStatusWidth(item),
+	color: resolveStatusColor(item.status),
 })));
 
-function resolveStatusWidth(item: GroupDiscoveryContentStatusCount) {
-	if (totalRuns.value <= 0) {
-		return "0%";
-	}
+const visibleStatusItems = computed(() => statusItems.value.filter((item) => item.count > 0));
+const chartSeries = computed(() => visibleStatusItems.value.map((item) => item.count));
+const chartLabels = computed(() => visibleStatusItems.value.map((item) => item.label));
+const chartColors = computed(() => visibleStatusItems.value.map((item) => item.color));
+const hasStatusData = computed(() => chartSeries.value.length > 0);
 
-	return `${Math.max((item.count / totalRuns.value) * 100, item.count > 0 ? 6 : 0)}%`;
-}
+const chartOptions = computed<ApexOptions>(() => ({
+	chart: {
+		type: "donut",
+		background: "transparent",
+		toolbar: {
+			show: false,
+		},
+	},
+	colors: chartColors.value,
+	dataLabels: {
+		enabled: false,
+	},
+	labels: chartLabels.value,
+	legend: {
+		show: false,
+	},
+	plotOptions: {
+		pie: {
+			donut: {
+				size: "68%",
+				labels: {
+					show: true,
+					name: {
+						show: true,
+						color: "#a3a3a3",
+						fontSize: "12px",
+						offsetY: 16,
+					},
+					value: {
+						show: true,
+						color: "#ffffff",
+						fontSize: "28px",
+						fontWeight: 600,
+						offsetY: -12,
+						formatter: (value: string) => value,
+					},
+					total: {
+						show: true,
+						label: t("groups.dashboard.content.visible_runs"),
+						color: "#a3a3a3",
+						fontSize: "12px",
+						formatter: () => totalRuns.value.toString(),
+					},
+				},
+			},
+		},
+	},
+	stroke: {
+		colors: ["rgba(23,20,25,0.88)"],
+		width: 2,
+	},
+	tooltip: {
+		theme: "dark",
+		y: {
+			formatter: (value: number) => value.toString(),
+		},
+	},
+}));
 
-function resolveStatusClasses(status: GroupDiscoveryContentStatusCount["status"]) {
+function resolveStatusColor(status: GroupDiscoveryContentStatusCount["status"]) {
 	switch (status) {
 		case "draft":
-			return "bg-sky-300/80";
+			return "#7dd3fc";
 		case "scheduled":
-			return "bg-violet-300/80";
+			return "#c4b5fd";
 		case "active":
-			return "bg-amber-300/85";
+			return "#fcd34d";
 		case "complete":
-			return "bg-emerald-300/85";
+			return "#6ee7b7";
 		case "cancelled":
-			return "bg-rose-300/80";
+			return "#fda4af";
 	}
 }
 
@@ -82,44 +141,95 @@ function formatRunTime(value: string | null) {
 				/>
 			</div>
 
-			<div class="flex items-stretch justify-evenly gap-4 py-5 lg:grid-cols-[17rem,1fr]">
-				<div class="w-full border border-white/10 bg-white/[0.03] p-5">
+			<div class="py-5">
+				<div class="border border-white/10 bg-white/[0.03] p-4 xl:hidden">
+					<div class="flex items-start justify-between gap-4">
+						<div>
+							<p class="text-[11px] font-semibold uppercase tracking-[0.16em] text-white/44">
+								{{ t("groups.dashboard.content.visible_runs") }}
+							</p>
+							<p class="mt-2 text-3xl font-semibold text-white">
+								{{ summary.total_runs }}
+							</p>
+						</div>
+						<UIcon name="i-lucide-chart-pie" class="size-5 text-white/42" />
+					</div>
+
+					<div v-if="hasStatusData" class="mx-auto mt-2 max-w-64">
+						<VueApexCharts
+							type="donut"
+							height="220"
+							width="100%"
+							:options="chartOptions"
+							:series="chartSeries"
+						/>
+					</div>
+					<div v-else class="mt-5 flex h-36 items-center justify-center border border-white/8 bg-neutral-950/45 text-sm text-white/52">
+						{{ t("groups.dashboard.content.empty") }}
+					</div>
+
+					<div class="mt-3 flex flex-row flex-wrap gap-x-4 gap-y-3">
+						<div
+							v-for="item in statusItems"
+							:key="item.status"
+							class="flex min-w-24 items-center gap-2 text-sm"
+						>
+							<span
+								class="size-2.5 shrink-0 rounded-full"
+								:style="{ backgroundColor: item.color }"
+							/>
+							<span class="min-w-0 text-white/58">
+								{{ item.label }}
+							</span>
+							<span class="shrink-0 text-white/82">
+								{{ item.count }}
+							</span>
+						</div>
+					</div>
+				</div>
+
+				<div class="hidden items-stretch justify-evenly gap-4 xl:flex">
+					<div class="w-full border border-white/10 bg-white/[0.03] p-5">
 					<p class="text-[11px] font-semibold uppercase tracking-[0.16em] text-white/44">
 						{{ t("groups.dashboard.content.visible_runs") }}
 					</p>
 					<p class="mt-3 text-4xl font-semibold text-white">
 						{{ summary.total_runs }}
 					</p>
-				</div>
-
-				<div class="w-full flex flex-col items-center justify-center px-5 overflow-hidden border border-white/10 bg-white/[0.03]">
-					<div class="flex h-3 w-full overflow-hidden bg-neutral-900/80">
-						<div
-							v-for="item in statusItems"
-							:key="item.status"
-							class="h-full transition-[width]"
-							:class="resolveStatusClasses(item.status)"
-							:style="{ width: item.width }"
-						/>
 					</div>
 
-					<div class="grid gap-3 px-4 py-4 sm:grid-cols-2 xl:grid-cols-5">
-						<div
-							v-for="item in statusItems"
-							:key="item.status"
-							class="flex items-center gap-3"
-						>
-							<span
-								class="size-2.5 shrink-0 rounded-full"
-								:class="resolveStatusClasses(item.status)"
+					<div class="flex w-full items-center gap-5 overflow-hidden border border-white/10 bg-white/[0.03] px-5">
+						<div v-if="hasStatusData" class="w-52 shrink-0">
+							<VueApexCharts
+								type="donut"
+								height="190"
+								width="100%"
+								:options="chartOptions"
+								:series="chartSeries"
 							/>
-							<div class="min-w-0">
-								<p class="text-[11px] font-semibold uppercase tracking-[0.14em] text-white/44">
-									{{ item.label }}
-								</p>
-								<p class="mt-1 text-sm text-white/76">
-									{{ item.count }}
-								</p>
+						</div>
+						<div v-else class="flex h-36 w-52 shrink-0 items-center justify-center border border-white/8 bg-neutral-950/45 text-sm text-white/52">
+							{{ t("groups.dashboard.content.empty") }}
+						</div>
+
+						<div class="flex min-w-0 flex-1 flex-row flex-wrap gap-x-5 gap-y-3 py-4">
+							<div
+								v-for="item in statusItems"
+								:key="item.status"
+								class="flex min-w-32 items-center gap-3"
+							>
+								<span
+									class="size-2.5 shrink-0 rounded-full"
+									:style="{ backgroundColor: item.color }"
+								/>
+								<div class="min-w-0">
+									<p class="text-[11px] font-semibold uppercase tracking-[0.14em] text-white/44">
+										{{ item.label }}
+									</p>
+									<p class="mt-1 text-sm text-white/76">
+										{{ item.count }}
+									</p>
+								</div>
 							</div>
 						</div>
 					</div>
