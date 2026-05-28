@@ -158,8 +158,13 @@ const visibleFieldEntries = computed(() => (
 			id: field.id,
 			label: localizedText(field.field_label, field.field_key),
 			value: fieldDisplayValue(field),
+			source: field.source,
 		}))
-		.filter((field) => field.value !== "")
+		.filter((field) => (
+			field.value !== ""
+			&& field.source !== "character_classes"
+			&& field.source !== "phantom_jobs"
+		))
 		.slice(0, 2)
 ));
 
@@ -207,6 +212,7 @@ const showsInlineSlotIcons = computed(() => (
 
 const slotFrameClass = computed(() => (
 	showsBenchApplicationRows.value
+	|| (props.slot.assigned_character !== null && visibleFieldEntries.value.length > 0)
 		? "min-h-18 py-2.5"
 		: "h-18 py-2"
 ));
@@ -308,27 +314,43 @@ const designationMarker = computed(() => {
 						</div>
 					</div>
 				</div>
-				<div v-else class="flex min-w-0 flex-1 items-center gap-2 overflow-hidden">
-					<UUser
-						size="sm"
-						:name="slot.assigned_character.name"
-						:description="slot.assigned_character.world+' - '+slot.assigned_character.datacenter"
-						:avatar="{
-							src: slot.assigned_character.avatar_url ?? null
-						}"
-					/>
-					<div
-						v-if="showsInlineSlotIcons"
-						class="ml-auto flex shrink-0 items-center gap-1"
-					>
-						<img
-							v-for="field in iconFieldEntries"
-							:key="field.id"
-							:src="field.iconUrl || undefined"
-							:alt="field.value || field.label"
-							:title="field.value || field.label"
-							class="h-6 w-6 rounded-none object-contain"
+				<div v-else class="flex min-w-0 flex-1 flex-col gap-1 overflow-hidden">
+					<div class="flex min-w-0 items-center gap-2 overflow-hidden">
+						<UUser
+							size="sm"
+							:name="slot.assigned_character.name"
+							:description="slot.assigned_character.world+' - '+slot.assigned_character.datacenter"
+							:avatar="{
+								src: slot.assigned_character.avatar_url ?? null
+							}"
+						/>
+						<div
+							v-if="showsInlineSlotIcons"
+							class="ml-auto flex shrink-0 items-center gap-1"
 						>
+							<img
+								v-for="field in iconFieldEntries"
+								:key="field.id"
+								:src="field.iconUrl || undefined"
+								:alt="field.value || field.label"
+								:title="field.value || field.label"
+								class="h-6 w-6 rounded-none object-contain"
+							>
+						</div>
+					</div>
+
+					<div
+						v-if="visibleFieldEntries.length > 0"
+						class="ml-10 flex min-w-0 flex-wrap items-center gap-x-2 gap-y-0.5 text-[11px] leading-tight"
+					>
+						<span
+							v-for="field in visibleFieldEntries"
+							:key="field.id"
+							class="inline-flex min-w-0 max-w-full items-center gap-1"
+						>
+							<span class="shrink-0 text-muted">{{ field.label }}</span>
+							<span class="truncate font-medium text-toned">{{ field.value }}</span>
+						</span>
 					</div>
 				</div>
 			</div>

@@ -88,10 +88,10 @@ class ActivityTypeSeeder extends Seeder
                     'ja' => 'Forked Tower of Blood',
                 ]),
                 'draft_description' => $this->localized([
-                    'en' => 'Large-scale Forked Tower activity with 6 parties, class + phantom job slot assignments, and multilingual application preferences.',
-                    'de' => 'Gross angelegte Forked-Tower-Aktivitaet mit 6 Gruppen, Klassen- und Phantomjob-Zuweisungen pro Slot sowie mehrsprachigen Bewerbungsangaben.',
-                    'fr' => 'Activite Forked Tower a grande echelle avec 6 groupes, affectation de classe et de job fantome par slot, et preferences de candidature multilingues.',
-                    'ja' => '6PT構成、各枠にクラスとファントムジョブを設定でき、多言語の申請項目を持つ大規模なForked Tower向けアクティビティです。',
+                    'en' => 'Large-scale Forked Tower activity with 6 parties, class, raid position, and phantom job slot assignments, plus multilingual application preferences.',
+                    'de' => 'Gross angelegte Forked-Tower-Aktivitaet mit 6 Gruppen, Klassen-, Raid-Positions- und Phantomjob-Zuweisungen pro Slot sowie mehrsprachigen Bewerbungsangaben.',
+                    'fr' => 'Activite Forked Tower a grande echelle avec 6 groupes, affectation de classe, position de raid et job fantome par slot, et preferences de candidature multilingues.',
+                    'ja' => '6PT構成、各枠にクラス、レイドポジション、ファントムジョブを設定でき、多言語の申請項目を持つ大規模なForked Tower向けアクティビティです。',
                 ]),
                 'draft_small_image_url' => $this->prereqImage('forked.jpg'),
                 'draft_banner_image_url' => $this->prereqImage('forked.jpg'),
@@ -115,6 +115,13 @@ class ActivityTypeSeeder extends Seeder
                         source: 'character_classes',
                     ),
                     $this->schemaField(
+                        key: 'raid_position',
+                        label: ['en' => 'Raid Position', 'de' => 'Raid-Position', 'fr' => 'Position de raid', 'ja' => 'レイドポジション'],
+                        type: 'single_select',
+                        source: 'static_options',
+                        options: $this->raidPositionOptions(),
+                    ),
+                    $this->schemaField(
                         key: 'phantom_job',
                         label: ['en' => 'Phantom Job', 'de' => 'Phantomjob', 'fr' => 'Job fantome', 'ja' => 'ファントムジョブ'],
                         type: 'single_select',
@@ -127,6 +134,13 @@ class ActivityTypeSeeder extends Seeder
                         label: ['en' => 'Preferred Character Classes', 'de' => 'Bevorzugte Klassen', 'fr' => 'Classes preferees', 'ja' => '希望ジョブ'],
                         type: 'multi_select',
                         source: 'character_classes',
+                    ),
+                    $this->schemaField(
+                        key: 'preferred_raid_positions',
+                        label: ['en' => 'Preferred Raid Positions', 'de' => 'Bevorzugte Raid-Positionen', 'fr' => 'Positions de raid preferees', 'ja' => '希望ポジション'],
+                        type: 'multi_select',
+                        source: 'static_options',
+                        options: $this->raidPositionOptions(),
                     ),
                     $this->schemaField(
                         key: 'preferred_phantom_jobs',

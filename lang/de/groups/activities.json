@@ -634,6 +634,29 @@
         "validation": {
             "starts_at_not_past": "Runs koennen nicht in der Vergangenheit geplant werden."
         },
+        "steps": {
+            "schedule": {
+                "title": "Schedule",
+                "description": "When are we dropping?"
+            },
+            "activity": {
+                "title": "Activity",
+                "description": "What content are we running?"
+            },
+            "requirements": {
+                "title": "Requirements",
+                "description": "Who and what is needed?"
+            },
+            "review": {
+                "title": "Review",
+                "description": "Confirm and publish"
+            }
+        },
+        "navigation": {
+            "back": "Back",
+            "next": "Next",
+            "review": "Review Run"
+        },
         "roles": {
             "owner": "Owner",
             "moderator": "Moderator"

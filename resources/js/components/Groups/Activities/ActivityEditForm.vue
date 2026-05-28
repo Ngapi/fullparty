@@ -7,10 +7,10 @@ import { usePage } from "@inertiajs/vue3";
 import { activityTextLimits } from "@/utils/activityTextLimits";
 
 const props = defineProps<{
+	step: number
 	activityTypes: ActivityTypeOption[]
 	organizerCharacters: OrganizerCharacterOption[]
 	activityOptions: ActivityMetadataOptions
-	submitLabel?: string
 	form: {
 		activity_type_id: number | null
 		organized_by_user_id: number | null
@@ -34,13 +34,18 @@ const props = defineProps<{
 }>();
 
 const emit = defineEmits<{
-	submit: []
+	"update:step": [value: number]
 }>();
 
 const { t } = useI18n();
 const page = usePage();
 const datacenterOptions = computed(() => page.props.lookups?.datacenters ?? []);
 const minimumItemLevelEnabledState = ref(props.form.min_item_level !== null && props.form.min_item_level !== undefined);
+const activeStep = computed({
+	get: () => props.step,
+	set: (value: number) => emit('update:step', Math.min(3, Math.max(0, value))),
+});
+const activeStepIndex = computed(() => Number(activeStep.value));
 const {
 	organizerCharacterItems,
 	selectedOrganizerCharacter,
@@ -51,7 +56,7 @@ const {
 	startMinute,
 	hourItems,
 	minuteItems,
-	durationItems,
+	durationPresets,
 	selectedDurationOption,
 	isCustomDuration,
 	normalizeDurationHours,
@@ -61,8 +66,6 @@ const {
 	props.form,
 	{ mode: 'edit' },
 );
-
-const canSubmit = computed(() => Boolean(props.form.status));
 
 const intensityItems = computed(() => props.activityOptions.intensities.map((value) => ({
 	label: t(`groups.activities.intensities.${value}`),
@@ -97,89 +100,61 @@ const updateMinimumItemLevel = (value: unknown) => {
 		: Math.min(9999, Math.max(1, Number(value) || 1));
 };
 
-const submit = () => {
-	emit('submit');
-};
-
 watch(() => props.form.needs_application, (needsApplication) => {
 	if (!needsApplication) {
 		props.form.allow_guest_applications = false;
 	}
 }, { immediate: true });
+
+const stepCopy = computed(() => {
+	const key = activeStepIndex.value === 0
+		? 'schedule'
+		: activeStepIndex.value === 1
+			? 'activity'
+			: 'requirements';
+
+	return {
+		title: t(`groups.activities.create.steps.${key}.title`),
+		description: t(`groups.activities.create.steps.${key}.description`),
+	};
+});
+
+const canContinue = computed(() => {
+	if (activeStepIndex.value === 0) {
+		return Boolean(props.form.starts_at && props.form.duration_hours && props.form.datacenter);
+	}
+
+	if (activeStepIndex.value === 1) {
+		return Boolean(props.form.organized_by_character_id);
+	}
+
+	return Boolean(props.form.run_style && props.form.intensity);
+});
+
+const goPrevious = () => {
+	activeStep.value -= 1;
+};
+
+const goNext = () => {
+	if (!canContinue.value) {
+		return;
+	}
+
+	activeStep.value += 1;
+};
 </script>
 
 <template>
 	<UCard class="dark:bg-elevated/25">
 		<template #header>
 			<div class="flex flex-col gap-1">
-				<p class="font-semibold text-md">{{ t('groups.activities.edit.form.title') }}</p>
-				<p class="text-sm text-muted">{{ t('groups.activities.edit.form.subtitle') }}</p>
+				<p class="font-semibold text-md">{{ stepCopy.title }}</p>
+				<p class="text-sm text-muted">{{ stepCopy.description }}</p>
 			</div>
 		</template>
 
-		<form class="flex flex-col gap-8" @submit.prevent="submit">
-			<section class="space-y-5">
-				<div class="space-y-1">
-					<p class="font-medium text-sm">{{ t('groups.activities.create.sections.basics.title') }}</p>
-					<p class="text-sm text-muted">{{ t('groups.activities.edit.sections.basics.subtitle') }}</p>
-				</div>
-
-				<div class="grid grid-cols-1 gap-5">
-					<UFormField
-						:label="t('groups.activities.create.fields.organizer.label')"
-						:error="form.errors.organized_by_character_id || form.errors.organized_by_user_id"
-						required
-					>
-						<USelectMenu
-							:model-value="selectedOrganizerCharacter"
-							class="w-full"
-							size="lg"
-							:avatar="{
-								src: selectedOrganizerCharacter?.avatar_url,
-								loading: 'lazy'
-							}"
-							:items="organizerCharacterItems"
-							:placeholder="t('groups.activities.create.fields.organizer.placeholder')"
-							@update:model-value="updateOrganizerCharacter"
-						/>
-					</UFormField>
-				</div>
-
-				<div class="grid grid-cols-1 gap-5 xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
-					<UFormField
-						:label="t('groups.activities.create.fields.title.label')"
-						:error="form.errors.title"
-					>
-						<UInput
-							v-model="form.title"
-							size="lg"
-							class="w-full"
-							:maxlength="activityTextLimits.title"
-							:placeholder="t('groups.activities.create.fields.title.placeholder')"
-						/>
-					</UFormField>
-
-					<UFormField
-						v-if="progPointItems.length > 0"
-						:label="t('groups.activities.create.fields.prog_point.label')"
-						:error="form.errors.target_prog_point_key"
-					>
-						<USelectMenu
-							v-model="form.target_prog_point_key"
-							size="lg"
-							class="w-full"
-							:items="progPointItems"
-							value-key="value"
-							:placeholder="t('groups.activities.create.fields.prog_point.placeholder')"
-						/>
-					</UFormField>
-				</div>
-
-			</section>
-
-			<div class="border-t border-default"></div>
-
-			<section class="space-y-5">
+		<form class="flex flex-col gap-6" @submit.prevent="goNext">
+			<section v-if="activeStepIndex === 0" class="space-y-5">
 				<div class="space-y-1">
 					<p class="font-medium text-sm">{{ t('groups.activities.create.sections.schedule.title') }}</p>
 					<p class="text-sm text-muted">{{ t('groups.activities.create.sections.schedule.subtitle') }}</p>
@@ -233,13 +208,27 @@ watch(() => props.form.needs_application, (needsApplication) => {
 					required
 				>
 					<div class="flex flex-col gap-3 xl:flex-row xl:items-center">
-						<USelectMenu
-							v-model="selectedDurationOption"
-							size="lg"
-							class="w-full xl:max-w-xs"
-							:items="durationItems"
-							value-key="value"
-						/>
+						<div class="grid flex-1 grid-cols-2 gap-2 sm:grid-cols-4">
+							<UButton
+								v-for="hours in durationPresets"
+								:key="hours"
+								type="button"
+								size="lg"
+								:variant="String(selectedDurationOption) === String(hours) ? 'solid' : 'soft'"
+								color="neutral"
+								:label="`${hours}h`"
+								@click="selectedDurationOption = hours"
+							/>
+
+							<UButton
+								type="button"
+								size="lg"
+								:variant="isCustomDuration ? 'solid' : 'soft'"
+								color="neutral"
+								:label="t('groups.activities.create.fields.duration.custom')"
+								@click="selectedDurationOption = 'custom'"
+							/>
+						</div>
 
 						<UInput
 							:model-value="String(form.duration_hours ?? '')"
@@ -256,15 +245,6 @@ watch(() => props.form.needs_application, (needsApplication) => {
 						/>
 					</div>
 				</UFormField>
-			</section>
-
-			<div class="border-t border-default"></div>
-
-			<section class="space-y-5">
-				<div class="space-y-1">
-					<p class="font-medium text-sm">{{ t('groups.activities.create.sections.run_details.title') }}</p>
-					<p class="text-sm text-muted">{{ t('groups.activities.edit.sections.run_details.subtitle') }}</p>
-				</div>
 
 				<div class="grid grid-cols-1 gap-5 xl:grid-cols-2">
 					<UFormField
@@ -283,35 +263,84 @@ watch(() => props.form.needs_application, (needsApplication) => {
 					</UFormField>
 
 					<UFormField
-						:label="t('groups.activities.create.fields.run_style.label')"
-						:error="form.errors.run_style"
-						required
+						v-if="form.needs_application"
+						:label="t('groups.activities.create.fields.allow_guest_applications.label')"
+						:description="t('groups.activities.create.fields.allow_guest_applications.help')"
+						:error="form.errors.allow_guest_applications"
+						orientation="horizontal"
+						class="rounded-lg border border-default px-4 py-4"
 					>
-						<USelect
-							v-model="form.run_style"
+						<USwitch v-model="form.allow_guest_applications" />
+					</UFormField>
+				</div>
+			</section>
+
+			<section v-if="activeStepIndex === 1" class="space-y-5">
+				<div class="space-y-1">
+					<p class="font-medium text-sm">{{ t('groups.activities.create.sections.basics.title') }}</p>
+					<p class="text-sm text-muted">{{ t('groups.activities.edit.sections.basics.subtitle') }}</p>
+				</div>
+
+				<UFormField
+					:label="t('groups.activities.create.fields.organizer.label')"
+					:error="form.errors.organized_by_character_id || form.errors.organized_by_user_id"
+					required
+				>
+					<USelectMenu
+						:model-value="selectedOrganizerCharacter"
+						class="w-full"
+						size="lg"
+						:avatar="{
+							src: selectedOrganizerCharacter?.avatar_url,
+							loading: 'lazy'
+						}"
+						:items="organizerCharacterItems"
+						:placeholder="t('groups.activities.create.fields.organizer.placeholder')"
+						@update:model-value="updateOrganizerCharacter"
+					/>
+				</UFormField>
+
+				<div
+					class="grid grid-cols-1 gap-5"
+					:class="progPointItems.length > 0 ? 'xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]' : ''"
+				>
+					<UFormField
+						:label="t('groups.activities.create.fields.title.label')"
+						:error="form.errors.title"
+					>
+						<UInput
+							v-model="form.title"
 							size="lg"
 							class="w-full"
-							:items="runStyleItems"
-							value-key="value"
-							:placeholder="t('groups.activities.create.fields.run_style.placeholder')"
+							:maxlength="activityTextLimits.title"
+							:placeholder="t('groups.activities.create.fields.title.placeholder')"
 						/>
 					</UFormField>
 
 					<UFormField
-						:label="t('groups.activities.create.fields.intensity.label')"
-						:error="form.errors.intensity"
-						required
+						v-if="progPointItems.length > 0"
+						:label="t('groups.activities.create.fields.prog_point.label')"
+						:error="form.errors.target_prog_point_key"
 					>
-						<USelect
-							v-model="form.intensity"
+						<USelectMenu
+							v-model="form.target_prog_point_key"
 							size="lg"
 							class="w-full"
-							:items="intensityItems"
+							:items="progPointItems"
 							value-key="value"
-							:placeholder="t('groups.activities.create.fields.intensity.placeholder')"
+							:placeholder="t('groups.activities.create.fields.prog_point.placeholder')"
 						/>
 					</UFormField>
+				</div>
+			</section>
 
+			<section v-if="activeStepIndex === 2" class="space-y-5">
+				<div class="space-y-1">
+					<p class="font-medium text-sm">{{ t('groups.activities.create.sections.run_details.title') }}</p>
+					<p class="text-sm text-muted">{{ t('groups.activities.edit.sections.run_details.subtitle') }}</p>
+				</div>
+
+				<div class="grid grid-cols-1 gap-5 xl:grid-cols-2">
 					<div class="flex flex-col gap-3 rounded-lg border border-default px-4 py-4">
 						<UFormField
 							:label="t('groups.activities.create.fields.min_item_level.enabled_label')"
@@ -348,15 +377,36 @@ watch(() => props.form.needs_application, (needsApplication) => {
 					>
 						<USwitch v-model="form.beginner_friendly" />
 					</UFormField>
-				</div>
-			</section>
 
-			<div class="border-t border-default"></div>
+					<UFormField
+						:label="t('groups.activities.create.fields.run_style.label')"
+						:error="form.errors.run_style"
+						required
+					>
+						<USelect
+							v-model="form.run_style"
+							size="lg"
+							class="w-full"
+							:items="runStyleItems"
+							value-key="value"
+							:placeholder="t('groups.activities.create.fields.run_style.placeholder')"
+						/>
+					</UFormField>
 
-			<section class="space-y-5">
-				<div class="space-y-1">
-					<p class="font-medium text-sm">{{ t('groups.activities.create.sections.notes.title') }}</p>
-					<p class="text-sm text-muted">{{ t('groups.activities.create.sections.notes.subtitle') }}</p>
+					<UFormField
+						:label="t('groups.activities.create.fields.intensity.label')"
+						:error="form.errors.intensity"
+						required
+					>
+						<USelect
+							v-model="form.intensity"
+							size="lg"
+							class="w-full"
+							:items="intensityItems"
+							value-key="value"
+							:placeholder="t('groups.activities.create.fields.intensity.placeholder')"
+						/>
+					</UFormField>
 				</div>
 
 				<UFormField
@@ -374,37 +424,25 @@ watch(() => props.form.needs_application, (needsApplication) => {
 				</UFormField>
 			</section>
 
-			<div class="border-t border-default"></div>
+			<div class="flex flex-col-reverse gap-3 border-t border-default pt-4 sm:flex-row sm:items-center sm:justify-between">
+				<UButton
+					type="button"
+					color="neutral"
+					variant="soft"
+					size="lg"
+					icon="i-lucide-arrow-left"
+					:label="t('groups.activities.create.navigation.back')"
+					:disabled="activeStepIndex === 0"
+					@click="goPrevious"
+				/>
 
-			<section class="space-y-5">
-				<div class="space-y-1">
-					<p class="font-medium text-sm">{{ t('groups.activities.create.sections.access.title') }}</p>
-					<p class="text-sm text-muted">{{ t('groups.activities.edit.sections.access.subtitle') }}</p>
-				</div>
-
-				<div class="grid grid-cols-1 gap-4">
-					<UFormField
-						v-if="form.needs_application"
-						:label="t('groups.activities.create.fields.allow_guest_applications.label')"
-						:description="t('groups.activities.create.fields.allow_guest_applications.help')"
-						:error="form.errors.allow_guest_applications"
-						orientation="horizontal"
-						class="rounded-lg border border-default px-4 py-4"
-					>
-						<USwitch v-model="form.allow_guest_applications" />
-					</UFormField>
-				</div>
-			</section>
-
-			<div class="flex items-center gap-3 border-t border-default pt-2">
 				<UButton
 					type="submit"
-					color="neutral"
-					icon="i-lucide-save"
+					color="primary"
 					size="lg"
-					:label="submitLabel || t('groups.activities.edit.submit')"
-					:disabled="!canSubmit"
-					:loading="form.processing"
+					trailing-icon="i-lucide-arrow-right"
+					:label="activeStepIndex === 2 ? t('groups.activities.create.navigation.review') : t('groups.activities.create.navigation.next')"
+					:disabled="!canContinue"
 				/>
 			</div>
 		</form>

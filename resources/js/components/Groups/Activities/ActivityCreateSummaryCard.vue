@@ -5,6 +5,7 @@ import { useI18n } from "vue-i18n";
 import { localizedValue } from "@/utils/localizedValue";
 import { usePage } from "@inertiajs/vue3";
 import { createDateTimeFormatter } from "@/utils/dateTimeFormat";
+import { getActivityStatusMeta } from "@/utils/activityStatusMeta";
 
 const props = defineProps<{
 	form: {
@@ -30,6 +31,18 @@ const props = defineProps<{
 	organizerCharacters: OrganizerCharacterOption[]
 }>();
 
+type SummaryRow = {
+	icon: string
+	label: string
+	value: string | number
+};
+
+type SummaryChip = {
+	icon: string
+	label: string
+	value: string
+};
+
 const { t, locale } = useI18n();
 const page = usePage();
 const fallbackLocale = computed(() => String(page.props.locale?.fallback ?? 'en'));
@@ -49,6 +62,13 @@ const activityTypeName = computed(() => {
 });
 
 const displayTitle = computed(() => props.form.title.trim() || activityTypeName.value);
+const statusMeta = computed(() => getActivityStatusMeta(props.form.status));
+const statusLabel = computed(() => props.form.status ? t(`groups.activities.statuses.${props.form.status}`) : '—');
+const activityArtworkUrl = computed(() => selectedActivityType.value?.banner_image_url || selectedActivityType.value?.small_image_url || null);
+const activityThumbnailUrl = computed(() => selectedActivityType.value?.small_image_url || selectedActivityType.value?.banner_image_url || null);
+const organizerName = computed(() => selectedOrganizerCharacter.value?.name || t('groups.activities.create.summary.no_organizer'));
+const organizerUserName = computed(() => selectedOrganizerCharacter.value?.user_name ?? null);
+
 const difficultyLabel = computed(() => selectedActivityType.value?.difficulty
 	? t(`groups.activities.difficulties.${selectedActivityType.value.difficulty}`)
 	: '—');
@@ -128,129 +148,259 @@ const beginnerFriendlyLabel = computed(() => t(
 		? 'general.yes'
 		: 'general.no'
 ));
+
+const targetProgPointLabel = computed(() => selectedTargetProgPoint.value
+	? (localizedValue(selectedTargetProgPoint.value.label, locale.value, fallbackLocale.value) || selectedTargetProgPoint.value.key)
+	: t('groups.activities.create.summary.no_target_prog_point'));
+
+const activityChips = computed<SummaryChip[]>(() => [
+	{
+		icon: 'i-lucide-route',
+		label: t('groups.activities.create.summary.run_style'),
+		value: runStyleLabel.value,
+	},
+	{
+		icon: 'i-lucide-gauge',
+		label: t('groups.activities.create.summary.intensity'),
+		value: intensityLabel.value,
+	},
+]);
+
+const overviewRows = computed<SummaryRow[]>(() => {
+	const rows: SummaryRow[] = [
+		{
+			icon: 'i-lucide-server',
+			label: t('groups.activities.create.summary.datacenter'),
+			value: props.form.datacenter || '—',
+		},
+		{
+			icon: 'i-lucide-users-round',
+			label: t('groups.activities.create.summary.slots'),
+			value: selectedActivityType.value?.slot_count ?? 0,
+		},
+		{
+			icon: 'i-lucide-swords',
+			label: t('groups.activities.create.summary.difficulty'),
+			value: difficultyLabel.value,
+		},
+		{
+			icon: 'i-lucide-shield',
+			label: t('groups.activities.create.summary.min_item_level'),
+			value: minimumItemLevelLabel.value,
+		},
+		{
+			icon: 'i-lucide-sparkles',
+			label: t('groups.activities.create.summary.beginner_friendly'),
+			value: beginnerFriendlyLabel.value,
+		},
+	];
+
+	if (selectedActivityType.value?.prog_points?.length) {
+		rows.push({
+			icon: 'i-lucide-flag',
+			label: t('groups.activities.create.summary.target_prog_point'),
+			value: targetProgPointLabel.value,
+		});
+	}
+
+	return rows;
+});
+
+const scheduleRows = computed<SummaryRow[]>(() => [
+	{
+		icon: 'i-lucide-clock-3',
+		label: t('groups.activities.create.summary.starts_at_st'),
+		value: serverStartLabel.value,
+	},
+	{
+		icon: 'i-lucide-map-pin',
+		label: t('groups.activities.create.summary.starts_at_local', { timezone: localTimeZone }),
+		value: localStartLabel.value,
+	},
+	{
+		icon: 'i-lucide-hourglass',
+		label: t('groups.activities.create.summary.duration'),
+		value: t('groups.activities.create.summary.duration_value', { count: props.form.duration_hours || 0 }),
+	},
+]);
+
+const accessRows = computed<SummaryRow[]>(() => [
+	{
+		icon: 'i-lucide-globe-2',
+		label: t('groups.activities.create.summary.visibility'),
+		value: visibilityLabel.value,
+	},
+	{
+		icon: 'i-lucide-clipboard-check',
+		label: t('groups.activities.create.summary.assignment'),
+		value: assignmentLabel.value,
+	},
+	{
+		icon: 'i-lucide-user-plus',
+		label: t('groups.activities.create.summary.guest_applications'),
+		value: guestApplicationsLabel.value,
+	},
+]);
 </script>
 
 <template>
-	<UCard class="dark:bg-elevated/25">
-		<template #header>
-			<div class="flex flex-col gap-1">
-				<p class="font-semibold text-md">{{ t('groups.activities.create.summary.title') }}</p>
-				<p class="text-sm text-muted">{{ t('groups.activities.create.summary.subtitle') }}</p>
-			</div>
-		</template>
+	<div class="overflow-hidden border border-default bg-elevated/30">
+		<div class="relative min-h-52 overflow-hidden border-b border-default">
+			<img
+				v-if="activityArtworkUrl"
+				:src="activityArtworkUrl"
+				:alt="activityTypeName"
+				class="absolute inset-0 h-full w-full object-cover opacity-35"
+				loading="lazy"
+				decoding="async"
+			>
+			<div class="absolute inset-0 bg-gradient-to-b from-neutral-950/35 via-neutral-950/75 to-neutral-950" />
 
-		<div class="flex flex-col gap-4">
-			<div class="rounded-sm border border-default bg-muted/10 px-4 py-4">
-				<p class="text-xs uppercase tracking-wide text-muted">{{ t('groups.activities.create.summary.activity') }}</p>
-				<p class="mt-2 break-words [overflow-wrap:anywhere] font-semibold text-toned">{{ displayTitle }}</p>
-				<p class="mt-1 break-words [overflow-wrap:anywhere] text-sm text-muted">{{ activityTypeName }}</p>
-			</div>
-
-			<div class="grid grid-cols-1 xl:grid-cols-2 gap-3">
-				<div class="rounded-sm border border-default bg-muted/10 px-4 py-4">
-					<p class="text-xs uppercase tracking-wide text-muted">{{ t('groups.activities.create.summary.organizer') }}</p>
-					<div class="flex flex-row items-center gap-2">
-						<div class="p-1">
-							<img :src="selectedOrganizerCharacter?.avatar_url" :alt="selectedOrganizerCharacter?.name || t('groups.activities.create.summary.no_organizer')" class="h-10 w-10 rounded-full"/>
+			<div class="relative flex min-h-52 flex-col justify-end gap-5 p-5">
+				<div class="flex items-start justify-between gap-4">
+					<div class="flex min-w-0 items-start gap-4">
+						<div class="flex size-24 shrink-0 items-center justify-center overflow-hidden border border-white/15 bg-white/5 shadow-lg shadow-neutral-950/30">
+							<img
+								v-if="activityThumbnailUrl"
+								:src="activityThumbnailUrl"
+								:alt="activityTypeName"
+								class="h-full w-full object-cover"
+								loading="lazy"
+								decoding="async"
+							>
+							<UIcon v-else name="i-lucide-swords" class="size-8 text-muted" />
 						</div>
-						<div class="flex flex-col items-start justify-start">
-							<p class="mt-2 font-semibold text-toned">{{ selectedOrganizerCharacter?.name || t('groups.activities.create.summary.no_organizer') }}</p>
-							<p v-if="selectedOrganizerCharacter?.user_name" class="mt-1 text-sm text-muted">{{ selectedOrganizerCharacter.user_name }}</p>
+
+						<div class="min-w-0 pt-1">
+							<div class="flex min-w-0 flex-wrap items-center gap-2">
+								<h2 class="min-w-0 break-words [overflow-wrap:anywhere] text-xl font-black text-white">
+									{{ displayTitle }}
+								</h2>
+								<UBadge
+									:color="statusMeta.color"
+									variant="soft"
+									:icon="statusMeta.icon"
+									:label="statusLabel"
+								/>
+							</div>
+
+							<p class="mt-1 break-words [overflow-wrap:anywhere] text-sm font-medium text-neutral-300">
+								{{ activityTypeName }}
+							</p>
+
+							<div class="mt-3 flex min-w-0 items-center gap-2 text-sm text-neutral-300">
+								<div class="flex size-7 shrink-0 items-center justify-center overflow-hidden rounded-full border border-white/15 bg-white/10">
+									<img
+										v-if="selectedOrganizerCharacter?.avatar_url"
+										:src="selectedOrganizerCharacter.avatar_url"
+										:alt="organizerName"
+										class="h-full w-full object-cover"
+										loading="lazy"
+										decoding="async"
+									>
+									<UIcon v-else name="i-lucide-user-round" class="size-4 text-muted" />
+								</div>
+								<span class="text-muted">{{ t('groups.activities.create.summary.organizer') }}</span>
+								<span class="min-w-0 truncate font-semibold text-white">{{ organizerName }}</span>
+								<span v-if="organizerUserName" class="min-w-0 truncate text-neutral-400">{{ organizerUserName }}</span>
+							</div>
 						</div>
 					</div>
 				</div>
-				<div class="rounded-sm border border-default bg-muted/10 px-4 py-4">
-					<p class="text-xs uppercase tracking-wide text-muted">{{ t('groups.activities.create.summary.status') }}</p>
-					<p class="mt-2 text-xl font-semibold text-toned">{{ t(`groups.activities.statuses.${form.status}`) }}</p>
-				</div>
-			</div>
 
-
-			<div class="grid grid-cols-1 gap-3">
-				<div class="rounded-sm border border-default bg-muted/10 px-4 py-4">
-					<p class="text-xs uppercase tracking-wide text-muted">{{ t('groups.activities.create.summary.starts_at') }}</p>
-					<div class="mt-2 flex flex-col gap-2">
-						<div>
-							<p class="text-xs uppercase tracking-wide text-muted">{{ t('groups.activities.create.summary.starts_at_st') }}</p>
-							<p class="font-semibold text-toned">{{ serverStartLabel }}</p>
-						</div>
-
-						<div>
-							<p class="text-xs uppercase tracking-wide text-muted">{{ t('groups.activities.create.summary.starts_at_local', { timezone: localTimeZone }) }}</p>
-							<p class="font-semibold text-toned">{{ localStartLabel }}</p>
-						</div>
+				<div class="flex flex-wrap gap-2">
+					<div
+						v-for="chip in activityChips"
+						:key="chip.icon"
+						class="inline-flex items-center gap-2 border border-white/15 bg-white/[0.06] px-3 py-1.5 text-sm font-medium text-neutral-200"
+					>
+						<UIcon :name="chip.icon" class="size-4 text-primary" />
+						<span class="text-neutral-400">{{ chip.label }}</span>
+						<span>{{ chip.value }}</span>
 					</div>
 				</div>
-			</div>
-
-			<div class="grid grid-cols-1 gap-3 xl:grid-cols-3">
-				<div class="rounded-sm border border-default bg-muted/10 px-4 py-4">
-					<p class="text-xs uppercase tracking-wide text-muted">{{ t('groups.activities.create.summary.slots') }}</p>
-					<p class="mt-2 text-xl font-semibold text-toned">{{ selectedActivityType?.slot_count ?? 0 }}</p>
-				</div>
-				<div class="rounded-sm border border-default bg-muted/10 px-4 py-4">
-					<p class="text-xs uppercase tracking-wide text-muted">{{ t('groups.activities.create.summary.duration') }}</p>
-					<p class="mt-2 font-semibold text-toned">{{ t('groups.activities.create.summary.duration_value', { count: form.duration_hours || 0 }) }}</p>
-				</div>
-				<div class="rounded-sm border border-default bg-muted/10 px-4 py-4">
-					<p class="text-xs uppercase tracking-wide text-muted">{{ t('groups.activities.create.summary.visibility') }}</p>
-					<p class="mt-2 font-semibold text-toned">{{ visibilityLabel }}</p>
-				</div>
-			</div>
-			<div class="grid grid-cols-1 gap-3 xl:grid-cols-3">
-				<div class="rounded-sm border border-default bg-muted/10 px-4 py-4">
-					<p class="text-xs uppercase tracking-wide text-muted">{{ t('groups.activities.create.summary.datacenter') }}</p>
-					<p class="mt-2 font-semibold text-toned">{{ form.datacenter || '—' }}</p>
-				</div>
-				<div class="rounded-sm border border-default bg-muted/10 px-4 py-4">
-					<p class="text-xs uppercase tracking-wide text-muted">{{ t('groups.activities.create.summary.run_style') }}</p>
-					<p class="mt-2 font-semibold text-toned">{{ runStyleLabel }}</p>
-				</div>
-				<div class="rounded-sm border border-default bg-muted/10 px-4 py-4">
-					<p class="text-xs uppercase tracking-wide text-muted">{{ t('groups.activities.create.summary.intensity') }}</p>
-					<p class="mt-2 font-semibold text-toned">{{ intensityLabel }}</p>
-				</div>
-			</div>
-			<div class="grid grid-cols-1 gap-3 xl:grid-cols-3">
-				<div class="rounded-sm border border-default bg-muted/10 px-4 py-4">
-					<p class="text-xs uppercase tracking-wide text-muted">{{ t('groups.activities.create.summary.difficulty') }}</p>
-					<p class="mt-2 font-semibold text-toned">{{ difficultyLabel }}</p>
-				</div>
-				<div class="rounded-sm border border-default bg-muted/10 px-4 py-4">
-					<p class="text-xs uppercase tracking-wide text-muted">{{ t('groups.activities.create.summary.min_item_level') }}</p>
-					<p class="mt-2 font-semibold text-toned">{{ minimumItemLevelLabel }}</p>
-				</div>
-				<div class="rounded-sm border border-default bg-muted/10 px-4 py-4">
-					<p class="text-xs uppercase tracking-wide text-muted">{{ t('groups.activities.create.summary.beginner_friendly') }}</p>
-					<p class="mt-2 font-semibold text-toned">{{ beginnerFriendlyLabel }}</p>
-				</div>
-			</div>
-			<div class="w-full flex flex-row gap-3 ">
-				<div v-if="selectedActivityType?.prog_points?.length" class="w-full rounded-sm border border-default bg-muted/10 px-4 py-4">
-					<p class="text-xs uppercase tracking-wide text-muted">{{ t('groups.activities.create.summary.target_prog_point') }}</p>
-					<p class="mt-2 font-semibold text-toned">
-						{{ selectedTargetProgPoint ? (localizedValue(selectedTargetProgPoint.label, locale, fallbackLocale) || selectedTargetProgPoint.key) : t('groups.activities.create.summary.no_target_prog_point') }}
-					</p>
-				</div>
-
-				<div class="w-full rounded-sm border border-default bg-muted/10 px-4 py-4">
-					<p class="text-xs uppercase tracking-wide text-muted">{{ t('groups.activities.create.summary.assignment') }}</p>
-					<p class="mt-2 font-semibold text-toned">{{ assignmentLabel }}</p>
-				</div>
-			</div>
-
-			<div class="rounded-sm border border-default bg-muted/10 px-4 py-4">
-				<p class="text-xs uppercase tracking-wide text-muted">{{ t('groups.activities.create.summary.guest_applications') }}</p>
-				<p class="mt-2 font-semibold text-toned">{{ guestApplicationsLabel }}</p>
-			</div>
-
-
-			<div class="rounded-sm border border-default bg-muted/10 px-4 py-4">
-				<p class="text-xs uppercase tracking-wide text-muted">{{ t('groups.activities.create.summary.notes') }}</p>
-				<p class="mt-2 break-words [overflow-wrap:anywhere] whitespace-pre-wrap text-sm text-toned">
-					{{ form.notes?.trim() || t('groups.activities.create.summary.no_notes') }}
-				</p>
 			</div>
 		</div>
-	</UCard>
+
+		<div class="divide-y divide-default">
+			<section class="space-y-3 p-5">
+				<p class="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-muted">
+					<UIcon name="i-lucide-list-checks" class="size-4" />
+					{{ t('groups.activities.create.summary.activity') }}
+				</p>
+
+				<div class="grid gap-3">
+					<div
+						v-for="row in overviewRows"
+						:key="row.label"
+						class="grid grid-cols-[minmax(0,1fr)_minmax(7rem,auto)] items-start gap-3 text-sm"
+					>
+						<div class="flex min-w-0 items-center gap-2 text-muted">
+							<UIcon :name="row.icon" class="size-4 shrink-0" />
+							<span class="min-w-0 break-words [overflow-wrap:anywhere]">{{ row.label }}</span>
+						</div>
+						<p class="break-words [overflow-wrap:anywhere] text-right font-semibold text-toned">
+							{{ row.value }}
+						</p>
+					</div>
+				</div>
+			</section>
+
+			<section class="space-y-3 p-5">
+				<p class="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-muted">
+					<UIcon name="i-lucide-calendar-days" class="size-4" />
+					{{ t('groups.activities.create.summary.starts_at') }}
+				</p>
+
+				<div class="grid gap-3">
+					<div
+						v-for="row in scheduleRows"
+						:key="row.label"
+						class="grid grid-cols-[minmax(0,1fr)_minmax(7rem,auto)] items-start gap-3 text-sm"
+					>
+						<div class="flex min-w-0 items-center gap-2 text-muted">
+							<UIcon :name="row.icon" class="size-4 shrink-0" />
+							<span class="min-w-0 break-words [overflow-wrap:anywhere]">{{ row.label }}</span>
+						</div>
+						<p class="break-words [overflow-wrap:anywhere] text-right font-semibold text-toned">
+							{{ row.value }}
+						</p>
+					</div>
+				</div>
+			</section>
+
+			<section class="space-y-3 p-5">
+				<p class="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-muted">
+					<UIcon name="i-lucide-lock-keyhole" class="size-4" />
+					{{ t('groups.activities.create.sections.access.title') }}
+				</p>
+
+				<div class="grid gap-3">
+					<div
+						v-for="row in accessRows"
+						:key="row.label"
+						class="grid grid-cols-[minmax(0,1fr)_minmax(7rem,auto)] items-start gap-3 text-sm"
+					>
+						<div class="flex min-w-0 items-center gap-2 text-muted">
+							<UIcon :name="row.icon" class="size-4 shrink-0" />
+							<span class="min-w-0 break-words [overflow-wrap:anywhere]">{{ row.label }}</span>
+						</div>
+						<p class="break-words [overflow-wrap:anywhere] text-right font-semibold text-toned">
+							{{ row.value }}
+						</p>
+					</div>
+				</div>
+			</section>
+
+			<section class="space-y-3 p-5">
+				<p class="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-muted">
+					<UIcon name="i-lucide-notebook-text" class="size-4" />
+					{{ t('groups.activities.create.summary.notes') }}
+				</p>
+				<p class="break-words [overflow-wrap:anywhere] whitespace-pre-wrap text-sm text-toned">
+					{{ form.notes?.trim() || t('groups.activities.create.summary.no_notes') }}
+				</p>
+			</section>
+		</div>
+	</div>
 </template>
