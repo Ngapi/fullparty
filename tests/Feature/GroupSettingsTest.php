@@ -133,9 +133,20 @@ it('updates group profile and banner images from general settings', function () 
 
     $profilePath = ltrim((string) parse_url($group->profile_picture_url, PHP_URL_PATH), '/');
     $bannerPath = ltrim((string) parse_url($group->banner_image_url, PHP_URL_PATH), '/');
+    $storedProfilePath = str_replace('storage/', '', $profilePath);
+    $storedBannerPath = str_replace('storage/', '', $bannerPath);
 
-    Storage::disk('public')->assertExists(str_replace('storage/', '', $profilePath));
-    Storage::disk('public')->assertExists(str_replace('storage/', '', $bannerPath));
+    expect($profilePath)->toEndWith('.webp')
+        ->and($bannerPath)->toEndWith('.webp');
+
+    Storage::disk('public')->assertExists($storedProfilePath);
+    Storage::disk('public')->assertExists($storedBannerPath);
+
+    $profileImageInfo = getimagesizefromstring(Storage::disk('public')->get($storedProfilePath));
+    $bannerImageInfo = getimagesizefromstring(Storage::disk('public')->get($storedBannerPath));
+
+    expect($profileImageInfo['mime'] ?? null)->toBe('image/webp')
+        ->and($bannerImageInfo['mime'] ?? null)->toBe('image/webp');
 });
 
 it('allows owners and admins to view the discovery settings page', function () {

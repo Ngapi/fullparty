@@ -312,10 +312,14 @@ it('stores uploaded admin images with a server-detected image extension instead 
     );
     $draftSmallImagePath = activityTypePublicStoragePath($storedUrl);
 
-    expect($draftSmallImagePath)->toEndWith('.jpg')
+    expect($draftSmallImagePath)->toEndWith('.webp')
         ->not->toEndWith('.php');
 
     Storage::disk('public')->assertExists($draftSmallImagePath);
+
+    $imageInfo = getimagesizefromstring(Storage::disk('public')->get($draftSmallImagePath));
+
+    expect($imageInfo['mime'] ?? null)->toBe('image/webp');
 });
 
 it('rejects svg uploads for activity type images', function () {

@@ -203,7 +203,7 @@ const submit = () => {
 		v-model:open="isOpen"
 		:title="modalTitle"
 		:description="slot ? localizedText(slot.slot_label, slot.slot_key) : undefined"
-		:ui="{ content: 'sm:max-w-2xl' }"
+		:ui="{ content: 'sm:max-w-2xl', body: 'max-h-[calc(100dvh-12rem)] overflow-y-auto' }"
 	>
 		<template #body>
 			<div class="space-y-5">

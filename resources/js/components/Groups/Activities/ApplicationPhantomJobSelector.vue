@@ -25,6 +25,8 @@ const { t, locale } = useI18n();
 const page = usePage();
 const fallbackLocale = computed(() => String(page.props.locale?.fallback ?? "en"));
 const isOpen = ref(false);
+let lastTouchToggleAt = 0;
+let touchStartPosition: { x: number, y: number } | null = null;
 
 const selectedKeys = computed<string[]>({
 	get: () => {
@@ -90,6 +92,38 @@ const toggleOption = (optionKey: string) => {
 
 	emit("update:modelValue", selectedKeys.value.includes(optionKey) ? "" : optionKey);
 	isOpen.value = false;
+};
+
+const handlePointerToggle = (optionKey: string, event: PointerEvent) => {
+	if (event.pointerType === "mouse") {
+		return;
+	}
+
+	const startPosition = touchStartPosition;
+	touchStartPosition = null;
+
+	if (!startPosition || Math.abs(event.clientX - startPosition.x) > 12 || Math.abs(event.clientY - startPosition.y) > 12) {
+		return;
+	}
+
+	event.preventDefault();
+	event.stopPropagation();
+	lastTouchToggleAt = Date.now();
+	toggleOption(optionKey);
+};
+
+const handlePointerStart = (event: PointerEvent) => {
+	if (event.pointerType !== "mouse") {
+		touchStartPosition = { x: event.clientX, y: event.clientY };
+	}
+};
+
+const handleClickToggle = (optionKey: string) => {
+	if (Date.now() - lastTouchToggleAt < 450) {
+		return;
+	}
+
+	toggleOption(optionKey);
 };
 
 const toggleOptionGroup = (options: ApplicationQuestionOption[]) => {
@@ -161,7 +195,7 @@ const isSelected = (optionKey: string) => selectedKeys.value.includes(optionKey)
 
 	<UModal v-model:open="isOpen">
 		<template #content>
-			<div class="flex flex-col gap-5 p-4">
+			<div class="flex max-h-[calc(100dvh-2rem)] flex-col gap-5 overflow-y-auto p-4">
 				<div class="flex items-start justify-between gap-4">
 					<div class="space-y-1">
 						<h3 class="text-lg font-semibold text-toned">{{ label }}</h3>
@@ -176,31 +210,33 @@ const isSelected = (optionKey: string) => selectedKeys.value.includes(optionKey)
 					/>
 				</div>
 
-				<div class="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
+				<div class="grid grid-cols-3 gap-2 sm:grid-cols-3 sm:gap-3 md:grid-cols-4">
 					<button
 						v-for="option in options"
 						:key="option.key"
 						type="button"
-						class="flex min-h-28 flex-col items-center justify-center gap-2 rounded-sm border p-3 text-center transition duration-150 ease-out hover:-translate-y-0.5"
+						class="application-phantom-option"
 						:class="isSelected(option.key)
-							? 'border-primary bg-primary/10 text-toned shadow-sm shadow-primary/10'
-							: 'border-default bg-muted/10 text-muted hover:border-primary hover:text-toned'"
-						@click="toggleOption(option.key)"
+							? 'application-phantom-option--selected'
+							: 'application-phantom-option--idle'"
+						@pointerdown="handlePointerStart"
+						@pointerup="handlePointerToggle(option.key, $event)"
+						@click="handleClickToggle(option.key)"
 					>
 						<img
 							v-if="optionIconUrl(option)"
 							:src="optionIconUrl(option) || undefined"
 							:alt="optionLabel(option)"
-							class="size-12 rounded-sm object-contain"
+							class="size-9 rounded-sm object-contain sm:size-12"
 						>
 						<div
 							v-else
-							class="flex size-12 items-center justify-center rounded-sm bg-muted text-sm font-semibold text-toned"
+							class="flex size-9 items-center justify-center rounded-sm bg-muted text-xs font-semibold text-toned sm:size-12 sm:text-sm"
 						>
 							{{ optionLabel(option).slice(0, 2) }}
 						</div>
 
-						<span class="max-w-full break-words text-xs font-medium leading-tight">
+						<span class="max-w-full break-words text-[11px] font-medium leading-tight sm:text-xs">
 							{{ optionLabel(option) }}
 						</span>
 					</button>
@@ -249,3 +285,29 @@ const isSelected = (optionKey: string) => selectedKeys.value.includes(optionKey)
 		</template>
 	</UModal>
 </template>
+
+<style scoped>
+@reference '../../../../css/app.css';
+
+.application-phantom-option {
+	@apply flex min-h-20 touch-manipulation select-none flex-col items-center justify-center gap-1.5 rounded-sm border p-2 text-center transition duration-150 ease-out sm:min-h-28 sm:gap-2 sm:p-3;
+}
+
+.application-phantom-option--selected {
+	@apply border-primary bg-primary/10 text-toned shadow-sm shadow-primary/10;
+}
+
+.application-phantom-option--idle {
+	@apply border-default bg-muted/10 text-muted;
+}
+
+@media (hover: hover) and (pointer: fine) {
+	.application-phantom-option {
+		@apply hover:-translate-y-0.5;
+	}
+
+	.application-phantom-option--idle {
+		@apply hover:border-primary hover:text-toned;
+	}
+}
+</style>

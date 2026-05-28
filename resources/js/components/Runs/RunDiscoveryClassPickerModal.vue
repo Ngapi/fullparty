@@ -12,6 +12,8 @@ const isOpen = defineModel<boolean>("open", { required: true });
 const selectedKeys = defineModel<string[]>("selectedKeys", { required: true });
 
 const { t } = useI18n();
+let lastTouchToggleAt = 0;
+let touchStartPosition: { x: number, y: number } | null = null;
 
 const roleGroups: Array<{ key: RunDiscoveryClassRoleGroup, labelKey: string }> = [
 	{ key: "tank", labelKey: "runs.discovery.filters.class_picker.categories.tank" },
@@ -54,6 +56,38 @@ const toggleOption = (option: RunDiscoveryClassOption) => {
 		: [...selectedKeys.value, option.key];
 };
 
+const handlePointerToggle = (option: RunDiscoveryClassOption, event: PointerEvent) => {
+	if (event.pointerType === "mouse") {
+		return;
+	}
+
+	const startPosition = touchStartPosition;
+	touchStartPosition = null;
+
+	if (!startPosition || Math.abs(event.clientX - startPosition.x) > 12 || Math.abs(event.clientY - startPosition.y) > 12) {
+		return;
+	}
+
+	event.preventDefault();
+	event.stopPropagation();
+	lastTouchToggleAt = Date.now();
+	toggleOption(option);
+};
+
+const handlePointerStart = (event: PointerEvent) => {
+	if (event.pointerType !== "mouse") {
+		touchStartPosition = { x: event.clientX, y: event.clientY };
+	}
+};
+
+const handleClickToggle = (option: RunDiscoveryClassOption) => {
+	if (Date.now() - lastTouchToggleAt < 450) {
+		return;
+	}
+
+	toggleOption(option);
+};
+
 const isSelected = (option: RunDiscoveryClassOption) => selectedKeys.value.includes(option.key);
 
 const clearSelection = () => {
@@ -67,7 +101,7 @@ const clearSelection = () => {
 		:ui="{ content: 'max-w-3xl' }"
 	>
 		<template #content>
-			<div class="flex flex-col gap-5 p-4">
+			<div class="flex max-h-[calc(100dvh-2rem)] flex-col gap-5 overflow-y-auto p-4">
 				<div class="flex items-start justify-between gap-4">
 					<div class="space-y-1">
 						<h3 class="text-lg font-semibold text-toned">
@@ -122,7 +156,9 @@ const clearSelection = () => {
 									? 'border-primary bg-primary/10 text-toned'
 									: 'border-default bg-muted/10 text-muted hover:border-primary'"
 								:title="option.label"
-								@click="toggleOption(option)"
+								@pointerdown="handlePointerStart"
+								@pointerup="handlePointerToggle(option, $event)"
+								@click="handleClickToggle(option)"
 							>
 								<img
 									v-if="option.icon_url"

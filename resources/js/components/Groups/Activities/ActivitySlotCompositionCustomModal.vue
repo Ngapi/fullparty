@@ -17,6 +17,8 @@ const isOpen = defineModel<boolean>("open", { required: true });
 
 const { t } = useI18n();
 const selectedClassKeys = ref<string[]>([]);
+let lastTouchToggleAt = 0;
+let touchStartPosition: { x: number, y: number } | null = null;
 
 const roleGroups = [
 	{ key: "tank", labelKey: "groups.activities.application.class_picker.categories.tank" },
@@ -54,6 +56,38 @@ const toggleOption = (option: ActivityCompositionClassOption) => {
 		: [...selectedClassKeys.value, option.shorthand];
 };
 
+const handlePointerToggle = (option: ActivityCompositionClassOption, event: PointerEvent) => {
+	if (event.pointerType === "mouse") {
+		return;
+	}
+
+	const startPosition = touchStartPosition;
+	touchStartPosition = null;
+
+	if (!startPosition || Math.abs(event.clientX - startPosition.x) > 12 || Math.abs(event.clientY - startPosition.y) > 12) {
+		return;
+	}
+
+	event.preventDefault();
+	event.stopPropagation();
+	lastTouchToggleAt = Date.now();
+	toggleOption(option);
+};
+
+const handlePointerStart = (event: PointerEvent) => {
+	if (event.pointerType !== "mouse") {
+		touchStartPosition = { x: event.clientX, y: event.clientY };
+	}
+};
+
+const handleClickToggle = (option: ActivityCompositionClassOption) => {
+	if (Date.now() - lastTouchToggleAt < 450) {
+		return;
+	}
+
+	toggleOption(option);
+};
+
 const isSelected = (option: ActivityCompositionClassOption) => selectedClassKeys.value.includes(option.shorthand);
 
 const save = () => {
@@ -83,7 +117,7 @@ watch(() => [isOpen.value, props.slot?.id] as const, ([open]) => {
 		:ui="{ content: 'max-w-3xl' }"
 	>
 		<template #content>
-			<div class="flex flex-col gap-5 p-4">
+			<div class="flex max-h-[calc(100dvh-2rem)] flex-col gap-5 overflow-y-auto p-4">
 				<div class="flex items-start justify-between gap-4">
 					<div class="space-y-1">
 						<h3 class="font-semibold text-lg text-toned">
@@ -143,7 +177,9 @@ watch(() => [isOpen.value, props.slot?.id] as const, ([open]) => {
 									: 'border-transparent bg-muted/10 text-muted hover:border-primary'"
 								:disabled="isSubmitting"
 								:title="`${option.name} (${option.shorthand})`"
-								@click="toggleOption(option)"
+								@pointerdown="handlePointerStart"
+								@pointerup="handlePointerToggle(option, $event)"
+								@click="handleClickToggle(option)"
 							>
 								<img
 									v-if="option.icon_url"

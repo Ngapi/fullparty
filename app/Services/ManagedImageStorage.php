@@ -13,7 +13,9 @@ class ManagedImageStorage
 {
     private const GROUP_IMAGE_SIZE = 800;
 
-    private const GROUP_IMAGE_JPEG_QUALITY = 82;
+    private const MAX_UPLOADED_IMAGE_DIMENSION = 2400;
+
+    private const WEBP_QUALITY = 84;
 
     public function downloadImageIfPresent(?string $url, string $field, string $directory): ?string
     {
@@ -168,19 +170,65 @@ class ManagedImageStorage
 
     private function storeUploadedFile(UploadedFile $file, string $directory): string
     {
-        $extension = $this->resolveUploadedImageExtension($file);
-        $path = trim($directory, '/').'/'.Str::uuid().'.'.$extension;
+        $source = $this->decodeUploadedImage($file, 'image');
+        $sourceWidth = imagesx($source);
+        $sourceHeight = imagesy($source);
+        [$targetWidth, $targetHeight] = $this->constrainedDimensions($sourceWidth, $sourceHeight);
+        $canvas = $this->createResampledCanvas(
+            source: $source,
+            sourceX: 0,
+            sourceY: 0,
+            sourceWidth: $sourceWidth,
+            sourceHeight: $sourceHeight,
+            targetWidth: $targetWidth,
+            targetHeight: $targetHeight,
+            preserveTransparency: true,
+            field: 'image',
+        );
 
-        Storage::disk('public')->put($path, file_get_contents($file->getRealPath()));
+        imagedestroy($source);
+
+        $path = trim($directory, '/').'/'.Str::uuid().'.webp';
+        Storage::disk('public')->put($path, $this->encodeWebp($canvas, 'image'));
+        imagedestroy($canvas);
 
         return $path;
     }
 
     private function storeProcessedUploadedFile(UploadedFile $file, string $directory): string
     {
-        if (! function_exists('imagecreatefromstring')) {
+        $source = $this->decodeUploadedImage($file, 'profile_picture');
+        $sourceWidth = imagesx($source);
+        $sourceHeight = imagesy($source);
+        $squareSize = min($sourceWidth, $sourceHeight);
+        $sourceX = (int) floor(($sourceWidth - $squareSize) / 2);
+        $sourceY = (int) floor(($sourceHeight - $squareSize) / 2);
+        $canvas = $this->createResampledCanvas(
+            source: $source,
+            sourceX: $sourceX,
+            sourceY: $sourceY,
+            sourceWidth: $squareSize,
+            sourceHeight: $squareSize,
+            targetWidth: self::GROUP_IMAGE_SIZE,
+            targetHeight: self::GROUP_IMAGE_SIZE,
+            preserveTransparency: false,
+            field: 'profile_picture',
+        );
+
+        imagedestroy($source);
+
+        $path = trim($directory, '/').'/'.Str::uuid().'.webp';
+        Storage::disk('public')->put($path, $this->encodeWebp($canvas, 'profile_picture'));
+        imagedestroy($canvas);
+
+        return $path;
+    }
+
+    private function decodeUploadedImage(UploadedFile $file, string $field): \GdImage
+    {
+        if (! function_exists('imagecreatefromstring') || ! function_exists('imagewebp')) {
             throw ValidationException::withMessages([
-                'profile_picture' => 'Image processing is not available on this server.',
+                $field => 'Image processing is not available on this server.',
             ]);
         }
 
@@ -188,7 +236,7 @@ class ManagedImageStorage
 
         if ($binary === false) {
             throw ValidationException::withMessages([
-                'profile_picture' => 'Unable to read the uploaded image.',
+                $field => 'Unable to read the uploaded image.',
             ]);
         }
 
@@ -196,61 +244,143 @@ class ManagedImageStorage
 
         if (! $source) {
             throw ValidationException::withMessages([
-                'profile_picture' => 'The uploaded file must be a valid image.',
+                $field => 'The uploaded file must be a valid image.',
             ]);
         }
 
-        $sourceWidth = imagesx($source);
-        $sourceHeight = imagesy($source);
-        $squareSize = min($sourceWidth, $sourceHeight);
-        $sourceX = (int) floor(($sourceWidth - $squareSize) / 2);
-        $sourceY = (int) floor(($sourceHeight - $squareSize) / 2);
+        if (function_exists('imagepalettetotruecolor')) {
+            imagepalettetotruecolor($source);
+        }
 
-        $canvas = imagecreatetruecolor(self::GROUP_IMAGE_SIZE, self::GROUP_IMAGE_SIZE);
+        imagealphablending($source, false);
+        imagesavealpha($source, true);
+
+        return $this->normalizeImageOrientation($source, $file);
+    }
+
+    private function normalizeImageOrientation(\GdImage $source, UploadedFile $file): \GdImage
+    {
+        if (! function_exists('exif_read_data') || ! function_exists('imagerotate')) {
+            return $source;
+        }
+
+        $mimeType = $this->mimeTypeFromImageContents($file);
+
+        if (! in_array($mimeType, ['image/jpeg', 'image/jpg'], true)) {
+            return $source;
+        }
+
+        $exif = @exif_read_data($file->getRealPath());
+        $orientation = is_array($exif) ? (int) ($exif['Orientation'] ?? 1) : 1;
+        $rotated = match ($orientation) {
+            3 => imagerotate($source, 180, 0),
+            6 => imagerotate($source, -90, 0),
+            8 => imagerotate($source, 90, 0),
+            default => false,
+        };
+
+        if (! $rotated) {
+            return $source;
+        }
+
+        imagedestroy($source);
+
+        return $rotated;
+    }
+
+    /**
+     * @return array{0: int, 1: int}
+     */
+    private function constrainedDimensions(int $sourceWidth, int $sourceHeight): array
+    {
+        $largestDimension = max($sourceWidth, $sourceHeight);
+
+        if ($largestDimension <= self::MAX_UPLOADED_IMAGE_DIMENSION) {
+            return [$sourceWidth, $sourceHeight];
+        }
+
+        $scale = self::MAX_UPLOADED_IMAGE_DIMENSION / $largestDimension;
+
+        return [
+            max(1, (int) round($sourceWidth * $scale)),
+            max(1, (int) round($sourceHeight * $scale)),
+        ];
+    }
+
+    private function createResampledCanvas(
+        \GdImage $source,
+        int $sourceX,
+        int $sourceY,
+        int $sourceWidth,
+        int $sourceHeight,
+        int $targetWidth,
+        int $targetHeight,
+        bool $preserveTransparency,
+        string $field,
+    ): \GdImage {
+        $canvas = imagecreatetruecolor($targetWidth, $targetHeight);
 
         if (! $canvas) {
-            imagedestroy($source);
-
             throw ValidationException::withMessages([
-                'profile_picture' => 'Unable to process the uploaded image.',
+                $field => 'Unable to process the uploaded image.',
             ]);
         }
 
-        $background = imagecolorallocate($canvas, 255, 255, 255);
+        if ($preserveTransparency) {
+            imagealphablending($canvas, false);
+            imagesavealpha($canvas, true);
+            $background = imagecolorallocatealpha($canvas, 0, 0, 0, 127);
+        } else {
+            $background = imagecolorallocate($canvas, 255, 255, 255);
+        }
+
+        if ($background === false) {
+            imagedestroy($canvas);
+
+            throw ValidationException::withMessages([
+                $field => 'Unable to process the uploaded image.',
+            ]);
+        }
+
         imagefill($canvas, 0, 0, $background);
 
-        imagecopyresampled(
+        $copied = imagecopyresampled(
             $canvas,
             $source,
             0,
             0,
             $sourceX,
             $sourceY,
-            self::GROUP_IMAGE_SIZE,
-            self::GROUP_IMAGE_SIZE,
-            $squareSize,
-            $squareSize
+            $targetWidth,
+            $targetHeight,
+            $sourceWidth,
+            $sourceHeight
         );
 
-        imagedestroy($source);
-
-        $path = trim($directory, '/').'/'.Str::uuid().'.jpg';
-        $temporaryFile = tempnam(sys_get_temp_dir(), 'group-image-');
-
-        if ($temporaryFile === false || ! imagejpeg($canvas, $temporaryFile, self::GROUP_IMAGE_JPEG_QUALITY)) {
+        if (! $copied) {
             imagedestroy($canvas);
 
             throw ValidationException::withMessages([
-                'profile_picture' => 'Unable to save the processed image.',
+                $field => 'Unable to process the uploaded image.',
             ]);
         }
 
-        imagedestroy($canvas);
+        return $canvas;
+    }
 
-        Storage::disk('public')->put($path, file_get_contents($temporaryFile));
-        @unlink($temporaryFile);
+    private function encodeWebp(\GdImage $image, string $field): string
+    {
+        ob_start();
+        $result = imagewebp($image, null, self::WEBP_QUALITY);
+        $binary = ob_get_clean();
 
-        return $path;
+        if (! $result || ! is_string($binary) || $binary === '') {
+            throw ValidationException::withMessages([
+                $field => 'Unable to save the processed image.',
+            ]);
+        }
+
+        return $binary;
     }
 
     private function resolveImageExtension(Response $response, string $sourceUrl): string
@@ -262,21 +392,6 @@ class ManagedImageStorage
             ?? 'png';
 
         return $extension;
-    }
-
-    private function resolveUploadedImageExtension(UploadedFile $file): string
-    {
-        $extension = $this->extensionFromMimeType($this->mimeTypeFromImageContents($file) ?? '')
-            ?? $this->extensionFromMimeType((string) $file->getMimeType())
-            ?? $this->sanitizeImageExtension($file->extension());
-
-        if ($extension) {
-            return $extension;
-        }
-
-        throw ValidationException::withMessages([
-            'image' => 'The uploaded image must be a JPG, PNG, GIF, or WEBP file.',
-        ]);
     }
 
     private function mimeTypeFromImageContents(UploadedFile $file): ?string

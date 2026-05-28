@@ -25,6 +25,8 @@ const { t, locale } = useI18n();
 const page = usePage();
 const fallbackLocale = computed(() => String(page.props.locale?.fallback ?? 'en'));
 const isOpen = ref(false);
+let lastTouchToggleAt = 0;
+let touchStartPosition: { x: number, y: number } | null = null;
 
 const roleGroups = [
 	{ key: 'tank', icon: 'i-lucide-shield', label: computed(() => t('groups.activities.application.class_picker.categories.tank')) },
@@ -102,6 +104,38 @@ const toggleOption = (optionKey: string) => {
 	isOpen.value = false;
 };
 
+const handlePointerToggle = (optionKey: string, event: PointerEvent) => {
+	if (event.pointerType === 'mouse') {
+		return;
+	}
+
+	const startPosition = touchStartPosition;
+	touchStartPosition = null;
+
+	if (!startPosition || Math.abs(event.clientX - startPosition.x) > 12 || Math.abs(event.clientY - startPosition.y) > 12) {
+		return;
+	}
+
+	event.preventDefault();
+	event.stopPropagation();
+	lastTouchToggleAt = Date.now();
+	toggleOption(optionKey);
+};
+
+const handlePointerStart = (event: PointerEvent) => {
+	if (event.pointerType !== 'mouse') {
+		touchStartPosition = { x: event.clientX, y: event.clientY };
+	}
+};
+
+const handleClickToggle = (optionKey: string) => {
+	if (Date.now() - lastTouchToggleAt < 450) {
+		return;
+	}
+
+	toggleOption(optionKey);
+};
+
 const toggleOptionGroup = (options: ApplicationQuestionOption[]) => {
 	if (props.disabled || !props.multiple) {
 		return;
@@ -165,7 +199,7 @@ const isSelected = (optionKey: string) => selectedKeys.value.includes(optionKey)
 
 	<UModal v-model:open="isOpen">
 		<template #content>
-			<div class="flex flex-col gap-5 p-4">
+			<div class="flex max-h-[calc(100dvh-2rem)] flex-col gap-5 overflow-y-auto p-4">
 				<div class="flex items-start justify-between gap-4">
 					<div class="space-y-1">
 						<h3 class="font-semibold text-lg text-toned">{{ label }}</h3>
@@ -196,11 +230,13 @@ const isSelected = (optionKey: string) => selectedKeys.value.includes(optionKey)
 								v-for="option in group.options"
 								:key="option.key"
 								type="button"
-								class="flex items-center justify-center rounded-lg border-2 transition-transform duration-150 ease-out hover:scale-105"
+								class="application-class-option"
 								:class="isSelected(option.key)
-									? 'border-primary bg-primary/10 text-toned'
-									: 'border-default bg-muted/10 text-muted hover:border-primary'"
-								@click="toggleOption(option.key)"
+									? 'application-class-option--selected'
+									: 'application-class-option--idle'"
+								@pointerdown="handlePointerStart"
+								@pointerup="handlePointerToggle(option.key, $event)"
+								@click="handleClickToggle(option.key)"
 							>
 								<img
 									v-if="option.meta?.icon_url"
@@ -274,3 +310,29 @@ const isSelected = (optionKey: string) => selectedKeys.value.includes(optionKey)
 		</template>
 	</UModal>
 </template>
+
+<style scoped>
+@reference '../../../../css/app.css';
+
+.application-class-option {
+	@apply flex touch-manipulation select-none items-center justify-center rounded-lg border-2 transition-transform duration-150 ease-out;
+}
+
+.application-class-option--selected {
+	@apply border-primary bg-primary/10 text-toned;
+}
+
+.application-class-option--idle {
+	@apply border-default bg-muted/10 text-muted;
+}
+
+@media (hover: hover) and (pointer: fine) {
+	.application-class-option {
+		@apply hover:scale-105;
+	}
+
+	.application-class-option--idle {
+		@apply hover:border-primary;
+	}
+}
+</style>

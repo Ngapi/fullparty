@@ -711,6 +711,14 @@ it('updates home profile customization', function () {
     $homeProfile = $user->fresh()->homeProfile;
 
     $this->assertStringStartsWith('/storage/home-profiles/', $homeProfile->background_image_url);
+    expect($homeProfile->background_image_url)->toEndWith('.webp');
+
+    $storedBackgroundPath = str_replace('/storage/', '', $homeProfile->background_image_url);
+    Storage::disk('public')->assertExists($storedBackgroundPath);
+
+    $backgroundImageInfo = getimagesizefromstring(Storage::disk('public')->get($storedBackgroundPath));
+
+    expect($backgroundImageInfo['mime'] ?? null)->toBe('image/webp');
 });
 
 it('resets home profile background image', function () {
@@ -765,6 +773,7 @@ it('deletes the old home profile background image when replacing it', function (
 
     expect($homeProfile->background_image_url)->not->toBe('/storage/home-profiles/existing.jpg');
     $this->assertStringStartsWith('/storage/home-profiles/', $homeProfile->background_image_url);
+    expect($homeProfile->background_image_url)->toEndWith('.webp');
     Storage::disk('public')->assertMissing('home-profiles/existing.jpg');
 });
 
