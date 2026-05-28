@@ -11,6 +11,7 @@ use App\Http\Controllers\CharacterController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DashboardProfileCustomizationController;
 use App\Http\Controllers\DiscordAuthController;
+use App\Http\Controllers\GlobalSearchController;
 use App\Http\Controllers\GoogleAuthController;
 use App\Http\Controllers\GroupActivityApplicantQueueController;
 use App\Http\Controllers\GroupActivityApplicationController;
@@ -278,6 +279,7 @@ Route::prefix('{locale?}')
             Route::get('/home', [DashboardController::class, 'show'])->name('dashboard');
             Route::put('/home/profile', [DashboardProfileCustomizationController::class, 'update'])->name('dashboard.profile.update');
             Route::get('/dashboard', fn () => redirect()->route('dashboard'));
+            Route::get('/dashboard/search', GlobalSearchController::class)->name('dashboard.search');
             Route::get('/dashboard/runs', [RunDiscoveryController::class, 'index'])->name('dashboard.runs.index');
             Route::get('/dashboard/runs/discovery', [RunDiscoveryController::class, 'discover'])->name('dashboard.runs.discover');
             Route::post('/dashboard/runs/{activity}/save', [RunDiscoveryController::class, 'save'])->name('dashboard.runs.save');

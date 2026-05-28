@@ -28,15 +28,6 @@ const experienceLabel = computed(() => (
 const languagesText = computed(() => props.group.preferred_languages
 	.map((language) => languageLabelMap[language] ?? language.toUpperCase())
 	.join(", "));
-const bannerStyle = computed(() => {
-	if (!props.group.banner_image_url) {
-		return undefined;
-	}
-
-	return {
-		backgroundImage: `url(${props.group.banner_image_url})`,
-	};
-});
 
 function openGroup() {
 	emit("openGroup", props.group);
@@ -52,10 +43,14 @@ function openGroup() {
 		@keydown.enter.prevent="openGroup"
 		@keydown.space.prevent="openGroup"
 	>
-		<div
-			class="absolute inset-0 bg-cover bg-center"
-			:style="bannerStyle"
-		/>
+		<img
+			v-if="group.banner_image_url"
+			:src="group.banner_image_url"
+			:alt="group.name"
+			loading="lazy"
+			decoding="async"
+			class="absolute inset-0 h-full w-full object-cover"
+		>
 		<div class="absolute inset-0 bg-linear-to-t from-neutral-950 via-neutral-950/72 to-neutral-950/18" />
 		<div
 			v-if="!group.banner_image_url"

@@ -248,7 +248,20 @@ watch(
 	},
 );
 
+const applyInitialFiltersFromUrl = () => {
+	if (typeof window === "undefined") {
+		return;
+	}
+
+	const activityType = new URL(window.location.href).searchParams.get("activity_type");
+
+	if (activityType && activityTypeDefinitions.value.some((option) => option.value === activityType)) {
+		selectedActivityType.value = activityType;
+	}
+};
+
 onMounted(() => {
+	applyInitialFiltersFromUrl();
 	detectedTimezone.value = Intl.DateTimeFormat().resolvedOptions().timeZone
 		|| t("runs.discovery.filters.placeholders.timezone");
 	emit("filters-change", filterState.value);

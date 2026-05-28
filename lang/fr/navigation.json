@@ -30,7 +30,16 @@
   },
   "topbar": {
     "search": "Rechercher",
-    "search_bar": "Rechercher des raids, des joueurs ou des événements...",
+    "search_bar": "Rechercher des runs, groupes ou activités...",
+    "global_search": {
+      "sections": {
+        "runs": "Runs",
+        "groups": "Groupes",
+        "activities": "Activités"
+      },
+      "min_chars": "Saisissez au moins 2 caractères pour rechercher.",
+      "empty": "Aucun run, groupe ou activité correspondant."
+    },
     "menu": {
       "profile": "Profil",
       "settings": "Paramètres",

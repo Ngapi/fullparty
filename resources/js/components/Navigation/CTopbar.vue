@@ -2,6 +2,7 @@
 import NotificationBell from "@/components/Navigation/NotificationBell.vue";
 import UserMenu from "@/components/Navigation/UserMenu.vue";
 import AppLocaleSelect from "@/components/Navigation/AppLocaleSelect.vue";
+import GlobalSearchBox from "@/components/Navigation/GlobalSearchBox.vue";
 import { usePage } from "@inertiajs/vue3";
 import { computed, ref } from "vue";
 import { useI18n } from "vue-i18n";
@@ -10,7 +11,6 @@ const { t } = useI18n({ useScope: 'global' })
 const page = usePage();
 const user = computed(() => page.props.auth?.user ?? null);
 const isSearchModalOpen = ref(false);
-const searchQuery = ref('');
 
 defineProps({
 	title: {
@@ -34,13 +34,7 @@ defineProps({
 					:aria-label="t('navigation.topbar.search_bar')"
 					@click="isSearchModalOpen = true"
 				/>
-				<UInput
-					:placeholder="t('navigation.topbar.search_bar')"
-					:ui="{base: 'rounded-none placeholder:text-neutral-500'}"
-					leading-icon="i-lucide-search"
-					size="xl"
-					class="hidden w-48 sm:block md:w-56 lg:w-72 xl:w-96"
-				/>
+				<GlobalSearchBox class="hidden w-48 sm:block md:w-56 lg:w-72 xl:w-96" />
 			</div>
 		</template>
 
@@ -66,14 +60,10 @@ defineProps({
 		:ui="{ content: 'max-w-lg', body: 'p-4 sm:p-4' }"
 	>
 		<template #body>
-			<UInput
-				v-model="searchQuery"
+			<GlobalSearchBox
 				autofocus
-				:placeholder="t('navigation.topbar.search_bar')"
-				:ui="{base: 'rounded-none placeholder:text-neutral-500'}"
-				leading-icon="i-lucide-search"
-				size="xl"
-				class="w-full"
+				dropdown-mode="static"
+				@selected="isSearchModalOpen = false"
 			/>
 		</template>
 	</UModal>

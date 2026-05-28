@@ -30,7 +30,16 @@
   },
   "topbar": {
     "search": "検索",
-    "search_bar": "レイド、プレイヤー、イベントを検索...",
+    "search_bar": "ラン、グループ、アクティビティを検索...",
+    "global_search": {
+      "sections": {
+        "runs": "ラン",
+        "groups": "グループ",
+        "activities": "アクティビティ"
+      },
+      "min_chars": "2文字以上入力して検索してください。",
+      "empty": "一致するラン、グループ、アクティビティはありません。"
+    },
     "menu": {
       "profile": "プロフィール",
       "settings": "設定",
