@@ -56,6 +56,7 @@ use App\Http\Controllers\SystemNotificationController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\XIVAuthController;
 use App\Http\Middleware\ApplyLocale;
+use App\Services\Landing\LandingPageDataService;
 use Illuminate\Foundation\Auth\EmailVerificationRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -112,8 +113,10 @@ foreach (['auth', 'dashboard', 'groups', 'invite', 'settings', 'account', 'chara
 Route::prefix('{locale?}')
     ->where(['locale' => implode('|', ApplyLocale::SUPPORTED_LOCALES)])
     ->group(function () {
-        Route::get('/', function () {
-            return Inertia::render('Home');
+        Route::get('/', function (Request $request, LandingPageDataService $landingPageDataService) {
+            return Inertia::render('Home', [
+                'landing' => $landingPageDataService->forHome($request->user()),
+            ]);
         })->name('home');
 
         Route::get('/privacy-policy', function () {

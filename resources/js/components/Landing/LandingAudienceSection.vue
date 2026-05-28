@@ -1,0 +1,125 @@
+<script setup lang="ts">
+import { router } from "@inertiajs/vue3"
+import { route } from "ziggy-js"
+import { useI18n } from "vue-i18n"
+
+const { t } = useI18n()
+
+const imageUrl = "/profile_bg.jpg"
+const logoUrl = "/logos/compact.png"
+
+const playerPoints = [
+	{ key: "verify", icon: "i-lucide-badge-check" },
+	{ key: "apply", icon: "i-lucide-send" },
+	{ key: "progress", icon: "i-lucide-trending-up" },
+	{ key: "groups", icon: "i-lucide-users-round" },
+	{ key: "updates", icon: "i-lucide-bell-ring" },
+]
+
+const leaderPoints = [
+	{ key: "recruit", icon: "i-lucide-user-check" },
+	{ key: "manage", icon: "i-lucide-layout-dashboard" },
+	{ key: "schedule", icon: "i-lucide-calendar-clock" },
+	{ key: "communicate", icon: "i-lucide-messages-square" },
+	{ key: "ready", icon: "i-lucide-list-checks" },
+]
+
+const goToRegister = () => {
+	router.get(route("register"))
+}
+</script>
+
+<template>
+	<section
+		id="players"
+		class="relative scroll-mt-8 bg-neutral-950 px-6 py-12 lg:px-10"
+		:aria-label="t('landing.audience.title')"
+	>
+		<span id="leaders" class="absolute top-0 h-px w-px scroll-mt-8" aria-hidden="true" />
+		<div class="absolute inset-x-0 top-0 h-px bg-linear-to-r from-transparent via-violet-400/30 to-transparent" />
+
+		<div class="overflow-hidden">
+			<div class="grid gap-0 py-10 xl:grid-cols-[minmax(14rem,1fr)_minmax(0,58rem)_minmax(14rem,1fr)]">
+				<div
+					class="hidden min-h-80 bg-cover bg-center opacity-45 mix-blend-screen xl:block"
+					:style="{ backgroundImage: `linear-gradient(90deg, rgba(10, 10, 10, 0.1), rgba(10, 10, 10, 0.86)), url(${imageUrl})` }"
+					aria-hidden="true"
+				/>
+
+				<div class="px-6 py-4 md:px-8 xl:px-10">
+					<div class="text-center">
+						<h2 class="landing-display-font text-2xl font-semibold text-neutral-100 md:text-3xl">
+							{{ t("landing.audience.title") }}
+						</h2>
+						<div class="mx-auto mt-5 flex max-w-xs items-center gap-4 text-violet-300">
+							<div class="h-px flex-1 bg-linear-to-r from-transparent to-violet-400/60" />
+							<UIcon name="i-lucide-sparkle" class="size-4 shrink-0" />
+							<div class="h-px flex-1 bg-linear-to-l from-transparent to-violet-400/60" />
+						</div>
+					</div>
+
+					<div class="mt-10 grid gap-0 lg:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)]">
+						<div class="flex min-h-80 flex-col justify-start py-4 md:px-8 xl:px-10">
+							<h3 class="text-2xl font-semibold text-violet-300">
+								{{ t("landing.audience.players.title") }}
+							</h3>
+							<ul class="mt-7 space-y-4">
+								<li
+									v-for="point in playerPoints"
+									:key="point.key"
+									class="flex items-start gap-3 text-sm leading-6 text-neutral-300"
+								>
+									<UIcon :name="point.icon" class="mt-1 size-4 shrink-0 text-violet-300" />
+									<span>{{ t(`landing.audience.players.points.${point.key}`) }}</span>
+								</li>
+							</ul>
+						</div>
+
+						<div class="my-8 flex items-center justify-center gap-5 lg:my-0 lg:w-28 lg:flex-col">
+							<div class="h-px flex-1 bg-violet-500/25 lg:h-24 lg:w-px lg:flex-none" />
+							<div class="flex size-20 shrink-0 items-center justify-center rounded-full bg-violet-700/10 blur-out-2xl border border-white/10 shadow-lg shadow-violet-700/40">
+								<img :src="logoUrl" alt="FullParty" class="max-h-9 max-w-14 object-contain">
+							</div>
+							<div class="h-px flex-1 bg-violet-500/25 lg:h-24 lg:w-px lg:flex-none" />
+						</div>
+
+						<div class="flex min-h-80 flex-col justify-start py-4 md:px-8 xl:px-10">
+							<h3 class="text-2xl font-semibold text-violet-300">
+								{{ t("landing.audience.leaders.title") }}
+							</h3>
+							<ul class="mt-7 space-y-4">
+								<li
+									v-for="point in leaderPoints"
+									:key="point.key"
+									class="flex items-start gap-3 text-sm leading-6 text-neutral-300"
+								>
+									<UIcon :name="point.icon" class="mt-1 size-4 shrink-0 text-violet-300" />
+									<span>{{ t(`landing.audience.leaders.points.${point.key}`) }}</span>
+								</li>
+							</ul>
+						</div>
+					</div>
+				</div>
+
+				<div
+					class="hidden min-h-80 -scale-x-100 bg-cover bg-center opacity-45 mix-blend-screen xl:block"
+					:style="{ backgroundImage: `linear-gradient(90deg, rgba(10, 10, 10, 0.1), rgba(10, 10, 10, 0.86)), url(${imageUrl})` }"
+					aria-hidden="true"
+				/>
+			</div>
+
+			<div class="flex flex-col items-center justify-center gap-5 border-t border-white/10 px-6 py-7 text-center md:flex-row md:text-left">
+				<p class="landing-display-font text-lg font-medium text-neutral-100">
+					{{ t("landing.audience.cta_text") }}
+				</p>
+				<UButton
+					color="primary"
+					size="lg"
+					icon="i-lucide-sparkles"
+					:label="t('landing.audience.cta_action')"
+					@click="goToRegister"
+				/>
+			</div>
+		</div>
+	</section>
+</template>

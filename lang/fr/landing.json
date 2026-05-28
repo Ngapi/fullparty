@@ -1,0 +1,103 @@
+{
+  "nav": {
+    "home": "Accueil FullParty",
+    "features": "Fonctionnalités",
+    "this_week": "Cette semaine",
+    "players": "Pour les joueurs",
+    "leaders": "Pour les leaders",
+    "discord": "Discord"
+  },
+  "hero": {
+    "badge": "Créé par des raiders. Pour toute la communauté.",
+    "title_prefix": "La vraie fin de jeu, c'est ",
+    "title_accent": "l'organisation",
+    "subtitle": "Le hub tout-en-un pour la planification de raids, le recrutement de statics et la communauté.",
+    "primary_action": "Lancer votre premier run",
+    "secondary_action": "Explorer les fonctionnalités",
+    "trust_badges": {
+      "ffxiv": "Conçu pour FFXIV",
+      "raiders": "Adopté par les raiders",
+      "communities": "Idéal pour les grandes communautés"
+    },
+    "separator": "Tout ce qu'il faut pour organiser du contenu high-end"
+  },
+  "features": {
+    "items": {
+      "applications": {
+        "title": "Candidatures & review",
+        "description": "Collectez des inscriptions structurées, comparez les candidats et décidez sans perdre le contexte."
+      },
+      "rosters": {
+        "title": "Construction de roster",
+        "description": "Assignez les joueurs acceptés à des slots clairs, remplaçants, hosts et raid leads pour chaque run."
+      },
+      "groups": {
+        "title": "Gestion de groupe",
+        "description": "Gérez membres, modérateurs, invitations, découverte, notes et permissions au même endroit."
+      },
+      "scheduling": {
+        "title": "Planification des runs",
+        "description": "Planifiez du contenu high-end avec dates, prérequis, visibilité, candidatures et options invitées."
+      }
+    }
+  },
+  "audience": {
+    "title": "Mieux pour les joueurs. Mieux pour les leaders.",
+    "players": {
+      "title": "Pour les joueurs",
+      "points": {
+        "verify": "Affichez vos personnages avec des données de profil fiables",
+        "apply": "Trouvez des runs adaptés à vos objectifs",
+        "progress": "Candidatez avec des détails de personnage clairs",
+        "groups": "Suivez vos candidatures et runs assignés",
+        "updates": "Suivez les groupes et restez à jour"
+      }
+    },
+    "leaders": {
+      "title": "Pour les leaders de groupe",
+      "points": {
+        "recruit": "Étudiez les candidats avec le contexte personnage",
+        "manage": "Construisez rosters, bancs, hosts et raid leads",
+        "schedule": "Planifiez des runs publics, privés et ouverts aux invités",
+        "communicate": "Gérez membres, rôles et demandes",
+        "ready": "Reliez historique des runs et notifications"
+      }
+    },
+    "cta_text": "Du premier pull au clear final. Votre groupe est prêt.",
+    "cta_action": "Commencer aujourd'hui"
+  },
+  "footer": {
+    "copyright": "FullParty. Tous droits réservés.",
+    "privacy": "Politique de confidentialité",
+    "cookies": "Politique relative aux cookies",
+    "discord": "Discord"
+  },
+  "this_week": {
+    "title": "Cette semaine",
+    "date_range": "19 mai - 25 mai 2026",
+    "previous": "Semaine précédente",
+    "next": "Semaine suivante",
+    "today": "Aujourd'hui",
+    "more_runs_action": "Plus de runs",
+    "empty_day": "Aucun run public.",
+    "more_runs": "+{count} runs en plus",
+    "days": {
+      "mon": "Lun",
+      "tue": "Mar",
+      "wed": "Mer",
+      "thu": "Jeu",
+      "fri": "Ven",
+      "sat": "Sam",
+      "sun": "Dim"
+    },
+    "styles": {
+      "savage": "Sadique",
+      "ultimate": "Fatal",
+      "unknown": "Run"
+    },
+    "applications": {
+      "open": "Candidatures ouvertes",
+      "closed": "Candidatures fermées"
+    }
+  }
+}

@@ -1,0 +1,103 @@
+{
+  "nav": {
+    "home": "FullParty home",
+    "features": "Features",
+    "this_week": "This Week",
+    "players": "For Players",
+    "leaders": "For Leaders",
+    "discord": "Discord"
+  },
+  "hero": {
+    "badge": "Built by raiders. For the whole community.",
+    "title_prefix": "The real endgame is ",
+    "title_accent": "Organization",
+    "subtitle": "The All-in-One hub for raid scheduling, static recruitment and community.",
+    "primary_action": "Start Your First Run",
+    "secondary_action": "Explore Features",
+    "trust_badges": {
+      "ffxiv": "Built for FFXIV",
+      "raiders": "Trusted by Raiders",
+      "communities": "Great for large communities"
+    },
+    "separator": "Everything you need to run high-end content"
+  },
+  "features": {
+    "items": {
+      "applications": {
+        "title": "Applications & Review",
+        "description": "Collect structured signups, compare applicants, and make roster decisions without losing context."
+      },
+      "rosters": {
+        "title": "Roster Building",
+        "description": "Assign approved players into clear slots, bench backups, hosts, and raid leads for every run."
+      },
+      "groups": {
+        "title": "Group Management",
+        "description": "Manage members, moderators, invites, discovery settings, notes, and permissions in one place."
+      },
+      "scheduling": {
+        "title": "Run Scheduling",
+        "description": "Plan high-end content with dates, requirements, visibility, applications, and guest-friendly options."
+      }
+    }
+  },
+  "audience": {
+    "title": "Better for Players. Better for Leaders.",
+    "players": {
+      "title": "For Players",
+      "points": {
+        "verify": "Show your characters with trusted profile data",
+        "apply": "Find runs that match your goals",
+        "progress": "Apply with clear character details",
+        "groups": "Track your applications and assigned runs",
+        "updates": "Follow groups and stay up to date"
+      }
+    },
+    "leaders": {
+      "title": "For Group Leaders",
+      "points": {
+        "recruit": "Review applicants with character context",
+        "manage": "Build rosters, benches, hosts, and raid leads",
+        "schedule": "Schedule public, private, and guest-friendly runs",
+        "communicate": "Manage members, roles, and requests",
+        "ready": "Keep run history and notifications connected"
+      }
+    },
+    "cta_text": "From first pull to final clear. We've got your party.",
+    "cta_action": "Get Started Today"
+  },
+  "footer": {
+    "copyright": "FullParty. All rights reserved.",
+    "privacy": "Privacy Policy",
+    "cookies": "Cookie Policy",
+    "discord": "Discord"
+  },
+  "this_week": {
+    "title": "This Week",
+    "date_range": "May 19 - May 25, 2026",
+    "previous": "Previous week",
+    "next": "Next week",
+    "today": "Today",
+    "more_runs_action": "More Runs",
+    "empty_day": "No public runs.",
+    "more_runs": "+{count} more runs",
+    "days": {
+      "mon": "Mon",
+      "tue": "Tue",
+      "wed": "Wed",
+      "thu": "Thu",
+      "fri": "Fri",
+      "sat": "Sat",
+      "sun": "Sun"
+    },
+    "styles": {
+      "savage": "Savage",
+      "ultimate": "Ultimate",
+      "unknown": "Run"
+    },
+    "applications": {
+      "open": "Applications Open",
+      "closed": "Applications Closed"
+    }
+  }
+}
