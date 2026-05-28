@@ -164,6 +164,10 @@ class GroupUserNoteVisibilityService
                     'id' => $addendum->id,
                     'body' => $addendum->body,
                     'created_at' => $addendum->created_at?->toIso8601String(),
+                    'permissions' => [
+                        'can_edit_body' => !$includeSourceGroup && $addendum->author_user_id === $currentUserId,
+                        'can_delete' => !$includeSourceGroup && $addendum->author_user_id === $currentUserId,
+                    ],
                     'author' => $addendum->author ? [
                         'id' => $addendum->author->id,
                         'name' => $addendum->author->name,

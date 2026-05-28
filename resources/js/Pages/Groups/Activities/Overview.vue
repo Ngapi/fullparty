@@ -7,6 +7,7 @@ import SeoHead from "@/components/Shared/SeoHead.vue";
 import PageHeader from "@/components/PageHeader.vue";
 import ActivityAttendeeRosterBoard from "@/components/Groups/Activities/ActivityAttendeeRosterBoard.vue";
 import ActivityCompletionSummaryPanel from "@/components/Groups/Activities/ActivityCompletionSummaryPanel.vue";
+import ActivityOverviewInfoPanel from "@/components/Groups/Activities/ActivityOverviewInfoPanel.vue";
 import ActivityRosterSummaryPanel from "@/components/Groups/Activities/ActivityRosterSummaryPanel.vue";
 import { localizedValue } from "@/utils/localizedValue";
 import { getActivityStatusMeta } from "@/utils/activityStatusMeta";
@@ -122,12 +123,6 @@ const targetProgPointLabel = computed(() => {
 		|| t("groups.activities.overview.details.no_target_prog_point");
 });
 
-const guestApplicationsLabel = computed(() => t(
-	props.activity.allow_guest_applications
-		? "groups.activities.create.summary.guest_applications_enabled"
-		: "groups.activities.create.summary.guest_applications_disabled"
-));
-
 const difficultyLabel = computed(() => props.activity.difficulty
 	? t(`groups.activities.difficulties.${props.activity.difficulty}`)
 	: "—");
@@ -226,7 +221,7 @@ const goToManagementPage = () => {
 			:title="activityTitle"
 			:subtitle="t('groups.activities.overview.subtitle', { group: group.name, type: activityTypeName })"
 		>
-			<div class="flex flex-wrap items-center justify-end gap-2">
+			<div class="flex flex-wrap items-center justify-center gap-2 xl:justify-end">
 				<UBadge
 					size="md"
 					variant="subtle"
@@ -254,134 +249,32 @@ const goToManagementPage = () => {
 		</PageHeader>
 
 		<div class="mt-6 flex flex-col gap-6">
-			<section class="border border-default bg-muted/20 dark:bg-elevated/25">
-				<div class="grid gap-px md:grid-cols-2 xl:grid-cols-5">
-					<div class=" px-4 py-4">
-						<p class="text-xs uppercase tracking-[0.22em] text-muted">{{ t("groups.activities.management.type") }}</p>
-						<p class="mt-2 break-words [overflow-wrap:anywhere] font-semibold text-toned">{{ activityTypeName }}</p>
-					</div>
-
-					<div class="bg-background px-4 py-4">
-						<p class="text-xs uppercase tracking-[0.22em] text-muted">{{ t("groups.activities.create.summary.starts_at_st") }}</p>
-						<p class="mt-2 break-words [overflow-wrap:anywhere] font-semibold text-toned">{{ serverStartsAtLabel }}</p>
-						<p class="mt-1 text-sm text-muted">{{ durationLabel }}</p>
-					</div>
-
-					<div class="bg-background px-4 py-4">
-						<p class="text-xs uppercase tracking-[0.22em] text-muted">{{ t("groups.activities.create.summary.starts_at_local", { timezone: localTimeZone }) }}</p>
-						<p class="mt-2 break-words [overflow-wrap:anywhere] font-semibold text-toned">{{ localStartsAtLabel }}</p>
-						<p class="mt-1 text-sm text-muted">{{ durationLabel }}</p>
-					</div>
-
-					<div class="bg-background px-4 py-4">
-						<p class="text-xs uppercase tracking-[0.22em] text-muted">{{ t("groups.activities.management.organizer") }}</p>
-						<div class="mt-2">
-							<UUser
-								v-if="activity.organized_by_character"
-								size="sm"
-								:name="activity.organized_by_character.name"
-								:avatar="activity.organized_by_character.avatar_url
-									? {
-										src: activity.organized_by_character.avatar_url,
-										alt: activity.organized_by_character.name,
-									}
-									: undefined"
-								:description="group.name"
-							/>
-							<div v-else class="flex items-center gap-3">
-								<UAvatar
-									v-if="activity.organized_by?.avatar_url"
-									size="sm"
-									:src="activity.organized_by.avatar_url"
-									:alt="organizerLabel"
-								/>
-								<div class="min-w-0">
-									<p class="break-words [overflow-wrap:anywhere] font-semibold text-toned">{{ organizerLabel }}</p>
-									<p class="mt-1 break-words [overflow-wrap:anywhere] text-sm text-muted">{{ group.name }}</p>
-								</div>
-							</div>
-						</div>
-					</div>
-
-					<div class="bg-background px-4 py-4">
-						<p class="text-xs uppercase tracking-[0.22em] text-muted">{{ t("groups.activities.overview.meta.roster") }}</p>
-						<p class="mt-2 font-semibold text-toned">
-							{{ t("groups.activities.overview.meta.filled_slots", { assigned: assignedMainSlotCount, total: mainSlots.length }) }}
-						</p>
-						<p class="mt-1 text-sm text-muted">
-							{{ t("groups.activities.overview.meta.bench_slots", { count: benchSlots.length }) }}
-						</p>
-					</div>
-				</div>
-
-				<div class="grid gap-px border-t border-default md:grid-cols-2 xl:grid-cols-5">
-					<div class="bg-background px-4 py-4">
-						<p class="text-xs uppercase tracking-[0.22em] text-muted">{{ t("groups.activities.create.summary.datacenter") }}</p>
-						<p class="mt-2 font-semibold text-toned">{{ activity.datacenter || "—" }}</p>
-					</div>
-
-					<div class="bg-background px-4 py-4">
-						<p class="text-xs uppercase tracking-[0.22em] text-muted">{{ t("groups.activities.create.summary.difficulty") }}</p>
-						<p class="mt-2 font-semibold text-toned">{{ difficultyLabel }}</p>
-					</div>
-
-					<div class="bg-background px-4 py-4">
-						<p class="text-xs uppercase tracking-[0.22em] text-muted">{{ t("groups.activities.create.summary.run_style") }}</p>
-						<p class="mt-2 font-semibold text-toned">{{ runStyleLabel }}</p>
-					</div>
-
-					<div class="bg-background px-4 py-4">
-						<p class="text-xs uppercase tracking-[0.22em] text-muted">{{ t("groups.activities.create.summary.intensity") }}</p>
-						<p class="mt-2 font-semibold text-toned">{{ intensityLabel }}</p>
-					</div>
-
-					<div class="bg-background px-4 py-4">
-						<p class="text-xs uppercase tracking-[0.22em] text-muted">{{ t("groups.activities.create.summary.min_item_level") }}</p>
-						<p class="mt-2 font-semibold text-toned">{{ minimumItemLevelLabel }}</p>
-						<p class="mt-1 text-sm text-muted">{{ t("groups.activities.create.summary.beginner_friendly") }}: {{ beginnerFriendlyLabel }}</p>
-					</div>
-				</div>
-
-				<div class="grid gap-px border-t border-default md:grid-cols-2 xl:grid-cols-5">
-					<div
-						class="bg-background px-4 py-4"
-					>
-						<p class="text-xs uppercase tracking-[0.22em] text-muted">{{ t("groups.activities.overview.details.description") }}</p>
-						<p class="mt-2 break-words [overflow-wrap:anywhere] whitespace-pre-wrap text-sm text-toned">
-							{{ activity.description || t("groups.activities.overview.details.no_description") }}
-						</p>
-					</div>
-
-					<div
-						class="bg-background px-4 py-4"
-					>
-						<p class="text-xs uppercase tracking-[0.22em] text-muted">{{ t("groups.activities.create.summary.notes") }}</p>
-						<p class="mt-2 break-words [overflow-wrap:anywhere] whitespace-pre-wrap text-sm text-muted">
-							{{ activity.notes || t("groups.activities.create.summary.no_notes") }}
-						</p>
-					</div>
-
-					<div class="bg-background px-4 py-4">
-						<p class="text-xs uppercase tracking-[0.22em] text-muted">{{ t("groups.activities.overview.details.target_prog_point") }}</p>
-						<p class="mt-2 font-semibold text-toned">{{ targetProgPointLabel }}</p>
-					</div>
-
-					<div class="bg-background px-4 py-4">
-						<p class="text-xs uppercase tracking-[0.22em] text-muted">{{ t("groups.activities.create.summary.duration") }}</p>
-						<p class="mt-2 font-semibold text-toned">{{ durationLabel }}</p>
-					</div>
-
-					<div v-if="activity.allow_guest_applications" class="bg-background px-4 py-4">
-						<p class="text-xs uppercase tracking-[0.22em] text-muted">{{ t("groups.activities.overview.details.guest_applications") }}</p>
-						<p class="mt-2 font-semibold text-toned">{{ guestApplicationsLabel }}</p>
-					</div>
-
-					<div v-else class="bg-background px-4 py-4">
-						<p class="text-xs uppercase tracking-[0.22em] text-muted">{{ t("groups.activities.overview.details.pending_applications") }}</p>
-						<p class="mt-2 font-semibold text-toned">{{ t("groups.activities.overview.meta.pending_applications", { count: activity.pending_application_count }) }}</p>
-					</div>
-				</div>
-			</section>
+			<ActivityOverviewInfoPanel
+				:activity-type-name="activityTypeName"
+				:server-starts-at-label="serverStartsAtLabel"
+				:local-starts-at-label="localStartsAtLabel"
+				:local-time-zone="localTimeZone"
+				:duration-label="durationLabel"
+				:datacenter="activity.datacenter"
+				:organizer-label="organizerLabel"
+				:organizer-character="activity.organized_by_character"
+				:organizer-avatar-url="activity.organized_by?.avatar_url ?? null"
+				:group-name="group.name"
+				:assigned-main-slot-count="assignedMainSlotCount"
+				:main-slot-count="mainSlots.length"
+				:bench-slot-count="benchSlots.length"
+				:difficulty-label="difficultyLabel"
+				:run-style-label="runStyleLabel"
+				:intensity-label="intensityLabel"
+				:minimum-item-level-label="minimumItemLevelLabel"
+				:beginner-friendly-label="beginnerFriendlyLabel"
+				:description="activity.description"
+				:notes="activity.notes"
+				:target-prog-point-label="targetProgPointLabel"
+				detail-mode="application"
+				:allow-guest-applications="activity.allow_guest_applications"
+				:pending-application-count="activity.pending_application_count"
+			/>
 
 			<ActivityCompletionSummaryPanel
 				v-if="completedProgression"

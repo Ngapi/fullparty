@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { MemberNote } from "@/Types/Groups";
 import { memberNoteLimits } from "@/utils/memberNoteLimits";
+import { ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { useMemberNotes } from "@/composables/useMemberNotes";
 import { createDateTimeFormatter } from "@/utils/dateTimeFormat";
@@ -20,10 +21,14 @@ const {
 	noteForm,
 	noteUpdateForm,
 	addendumForm,
+	addendumUpdateForm,
 	noteDeleteForm,
+	addendumDeleteForm,
 	editingNoteId,
 	addendumNoteId,
+	editingAddendumId,
 	pendingDeleteNoteId,
+	pendingDeleteAddendumId,
 	handleNotesModalOpenChange,
 	openEditNote,
 	cancelEditNote,
@@ -31,9 +36,18 @@ const {
 	openAddendum,
 	cancelAddendum,
 	submitAddendum,
+	openEditAddendum,
+	cancelEditAddendum,
+	submitAddendumUpdate,
+	removeAddendum,
 	removeNote,
 	submitNote,
 } = props.notes;
+const isNoteFormOpen = ref(false);
+
+watch(() => member.value?.id, () => {
+	isNoteFormOpen.value = false;
+});
 
 const formatDate = (value: string | null) => {
 	if (!value) {
@@ -90,8 +104,8 @@ const severityBorderClass = (severity: MemberNote['severity']) => ({
 					<USkeleton class="h-6 w-32" />
 				</div>
 
-				<div class="flex w-full flex-row items-start justify-start gap-6">
-					<section class="flex w-2/5 flex-col gap-4">
+				<div class="flex w-full flex-col items-start justify-start gap-6 xl:flex-row">
+					<section class="flex w-full flex-col gap-4 xl:w-2/5">
 						<UCard class="dark:bg-elevated/25">
 							<div class="flex flex-col gap-4">
 								<USkeleton class="h-10 w-full" />
@@ -102,7 +116,7 @@ const severityBorderClass = (severity: MemberNote['severity']) => ({
 						</UCard>
 					</section>
 
-					<section class="flex w-3/5 min-w-0 flex-col gap-4">
+					<section class="flex w-full min-w-0 flex-col gap-4 xl:w-3/5">
 						<USkeleton class="h-32 w-full" />
 						<USkeleton class="h-32 w-full" />
 						<USkeleton class="h-24 w-full" />
@@ -162,9 +176,22 @@ const severityBorderClass = (severity: MemberNote['severity']) => ({
 					</p>
 				</div>
 
-				<div class="flex max-h-[75vh] w-full flex-row items-start justify-start gap-6">
-					<section class="w-2/5 flex flex-col gap-4">
-						<UCard v-if="member.notes.can_add" class="dark:bg-elevated/25">
+				<div class="flex w-full flex-col items-stretch justify-start gap-6 xl:max-h-[75vh] xl:flex-row xl:items-start">
+					<section class="flex w-full flex-col gap-4 xl:w-2/5">
+						<UButton
+							v-if="member.notes.can_add && !isNoteFormOpen"
+							color="primary"
+							variant="subtle"
+							icon="i-lucide-notebook-pen"
+							class="justify-center xl:hidden"
+							:label="t('groups.members.notes.create.title')"
+							@click="isNoteFormOpen = true"
+						/>
+
+						<UCard
+							v-if="member.notes.can_add"
+							:class="['dark:bg-elevated/25', isNoteFormOpen ? 'block' : 'hidden xl:block']"
+						>
 							<div class="flex flex-col gap-4">
 								<UFormField
 									:label="t('general.severity')"
@@ -215,7 +242,7 @@ const severityBorderClass = (severity: MemberNote['severity']) => ({
 						</UCard>
 					</section>
 
-					<section class="w-3/5 min-w-0 max-h-[75vh] overflow-y-auto pr-2 flex flex-col gap-6">
+					<section class="flex w-full min-w-0 flex-col gap-6 xl:max-h-[75vh] xl:w-3/5 xl:overflow-y-auto xl:pr-2">
 						<div class="flex flex-col gap-3">
 							<div>
 								<p class="font-semibold text-md">{{ t('groups.members.notes.sections.current_group.title') }}</p>
@@ -357,7 +384,65 @@ const severityBorderClass = (severity: MemberNote['severity']) => ({
 														date: formatDate(addendum.created_at),
 													}) }}
 												</p>
-												<p class="mt-1 whitespace-pre-wrap text-sm text-toned">{{ addendum.body }}</p>
+
+												<div v-if="editingAddendumId === addendum.id" class="mt-2 flex flex-col gap-3">
+													<UFormField
+														:label="t('groups.members.notes.addenda.form.label')"
+														:error="addendumUpdateForm.errors.body"
+													>
+														<UTextarea
+															v-model="addendumUpdateForm.body"
+															class="w-full"
+															:rows="4"
+															:maxlength="memberNoteLimits.addendum"
+															:placeholder="t('groups.members.notes.addenda.form.placeholder')"
+														/>
+													</UFormField>
+
+													<div class="flex flex-wrap justify-end gap-2">
+														<UButton
+															color="neutral"
+															variant="ghost"
+															size="sm"
+															:label="t('general.cancel')"
+															@click="cancelEditAddendum"
+														/>
+														<UButton
+															color="primary"
+															icon="i-lucide-save"
+															size="sm"
+															:label="t('general.save')"
+															:loading="addendumUpdateForm.processing"
+															@click="submitAddendumUpdate(addendum)"
+														/>
+													</div>
+												</div>
+
+												<template v-else>
+													<p class="mt-1 whitespace-pre-wrap text-sm text-toned">{{ addendum.body }}</p>
+
+													<div v-if="addendum.permissions.can_edit_body || addendum.permissions.can_delete" class="mt-2 flex flex-wrap items-center gap-2">
+														<UButton
+															v-if="addendum.permissions.can_edit_body"
+															color="neutral"
+															variant="soft"
+															size="sm"
+															icon="i-lucide-pencil"
+															:label="t('general.edit')"
+															@click="openEditAddendum(addendum)"
+														/>
+														<UButton
+															v-if="addendum.permissions.can_delete"
+															color="error"
+															variant="ghost"
+															size="sm"
+															icon="i-lucide-trash-2"
+															:label="t('general.delete')"
+															:loading="addendumDeleteForm.processing && pendingDeleteAddendumId === addendum.id"
+															@click="removeAddendum(addendum)"
+														/>
+													</div>
+												</template>
 											</div>
 										</div>
 

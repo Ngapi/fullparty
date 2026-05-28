@@ -130,6 +130,8 @@
     "note_updated": "Member note updated.",
     "note_deleted": "Member note deleted.",
     "note_addendum_added": "Context added to note.",
+    "note_addendum_updated": "Note context updated.",
+    "note_addendum_deleted": "Note context deleted.",
     "promoted": "Member role promoted.",
     "demoted": "Member role demoted.",
     "removed": "Member removed from the group.",

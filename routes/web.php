@@ -334,6 +334,8 @@ Route::prefix('{locale?}')
             Route::put('/groups/{group:slug}/member-notes/{note}', [GroupMemberNoteController::class, 'update'])->name('groups.members.notes.update');
             Route::delete('/groups/{group:slug}/member-notes/{note}', [GroupMemberNoteController::class, 'destroy'])->name('groups.members.notes.destroy');
             Route::post('/groups/{group:slug}/member-notes/{note}/addenda', [GroupMemberNoteController::class, 'storeAddendum'])->name('groups.members.notes.addenda.store');
+            Route::put('/groups/{group:slug}/member-note-addenda/{addendum}', [GroupMemberNoteController::class, 'updateAddendum'])->name('groups.members.notes.addenda.update');
+            Route::delete('/groups/{group:slug}/member-note-addenda/{addendum}', [GroupMemberNoteController::class, 'destroyAddendum'])->name('groups.members.notes.addenda.destroy');
 
             // Invite management and acceptance.
             Route::post('/groups/{group:slug}/invites', [GroupInviteController::class, 'store'])->name('groups.invites.store');

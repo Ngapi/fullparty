@@ -144,53 +144,70 @@ const formatTimestamp = (value: string) => createDateTimeFormatter(undefined, {
 </script>
 
 <template>
-	<UCard class="dark:bg-elevated/25">
+	<UCard
+		class="dark:bg-elevated/25"
+		:ui="{ body: 'p-3 sm:p-4' }"
+	>
 		<div class="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
 			<div class="min-w-0 flex-1">
-				<div class="flex items-start gap-4">
-					<UUser
-						:name="row.actor.name"
-						size="lg"
-						:avatar="{
-							src: row.actor.avatar_url ?? undefined,
-							icon: row.actor.is_system ? 'i-lucide-cpu' : 'i-lucide-user-round',
-							alt: row.actor.name,
-						}"
-					/>
+				<div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:gap-4">
+					<div class="flex items-start justify-between gap-3 sm:block">
+						<UUser
+							class="min-w-0"
+							:name="row.actor.name"
+							size="lg"
+							:avatar="{
+								src: row.actor.avatar_url ?? undefined,
+								icon: row.actor.is_system ? 'i-lucide-cpu' : 'i-lucide-user-round',
+								alt: row.actor.name,
+							}"
+						/>
+
+						<div class="shrink-0 text-right sm:hidden">
+							<p class="text-xs font-medium text-toned">{{ formatTimestamp(row.created_at) }}</p>
+							<p class="mt-0.5 text-[11px] text-muted">{{ t('audit_log.list.recorded_event') }}</p>
+						</div>
+					</div>
 					<div class="min-w-0 flex-1 pt-1">
-						<div class="flex flex-wrap items-center gap-2">
+						<div class="flex items-start gap-2">
 							<div
-								class="inline-flex h-8 w-8 items-center justify-center rounded-full ring-1"
+								class="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full ring-1"
 								:class="actionStyle.bgClass"
 							>
 								<UIcon :name="actionStyle.icon" class="text-base" :class="actionStyle.textClass" />
 							</div>
-							<p class="text-sm text-toned">
-								<span class="font-semibold">{{ row.actor.name }}</span>
-								<span class="ml-1" :class="actionStyle.textClass">{{ actionText }}</span>
-								<span v-if="showAffectedUser" class="ml-1 font-semibold text-toned">{{ row.subject.name }}</span>
-								<span v-if="showNamedSubject" class="ml-1 font-semibold text-toned">{{ row.subject.name }}</span>
-								<span v-if="scopeSuffix" class="ml-1 text-muted">{{ scopeSuffix }}</span>
-							</p>
-							<UBadge
-								:label="severityBadge.label"
-								:color="severityBadge.color"
-								:icon="severityBadge.icon"
-								variant="subtle"
-								size="sm"
-							/>
-							<UBadge
-								v-if="showScope && row.scope?.type"
-								:label="scopeBadge.label"
-								:color="scopeBadge.color"
-								variant="soft"
-								size="sm"
-							/>
+
+							<div class="min-w-0 flex-1">
+								<p class="break-words text-sm text-toned [overflow-wrap:anywhere]">
+									<span class="font-semibold">{{ row.actor.name }}</span>
+									<span class="ml-1" :class="actionStyle.textClass">{{ actionText }}</span>
+									<span v-if="showAffectedUser" class="ml-1 font-semibold text-toned">{{ row.subject.name }}</span>
+									<span v-if="showNamedSubject" class="ml-1 font-semibold text-toned">{{ row.subject.name }}</span>
+									<span v-if="scopeSuffix" class="ml-1 text-muted">{{ scopeSuffix }}</span>
+								</p>
+
+								<div class="mt-2 flex flex-wrap items-center gap-2">
+									<UBadge
+										:label="severityBadge.label"
+										:color="severityBadge.color"
+										:icon="severityBadge.icon"
+										variant="subtle"
+										size="sm"
+									/>
+									<UBadge
+										v-if="showScope && row.scope?.type"
+										:label="scopeBadge.label"
+										:color="scopeBadge.color"
+										variant="soft"
+										size="sm"
+									/>
+								</div>
+							</div>
 						</div>
 
 						<div
 							v-if="row.changes.length"
-							class="mt-4 rounded-xl border border-default/70 bg-muted/15 p-3"
+							class="mt-4 rounded-sm border border-default/70 bg-muted/15 p-3"
 						>
 							<div class="flex items-center justify-between gap-3">
 								<p class="text-xs font-semibold uppercase tracking-wide text-muted">
@@ -213,14 +230,14 @@ const formatTimestamp = (value: string) => createDateTimeFormatter(undefined, {
 								<div
 									v-for="change in row.changes"
 									:key="`${row.id}-${change.label}`"
-									class="rounded-lg border border-default/70 bg-default/30 p-3"
+									class="rounded-sm border border-default/70 bg-default/30 p-3"
 								>
-									<p class="text-sm font-medium text-toned">{{ change.label }}</p>
+									<p class="break-words text-sm font-medium text-toned [overflow-wrap:anywhere]">{{ change.label }}</p>
 									<div class="mt-2 space-y-2">
-										<div class="rounded-md bg-error/10 px-3 py-2 font-mono text-sm text-error">
+										<div class="whitespace-pre-wrap break-words rounded-sm bg-error/10 px-3 py-2 font-mono text-xs text-error [overflow-wrap:anywhere] sm:text-sm">
 											<span class="mr-2 opacity-80">-</span>{{ change.old }}
 										</div>
-										<div class="rounded-md bg-success/10 px-3 py-2 font-mono text-sm text-success">
+										<div class="whitespace-pre-wrap break-words rounded-sm bg-success/10 px-3 py-2 font-mono text-xs text-success [overflow-wrap:anywhere] sm:text-sm">
 											<span class="mr-2 opacity-80">+</span>{{ change.new }}
 										</div>
 									</div>
@@ -230,12 +247,12 @@ const formatTimestamp = (value: string) => createDateTimeFormatter(undefined, {
 
 						<div
 							v-if="detailLines.length"
-							class="mt-4 rounded-xl border border-default/70 bg-muted/15 p-3"
+							class="mt-4 rounded-sm border border-default/70 bg-muted/15 p-3"
 						>
 							<div class="flex items-center justify-between gap-3">
-							<p class="text-xs font-semibold uppercase tracking-wide text-muted">
-								{{ t('audit_log.list.details') }}
-							</p>
+								<p class="text-xs font-semibold uppercase tracking-wide text-muted">
+									{{ t('audit_log.list.details') }}
+								</p>
 
 								<UButton
 									color="neutral"
@@ -249,13 +266,13 @@ const formatTimestamp = (value: string) => createDateTimeFormatter(undefined, {
 								/>
 							</div>
 
-							<pre v-if="detailsExpanded" class="mt-3 overflow-x-auto rounded-lg bg-default/30 px-3 py-3 font-mono text-xs leading-6 text-toned"><code>{{ detailLines.join('\n') }}</code></pre>
+							<pre v-if="detailsExpanded" class="mt-3 max-w-full overflow-x-auto rounded-sm bg-default/30 px-3 py-3 font-mono text-xs leading-6 text-toned"><code>{{ detailLines.join('\n') }}</code></pre>
 						</div>
 					</div>
 				</div>
 			</div>
 
-			<div class="shrink-0 lg:pt-1 lg:text-right">
+			<div class="hidden shrink-0 sm:block lg:pt-1 lg:text-right">
 				<p class="text-sm font-medium text-toned">{{ formatTimestamp(row.created_at) }}</p>
 				<p class="mt-1 text-xs text-muted">{{ t('audit_log.list.recorded_event') }}</p>
 			</div>

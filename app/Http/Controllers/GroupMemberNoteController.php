@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Group;
 use App\Models\GroupUserNote;
+use App\Models\GroupUserNoteAddendum;
 use App\Models\User;
 use App\Services\AuditLogger;
 use App\Services\Groups\GroupUserNoteVisibilityService;
@@ -238,6 +239,84 @@ class GroupMemberNoteController extends Controller
         );
 
         return redirect()->back()->with('success', 'group_member_note_addendum_created');
+    }
+
+    public function updateAddendum(Request $request, Group $group, GroupUserNoteAddendum $addendum): RedirectResponse
+    {
+        $group->loadMissing(['memberships']);
+        $addendum->loadMissing(['note.user']);
+        $this->authorizeModeratorAccess($group);
+        $this->authorizeCurrentGroupNote($group, $addendum->note);
+
+        if ($addendum->author_user_id !== auth()->id()) {
+            abort(403);
+        }
+
+        $this->requestTextInputSanitizer->sanitize($request, [], ['body']);
+
+        $validated = $request->validate([
+            'body' => ['required', 'string', 'max:'.GroupUserNote::ADDENDUM_MAX_LENGTH],
+        ]);
+
+        $previousBody = $addendum->body;
+        $addendum->update([
+            'body' => $validated['body'],
+        ]);
+
+        $this->auditLogger->log(
+            action: 'group.member.note.addendum.updated',
+            severity: $this->resolveAuditSeverity($addendum->note->severity),
+            scopeType: AuditScope::GROUP,
+            scopeId: $group->id,
+            message: 'audit_log.events.group.member.note.addendum.updated',
+            actor: auth()->user(),
+            subject: $addendum->note->user,
+            metadata: [
+                'note_severity' => $addendum->note->severity,
+                'note_excerpt' => Str::limit($addendum->note->body, 80),
+                'changes' => [
+                    'addendum_excerpt' => [
+                        'old' => Str::limit($previousBody, 120),
+                        'new' => Str::limit($addendum->body, 120),
+                    ],
+                ],
+            ],
+        );
+
+        return redirect()->back()->with('success', 'group_member_note_addendum_updated');
+    }
+
+    public function destroyAddendum(Group $group, GroupUserNoteAddendum $addendum): RedirectResponse
+    {
+        $group->loadMissing(['memberships']);
+        $addendum->loadMissing(['note.user']);
+        $this->authorizeModeratorAccess($group);
+        $this->authorizeCurrentGroupNote($group, $addendum->note);
+
+        if ($addendum->author_user_id !== auth()->id()) {
+            abort(403);
+        }
+
+        $note = $addendum->note;
+        $addendumExcerpt = Str::limit($addendum->body, 120);
+        $addendum->delete();
+
+        $this->auditLogger->log(
+            action: 'group.member.note.addendum.deleted',
+            severity: $this->resolveAuditSeverity($note->severity),
+            scopeType: AuditScope::GROUP,
+            scopeId: $group->id,
+            message: 'audit_log.events.group.member.note.addendum.deleted',
+            actor: auth()->user(),
+            subject: $note->user,
+            metadata: [
+                'note_severity' => $note->severity,
+                'note_excerpt' => Str::limit($note->body, 80),
+                'addendum_excerpt' => $addendumExcerpt,
+            ],
+        );
+
+        return redirect()->back()->with('success', 'group_member_note_addendum_deleted');
     }
 
     private function authorizeModeratorAccess(Group $group): void

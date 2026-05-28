@@ -49,6 +49,7 @@ const filters = ref({
 });
 const chunkSize = 6;
 const visibleCount = ref(chunkSize);
+const filtersOpen = ref(false);
 const sentinel = useTemplateRef('sentinel');
 let observer: IntersectionObserver | null = null;
 
@@ -88,6 +89,15 @@ const filteredRows = computed(() => {
 });
 
 const visibleRows = computed(() => filteredRows.value.slice(0, visibleCount.value));
+
+const activeFilterCount = computed(() => [
+	filters.value.search.trim(),
+	filters.value.action !== '__all__',
+	filters.value.severity !== '__all__',
+	filters.value.user !== '__all__',
+	filters.value.beforeDate,
+	filters.value.afterDate,
+].filter(Boolean).length);
 
 const loadMore = () => {
 	if (visibleCount.value >= filteredRows.value.length) {
@@ -135,7 +145,89 @@ onBeforeUnmount(() => {
 		</PageHeader>
 
 		<div class="mt-4 flex flex-col gap-6">
-			<UCard class="dark:bg-elevated/25">
+			<UCard class="dark:bg-elevated/25 xl:hidden">
+				<UCollapsible
+					v-model:open="filtersOpen"
+					class="flex flex-col gap-4"
+				>
+					<div class="flex items-center justify-between gap-3">
+						<div class="min-w-0">
+							<p class="font-semibold text-toned">
+								{{ t('audit_log.filters.title') }}
+							</p>
+						</div>
+
+						<div class="flex shrink-0 items-center gap-2">
+							<UBadge
+								v-if="activeFilterCount > 0"
+								color="primary"
+								variant="subtle"
+								:label="String(activeFilterCount)"
+							/>
+							<UButton
+								color="neutral"
+								variant="ghost"
+								size="sm"
+								:icon="filtersOpen ? 'i-lucide-chevron-up' : 'i-lucide-chevron-down'"
+								:aria-label="t('audit_log.filters.title')"
+								@click="filtersOpen = !filtersOpen"
+							/>
+						</div>
+					</div>
+
+					<template #content>
+						<div class="grid grid-cols-1 gap-4 border-t border-default pt-4">
+							<UInput
+								v-model="filters.search"
+								icon="i-lucide-search"
+								class="w-full"
+								:placeholder="t('audit_log.filters.search_placeholder')"
+							/>
+							<USelect
+								v-model="filters.action"
+								:items="actionOptions"
+								value-key="value"
+								class="w-full"
+								:placeholder="t('audit_log.filters.action.label')"
+							/>
+							<USelect
+								v-model="filters.severity"
+								:items="severityOptions"
+								value-key="value"
+								class="w-full"
+								:placeholder="t('audit_log.filters.severity.label')"
+							/>
+							<USelect
+								v-model="filters.user"
+								:items="userOptions"
+								value-key="value"
+								class="w-full"
+								:placeholder="t('audit_log.filters.user.label')"
+							/>
+							<div class="space-y-1">
+								<label class="text-xs font-medium text-muted">{{ t('audit_log.filters.after_date.label') }}</label>
+								<UInput
+									v-model="filters.afterDate"
+									type="date"
+									class="w-full"
+									:placeholder="t('audit_log.filters.after_date.placeholder')"
+								/>
+							</div>
+							<div class="space-y-1">
+								<label class="text-xs font-medium text-muted">{{ t('audit_log.filters.before_date.label') }}</label>
+								<UInput
+									v-model="filters.beforeDate"
+									type="date"
+									class="w-full"
+									:placeholder="t('audit_log.filters.before_date.placeholder')"
+								/>
+							</div>
+						</div>
+					</template>
+				</UCollapsible>
+			</UCard>
+
+			<UCard class="hidden dark:bg-elevated/25 xl:block">
 				<div class="grid grid-cols-1 gap-4 xl:grid-cols-[1.45fr_repeat(3,minmax(0,1fr))_minmax(0,0.8fr)_minmax(0,0.8fr)]">
 					<UInput
 						v-model="filters.search"

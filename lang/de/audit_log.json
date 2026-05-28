@@ -16,6 +16,7 @@
     "false": "Falsch"
   },
   "filters": {
+    "title": "Filter",
     "search_placeholder": "Titel, Beschreibungen, Benutzer oder Aktionen durchsuchen",
     "any_action": "Beliebige Aktion",
     "any_severity": "Beliebige Schwere",
@@ -185,7 +186,9 @@
           "updated": "hat eine Mitgliedsnotiz aktualisiert.",
           "deleted": "hat eine Mitgliedsnotiz gelöscht.",
           "addendum": {
-            "created": "hat Notizkontext hinzugefügt."
+            "created": "hat Notizkontext hinzugefügt.",
+            "updated": "hat Notizkontext aktualisiert.",
+            "deleted": "hat Notizkontext gelöscht."
           }
         },
         "removed": "hat ein Mitglied aus der Gruppe entfernt.",
@@ -402,7 +405,9 @@
           "updated": "Mitgliedsnotiz aktualisiert",
           "deleted": "Mitgliedsnotiz gelöscht",
           "addendum": {
-            "created": "Notizkontext hinzugefügt"
+            "created": "Notizkontext hinzugefügt",
+            "updated": "Notizkontext aktualisiert",
+            "deleted": "Notizkontext gelöscht"
           }
         },
         "removed": "Mitglied aus Gruppe entfernt",

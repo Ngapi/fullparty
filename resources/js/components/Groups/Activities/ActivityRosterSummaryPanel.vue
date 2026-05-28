@@ -15,7 +15,7 @@ const { t, locale } = useI18n();
 const page = usePage();
 const fallbackLocale = computed(() => String(page.props.locale?.fallback ?? "en"));
 const selectedPresetKey = ref<string | null>(props.presets[0]?.key ?? null);
-const open = ref(true);
+const open = ref(false);
 
 const localizedText = (value: LocalizedText, fallback: string) => (
 	localizedValue(value, locale.value, fallbackLocale.value) || fallback

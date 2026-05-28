@@ -5,11 +5,14 @@ namespace App\Http\Controllers;
 use App\Models\SocialAccount;
 use App\Models\User;
 use App\Services\AuditLogger;
+use App\Services\Characters\XIVAuthCharacterSyncResult;
+use App\Services\Characters\XIVAuthCharacterSyncService;
 use App\Services\Notifications\AccountCharacterNotificationService;
 use App\Support\Audit\AuditScope;
 use App\Support\Audit\AuditSeverity;
 use App\Support\Auth\OAuthEmailVerification;
 use Carbon\Carbon;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
@@ -21,6 +24,7 @@ class XIVAuthController extends Controller
     public function __construct(
         private readonly AuditLogger $auditLogger,
         private readonly AccountCharacterNotificationService $accountCharacterNotificationService,
+        private readonly XIVAuthCharacterSyncService $xivAuthCharacterSyncService,
     ) {}
 
     public function redirect()
@@ -93,7 +97,12 @@ class XIVAuthController extends Controller
                 ],
             );
 
-            return redirect()->intended(route('dashboard'));
+            $syncResult = $this->xivAuthCharacterSyncService->syncMany(
+                $socialAccount->user,
+                $this->charactersFromProviderUser($xivauthUser),
+            );
+
+            return $this->redirectAfterLogin($syncResult);
         }
 
         $user = null;
@@ -196,7 +205,41 @@ class XIVAuthController extends Controller
             ],
         );
 
-        return redirect()->intended(route('dashboard'));
+        $syncResult = $this->xivAuthCharacterSyncService->syncMany(
+            $user,
+            $this->charactersFromProviderUser($xivauthUser),
+        );
+
+        return $this->redirectAfterLogin($syncResult);
+    }
+
+    private function redirectAfterLogin(XIVAuthCharacterSyncResult $syncResult): RedirectResponse
+    {
+        $response = redirect()->intended(route('dashboard'));
+
+        if (! $syncResult->hasConflicts()) {
+            return $response;
+        }
+
+        return $response->with('flash_data', [
+            'xivauth_character_sync' => [
+                'conflicts' => $syncResult->conflicts,
+            ],
+        ]);
+    }
+
+    /**
+     * @return array<int, mixed>
+     */
+    private function charactersFromProviderUser(object $xivauthUser): array
+    {
+        $characters = $xivauthUser->characters ?? null;
+
+        if ($characters === null && method_exists($xivauthUser, 'getRaw')) {
+            $characters = data_get($xivauthUser->getRaw(), 'characters', []);
+        }
+
+        return is_array($characters) ? $characters : [];
     }
 
     public static function getValidXivAuthAccessToken(SocialAccount $account): string

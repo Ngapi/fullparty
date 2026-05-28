@@ -16,6 +16,7 @@
     "false": "Faux"
   },
   "filters": {
+    "title": "Filtres",
     "search_placeholder": "Rechercher des titres, descriptions, utilisateurs ou actions",
     "any_action": "Toute action",
     "any_severity": "Toute gravité",
@@ -185,7 +186,9 @@
           "updated": "a mis à jour une note de membre.",
           "deleted": "a supprimé une note de membre.",
           "addendum": {
-            "created": "a ajouté du contexte à une note."
+            "created": "a ajouté du contexte à une note.",
+            "updated": "a mis à jour le contexte d'une note.",
+            "deleted": "a supprimé le contexte d'une note."
           }
         },
         "removed": "a retiré un membre du groupe.",
@@ -402,7 +405,9 @@
           "updated": "Note de membre mise à jour",
           "deleted": "Note de membre supprimée",
           "addendum": {
-            "created": "Contexte de note ajouté"
+            "created": "Contexte de note ajouté",
+            "updated": "Contexte de note mis à jour",
+            "deleted": "Contexte de note supprimé"
           }
         },
         "removed": "Membre retiré du groupe",

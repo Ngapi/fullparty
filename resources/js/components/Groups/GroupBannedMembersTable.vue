@@ -76,15 +76,15 @@ watch(bannedGlobalFilter, () => {
 <template>
 	<UCard class="w-full dark:bg-elevated/25">
 		<template #header>
-			<div class="flex flex-row items-center justify-between gap-4">
+			<div class="flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:justify-between">
 				<div class="flex flex-col gap-1">
 					<p class="font-semibold text-md">{{ t('groups.members.bans.title') }}</p>
 					<p class="text-sm text-muted">{{ t('groups.members.bans.subtitle') }}</p>
 				</div>
-				<div class="flex items-center gap-2">
+				<div class="flex w-full items-center gap-2 sm:w-auto">
 					<UInput
 						v-model="bannedGlobalFilter"
-						class="w-72"
+						class="min-w-0 flex-1 sm:w-72 sm:flex-none"
 						icon="i-lucide-search"
 						:placeholder="t('groups.members.bans.search_placeholder')"
 					/>

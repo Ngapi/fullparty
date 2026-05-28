@@ -64,6 +64,10 @@ export type MemberNoteAddendum = {
 	id: number
 	body: string
 	created_at: string | null
+	permissions: {
+		can_edit_body: boolean
+		can_delete: boolean
+	}
 	author: NoteAuthor
 }
 
@@ -471,6 +475,7 @@ export type MemberNotesTarget = {
 }
 
 export type GroupMemberTableRow = GroupMemberRecord & {
+	member_summary: string
 	character_summary: string
 }
 

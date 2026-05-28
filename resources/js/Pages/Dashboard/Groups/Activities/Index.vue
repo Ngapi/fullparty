@@ -6,6 +6,7 @@ import { useI18n } from "vue-i18n";
 import PageHeader from "@/components/PageHeader.vue";
 import ActivityUpcomingList from "@/components/Groups/Activities/ActivityUpcomingList.vue";
 import ActivityMonthCalendar from "@/components/Groups/Activities/ActivityMonthCalendar.vue";
+import ActivityResponsiveAgendaCalendar from "@/components/Groups/Activities/ActivityResponsiveAgendaCalendar.vue";
 import type { ActivityIndexItem } from "@/Types/ActivityCore";
 import { isArchivedActivityStatus } from "@/utils/activityLifecycle";
 
@@ -25,7 +26,7 @@ const props = defineProps<{
 const { t } = useI18n();
 const selectedDateKey = ref<string | null>(null);
 const desktopMediaQueryString = '(min-width: 1280px)';
-const shouldRenderUpcomingList = ref(
+const shouldRenderDesktopLayout = ref(
 	typeof window !== 'undefined'
 		? window.matchMedia(desktopMediaQueryString).matches
 		: false,
@@ -33,7 +34,7 @@ const shouldRenderUpcomingList = ref(
 let desktopMediaQuery: MediaQueryList | null = null;
 
 const syncDesktopLayout = () => {
-	shouldRenderUpcomingList.value = desktopMediaQuery?.matches ?? false;
+	shouldRenderDesktopLayout.value = desktopMediaQuery?.matches ?? false;
 };
 
 onMounted(() => {
@@ -73,32 +74,41 @@ const upcomingCount = computed(() => {
 
 <template>
 	<div class="w-full">
-		<PageHeader
-			:title="t('groups.activities.title')"
-			:subtitle="t('groups.activities.subtitle', { group: group.name })"
-		>
-			<div class="flex items-center gap-2">
-				<UBadge
-					size="lg"
-					variant="subtle"
-					class="min-w-44 justify-center py-2"
-					color="primary"
-					icon="i-lucide-calendar-range"
-					:label="t('groups.activities.header_badge', { count: upcomingCount })"
-				/>
-				<UButton
-					v-if="group.permissions.can_manage_activities"
-					color="neutral"
-					icon="i-lucide-plus"
-					:label="t('groups.activities.create.cta')"
-					@click="goToCreatePage"
-				/>
-			</div>
-		</PageHeader>
+		<div v-if="shouldRenderDesktopLayout" class="hidden xl:block">
+			<PageHeader
+				:title="t('groups.activities.title')"
+				:subtitle="t('groups.activities.subtitle', { group: group.name })"
+			>
+				<div class="flex items-center gap-2">
+					<UBadge
+						size="lg"
+						variant="subtle"
+						class="min-w-44 justify-center py-2"
+						color="primary"
+						icon="i-lucide-calendar-range"
+						:label="t('groups.activities.header_badge', { count: upcomingCount })"
+					/>
+					<UButton
+						v-if="group.permissions.can_manage_activities"
+						color="neutral"
+						icon="i-lucide-plus"
+						:label="t('groups.activities.create.cta')"
+						@click="goToCreatePage"
+					/>
+				</div>
+			</PageHeader>
+		</div>
 
-		<div class="mt-4 flex flex-col xl:flex-row items-start gap-6 ">
+		<div v-if="!shouldRenderDesktopLayout" class="xl:hidden">
+			<ActivityResponsiveAgendaCalendar
+				:group-slug="group.slug"
+				:can-manage-activities="group.permissions.can_manage_activities"
+				:activities="activities"
+			/>
+		</div>
+
+		<div v-if="shouldRenderDesktopLayout" class="mt-4 hidden items-start gap-6 xl:flex">
 			<ActivityUpcomingList
-				v-if="shouldRenderUpcomingList"
 				class="w-full xl:w-1/3"
 				:group-slug="group.slug"
 				:can-manage-activities="group.permissions.can_manage_activities"

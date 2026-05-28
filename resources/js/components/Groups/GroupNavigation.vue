@@ -37,6 +37,7 @@ const dashboardHref = computed(() => route('groups.dashboard', props.group.slug)
 const dashboardPath = computed(() => routePath('groups.dashboard'))
 const activitiesHref = computed(() => route('groups.dashboard.activities.index', props.group.slug))
 const activitiesPath = computed(() => routePath('groups.dashboard.activities.index'))
+const publicActivitiesPath = computed(() => `/groups/${props.group.slug}/activities/`)
 const statisticsHref = computed(() => route('groups.dashboard.statistics', props.group.slug))
 const statisticsPath = computed(() => routePath('groups.dashboard.statistics'))
 const leaderboardHref = computed(() => route('groups.dashboard.leaderboard', props.group.slug))
@@ -52,6 +53,7 @@ const discoverySettingsHref = computed(() => route('groups.dashboard.discovery-s
 const discoverySettingsPath = computed(() => routePath('groups.dashboard.discovery-settings'))
 const settingsHref = computed(() => route('groups.dashboard.settings', props.group.slug))
 const settingsPath = computed(() => routePath('groups.dashboard.settings'))
+const isPublicActivityRoute = computed(() => page.url.startsWith(publicActivitiesPath.value))
 
 const isManagementUser = computed(() => Boolean(
 	props.group.permissions?.can_manage_group
@@ -73,7 +75,7 @@ const leftitems = computed(() => [
 		label: t('groups.index.navigation.activities'),
 		icon: 'i-lucide-calendar-range',
 		href: activitiesHref.value,
-		active: isRouteActive(activitiesPath.value),
+		active: isRouteActive(activitiesPath.value) || isPublicActivityRoute.value,
 	},
 	{
 		label: t('groups.index.navigation.statistics'),
@@ -221,7 +223,7 @@ const memberMobileItems = computed(() => [
 		label: t('groups.index.navigation.activities'),
 		icon: 'i-lucide-swords',
 		href: activitiesHref.value,
-		active: isRouteActive(activitiesPath.value),
+		active: isRouteActive(activitiesPath.value) || isPublicActivityRoute.value,
 		primary: true,
 	},
 	{
@@ -259,7 +261,7 @@ const managerMobileItems = computed(() => [
 		label: t('groups.index.navigation.activities'),
 		icon: 'i-lucide-swords',
 		href: activitiesHref.value,
-		active: isRouteActive(activitiesPath.value),
+		active: isRouteActive(activitiesPath.value) || isPublicActivityRoute.value,
 		primary: true,
 	},
 	{

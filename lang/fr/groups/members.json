@@ -130,6 +130,8 @@
     "note_updated": "Note de membre mise à jour.",
     "note_deleted": "Note de membre supprimée.",
     "note_addendum_added": "Contexte ajouté à la note.",
+    "note_addendum_updated": "Contexte de note mis à jour.",
+    "note_addendum_deleted": "Contexte de note supprimé.",
     "promoted": "Rôle du membre promu.",
     "demoted": "Rôle du membre rétrogradé.",
     "removed": "Membre retiré du groupe.",

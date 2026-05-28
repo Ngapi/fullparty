@@ -130,6 +130,8 @@
     "note_updated": "メンバーメモを更新しました。",
     "note_deleted": "メンバーメモを削除しました。",
     "note_addendum_added": "メモに補足を追加しました。",
+    "note_addendum_updated": "メモの補足を更新しました。",
+    "note_addendum_deleted": "メモの補足を削除しました。",
     "promoted": "メンバーの役職を昇格しました。",
     "demoted": "メンバーの役職を降格しました。",
     "removed": "メンバーをグループから削除しました。",

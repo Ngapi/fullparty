@@ -44,6 +44,8 @@
     "selected_day": {
         "title": "Selected Day",
         "subtitle": "Runs scheduled for {date}.",
+        "mobile_title": "Runs le {date}",
+        "mobile_count": "Il y a {count} runs ce jour-là.",
         "count": "{count} on this day",
         "empty": "No runs are scheduled for this day."
     },
@@ -61,6 +63,11 @@
             "create_run_20": "Create Run at 20 ST",
             "create_run_22": "Create Run at 22 ST"
         }
+    },
+    "mobile_calendar": {
+        "today": "Aujourd'hui",
+        "collapse": "Réduire à la semaine",
+        "expand": "Afficher le mois complet"
     },
     "context_menu": {
         "copy_discord_timestamp": "Copier l'horodatage Discord",
@@ -432,6 +439,8 @@
         },
         "open_application": "Apply Here",
         "go_to_management": "Go To Management",
+        "show_details": "Afficher les détails",
+        "hide_details": "Masquer les détails",
         "summary_title": "Quick Summary",
         "summary_subtitle": "The key details before the application tools land here.",
         "applications_title": "Applications",

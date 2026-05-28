@@ -118,7 +118,13 @@
     },
     "errors": {
       "xivauth_not_linked": "Il semble que vous n'ayez pas encore lié votre compte XIVAuth. Veuillez le lier pour importer vos personnages.",
-      "xivauth_token_invalid": "Nous n'avons pas pu vous autoriser avec XIVAuth. Veuillez réessayer ou contacter le support."
+      "xivauth_token_invalid": "Nous n'avons pas pu vous autoriser avec XIVAuth. Veuillez réessayer ou contacter le support.",
+      "xivauth_character_already_claimed": "Ce personnage est déjà enregistré. S'il s'agit de votre personnage, veuillez contacter le support."
+    },
+    "sync": {
+      "conflict_title": "Certains personnages n'ont pas été importés",
+      "conflict_description_one": "{characters} est déjà enregistré. S'il s'agit de votre personnage, veuillez contacter le support.",
+      "conflict_description_many": "{characters} sont déjà enregistrés. S'il s'agit de vos personnages, veuillez contacter le support."
     }
   },
   "added_manually": "Ajouté manuellement",

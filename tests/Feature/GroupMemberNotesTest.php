@@ -112,6 +112,8 @@ it('returns the full note payload for a group member when a moderator opens the 
         ->assertJsonPath('member.notes.current_group.0.permissions.can_delete', true)
         ->assertJsonPath('member.notes.current_group.0.permissions.can_add_addendum', true)
         ->assertJsonPath('member.notes.current_group.0.addenda.0.body', 'Missed the last two call-time confirmations.')
+        ->assertJsonPath('member.notes.current_group.0.addenda.0.permissions.can_edit_body', false)
+        ->assertJsonPath('member.notes.current_group.0.addenda.0.permissions.can_delete', false)
         ->assertJsonPath('member.notes.shared.0.body', 'Helpful when given early role reminders.')
         ->assertJsonPath('member.notes.shared.0.permissions.can_edit_body', false)
         ->assertJsonPath('member.notes.shared.0.permissions.can_delete', false)
@@ -185,6 +187,129 @@ it('sanitizes member note bodies and addenda before storing them', function () {
     ])->assertRedirect();
 
     expect($note->fresh()->addenda()->sole()->body)->toBe($sanitizer->sanitizeMultiline($rawAddendum));
+});
+
+it('allows addendum authors to update their member note context', function () {
+    extract(createGroupMemberNotesContext());
+
+    $sanitizer = app(TextInputSanitizer::class);
+
+    $note = GroupUserNote::create([
+        'group_id' => $group->id,
+        'user_id' => $member->id,
+        'author_user_id' => $owner->id,
+        'severity' => GroupUserNote::SEVERITY_WARNING,
+        'body' => 'Existing note',
+        'is_shared_with_groups' => false,
+    ]);
+
+    $addendum = $note->addenda()->create([
+        'author_user_id' => $moderator->id,
+        'body' => 'Needs follow-up.',
+    ]);
+
+    $rawBody = " Updated\t context\r\n with details ";
+
+    $this->actingAs($moderator)
+        ->from('/groups/'.$group->slug.'/members')
+        ->put(route('groups.members.notes.addenda.update', [
+            'group' => $group->slug,
+            'addendum' => $addendum->id,
+        ]), [
+            'body' => $rawBody,
+        ])
+        ->assertRedirect('/groups/'.$group->slug.'/members');
+
+    expect($addendum->fresh()->body)->toBe($sanitizer->sanitizeMultiline($rawBody));
+});
+
+it('allows addendum authors to delete their member note context', function () {
+    extract(createGroupMemberNotesContext());
+
+    $note = GroupUserNote::create([
+        'group_id' => $group->id,
+        'user_id' => $member->id,
+        'author_user_id' => $owner->id,
+        'severity' => GroupUserNote::SEVERITY_INFO,
+        'body' => 'Existing note',
+        'is_shared_with_groups' => false,
+    ]);
+
+    $addendum = $note->addenda()->create([
+        'author_user_id' => $moderator->id,
+        'body' => 'Context to remove.',
+    ]);
+
+    $this->actingAs($moderator)
+        ->from('/groups/'.$group->slug.'/members')
+        ->delete(route('groups.members.notes.addenda.destroy', [
+            'group' => $group->slug,
+            'addendum' => $addendum->id,
+        ]))
+        ->assertRedirect('/groups/'.$group->slug.'/members');
+
+    $this->assertDatabaseMissing('group_user_note_addenda', [
+        'id' => $addendum->id,
+    ]);
+});
+
+it('forbids moderators from updating addenda they did not author', function () {
+    extract(createGroupMemberNotesContext());
+
+    $note = GroupUserNote::create([
+        'group_id' => $group->id,
+        'user_id' => $member->id,
+        'author_user_id' => $owner->id,
+        'severity' => GroupUserNote::SEVERITY_WARNING,
+        'body' => 'Existing note',
+        'is_shared_with_groups' => false,
+    ]);
+
+    $addendum = $note->addenda()->create([
+        'author_user_id' => $owner->id,
+        'body' => 'Original context.',
+    ]);
+
+    $this->actingAs($moderator)
+        ->put(route('groups.members.notes.addenda.update', [
+            'group' => $group->slug,
+            'addendum' => $addendum->id,
+        ]), [
+            'body' => 'Changed by someone else.',
+        ])
+        ->assertForbidden();
+
+    expect($addendum->fresh()->body)->toBe('Original context.');
+});
+
+it('forbids moderators from deleting addenda they did not author', function () {
+    extract(createGroupMemberNotesContext());
+
+    $note = GroupUserNote::create([
+        'group_id' => $group->id,
+        'user_id' => $member->id,
+        'author_user_id' => $owner->id,
+        'severity' => GroupUserNote::SEVERITY_WARNING,
+        'body' => 'Existing note',
+        'is_shared_with_groups' => false,
+    ]);
+
+    $addendum = $note->addenda()->create([
+        'author_user_id' => $owner->id,
+        'body' => 'Protected context.',
+    ]);
+
+    $this->actingAs($moderator)
+        ->delete(route('groups.members.notes.addenda.destroy', [
+            'group' => $group->slug,
+            'addendum' => $addendum->id,
+        ]))
+        ->assertForbidden();
+
+    $this->assertDatabaseHas('group_user_note_addenda', [
+        'id' => $addendum->id,
+        'body' => 'Protected context.',
+    ]);
 });
 
 it('rejects member note and addendum bodies that exceed the configured limits', function () {

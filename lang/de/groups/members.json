@@ -130,6 +130,8 @@
     "note_updated": "Mitgliedsnotiz aktualisiert.",
     "note_deleted": "Mitgliedsnotiz gelöscht.",
     "note_addendum_added": "Kontext zur Notiz hinzugefügt.",
+    "note_addendum_updated": "Notizkontext aktualisiert.",
+    "note_addendum_deleted": "Notizkontext gelöscht.",
     "promoted": "Mitgliedsrolle befördert.",
     "demoted": "Mitgliedsrolle zurückgestuft.",
     "removed": "Mitglied aus der Gruppe entfernt.",

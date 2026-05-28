@@ -82,7 +82,9 @@ class GroupActivityController extends Controller
         ];
 
         $props = [
-            'group' => $this->serializePublicGroup($group),
+            'group' => $group->hasMember($request->user()?->id)
+                ? $this->buildDashboardGroupPayload($group)
+                : $this->serializePublicGroup($group),
             'activity' => $this->serializeAttendeeActivity(
                 $activity,
                 $slotSerializer,

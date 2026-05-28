@@ -26,7 +26,7 @@ const { t } = useI18n();
 			/>
 		</PageHeader>
 
-		<div class="mt-4 grid grid-cols-2 gap-6">
+		<div class="mt-4 grid grid-cols-1 gap-6 md:grid-cols-2">
 			<GroupGeneralSettings :group="group" />
 			<div class="flex h-full w-full flex-col gap-6">
 				<GroupInviteSettings v-if="group.permissions.can_manage_invites" :group="group" />

@@ -45,6 +45,8 @@
     "selected_day": {
         "title": "Selected Day",
         "subtitle": "Runs scheduled for {date}.",
+        "mobile_title": "Runs on {date}",
+        "mobile_count": "There are {count} runs on this day.",
         "count": "{count} on this day",
         "empty": "No runs are scheduled for this day."
     },
@@ -62,6 +64,11 @@
             "create_run_20": "Create Run at 20 ST",
             "create_run_22": "Create Run at 22 ST"
         }
+    },
+    "mobile_calendar": {
+        "today": "Today",
+        "collapse": "Collapse to week",
+        "expand": "Show full month"
     },
     "context_menu": {
         "copy_discord_timestamp": "Copy Discord Timestamp",
@@ -440,6 +447,8 @@
         },
         "open_application": "Apply Here",
         "go_to_management": "Go To Management",
+        "show_details": "Show details",
+        "hide_details": "Hide details",
         "summary_title": "Quick Summary",
         "summary_subtitle": "The key details before the application tools land here.",
         "applications_title": "Applications",

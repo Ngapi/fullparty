@@ -16,6 +16,7 @@
     "false": "False"
   },
   "filters": {
+    "title": "Filters",
     "search_placeholder": "Search titles, descriptions, users, or actions",
     "any_action": "Any Action",
     "any_severity": "Any Severity",
@@ -189,7 +190,9 @@
           "updated": "updated a member note.",
           "deleted": "deleted a member note.",
           "addendum": {
-            "created": "added note context."
+            "created": "added note context.",
+            "updated": "updated note context.",
+            "deleted": "deleted note context."
           }
         },
         "removed": "removed a member from the group.",
@@ -423,7 +426,9 @@
           "updated": "Member note updated",
           "deleted": "Member note deleted",
           "addendum": {
-            "created": "Note context added"
+            "created": "Note context added",
+            "updated": "Note context updated",
+            "deleted": "Note context deleted"
           }
         },
         "removed": "Member removed from group",

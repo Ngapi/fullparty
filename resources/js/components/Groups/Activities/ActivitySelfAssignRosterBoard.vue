@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from "vue";
+import { computed, nextTick, onMounted, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { usePage } from "@inertiajs/vue3";
 import { localizedValue } from "@/utils/localizedValue";
@@ -23,6 +23,8 @@ const emit = defineEmits<{
 const { t, locale } = useI18n();
 const page = usePage();
 const fallbackLocale = computed(() => String(page.props.locale?.fallback ?? "en"));
+const scrollContainer = ref<HTMLElement | null>(null);
+const groupElementRefs = new Map<string, HTMLElement>();
 
 type SlotGroup = {
 	key: string
@@ -75,10 +77,75 @@ const openMainSlotCount = computed(() => (
 	mainSlotGroups.value.flatMap((group) => group.slots).filter((slot) => slot.assigned_character_id === null).length
 ));
 
+const focusedGroupKey = computed(() => {
+	if (props.viewerAssignedSlotId === null) {
+		return null;
+	}
+
+	return mainSlotGroups.value.find((group) => group.slots.some((slot) => (
+		slot.id === props.viewerAssignedSlotId
+	)))?.key ?? null;
+});
+
 const boardGridStyle = computed(() => ({
 	gridTemplateColumns: `repeat(${Math.max(mainSlotGroups.value.length, 1)}, minmax(13rem, 24rem))`,
 	minWidth: `calc(${Math.max(mainSlotGroups.value.length, 1)} * 13rem + ${Math.max(mainSlotGroups.value.length - 1, 0)} * 0.25rem)`,
 }));
+
+const scrollByDirection = (direction: "left" | "right") => {
+	if (!scrollContainer.value) {
+		return;
+	}
+
+	const amount = Math.round(scrollContainer.value.clientWidth * 0.82);
+
+	scrollContainer.value.scrollBy({
+		left: direction === "left" ? -amount : amount,
+		behavior: "smooth",
+	});
+};
+
+const setGroupElementRef = (key: string, element: Element | null) => {
+	if (element instanceof HTMLElement) {
+		groupElementRefs.set(key, element);
+		return;
+	}
+
+	groupElementRefs.delete(key);
+};
+
+const focusAssignedParty = async () => {
+	await nextTick();
+
+	if (!scrollContainer.value || !focusedGroupKey.value) {
+		return;
+	}
+
+	const targetElement = groupElementRefs.get(focusedGroupKey.value);
+
+	if (!targetElement) {
+		return;
+	}
+
+	const containerRect = scrollContainer.value.getBoundingClientRect();
+	const targetRect = targetElement.getBoundingClientRect();
+	const targetLeft = scrollContainer.value.scrollLeft
+		+ targetRect.left
+		- containerRect.left
+		- ((scrollContainer.value.clientWidth - targetRect.width) / 2);
+
+	scrollContainer.value.scrollTo({
+		left: Math.max(0, targetLeft),
+		behavior: "auto",
+	});
+};
+
+onMounted(focusAssignedParty);
+
+watch(
+	() => `${focusedGroupKey.value ?? ""}:${props.viewerAssignedSlotId ?? ""}:${props.slots.map((slot) => `${slot.id}:${slot.group_key}`).join("|")}`,
+	focusAssignedParty,
+);
 </script>
 
 <template>
@@ -108,8 +175,69 @@ const boardGridStyle = computed(() => ({
 			</div>
 		</div>
 
-		<div v-if="mainSlotGroups.length > 0" class="overflow-x-auto px-4 py-4">
-			<div class="w-full">
+		<div v-if="mainSlotGroups.length > 0">
+			<div class="relative xl:hidden">
+				<UButton
+					class="absolute top-1/2 left-2 z-10 inline-flex -translate-y-1/2 border border-white/10 bg-neutral-950/85 shadow-xl shadow-neutral-950/40 backdrop-blur-sm xl:hidden"
+					color="neutral"
+					variant="soft"
+					icon="i-lucide-chevron-left"
+					:aria-label="t('groups.activities.calendar.previous')"
+					@click="scrollByDirection('left')"
+				/>
+				<UButton
+					class="absolute top-1/2 right-2 z-10 inline-flex -translate-y-1/2 border border-white/10 bg-neutral-950/85 shadow-xl shadow-neutral-950/40 backdrop-blur-sm xl:hidden"
+					color="neutral"
+					variant="soft"
+					icon="i-lucide-chevron-right"
+					:aria-label="t('groups.activities.calendar.next')"
+					@click="scrollByDirection('right')"
+				/>
+
+				<div
+					ref="scrollContainer"
+					class="flex snap-x snap-mandatory gap-3 overflow-x-auto scroll-smooth px-4 py-4 [scroll-padding-inline:1rem] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+				>
+					<div
+						v-for="group in mainSlotGroups"
+						:key="group.key"
+						:ref="(element) => setGroupElementRef(group.key, element)"
+						class="flex min-w-0 flex-none basis-full snap-start sm:basis-[48%] lg:basis-[31%]"
+					>
+						<div class="flex w-full flex-col gap-2">
+							<div class="border border-default bg-muted/20 px-3 py-2.5">
+								<div class="flex items-center justify-between gap-2">
+									<div class="min-w-0">
+										<p class="text-[10px] uppercase tracking-[0.22em] text-muted">{{ t("groups.activities.overview.board.party_label") }}</p>
+										<h3 class="break-words [overflow-wrap:anywhere] font-semibold text-sm text-toned">{{ group.label }}</h3>
+									</div>
+
+									<UBadge
+										size="sm"
+										color="neutral"
+										variant="outline"
+										:label="`${group.slots.filter((slot) => slot.assigned_character_id !== null).length}/${group.slots.length}`"
+									/>
+								</div>
+							</div>
+
+							<ActivitySelfAssignRosterSlot
+								v-for="slot in group.slots"
+								:key="slot.id"
+								:slot="slot"
+								:can-self-assign="canSelfAssign"
+								:has-verified-characters="hasVerifiedCharacters"
+								:viewer-assigned-slot-id="viewerAssignedSlotId"
+								:is-pending="pendingSlotId === slot.id"
+								@assign="emit('assign', $event)"
+								@remove="emit('remove', $event)"
+							/>
+						</div>
+					</div>
+				</div>
+			</div>
+
+			<div class="hidden overflow-x-auto px-4 py-4 xl:block">
 				<div class="grid justify-evenly gap-4" :style="boardGridStyle">
 					<div
 						v-for="group in mainSlotGroups"

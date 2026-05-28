@@ -5,16 +5,62 @@ import DashboardFooter from "@/components/DashboardFooter.vue";
 import GroupNavigation from "@/components/Groups/GroupNavigation.vue";
 import SystemBanner from "@/components/SystemBanner.vue";
 import { usePage } from '@inertiajs/vue3'
-import { computed } from 'vue'
+import { computed, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
+import { useToast } from '@nuxt/ui/composables'
 import { usePersistentLocale } from "@/composables/usePersistentLocale";
 const page = usePage()
+const toast = useToast()
+const { t } = useI18n()
 const { currentUiLocale } = usePersistentLocale();
 
 const currentGroup = computed(() => page.props.group ?? null)
 const systemBanner = computed(() => page.props.system_banner ?? null)
+const activityOverviewComponents = [
+	'Groups/Activities/Overview',
+	'Groups/Activities/NonApplicationOverview',
+]
+const isGroupActivityOverviewPage = computed(() => activityOverviewComponents.includes(page.component))
 const showGroupNavigation = computed(() => {
-	return page.url.includes('/dashboard') && currentGroup.value !== null
+	if (currentGroup.value === null) {
+		return false
+	}
+
+	return page.url.includes('/dashboard')
+		|| (isGroupActivityOverviewPage.value && Boolean(currentGroup.value.permissions?.can_view_members))
 })
+const xivAuthCharacterSyncConflicts = computed(() => {
+	const conflicts = page.props.flash?.data?.xivauth_character_sync?.conflicts
+
+	return Array.isArray(conflicts) ? conflicts : []
+})
+
+watch(
+	xivAuthCharacterSyncConflicts,
+	(conflicts) => {
+		if (conflicts.length === 0) {
+			return
+		}
+
+		const characterNames = conflicts
+			.map((conflict) => conflict?.name)
+			.filter(Boolean)
+			.join(', ')
+
+		toast.add({
+			title: t('characters.xivauth.sync.conflict_title'),
+			description: t(
+				conflicts.length === 1
+					? 'characters.xivauth.sync.conflict_description_one'
+					: 'characters.xivauth.sync.conflict_description_many',
+				{ characters: characterNames },
+			),
+			color: 'warning',
+			icon: 'i-lucide-triangle-alert',
+		})
+	},
+	{ immediate: true },
+)
 
 defineProps({
 	title: {

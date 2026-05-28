@@ -15,6 +15,7 @@ use App\Models\PhantomJob;
 use App\Models\User;
 use App\Services\AuditLogger;
 use App\Services\Characters\CharacterProfileRefreshService;
+use App\Services\Characters\XIVAuthCharacterSyncService;
 use App\Services\Lodestone\LodestoneInputNormalizer;
 use App\Services\Lodestone\LodestoneScraper;
 use App\Services\Notifications\AccountCharacterNotificationService;
@@ -260,59 +261,22 @@ class CharacterController extends Controller
         ]);
     }
 
-    public function importXIVAuthCharacter(StoreXIVAuthCharacterRequest $request)
-    {
-        $validated = $request->validated();
+    public function importXIVAuthCharacter(
+        StoreXIVAuthCharacterRequest $request,
+        XIVAuthCharacterSyncService $xivAuthCharacterSyncService,
+    ) {
+        $result = $xivAuthCharacterSyncService->importOne($request->user(), $request->validated());
+        $character = $result->firstCharacter();
 
-        $is_primary = false;
-        if (auth()->user()->characters()->count() === 0) {
-            $is_primary = true;
+        if ($result->hasConflicts() || ! $character instanceof Character) {
+            return Redirect::back()
+                ->withErrors(['error' => 'xivauth_character_already_claimed'])
+                ->with('flash_data', [
+                    'xivauth_character_sync' => [
+                        'conflicts' => $result->conflicts,
+                    ],
+                ]);
         }
-        $character = Character::where('lodestone_id', $validated['lodestone_id'])->first();
-        // If character doesnt exist, create it
-        if (! $character) {
-            $character = Character::create([
-                'user_id' => auth()->id(),
-                'name' => $validated['name'],
-                'world' => $validated['world'],
-                'datacenter' => $validated['datacenter'],
-                'lodestone_id' => $validated['lodestone_id'],
-                'avatar_url' => $validated['avatar_url'],
-                'add_method' => 'xivauth',
-                'is_primary' => $is_primary,
-                'verified_at' => Carbon::now(),
-            ]);
-        } else {
-            $character->fill([
-                'name' => $validated['name'],
-                'world' => $validated['world'],
-                'datacenter' => $validated['datacenter'],
-                'avatar_url' => $validated['avatar_url'],
-                'add_method' => 'xivauth',
-            ]);
-        }
-
-        $this->finalizeCharacterVerification($character, auth()->user(), 'xivauth', $is_primary);
-        $this->refreshVerifiedCharacterOnce($character);
-
-        $this->accountCharacterNotificationService->notifyCharacterAdded($character->fresh(), 'xivauth', auth()->user());
-
-        $character->refresh();
-
-        $this->auditLogger->log(
-            action: 'character.verified',
-            severity: AuditSeverity::INFO,
-            scopeType: AuditScope::CHARACTER,
-            scopeId: $character->id,
-            message: 'audit_log.events.character.verified',
-            actor: auth()->user(),
-            subject: $character,
-            metadata: [
-                'verification_method' => 'xivauth',
-                'lodestone_id' => $character->lodestone_id,
-                'is_primary' => $character->is_primary,
-            ],
-        );
 
         return Redirect::back()->with('flash_data', [
             'xivauth_character_import' => [

@@ -118,7 +118,13 @@
     },
     "errors": {
       "xivauth_not_linked": "Looks like you haven't linked your XIVAuth account yet. Please link your account to import your characters.",
-      "xivauth_token_invalid": "We couldn't authorize you with XIVAuth. Please try again or contact support."
+      "xivauth_token_invalid": "We couldn't authorize you with XIVAuth. Please try again or contact support.",
+      "xivauth_character_already_claimed": "This character is already registered. If this is your character, please contact support."
+    },
+    "sync": {
+      "conflict_title": "Some characters were not imported",
+      "conflict_description_one": "{characters} is already registered. If this is your character, please contact support.",
+      "conflict_description_many": "{characters} are already registered. If these are your characters, please contact support."
     }
   },
   "added_manually": "Added Manually",

@@ -118,7 +118,13 @@
     },
     "errors": {
       "xivauth_not_linked": "XIVAuth アカウントがまだ連携されていないようです。キャラクターをインポートするにはアカウントを連携してください。",
-      "xivauth_token_invalid": "XIVAuth で認証できませんでした。再試行するかサポートに連絡してください。"
+      "xivauth_token_invalid": "XIVAuth で認証できませんでした。再試行するかサポートに連絡してください。",
+      "xivauth_character_already_claimed": "このキャラクターはすでに登録されています。自分のキャラクターの場合はサポートに連絡してください。"
+    },
+    "sync": {
+      "conflict_title": "一部のキャラクターをインポートできませんでした",
+      "conflict_description_one": "{characters} はすでに登録されています。自分のキャラクターの場合はサポートに連絡してください。",
+      "conflict_description_many": "{characters} はすでに登録されています。自分のキャラクターの場合はサポートに連絡してください。"
     }
   },
   "added_manually": "手動で追加",

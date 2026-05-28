@@ -140,7 +140,7 @@ const rosterViewOptions = computed(() => ([
 <template>
 	<section class="border border-default bg-muted dark:bg-elevated/50 px-5 py-5 shadow-sm">
 		<div class="flex flex-col gap-4">
-				<div class="flex flex-col gap-4 border-b border-default pb-4 xl:flex-row xl:items-start xl:justify-between">
+				<div class="flex flex-col gap-4 border-b border-default pb-4 md:flex-row md:items-start md:justify-between">
 					<div class="flex min-w-0 flex-1 flex-col gap-2">
 						<div class="flex min-w-0 flex-wrap items-start gap-3">
 							<h1 class="min-w-0 break-words [overflow-wrap:anywhere] font-semibold text-2xl text-toned">
@@ -162,7 +162,7 @@ const rosterViewOptions = computed(() => ([
 					</div>
 				</div>
 
-				<div class="flex flex-wrap items-center gap-2 xl:justify-end">
+				<div class="flex flex-wrap items-center gap-2 md:justify-end">
 					<UButton
 						v-if="canEdit"
 						color="neutral"
@@ -183,7 +183,7 @@ const rosterViewOptions = computed(() => ([
 				</div>
 			</div>
 
-			<div class="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
+			<div class="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
 				<div class="flex flex-col gap-4">
 					<div class="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-muted">
 						<div class="inline-flex items-center gap-2">
@@ -203,7 +203,7 @@ const rosterViewOptions = computed(() => ([
 					</div>
 				</div>
 
-				<div class="flex flex-wrap items-center gap-2 xl:justify-end">
+				<div class="flex flex-wrap items-center gap-2 md:justify-end">
 					<UTooltip :text="t('groups.activities.management.messages.check_in_plugin_tooltip')">
 						<span class="inline-flex">
 							<UButton
@@ -247,7 +247,7 @@ const rosterViewOptions = computed(() => ([
 				</div>
 			</div>
 
-				<div class="flex flex-col gap-3 border-t border-default pt-4 text-sm xl:flex-row xl:items-center xl:justify-between">
+				<div class="flex flex-col gap-3 border-t border-default pt-4 text-sm md:flex-row md:items-start md:justify-between">
 				<div class="flex flex-wrap items-center gap-x-6 gap-y-2">
 				<div class="inline-flex items-center gap-2">
 					<span class="text-muted">{{ t('groups.activities.management.overview.group') }}:</span>
@@ -275,7 +275,7 @@ const rosterViewOptions = computed(() => ([
 				</div>
 				</div>
 
-				<div class="flex flex-row items-center gap-2">
+				<div class="flex flex-wrap items-center gap-2 md:justify-end">
 					<UButton
 						v-if="canSchedule"
 						color="primary"
@@ -339,7 +339,7 @@ const rosterViewOptions = computed(() => ([
 
 				</div>
 
-				<div class="flex flex-wrap items-center gap-3 xl:ml-auto xl:justify-end">
+				<div class="hidden flex-wrap items-center gap-3 xl:ml-auto xl:flex xl:justify-end">
 					<div class="flex flex-wrap items-center gap-3">
 						<span class="text-sm font-medium text-toned">
 							{{ t('groups.activities.management.controls.view') }}
@@ -371,11 +371,13 @@ const rosterViewOptions = computed(() => ([
 				</div>
 			</div>
 
-			<ActivityRosterSummaryPanel
-				v-if="rosterSummaryPresets.length > 0"
-				:presets="rosterSummaryPresets"
-				:slots="slots"
-			/>
+			<div class="hidden xl:block">
+				<ActivityRosterSummaryPanel
+					v-if="rosterSummaryPresets.length > 0"
+					:presets="rosterSummaryPresets"
+					:slots="slots"
+				/>
+			</div>
 		</div>
 	</section>
 	<ActivityCompletionSummaryPanel

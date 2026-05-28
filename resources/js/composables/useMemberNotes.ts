@@ -1,5 +1,5 @@
 // @ts-ignore
-import type { MemberNote, MemberNotesTarget } from "@/Types/Groups";
+import type { MemberNote, MemberNoteAddendum, MemberNotesTarget } from "@/Types/Groups";
 import axios from "axios";
 import { useForm } from "@inertiajs/vue3";
 import { useToast } from "@nuxt/ui/composables";
@@ -23,7 +23,9 @@ export const useMemberNotes = (options: UseMemberNotesOptions) => {
 	const activeRequestId = ref(0);
 	const editingNoteId = ref<number | null>(null);
 	const addendumNoteId = ref<number | null>(null);
+	const editingAddendumId = ref<number | null>(null);
 	const pendingDeleteNoteId = ref<number | null>(null);
+	const pendingDeleteAddendumId = ref<number | null>(null);
 
 	const noteForm = useForm({
 		severity: 'info',
@@ -38,7 +40,11 @@ export const useMemberNotes = (options: UseMemberNotesOptions) => {
 	const addendumForm = useForm({
 		body: '',
 	});
+	const addendumUpdateForm = useForm({
+		body: '',
+	});
 	const noteDeleteForm = useForm({});
+	const addendumDeleteForm = useForm({});
 
 	const severityOptions = computed(() => [
 		{ label: t('general.severity_levels.info'), value: 'info' },
@@ -84,11 +90,19 @@ export const useMemberNotes = (options: UseMemberNotesOptions) => {
 		addendumForm.clearErrors();
 	};
 
+	const cancelEditAddendum = () => {
+		editingAddendumId.value = null;
+		addendumUpdateForm.reset();
+		addendumUpdateForm.clearErrors();
+	};
+
 	const resetTransientState = () => {
 		resetNoteForm();
 		cancelEditNote();
 		cancelAddendum();
+		cancelEditAddendum();
 		pendingDeleteNoteId.value = null;
+		pendingDeleteAddendumId.value = null;
 	};
 
 	const resetLoadedState = () => {
@@ -158,6 +172,7 @@ export const useMemberNotes = (options: UseMemberNotesOptions) => {
 	const openEditNote = (note: MemberNote) => {
 		editingNoteId.value = note.id;
 		addendumNoteId.value = null;
+		cancelEditAddendum();
 		noteUpdateForm.severity = note.severity;
 		noteUpdateForm.body = note.body;
 		noteUpdateForm.is_shared_with_groups = note.is_shared_with_groups;
@@ -178,8 +193,17 @@ export const useMemberNotes = (options: UseMemberNotesOptions) => {
 	const openAddendum = (note: MemberNote) => {
 		addendumNoteId.value = note.id;
 		editingNoteId.value = null;
+		cancelEditAddendum();
 		addendumForm.body = '';
 		addendumForm.clearErrors();
+	};
+
+	const openEditAddendum = (addendum: MemberNoteAddendum) => {
+		editingAddendumId.value = addendum.id;
+		addendumNoteId.value = null;
+		editingNoteId.value = null;
+		addendumUpdateForm.body = addendum.body;
+		addendumUpdateForm.clearErrors();
 	};
 
 	const submitAddendum = (note: MemberNote) => {
@@ -189,6 +213,37 @@ export const useMemberNotes = (options: UseMemberNotesOptions) => {
 				showSuccessToast(t('groups.members.toasts.note_addendum_added'));
 				cancelAddendum();
 				void reloadMemberNotes();
+			},
+		});
+	};
+
+	const submitAddendumUpdate = (addendum: MemberNoteAddendum) => {
+		addendumUpdateForm.put(route('groups.members.notes.addenda.update', [toValue(options.groupSlug), addendum.id]), {
+			preserveScroll: true,
+			onSuccess: () => {
+				showSuccessToast(t('groups.members.toasts.note_addendum_updated'));
+				cancelEditAddendum();
+				void reloadMemberNotes();
+			},
+		});
+	};
+
+	const removeAddendum = (addendum: MemberNoteAddendum) => {
+		pendingDeleteAddendumId.value = addendum.id;
+
+		addendumDeleteForm.delete(route('groups.members.notes.addenda.destroy', [toValue(options.groupSlug), addendum.id]), {
+			preserveScroll: true,
+			onSuccess: () => {
+				showSuccessToast(t('groups.members.toasts.note_addendum_deleted'));
+
+				if (editingAddendumId.value === addendum.id) {
+					cancelEditAddendum();
+				}
+
+				void reloadMemberNotes();
+			},
+			onFinish: () => {
+				pendingDeleteAddendumId.value = null;
 			},
 		});
 	};
@@ -243,10 +298,14 @@ export const useMemberNotes = (options: UseMemberNotesOptions) => {
 		noteForm,
 		noteUpdateForm,
 		addendumForm,
+		addendumUpdateForm,
 		noteDeleteForm,
+		addendumDeleteForm,
 		editingNoteId,
 		addendumNoteId,
+		editingAddendumId,
 		pendingDeleteNoteId,
+		pendingDeleteAddendumId,
 		openMemberNotes,
 		closeMemberNotes,
 		handleNotesModalOpenChange,
@@ -256,6 +315,10 @@ export const useMemberNotes = (options: UseMemberNotesOptions) => {
 		openAddendum,
 		cancelAddendum,
 		submitAddendum,
+		openEditAddendum,
+		cancelEditAddendum,
+		submitAddendumUpdate,
+		removeAddendum,
 		removeNote,
 		submitNote,
 	};

@@ -3,6 +3,11 @@ import { computed, ref } from "vue";
 import { useI18n } from "vue-i18n";
 import ActivityCalendarDayCell from "@/components/Groups/Activities/ActivityCalendarDayCell.vue";
 import type { ActivityIndexItem } from "@/Types/ActivityCore";
+import {
+	buildMonthCalendarDays,
+	createMonthStart,
+	groupActivitiesByLocalDate,
+} from "@/utils/activityCalendar";
 import { createDateTimeFormatter } from "@/utils/dateTimeFormat";
 
 const props = defineProps<{
@@ -18,16 +23,7 @@ const emit = defineEmits<{
 
 const { t, locale } = useI18n();
 
-const createMonthStart = (date: Date) => new Date(date.getFullYear(), date.getMonth(), 1);
 const monthCursor = ref(createMonthStart(new Date()));
-
-const toLocalDateKey = (date: Date) => {
-	const year = date.getFullYear();
-	const month = `${date.getMonth() + 1}`.padStart(2, '0');
-	const day = `${date.getDate()}`.padStart(2, '0');
-
-	return `${year}-${month}-${day}`;
-};
 
 const dayLabels = computed(() => {
 	const mondayStart = new Date(2026, 0, 5);
@@ -42,41 +38,9 @@ const monthLabel = computed(() => createDateTimeFormatter(locale.value, {
 	year: 'numeric',
 }).format(monthCursor.value));
 
-const activityMap = computed(() => {
-	return props.activities.reduce<Record<string, ActivityIndexItem[]>>((map, activity) => {
-		if (!activity.starts_at) {
-			return map;
-		}
+const activityMap = computed(() => groupActivitiesByLocalDate(props.activities));
 
-		const key = toLocalDateKey(new Date(activity.starts_at));
-		map[key] ??= [];
-		map[key].push(activity);
-
-		return map;
-	}, {});
-});
-
-const calendarDays = computed(() => {
-	const monthStart = createMonthStart(monthCursor.value);
-	const startOffset = (monthStart.getDay() + 6) % 7;
-	const rangeStart = new Date(monthStart.getFullYear(), monthStart.getMonth(), 1 - startOffset);
-	const todayKey = toLocalDateKey(new Date());
-
-	return Array.from({ length: 42 }, (_, index) => {
-		const date = new Date(rangeStart.getFullYear(), rangeStart.getMonth(), rangeStart.getDate() + index);
-		const key = toLocalDateKey(date);
-
-		return {
-			key,
-			date,
-			isCurrentMonth: date.getMonth() === monthStart.getMonth(),
-			isToday: key === todayKey,
-			activities: (activityMap.value[key] ?? []).slice().sort((left, right) => {
-				return new Date(left.starts_at ?? 0).getTime() - new Date(right.starts_at ?? 0).getTime();
-			}),
-		};
-	});
-});
+const calendarDays = computed(() => buildMonthCalendarDays(activityMap.value, monthCursor.value));
 
 const visibleMonthActivityCount = computed(() => {
 	const targetYear = monthCursor.value.getFullYear();

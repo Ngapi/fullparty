@@ -883,9 +883,9 @@ onBeforeUnmount(() => {
 					</div>
 				</div>
 
-				<div class="bg-linear-to-b from-transparent to-neutral-950 to-60% px-10 py-5 shadow-2xl shadow-neutral-950/30 ">
+				<div class="bg-linear-to-b from-transparent to-neutral-950 to-60% px-2 py-5 shadow-2xl shadow-neutral-950/30 sm:px-3 md:px-4 xl:px-10 ">
 					<div class="flex flex-col gap-5 lg:flex-row lg:items-center">
-						<div class="h-full flex flex-row items-center border border-white/10 px-4 bg-neutral-950/40 shadow-2xl">
+						<div class="h-full flex flex-row items-center border border-white/10 bg-neutral-950/40 px-2 shadow-2xl sm:px-3 xl:px-4">
 							<div
 								v-if="isHomeBannerDetailsLoading"
 								class="flex min-w-0 flex-1 items-center gap-4"

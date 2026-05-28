@@ -158,7 +158,7 @@ const submitDecline = () => {
 									</div>
 								</div>
 
-								<div class="flex flex-wrap items-center gap-2">
+								<div class="hidden flex-wrap items-center gap-2 sm:flex">
 									<UButton
 										color="success"
 										variant="solid"
@@ -182,6 +182,25 @@ const submitDecline = () => {
 								:fields="application.form_snapshot"
 								:answers="application.answers"
 							/>
+
+							<div class="flex flex-wrap items-center justify-center gap-2 border-t border-default pt-4 sm:hidden">
+								<UButton
+									color="success"
+									variant="solid"
+									icon="i-lucide-check"
+									:label="t('groups.membership_applications.review.actions.approve')"
+									:loading="pendingActionId === application.id"
+									@click="approve(application)"
+								/>
+								<UButton
+									color="error"
+									variant="outline"
+									icon="i-lucide-x"
+									:label="t('groups.membership_applications.review.actions.decline')"
+									:disabled="pendingActionId === application.id"
+									@click="openDecline(application)"
+								/>
+							</div>
 						</div>
 					</UCard>
 				</div>
