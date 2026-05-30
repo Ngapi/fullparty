@@ -10,6 +10,7 @@ use App\Http\Controllers\CharacterClassController;
 use App\Http\Controllers\CharacterController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DashboardProfileCustomizationController;
+use App\Http\Controllers\DiscordAppInstallController;
 use App\Http\Controllers\DiscordAuthController;
 use App\Http\Controllers\GlobalSearchController;
 use App\Http\Controllers\GoogleAuthController;
@@ -36,6 +37,7 @@ use App\Http\Controllers\GroupActivitySlotUnassignmentController;
 use App\Http\Controllers\GroupAuditLogController;
 use App\Http\Controllers\GroupController;
 use App\Http\Controllers\GroupDashboardController;
+use App\Http\Controllers\GroupDiscordIntegrationController;
 use App\Http\Controllers\GroupInviteController;
 use App\Http\Controllers\GroupLeaderboardController;
 use App\Http\Controllers\GroupMemberController;
@@ -47,6 +49,7 @@ use App\Http\Controllers\GroupMembershipController;
 use App\Http\Controllers\GroupMembershipRequestController;
 use App\Http\Controllers\GroupSettingsController;
 use App\Http\Controllers\GroupStatisticsController;
+use App\Http\Controllers\IntegrationClientController;
 use App\Http\Controllers\LocaleController;
 use App\Http\Controllers\PhantomJobController;
 use App\Http\Controllers\RunDiscoveryController;
@@ -55,6 +58,7 @@ use App\Http\Controllers\SitemapController;
 use App\Http\Controllers\SocialAccountController;
 use App\Http\Controllers\SystemNotificationController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\UserOnboardingController;
 use App\Http\Controllers\XIVAuthController;
 use App\Http\Middleware\ApplyLocale;
 use App\Services\Landing\LandingPageDataService;
@@ -106,6 +110,21 @@ Route::get('/auth/email/verify/{id}/{hash}', function (EmailVerificationRequest 
     return redirect()->route('dashboard');
 })->middleware(['auth', 'signed']);
 
+Route::middleware(['auth', 'verified'])->prefix('auth/discord-app')->group(function () {
+    Route::get('/user/redirect', [DiscordAppInstallController::class, 'redirectUserInstall'])
+        ->middleware('throttle:oauth')
+        ->name('discord-app.user.redirect');
+    Route::get('/user/callback', [DiscordAppInstallController::class, 'callbackUserInstall'])
+        ->middleware('throttle:oauth')
+        ->name('discord-app.user.callback');
+    Route::get('/guild/redirect', [DiscordAppInstallController::class, 'redirectGuildInstall'])
+        ->middleware('throttle:oauth')
+        ->name('discord-app.guild.redirect');
+    Route::get('/guild/callback', [DiscordAppInstallController::class, 'callbackGuildInstall'])
+        ->middleware('throttle:oauth')
+        ->name('discord-app.guild.callback');
+});
+
 foreach (['auth', 'dashboard', 'groups', 'invite', 'settings', 'account', 'characters', 'admin'] as $prefix) {
     Route::get("/{$prefix}/{path?}", fn (Request $request, ?string $path = null) => $redirectToLocalizedPath($request, trim($prefix.'/'.($path ?? ''), '/')))
         ->where('path', '.*');
@@ -141,38 +160,46 @@ Route::prefix('{locale?}')
         // Activity application entry points and guest application flows.
         Route::get('/groups/{group:slug}/activities/{activity}/application/{secretKey?}', [GroupActivityApplicationController::class, 'show'])
             ->where('secretKey', '[A-Za-z0-9]{40}')
+            ->middleware('throttle:guest.application')
             ->name('groups.activities.application');
 
         Route::post('/groups/{group:slug}/activities/{activity}/application/{secretKey?}', [GroupActivityApplicationController::class, 'store'])
             ->where('secretKey', '[A-Za-z0-9]{40}')
+            ->middleware('throttle:guest.application')
             ->name('groups.activities.application.store');
 
         Route::get('/groups/{group:slug}/activities/{activity}/application-edit/{accessToken}/{secretKey?}', [GroupActivityApplicationController::class, 'editGuest'])
             ->where('accessToken', '[A-Za-z0-9]{40}')
             ->where('secretKey', '[A-Za-z0-9]{40}')
+            ->middleware('throttle:guest.application')
             ->name('groups.activities.application.edit-guest');
 
         Route::put('/groups/{group:slug}/activities/{activity}/application-edit/{accessToken}/{secretKey?}', [GroupActivityApplicationController::class, 'updateGuest'])
             ->where('accessToken', '[A-Za-z0-9]{40}')
             ->where('secretKey', '[A-Za-z0-9]{40}')
+            ->middleware('throttle:guest.application')
             ->name('groups.activities.application.update-guest');
 
         Route::delete('/groups/{group:slug}/activities/{activity}/application-edit/{accessToken}/{secretKey?}', [GroupActivityApplicationController::class, 'destroyGuest'])
             ->where('accessToken', '[A-Za-z0-9]{40}')
             ->where('secretKey', '[A-Za-z0-9]{40}')
+            ->middleware('throttle:guest.application')
             ->name('groups.activities.application.destroy-guest');
 
         Route::get('/groups/{group:slug}/activities/{activity}/application-confirmation/{secretKey?}', [GroupActivityApplicationController::class, 'confirmation'])
             ->where('secretKey', '[A-Za-z0-9]{40}')
+            ->middleware('throttle:guest.application')
             ->name('groups.activities.application.confirmation');
 
         Route::get('/groups/{group:slug}/activities/{activity}/application-status/{accessToken}/{secretKey?}', [GroupActivityApplicationController::class, 'status'])
             ->where('accessToken', '[A-Za-z0-9]{40}')
             ->where('secretKey', '[A-Za-z0-9]{40}')
+            ->middleware('throttle:guest.application')
             ->name('groups.activities.application.status');
 
         Route::get('/groups/{group:slug}/activities/{activity}/application-search/{secretKey?}', [GroupActivityApplicationController::class, 'searchCharacters'])
             ->where('secretKey', '[A-Za-z0-9]{40}')
+            ->middleware(['throttle:guest.application', 'throttle:external.lookup'])
             ->name('groups.activities.application.search-characters');
 
         // Public activity overview, with optional secret key for private activities.
@@ -181,7 +208,9 @@ Route::prefix('{locale?}')
             ->name('groups.activities.overview');
 
         // Group invite landing pages.
-        Route::get('/invite/{token}', [GroupInviteController::class, 'show'])->name('groups.invites.show');
+        Route::get('/invite/{token}', [GroupInviteController::class, 'show'])
+            ->middleware('throttle:invite')
+            ->name('groups.invites.show');
 
         /*
         |--------------------------------------------------------------------------
@@ -204,7 +233,9 @@ Route::prefix('{locale?}')
                     return Inertia::render('auth/ForgotPassword');
                 })->name('password.request');
 
-                Route::post('/forgot-password', [AuthController::class, 'sendPasswordResetLink'])->name('password.email');
+                Route::post('/forgot-password', [AuthController::class, 'sendPasswordResetLink'])
+                    ->middleware('throttle:auth.email')
+                    ->name('password.email');
 
                 Route::get('/reset-password/{token}', function (Request $request, string $token) {
                     return Inertia::render('auth/ResetPassword', [
@@ -213,9 +244,13 @@ Route::prefix('{locale?}')
                     ]);
                 })->name('password.reset');
 
-                Route::post('/reset-password', [AuthController::class, 'resetPassword'])->name('password.update');
+                Route::post('/reset-password', [AuthController::class, 'resetPassword'])
+                    ->middleware('throttle:auth.email')
+                    ->name('password.update');
 
-                Route::post('/register', [AuthController::class, 'register'])->name('register.store');
+                Route::post('/register', [AuthController::class, 'register'])
+                    ->middleware('throttle:auth.registration')
+                    ->name('register.store');
                 Route::post('/login', [AuthController::class, 'login'])
                     ->middleware('throttle:login')
                     ->name('login.store');
@@ -242,14 +277,14 @@ Route::prefix('{locale?}')
             })->middleware(['auth', 'throttle:6,1'])->name('verification.send');
 
             // Social sign-in providers.
-            Route::get('/google/redirect', [GoogleAuthController::class, 'redirect'])->name('google.redirect');
-            Route::get('/google/callback', [GoogleAuthController::class, 'callback'])->name('google.callback');
+            Route::get('/google/redirect', [GoogleAuthController::class, 'redirect'])->middleware('throttle:oauth')->name('google.redirect');
+            Route::get('/google/callback', [GoogleAuthController::class, 'callback'])->middleware('throttle:oauth')->name('google.callback');
 
-            Route::get('/discord/redirect', [DiscordAuthController::class, 'redirect'])->name('discord.redirect');
-            Route::get('/discord/callback', [DiscordAuthController::class, 'callback'])->name('discord.callback');
+            Route::get('/discord/redirect', [DiscordAuthController::class, 'redirect'])->middleware('throttle:oauth')->name('discord.redirect');
+            Route::get('/discord/callback', [DiscordAuthController::class, 'callback'])->middleware('throttle:oauth')->name('discord.callback');
 
-            Route::get('/xivauth/redirect', [XIVAuthController::class, 'redirect'])->name('xivauth.redirect');
-            Route::get('/xivauth/callback', [XIVAuthController::class, 'callback'])->name('xivauth.callback');
+            Route::get('/xivauth/redirect', [XIVAuthController::class, 'redirect'])->middleware('throttle:oauth')->name('xivauth.redirect');
+            Route::get('/xivauth/callback', [XIVAuthController::class, 'callback'])->middleware('throttle:oauth')->name('xivauth.callback');
 
             // Logout remains available even before email verification completes.
             Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
@@ -278,6 +313,8 @@ Route::prefix('{locale?}')
 
             Route::get('/home', [DashboardController::class, 'show'])->name('dashboard');
             Route::put('/home/profile', [DashboardProfileCustomizationController::class, 'update'])->name('dashboard.profile.update');
+            Route::patch('/onboarding', [UserOnboardingController::class, 'update'])->name('onboarding.update');
+            Route::post('/onboarding/complete', [UserOnboardingController::class, 'complete'])->name('onboarding.complete');
             Route::get('/dashboard', fn () => redirect()->route('dashboard'));
             Route::get('/dashboard/search', GlobalSearchController::class)->name('dashboard.search');
             Route::get('/dashboard/runs', [RunDiscoveryController::class, 'index'])->name('dashboard.runs.index');
@@ -342,7 +379,9 @@ Route::prefix('{locale?}')
             // Invite management and acceptance.
             Route::post('/groups/{group:slug}/invites', [GroupInviteController::class, 'store'])->name('groups.invites.store');
             Route::delete('/groups/{group:slug}/invites/{invite}', [GroupInviteController::class, 'destroy'])->name('groups.invites.destroy');
-            Route::post('/invite/{token}/accept', [GroupInviteController::class, 'accept'])->name('groups.invites.accept');
+            Route::post('/invite/{token}/accept', [GroupInviteController::class, 'accept'])
+                ->middleware('throttle:invite')
+                ->name('groups.invites.accept');
 
             /*
             |--------------------------------------------------------------------------
@@ -372,6 +411,8 @@ Route::prefix('{locale?}')
                 Route::put('/discovery-settings', [GroupSettingsController::class, 'updateDiscovery'])->name('groups.dashboard.discovery-settings.update');
                 Route::get('/settings', [GroupSettingsController::class, 'show'])->name('groups.dashboard.settings');
                 Route::put('/settings', [GroupSettingsController::class, 'update'])->name('groups.dashboard.settings.update');
+                Route::get('/discord-integration', [GroupDiscordIntegrationController::class, 'show'])->name('groups.dashboard.discord-integration');
+                Route::post('/discord-integration/link-token', [GroupDiscordIntegrationController::class, 'generateToken'])->name('groups.dashboard.discord-integration.link-token');
 
                 /*
                 |--------------------------------------------------------------------------
@@ -404,9 +445,15 @@ Route::prefix('{locale?}')
                 Route::get('/activities/{activity}/applicant-queue/applications/{application}', [GroupActivityApplicantQueueController::class, 'showApplication'])->name('groups.dashboard.activities.applicant-queue.application');
 
                 // FF Logs lookups and completion previews.
-                Route::get('/activities/{activity}/characters/{character}/fflogs-progress', [GroupActivityFflogsController::class, 'show'])->name('groups.dashboard.activities.fflogs-progress');
-                Route::get('/activities/{activity}/applications/{application}/fflogs-progress', [GroupActivityFflogsController::class, 'showForApplication'])->name('groups.dashboard.activities.application-fflogs-progress');
-                Route::post('/activities/{activity}/fflogs-completion-preview', [GroupActivityFflogsCompletionPreviewController::class, 'show'])->name('groups.dashboard.activities.fflogs-completion-preview');
+                Route::get('/activities/{activity}/characters/{character}/fflogs-progress', [GroupActivityFflogsController::class, 'show'])
+                    ->middleware('throttle:external.lookup')
+                    ->name('groups.dashboard.activities.fflogs-progress');
+                Route::get('/activities/{activity}/applications/{application}/fflogs-progress', [GroupActivityFflogsController::class, 'showForApplication'])
+                    ->middleware('throttle:external.lookup')
+                    ->name('groups.dashboard.activities.application-fflogs-progress');
+                Route::post('/activities/{activity}/fflogs-completion-preview', [GroupActivityFflogsCompletionPreviewController::class, 'show'])
+                    ->middleware('throttle:external.lookup')
+                    ->name('groups.dashboard.activities.fflogs-completion-preview');
 
                 /*
                 |--------------------------------------------------------------------------
@@ -466,6 +513,8 @@ Route::prefix('{locale?}')
             Route::post('/settings/username', [UserController::class, 'changeUsername'])->name('settings.username');
             Route::post('/settings/password', [UserController::class, 'changePassword'])->name('settings.password');
             Route::post('/settings/notifications', [UserController::class, 'changeNotificationSettings'])->name('settings.notifications');
+            Route::post('/settings/discord-integration/link-token', [UserController::class, 'generateDiscordLinkToken'])->name('settings.discord-integration.link-token');
+            Route::delete('/settings/discord-integration', [UserController::class, 'disconnectDiscordIntegration'])->name('settings.discord-integration.destroy');
             Route::post('/settings/privacy', [UserController::class, 'changePrivacySettings'])->name('settings.privacy');
             Route::delete('/settings/account', [UserController::class, 'destroyAccount'])->name('settings.account.destroy');
             Route::delete('/settings/social-accounts/{socialAccount}', [SocialAccountController::class, 'destroy'])->name('settings.social-accounts.destroy');
@@ -499,15 +548,25 @@ Route::prefix('{locale?}')
             |--------------------------------------------------------------------------
             */
 
-            Route::post('/characters/exists', [CharacterController::class, 'exists'])->name('characters.exists');
-            Route::post('/characters/verify', [CharacterController::class, 'verify'])->name('characters.verify');
-            Route::post('/characters/{character}/refresh', [CharacterController::class, 'refreshCharacterData'])->name('characters.refresh');
+            Route::post('/characters/exists', [CharacterController::class, 'exists'])
+                ->middleware('throttle:external.lookup')
+                ->name('characters.exists');
+            Route::post('/characters/verify', [CharacterController::class, 'verify'])
+                ->middleware('throttle:external.lookup')
+                ->name('characters.verify');
+            Route::post('/characters/{character}/refresh', [CharacterController::class, 'refreshCharacterData'])
+                ->middleware('throttle:external.lookup')
+                ->name('characters.refresh');
             Route::post('/characters/{character}/make-primary', [CharacterController::class, 'makePrimary'])->name('characters.make-primary');
             Route::delete('/characters/{character}', [CharacterController::class, 'destroy'])->name('characters.destroy');
             Route::post('/characters/{character}/preferred-class', [CharacterController::class, 'markPreferredClass'])->name('characters.preferred-class');
             Route::post('/characters/{character}/preferred-phantom-job', [CharacterController::class, 'markPreferredPhantomJob'])->name('characters.preferred-phantom-job');
-            Route::post('/characters/xivauth', [CharacterController::class, 'fetchXIVAuthCharacters'])->name('characters.xivauth');
-            Route::post('/characters/xivauth/import', [CharacterController::class, 'importXIVAuthCharacter'])->name('characters.xivauth.import');
+            Route::post('/characters/xivauth', [CharacterController::class, 'fetchXIVAuthCharacters'])
+                ->middleware('throttle:external.lookup')
+                ->name('characters.xivauth');
+            Route::post('/characters/xivauth/import', [CharacterController::class, 'importXIVAuthCharacter'])
+                ->middleware('throttle:external.lookup')
+                ->name('characters.xivauth.import');
 
             /*
             |--------------------------------------------------------------------------
@@ -526,6 +585,14 @@ Route::prefix('{locale?}')
                 Route::post('/system-notifications/announcements', [SystemNotificationController::class, 'storeAnnouncement'])->name('admin.system-notifications.announcements.store');
                 Route::put('/system-notifications/banner', [SystemNotificationController::class, 'storeBanner'])->name('admin.system-notifications.banner.store');
                 Route::delete('/system-notifications/banner', [SystemNotificationController::class, 'clearBanner'])->name('admin.system-notifications.banner.clear');
+
+                // Authorized integration clients.
+                Route::get('/integrations', [IntegrationClientController::class, 'index'])->name('admin.integrations.index');
+                Route::post('/integrations', [IntegrationClientController::class, 'store'])->name('admin.integrations.store');
+                Route::put('/integrations/{integrationClient}', [IntegrationClientController::class, 'update'])->name('admin.integrations.update');
+                Route::post('/integrations/{integrationClient}/api-token', [IntegrationClientController::class, 'regenerateApiToken'])->name('admin.integrations.api-token.regenerate');
+                Route::post('/integrations/{integrationClient}/webhook-secret', [IntegrationClientController::class, 'regenerateWebhookSecret'])->name('admin.integrations.webhook-secret.regenerate');
+                Route::post('/integrations/{integrationClient}/healthcheck', [IntegrationClientController::class, 'runHealthcheck'])->name('admin.integrations.healthcheck.run');
 
                 // Activity type administration.
                 Route::get('/activity-types', [ActivityTypeController::class, 'index'])->name('admin.activity-types.index');

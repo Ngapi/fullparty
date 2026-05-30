@@ -2,6 +2,72 @@
   "title": "Home",
   "welcome": "Willkommen zurück, {name}",
   "welcome_subtitle": "Schön, dich wiederzusehen.",
+  "onboarding": {
+    "title": "Willkommen bei FullParty",
+    "eyebrow": "Einrichtung",
+    "step_count": "Schritt {current} von {total}",
+    "steps": {
+      "welcome": {
+        "title": "Danke, dass du bei FullParty dabei bist!",
+        "description": "Schön, dass du hier bist. FullParty soll dir helfen, Runs zu finden, Gruppen beizutreten und Raid-Pläne ruhiger, klarer und mit weniger Chaos zusammenzuhalten."
+      },
+      "discord": {
+        "title": "FullParty zu Discord hinzufügen",
+        "description": "Installiere die FullParty-Discord-Bot/App für Run-Erinnerungen und Gruppenfunktionen. Das ist getrennt vom Discord-Login.",
+        "connected_description": "Du kannst FullParty-Updates jetzt in Discord erhalten."
+      },
+      "discord_warning": {
+        "title": "Discord vorerst überspringen?",
+        "description": "Du kannst FullParty weiter nutzen, aber einige Discord-Funktionen bleiben aus, bis du es einrichtest."
+      },
+      "notifications": {
+        "title": "Lege deine Benachrichtigungen fest",
+        "description": "Wähle, wohin FullParty Updates senden soll. Änderungen werden sofort gespeichert."
+      },
+      "next": {
+        "title": "Was kommt als Nächstes?",
+        "description": "Du bist bereit, FullParty für dich einzurichten. Hier sind die besten nächsten Schritte."
+      }
+    },
+    "discord": {
+      "connected": "Discord ist bereit",
+      "not_connected": "Discord ist noch nicht eingerichtet",
+      "hint": "Dadurch wird die FullParty-Discord-Bot/App installiert. Du meldest dich damit nicht über Discord an und dein Login bleibt unverändert.",
+      "warning_detail": "Du kannst weiterhin Runs finden und Gruppen beitreten. Diese Funktionen sind erst verfügbar, wenn die FullParty-Discord-Bot/App installiert ist:",
+      "missing_features": {
+        "notifications": "Discord-Benachrichtigungen und Run-Erinnerungen",
+        "group_role_assignment": "Automatische Gruppenrollen-Zuweisung",
+        "nickname_sync": "Nickname-Sync über Discord-Server hinweg"
+      }
+    },
+    "notifications": {
+      "email_title": "E-Mail-Benachrichtigungen",
+      "email_description": "Sende wichtige Updates und Erinnerungen an deine E-Mail-Adresse.",
+      "discord_title": "Discord-Benachrichtigungen",
+      "discord_description": "Sende unterstützte Erinnerungen und Gruppenupdates über Discord.",
+      "discord_disabled": "Richte Discord zuerst ein, um diese Option zu aktivieren.",
+      "saved_hint": "Änderungen werden automatisch gespeichert.",
+      "saving": "Einstellungen werden gespeichert...",
+      "saved": "Einstellungen gespeichert.",
+      "error": "Einstellungen konnten nicht gespeichert werden. Bitte versuche es erneut."
+    },
+    "quick_links": {
+      "character": "Füge Charaktere hinzu und verwalte sie.",
+      "runs": "Durchsuche offene Runs, die zu deinen Zielen passen.",
+      "groups": "Finde Communities und Statics, die Spieler suchen."
+    },
+    "actions": {
+      "connect_discord": "Discord einrichten",
+      "skip_discord": "Vorerst überspringen",
+      "continue_without_discord": "Ohne Discord fortfahren",
+      "add_character": "Charakter hinzufügen",
+      "runs": "Runs finden",
+      "groups": "Gruppen finden",
+      "back": "Zurück",
+      "next": "Weiter",
+      "finish": "Fertig"
+    }
+  },
   "character_panel": {
     "main_character": "Hauptcharakter",
     "primary_badge": "Primär",
@@ -128,8 +194,8 @@
         "description": "Baue deine Aktivitätshistorie mit einem geplanten Run auf."
       },
       "connected_discord": {
-        "title": "Discord verbinden",
-        "description": "Mach es Organisatoren leichter, dich außerhalb der Seite zu erreichen."
+        "title": "Discord einrichten",
+        "description": "Erhalte Erinnerungen und Gruppenupdates in Discord."
       },
       "notification_preferences_reviewed": {
         "title": "Benachrichtigungseinstellungen prüfen",

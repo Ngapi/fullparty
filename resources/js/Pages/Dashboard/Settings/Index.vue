@@ -45,6 +45,22 @@ watch(
 				icon: 'i-lucide-check'
 			})
 		}
+		if(success.includes('discord_integration_disconnected')){
+			toast.add({
+				title: t('settings.toasts.title'),
+				description: t('settings.toasts.discord_integration_disconnected'),
+				color: 'success',
+				icon: 'i-lucide-check'
+			})
+		}
+		if(success.includes('discord_user_link_token_generated')){
+			toast.add({
+				title: t('settings.toasts.title'),
+				description: t('settings.toasts.discord_user_link_token_generated'),
+				color: 'success',
+				icon: 'i-lucide-key-round'
+			})
+		}
 		if(success.includes('privacy_settings_updated')){
 			toast.add({
 				title: t('settings.toasts.title'),

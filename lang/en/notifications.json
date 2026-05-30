@@ -76,8 +76,8 @@
       "body": "{count} new applications for {activity} are waiting for review."
     },
     "submitted": {
-      "title": "New application received",
-      "body": "{character} submitted an application for {activity}."
+      "title": "Application submitted",
+      "body": "Your application as {character} for {activity} was submitted."
     },
     "updated": {
       "title": "Application updated",
@@ -85,7 +85,7 @@
     },
     "withdrawn": {
       "title": "Application withdrawn",
-      "body": "{character} withdrew their application for {activity}."
+      "body": "The application for {activity} as {character} was withdrawn."
     },
     "declined": {
       "title": "Application declined",
@@ -117,6 +117,18 @@
     "returned_to_queue": {
       "title": "Assignment returned to review",
       "body": "Your application for {activity} as {character} has been returned to the review queue."
+    },
+    "removed": {
+      "title": "Removed from run",
+      "body": "You were removed from {activity} as {character}."
+    },
+    "marked_missing": {
+      "title": "Marked missing",
+      "body": "You were marked missing for {activity} as {character}."
+    },
+    "missing_restored": {
+      "title": "Missing status removed",
+      "body": "You were restored to {slot} for {activity} as {character}."
     },
     "designation_assigned": {
       "title": "Run role updated",
@@ -193,6 +205,12 @@
     "announcement": {
       "title": "{headline}",
       "body": "{message}"
+    }
+  },
+  "integrations": {
+    "delivery_failed": {
+      "title": "Integration delivery failed",
+      "body": "{client} could not receive {event}. Error: {error}"
     }
   }
 }

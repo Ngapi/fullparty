@@ -80,6 +80,11 @@
         "linked": "a lié un compte social.",
         "unlinked": "a dissocié un compte social."
       },
+      "discord_app": {
+        "user_installed": "a installé l'application Discord.",
+        "disconnected": "a déconnecté l'application Discord.",
+        "guild_installed": "a installé l'application Discord sur un serveur."
+      },
       "settings": {
         "username_updated": "a mis à jour les paramètres du nom d'utilisateur.",
         "password_updated": "a mis à jour les paramètres du mot de passe.",
@@ -299,6 +304,11 @@
       "social_account": {
         "linked": "Compte social lié",
         "unlinked": "Compte social dissocié"
+      },
+      "discord_app": {
+        "user_installed": "Application Discord installée",
+        "disconnected": "Application Discord déconnectée",
+        "guild_installed": "Application Discord installée sur un serveur"
       },
       "settings": {
         "username_updated": "Nom d'utilisateur mis à jour",

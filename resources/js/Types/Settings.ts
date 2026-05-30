@@ -5,6 +5,15 @@ export type SettingsSocialAccount = {
 	provider_email: string | null
 }
 
+export type SettingsDiscordUserIntegration = {
+	id: number
+	discord_user_id: string
+	username: string | null
+	global_name: string | null
+	avatar_url: string | null
+	user_app_installed_at: string | null
+}
+
 export type SettingsUser = {
 	name: string
 	email: string
@@ -18,6 +27,8 @@ export type SettingsUser = {
 	system_notice_notifications: boolean
 	email_notifications: boolean
 	discord_notifications: boolean
+	discord_link_token_expires_at: string | null
 	notification_preferences_reviewed_at: string | null
+	discord_user_integration: SettingsDiscordUserIntegration | null
 	social_accounts: SettingsSocialAccount[]
 }

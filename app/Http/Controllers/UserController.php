@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\DiscordUserAppDisconnected;
 use App\Http\Requests\ChangePasswordRequest;
 use App\Models\User;
 use App\Services\AuditLogger;
@@ -14,6 +15,7 @@ use App\Support\Notifications\NotificationCategory;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 
@@ -104,8 +106,8 @@ class UserController extends Controller
             'email_notifications' => ['required', 'boolean'],
             'discord_notifications' => ['required', 'boolean'],
         ]);
-        // If the user doesn't have a discord account, disable discord notifications'
-        if ($request->user()->socialAccounts->where('provider', 'discord')->isEmpty()) {
+        // Discord delivery uses the installed Discord app, not Discord as a login method.
+        if (! $request->user()->discordUserIntegration()->exists()) {
             $validated['discord_notifications'] = false;
         }
 
@@ -121,7 +123,22 @@ class UserController extends Controller
             'discord_notifications' => $user->discord_notifications,
         ];
 
-        $user->update($validated);
+        $notificationPreferencesReviewedAt = $user->notification_preferences_reviewed_at ?? now();
+
+        $user->update([
+            ...$validated,
+            'notification_preferences_reviewed_at' => $notificationPreferencesReviewedAt,
+        ]);
+
+        $onboardingState = $user->onboardingState()->firstOrCreate([
+            'user_id' => $user->id,
+        ]);
+
+        if ($onboardingState->notification_preferences_completed_at === null) {
+            $onboardingState->update([
+                'notification_preferences_completed_at' => $notificationPreferencesReviewedAt,
+            ]);
+        }
 
         $updatedUser = $user->fresh();
         $updatedValues = [
@@ -145,10 +162,88 @@ class UserController extends Controller
 
         $this->notifyUserAboutNotificationSettingChanges($updatedUser, $changes);
 
+        if ($request->expectsJson()) {
+            return response()->json([
+                'success' => true,
+                'notifications' => [
+                    'application_notifications' => (bool) $updatedUser->application_notifications,
+                    'run_and_reminder_notifications' => (bool) $updatedUser->run_and_reminder_notifications,
+                    'group_update_notifications' => (bool) $updatedUser->group_update_notifications,
+                    'assignment_notifications' => (bool) $updatedUser->assignment_notifications,
+                    'account_character_notifications' => (bool) $updatedUser->account_character_notifications,
+                    'system_notice_notifications' => (bool) $updatedUser->system_notice_notifications,
+                    'email_notifications' => (bool) $updatedUser->email_notifications,
+                    'discord_notifications' => (bool) $updatedUser->discord_notifications,
+                    'notification_preferences_reviewed_at' => $updatedUser->notification_preferences_reviewed_at?->toIso8601String(),
+                ],
+            ]);
+        }
+
         return redirect()
             ->route('settings')
             ->with('success', ['notification_settings_updated']);
 
+    }
+
+    public function disconnectDiscordIntegration(Request $request): RedirectResponse
+    {
+        $user = $request->user();
+        $integration = $user->discordUserIntegration()->first();
+
+        if (! $integration) {
+            return redirect()
+                ->route('settings')
+                ->with('success', ['discord_integration_disconnected']);
+        }
+
+        DiscordUserAppDisconnected::dispatch($integration->id);
+
+        $integration->update([
+            'revoked_at' => now(),
+        ]);
+
+        $user->update([
+            'discord_notifications' => false,
+        ]);
+
+        $this->auditLogger->log(
+            action: 'user.discord_app.disconnected',
+            severity: AuditSeverity::INFO,
+            scopeType: AuditScope::USER,
+            scopeId: $user->id,
+            message: 'audit_log.activity.user.discord_app.disconnected',
+            actor: $user,
+            subject: $user,
+            metadata: [
+                'discord_user_id' => $integration->discord_user_id,
+            ],
+        );
+
+        return redirect()
+            ->route('settings')
+            ->with('success', ['discord_integration_disconnected']);
+    }
+
+    public function generateDiscordLinkToken(Request $request): RedirectResponse
+    {
+        $user = $request->user();
+        $plainToken = Str::upper(Str::random(8)).'-'.Str::upper(Str::random(8));
+        $expiresAt = now()->addMinutes(30);
+
+        $user->forceFill([
+            'discord_link_token_hash' => hash('sha256', $plainToken),
+            'discord_link_token_expires_at' => $expiresAt,
+        ])->save();
+
+        return redirect()
+            ->route('settings')
+            ->with('success', ['discord_user_link_token_generated'])
+            ->with('flash_data', [
+                'discord_user_link_token' => [
+                    'token' => $plainToken,
+                    'expires_at' => $expiresAt->toIso8601String(),
+                ],
+            ]);
     }
 
     public function changePrivacySettings(Request $request)
@@ -202,6 +297,11 @@ class UserController extends Controller
             'password' => Hash::make($request->validated('password')),
             'remember_token' => Str::random(60),
         ])->save();
+
+        DB::table('sessions')
+            ->where('user_id', $user->id)
+            ->where('id', '!=', $request->session()->getId())
+            ->delete();
 
         $this->auditLogger->log(
             action: 'user.settings.password_updated',

@@ -7,6 +7,7 @@ use App\Models\ActivityType;
 use App\Models\ActivityTypeVersion;
 use App\Models\Character;
 use App\Models\CharacterClass;
+use App\Models\DiscordUserIntegration;
 use App\Models\Group;
 use App\Models\GroupMembership;
 use App\Models\NotificationEvent;
@@ -56,6 +57,12 @@ it('renders the home banner eagerly and loads home activity data as deferred pro
         'provider' => 'discord',
         'provider_user_id' => 'discord-1',
         'provider_name' => 'Discord User',
+    ]);
+    DiscordUserIntegration::query()->create([
+        'user_id' => $user->id,
+        'discord_user_id' => 'discord-1',
+        'username' => 'Discord User',
+        'user_app_installed_at' => now(),
     ]);
     $user->socialAccounts()->create([
         'provider' => 'xivauth',
@@ -850,10 +857,11 @@ it('marks account completion celebration only once when all steps are complete',
         'user_id' => $user->id,
     ]);
 
-    $user->socialAccounts()->create([
-        'provider' => 'discord',
-        'provider_user_id' => 'discord-1',
-        'provider_name' => 'Discord User',
+    DiscordUserIntegration::query()->create([
+        'user_id' => $user->id,
+        'discord_user_id' => 'discord-1',
+        'username' => 'Discord User',
+        'user_app_installed_at' => now(),
     ]);
 
     Group::factory()->open()->create([

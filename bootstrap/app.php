@@ -1,8 +1,10 @@
 <?php
 
 use App\Http\Middleware\ApplyLocale;
+use App\Http\Middleware\AuthenticateIntegrationClient;
 use App\Http\Middleware\EnsureGroupDashboardAccess;
 use App\Http\Middleware\HandleInertiaRequests;
+use App\Http\Middleware\SecurityHeaders;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -13,18 +15,23 @@ use Illuminate\Session\TokenMismatchException;
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
         web: __DIR__.'/../routes/web.php',
+        api: __DIR__.'/../routes/api.php',
         commands: __DIR__.'/../routes/console.php',
         channels: __DIR__.'/../routes/channels.php',
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        $middleware->trustHosts();
+
         $middleware->alias([
             'group.dashboard.access' => EnsureGroupDashboardAccess::class,
+            'integration.client' => AuthenticateIntegrationClient::class,
         ]);
 
         $middleware->web(append: [
             ApplyLocale::class,
             HandleInertiaRequests::class,
+            SecurityHeaders::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
@@ -38,10 +45,17 @@ return Application::configure(basePath: dirname(__DIR__))
 
             return ($segments[0] ?? null) === 'auth';
         };
+        $rememberIntendedPath = static function (Request $request): void {
+            $intended = $request->getRequestUri();
 
-        $exceptions->render(function (AuthenticationException $exception, Request $request) use ($isAuthPath) {
+            if (is_string($intended) && str_starts_with($intended, '/')) {
+                $request->session()->put('url.intended', $intended);
+            }
+        };
+
+        $exceptions->render(function (AuthenticationException $exception, Request $request) use ($isAuthPath, $rememberIntendedPath) {
             if (! $isAuthPath($request)) {
-                $request->session()->put('url.intended', $request->fullUrl());
+                $rememberIntendedPath($request);
             }
 
             return redirect()
@@ -49,9 +63,9 @@ return Application::configure(basePath: dirname(__DIR__))
                 ->with('error', 'session_expired');
         });
 
-        $exceptions->render(function (TokenMismatchException $exception, Request $request) use ($isAuthPath) {
+        $exceptions->render(function (TokenMismatchException $exception, Request $request) use ($isAuthPath, $rememberIntendedPath) {
             if ($request->user() !== null && ! $isAuthPath($request)) {
-                $request->session()->put('url.intended', $request->fullUrl());
+                $rememberIntendedPath($request);
             }
 
             return redirect()

@@ -2,16 +2,21 @@
 
 namespace App\Services\Notifications;
 
+use App\Http\Controllers\Concerns\InteractsWithActivitySlotFieldDisplay;
 use App\Jobs\DispatchRosterPublishedAssignmentNotificationJob;
 use App\Models\Activity;
 use App\Models\ActivityApplication;
 use App\Models\ActivitySlot;
+use App\Models\ActivitySlotFieldValue;
 use App\Models\Character;
 use App\Models\User;
+use App\Support\Activities\ActivityDisplayName;
 use App\Support\Notifications\NotificationCategory;
 
 class AssignmentNotificationService
 {
+    use InteractsWithActivitySlotFieldDisplay;
+
     public function __construct(
         private readonly NotificationService $notificationService,
     ) {}
@@ -70,6 +75,7 @@ class AssignmentNotificationService
             ->with([
                 'activity.group',
                 'assignedCharacter.user',
+                'fieldValues',
             ])
             ->find($slotId);
 
@@ -161,6 +167,72 @@ class AssignmentNotificationService
         }
     }
 
+    public function notifyManualPlacementRemoved(Activity $activity, Character $character, ?ActivitySlot $slot, mixed $actor): void
+    {
+        if ($activity->status !== Activity::STATUS_ASSIGNED) {
+            return;
+        }
+
+        $recipient = $this->characterRecipient($character);
+
+        if (! $recipient) {
+            return;
+        }
+
+        $event = $this->notificationService->createEvent(
+            type: 'assignments.removed',
+            category: NotificationCategory::ASSIGNMENTS,
+            titleKey: 'notifications.assignments.removed.title',
+            bodyKey: 'notifications.assignments.removed.body',
+            messageParams: $this->characterMessageParams($activity, $character, $slot),
+            actionUrl: $this->activityOverviewUrl($activity),
+            actor: $actor instanceof User ? $actor : null,
+            subject: $character,
+            payload: array_merge($this->characterPayload($activity, $character, $slot), [
+                'status' => 'removed',
+            ]),
+        );
+
+        $this->notificationService->sendInAppNotifications($event, $recipient);
+        $this->notificationService->sendOffSiteNotifications($event, $recipient);
+    }
+
+    public function notifyMarkedMissing(Activity $activity, Character $character, ?ActivitySlot $slot, mixed $actor): void
+    {
+        if ($activity->status !== Activity::STATUS_ASSIGNED) {
+            return;
+        }
+
+        $this->notifyAttendanceChanged(
+            type: 'assignments.marked_missing',
+            titleKey: 'notifications.assignments.marked_missing.title',
+            bodyKey: 'notifications.assignments.marked_missing.body',
+            activity: $activity,
+            character: $character,
+            slot: $slot,
+            actor: $actor,
+            attendanceStatus: 'missing',
+        );
+    }
+
+    public function notifyMissingRestored(Activity $activity, Character $character, ?ActivitySlot $slot, mixed $actor): void
+    {
+        if ($activity->status !== Activity::STATUS_ASSIGNED) {
+            return;
+        }
+
+        $this->notifyAttendanceChanged(
+            type: 'assignments.missing_restored',
+            titleKey: 'notifications.assignments.missing_restored.title',
+            bodyKey: 'notifications.assignments.missing_restored.body',
+            activity: $activity,
+            character: $character,
+            slot: $slot,
+            actor: $actor,
+            attendanceStatus: 'assigned',
+        );
+    }
+
     public function notifyDesignationChanged(
         Activity $activity,
         Character $character,
@@ -195,8 +267,8 @@ class AssignmentNotificationService
                 'slot' => $this->slotLabel($slot),
                 'slot_group' => $this->groupLabel($slot),
                 'designation' => $this->designationLabel($designation),
-            ],
-            actionUrl: route('account.applications'),
+            ] + $this->rosterMessageParams($slot),
+            actionUrl: $this->activityOverviewUrl($activity),
             actor: $actor instanceof User ? $actor : null,
             subject: $character,
             payload: [
@@ -212,7 +284,7 @@ class AssignmentNotificationService
                 'designation_key' => $designation,
                 'designation_label' => $this->designationLabel($designation),
                 'designation_assigned' => $assigned,
-            ],
+            ] + $this->rosterPayload($slot),
         );
 
         $this->notificationService->sendInAppNotifications($event, $recipient);
@@ -243,7 +315,7 @@ class AssignmentNotificationService
             titleKey: $config['titleKey'],
             bodyKey: $config['bodyKey'],
             messageParams: $this->messageParams($application, $slot),
-            actionUrl: route('account.applications'),
+            actionUrl: $this->activityOverviewUrl($application->activity),
             actor: $actor instanceof User ? $actor : null,
             subject: $application,
             payload: $this->payload($application, $slot),
@@ -281,7 +353,7 @@ class AssignmentNotificationService
             titleKey: $config['titleKey'],
             bodyKey: $config['bodyKey'],
             messageParams: $this->characterMessageParams($activity, $character, $slot),
-            actionUrl: route('account.applications'),
+            actionUrl: $this->activityOverviewUrl($activity),
             actor: $actor instanceof User ? $actor : null,
             subject: $character,
             payload: $this->characterPayload($activity, $character, $slot),
@@ -318,6 +390,40 @@ class AssignmentNotificationService
                 $actor,
             );
         }
+    }
+
+    private function notifyAttendanceChanged(
+        string $type,
+        string $titleKey,
+        string $bodyKey,
+        Activity $activity,
+        Character $character,
+        ?ActivitySlot $slot,
+        mixed $actor,
+        string $attendanceStatus,
+    ): void {
+        $recipient = $this->characterRecipient($character);
+
+        if (! $recipient) {
+            return;
+        }
+
+        $event = $this->notificationService->createEvent(
+            type: $type,
+            category: NotificationCategory::ASSIGNMENTS,
+            titleKey: $titleKey,
+            bodyKey: $bodyKey,
+            messageParams: $this->characterMessageParams($activity, $character, $slot),
+            actionUrl: $this->activityOverviewUrl($activity),
+            actor: $actor instanceof User ? $actor : null,
+            subject: $character,
+            payload: array_merge($this->characterPayload($activity, $character, $slot), [
+                'attendance_status' => $attendanceStatus,
+            ]),
+        );
+
+        $this->notificationService->sendInAppNotifications($event, $recipient);
+        $this->notificationService->sendOffSiteNotifications($event, $recipient);
     }
 
     /**
@@ -400,7 +506,7 @@ class AssignmentNotificationService
             'character' => $this->characterName($application),
             'slot' => $this->slotLabel($slot),
             'slot_group' => $this->groupLabel($slot),
-        ];
+        ] + $this->rosterMessageParams($slot);
     }
 
     /**
@@ -420,7 +526,7 @@ class AssignmentNotificationService
             'slot_key' => $slot?->slot_key,
             'slot_label' => $this->slotLabel($slot),
             'slot_group' => $this->groupLabel($slot),
-        ];
+        ] + $this->rosterPayload($slot);
     }
 
     /**
@@ -434,7 +540,7 @@ class AssignmentNotificationService
             'character' => $character->name,
             'slot' => $this->slotLabel($slot),
             'slot_group' => $this->groupLabel($slot),
-        ];
+        ] + $this->rosterMessageParams($slot);
     }
 
     /**
@@ -455,16 +561,217 @@ class AssignmentNotificationService
             'slot_key' => $slot?->slot_key,
             'slot_label' => $this->slotLabel($slot),
             'slot_group' => $this->groupLabel($slot),
+        ] + $this->rosterPayload($slot);
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function rosterMessageParams(?ActivitySlot $slot): array
+    {
+        $roster = $this->rosterDetails($slot);
+
+        return $this->filledValues([
+            'class' => $roster['selected_class']['name'] ?? null,
+            'class_shorthand' => $roster['selected_class']['shorthand'] ?? null,
+            'phantom_job' => $roster['selected_phantom_job']['name'] ?? null,
+            'position' => $roster['selected_position']['label'] ?? null,
+            'position_key' => $roster['selected_position']['key'] ?? null,
+        ]);
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function rosterPayload(?ActivitySlot $slot): array
+    {
+        $roster = $this->rosterDetails($slot);
+
+        if ($roster === []) {
+            return [];
+        }
+
+        return ['roster' => $roster];
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function rosterDetails(?ActivitySlot $slot): array
+    {
+        if (! $slot) {
+            return [];
+        }
+
+        $slot->loadMissing('fieldValues');
+
+        $fields = $slot->fieldValues
+            ->map(fn (ActivitySlotFieldValue $fieldValue) => $this->rosterFieldPayload($fieldValue))
+            ->filter()
+            ->values()
+            ->all();
+
+        $roster = $this->filledValues([
+            'group_key' => $slot->group_key,
+            'group_label' => $this->groupLabel($slot),
+            'slot_key' => $slot->slot_key,
+            'slot_label' => $this->slotLabel($slot),
+            'position_in_group' => $slot->position_in_group,
+        ]);
+
+        if ($fields !== []) {
+            $roster['fields'] = $fields;
+        }
+
+        $selectedClass = collect($fields)->first(fn (array $field) => ($field['source'] ?? null) === 'character_classes'
+            || str_contains((string) ($field['key'] ?? ''), 'class'));
+        $selectedPhantomJob = collect($fields)->first(fn (array $field) => ($field['source'] ?? null) === 'phantom_jobs'
+            || str_contains((string) ($field['key'] ?? ''), 'phantom'));
+        $selectedPosition = collect($fields)->first(fn (array $field) => str_contains((string) ($field['key'] ?? ''), 'position'));
+
+        if ($selectedClass) {
+            $roster['selected_class'] = $this->classPayload($selectedClass);
+        }
+
+        if ($selectedPhantomJob) {
+            $roster['selected_phantom_job'] = $this->phantomJobPayload($selectedPhantomJob);
+        }
+
+        if ($selectedPosition) {
+            $roster['selected_position'] = $this->optionPayload($selectedPosition);
+        }
+
+        return $roster;
+    }
+
+    /**
+     * @return array<string, mixed>|null
+     */
+    private function rosterFieldPayload(ActivitySlotFieldValue $fieldValue): ?array
+    {
+        if (blank($fieldValue->value)) {
+            return null;
+        }
+
+        $displayValue = $this->stringValue($this->resolveSlotFieldDisplayValue($fieldValue));
+        $meta = $this->resolveSlotFieldDisplayMeta($fieldValue);
+
+        return $this->filledValues([
+            'key' => $fieldValue->field_key,
+            'label' => $this->labelValue($fieldValue->field_label, $fieldValue->field_key),
+            'type' => $fieldValue->field_type,
+            'source' => $fieldValue->source,
+            'value' => $fieldValue->value,
+            'display_value' => $displayValue,
+            'meta' => $meta,
+        ]);
+    }
+
+    /**
+     * @param  array<string, mixed>  $field
+     * @return array<string, mixed>
+     */
+    private function classPayload(array $field): array
+    {
+        $value = is_array($field['value'] ?? null) ? $field['value'] : [];
+        $meta = is_array($field['meta'] ?? null) ? $field['meta'] : [];
+
+        return $this->filledValues([
+            'id' => $value['id'] ?? null,
+            'name' => $value['name'] ?? $meta['name'] ?? $field['display_value'] ?? null,
+            'shorthand' => $value['shorthand'] ?? $meta['shorthand'] ?? null,
+            'role' => $value['role'] ?? $meta['role'] ?? null,
+            'icon_url' => $meta['icon_url'] ?? null,
+            'flaticon_url' => $meta['flaticon_url'] ?? null,
+        ]);
+    }
+
+    /**
+     * @param  array<string, mixed>  $field
+     * @return array<string, mixed>
+     */
+    private function phantomJobPayload(array $field): array
+    {
+        $value = is_array($field['value'] ?? null) ? $field['value'] : [];
+        $meta = is_array($field['meta'] ?? null) ? $field['meta'] : [];
+
+        return $this->filledValues([
+            'id' => $value['id'] ?? null,
+            'name' => $value['name'] ?? $meta['name'] ?? $field['display_value'] ?? null,
+            'icon_url' => $meta['icon_url'] ?? null,
+            'black_icon_url' => $meta['black_icon_url'] ?? null,
+            'transparent_icon_url' => $meta['transparent_icon_url'] ?? null,
+            'sprite_url' => $meta['sprite_url'] ?? null,
+        ]);
+    }
+
+    /**
+     * @param  array<string, mixed>  $field
+     * @return array<string, mixed>
+     */
+    private function optionPayload(array $field): array
+    {
+        $value = is_array($field['value'] ?? null) ? $field['value'] : [];
+        $meta = is_array($field['meta'] ?? null) ? $field['meta'] : [];
+
+        return $this->filledValues([
+            'key' => $meta['key'] ?? $value['key'] ?? null,
+            'label' => $this->labelValue($meta['label'] ?? $value['label'] ?? null, $field['display_value'] ?? null),
+        ]);
+    }
+
+    private function stringValue(mixed $value): ?string
+    {
+        if (is_array($value)) {
+            return $this->labelValue($value);
+        }
+
+        return filled($value) ? (string) $value : null;
+    }
+
+    private function labelValue(mixed $label, ?string $fallback = null): ?string
+    {
+        if (is_array($label)) {
+            $value = $label['en'] ?? collect($label)->first(fn ($entry) => filled($entry));
+
+            return filled($value) ? (string) $value : $fallback;
+        }
+
+        return filled($label) ? (string) $label : $fallback;
+    }
+
+    /**
+     * @param  array<string, mixed>  $values
+     * @return array<string, mixed>
+     */
+    private function filledValues(array $values): array
+    {
+        return array_filter($values, fn ($value) => ! blank($value));
+    }
+
+    private function activityOverviewUrl(?Activity $activity): string
+    {
+        $group = $activity?->group;
+
+        if (! $activity || ! $group) {
+            return route('account.applications');
+        }
+
+        $parameters = [
+            'group' => $group->slug,
+            'activity' => $activity->id,
         ];
+
+        if (filled($activity->secret_key)) {
+            $parameters['secretKey'] = $activity->secret_key;
+        }
+
+        return route('groups.activities.overview', $parameters);
     }
 
     private function activityTitle(?Activity $activity): string
     {
-        if (filled($activity?->title)) {
-            return (string) $activity->title;
-        }
-
-        return $activity ? sprintf('Activity #%d', $activity->id) : 'Activity';
+        return ActivityDisplayName::for($activity);
     }
 
     private function characterName(ActivityApplication $application): string

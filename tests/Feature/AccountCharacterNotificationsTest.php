@@ -6,6 +6,7 @@ use App\Models\ActivityApplication;
 use App\Models\ActivityType;
 use App\Models\ActivityTypeVersion;
 use App\Models\Character;
+use App\Models\DiscordUserIntegration;
 use App\Models\Group;
 use App\Models\NotificationDelivery;
 use App\Models\NotificationEvent;
@@ -53,6 +54,16 @@ function createAccountCharacterNotificationActivity(User $owner): Activity
     ]);
 }
 
+function createAccountCharacterDiscordIntegration(User $user, string $discordUserId = 'discord-account-123'): DiscordUserIntegration
+{
+    return DiscordUserIntegration::query()->create([
+        'user_id' => $user->id,
+        'discord_user_id' => $discordUserId,
+        'username' => 'Linked Discord',
+        'user_app_installed_at' => now(),
+    ]);
+}
+
 it('creates in app and off site notifications when a new social account is linked', function () {
     Queue::fake();
 
@@ -62,13 +73,7 @@ it('creates in app and off site notifications when a new social account is linke
         'discord_notifications' => true,
     ]);
 
-    SocialAccount::query()->create([
-        'user_id' => $user->id,
-        'provider' => NotificationChannel::DISCORD,
-        'provider_user_id' => 'discord-account-123',
-        'provider_name' => 'Linked Discord',
-        'provider_email' => $user->email,
-    ]);
+    createAccountCharacterDiscordIntegration($user);
 
     app(AccountCharacterNotificationService::class)->notifySocialAccountLinked($user->fresh('socialAccounts'), 'google', $user);
 
@@ -115,6 +120,7 @@ it('unlinks a social account and creates in app and off site notifications', fun
         'provider_name' => 'Linked Discord',
         'provider_email' => $user->email,
     ]);
+    createAccountCharacterDiscordIntegration($user, 'discord-linked-123');
 
     $googleAccount = SocialAccount::query()->create([
         'user_id' => $user->id,
@@ -187,13 +193,7 @@ it('creates in app and off site notifications when a character is added', functi
         'discord_notifications' => true,
     ]);
 
-    SocialAccount::query()->create([
-        'user_id' => $user->id,
-        'provider' => NotificationChannel::DISCORD,
-        'provider_user_id' => 'discord-character-123',
-        'provider_name' => 'Linked Discord',
-        'provider_email' => $user->email,
-    ]);
+    createAccountCharacterDiscordIntegration($user, 'discord-character-123');
 
     $character = Character::factory()->create([
         'user_id' => $user->id,
@@ -239,13 +239,7 @@ it('creates an in app notification when the primary character is changed', funct
         'discord_notifications' => true,
     ]);
 
-    SocialAccount::query()->create([
-        'user_id' => $user->id,
-        'provider' => NotificationChannel::DISCORD,
-        'provider_user_id' => 'discord-primary-123',
-        'provider_name' => 'Linked Discord',
-        'provider_email' => $user->email,
-    ]);
+    createAccountCharacterDiscordIntegration($user, 'discord-primary-123');
 
     $firstCharacter = Character::factory()->create([
         'user_id' => $user->id,
@@ -299,13 +293,7 @@ it('unclaims a character and promotes another one to primary without deleting th
         'discord_notifications' => true,
     ]);
 
-    SocialAccount::query()->create([
-        'user_id' => $user->id,
-        'provider' => NotificationChannel::DISCORD,
-        'provider_user_id' => 'discord-unclaim-123',
-        'provider_name' => 'Linked Discord',
-        'provider_email' => $user->email,
-    ]);
+    createAccountCharacterDiscordIntegration($user, 'discord-unclaim-123');
 
     $firstCharacter = Character::factory()->create([
         'user_id' => $user->id,

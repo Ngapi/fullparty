@@ -1,0 +1,93 @@
+<?php
+
+namespace App\Services\Integrations;
+
+use App\Models\IntegrationClient;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Str;
+use Throwable;
+
+class IntegrationWebhookDispatcher
+{
+    /**
+     * @param  array<string, mixed>  $data
+     * @return array{attempted: int, sent: int, failed: int, deliveries: array<int, array<string, mixed>>}
+     */
+    public function dispatchDiscordBotEvent(string $event, array $data): array
+    {
+        $deliveries = IntegrationClient::query()
+            ->where('type', IntegrationClient::TYPE_DISCORD_BOT)
+            ->where('status', IntegrationClient::STATUS_ACTIVE)
+            ->get()
+            ->filter(fn (IntegrationClient $client): bool => filled($client->outbound_events_url)
+                && filled($client->webhook_signing_secret)
+                && $client->allowsEvent($event))
+            ->map(fn (IntegrationClient $client): array => $this->dispatch($client, $event, $data))
+            ->values()
+            ->all();
+
+        return [
+            'attempted' => count($deliveries),
+            'sent' => collect($deliveries)->where('status', 'sent')->count(),
+            'failed' => collect($deliveries)->where('status', 'failed')->count(),
+            'deliveries' => $deliveries,
+        ];
+    }
+
+    /**
+     * @param  array<string, mixed>  $data
+     * @return array<string, mixed>
+     */
+    private function dispatch(IntegrationClient $client, string $event, array $data): array
+    {
+        $deliveryId = (string) Str::uuid();
+        $timestamp = (string) now()->unix();
+        $payload = [
+            'integration_client_id' => $client->id,
+            'id' => $deliveryId,
+            'event' => $event,
+            'occurred_at' => now()->toIso8601String(),
+            'data' => $data,
+        ];
+        $body = json_encode($payload, JSON_THROW_ON_ERROR);
+
+        try {
+            Http::timeout(5)->retry(2, 250)->withHeaders([
+                'User-Agent' => 'FullParty-Integrations/1.0',
+                'X-FullParty-Event' => $event,
+                'X-FullParty-Delivery' => $deliveryId,
+                'X-FullParty-Timestamp' => $timestamp,
+                'X-FullParty-Signature' => 'sha256='.hash_hmac('sha256', $timestamp.'.'.$body, (string) $client->webhook_signing_secret),
+            ])->withBody($body, 'application/json')
+                ->post((string) $client->outbound_events_url)
+                ->throw();
+
+            $client->forceFill([
+                'last_event_sent_at' => now(),
+                'last_event_failed_at' => null,
+                'last_event_error' => null,
+            ])->save();
+
+            return [
+                'client_id' => $client->id,
+                'delivery_id' => $deliveryId,
+                'status' => 'sent',
+                'error' => null,
+            ];
+        } catch (Throwable $exception) {
+            $client->forceFill([
+                'last_event_failed_at' => now(),
+                'last_event_error' => $exception->getMessage(),
+            ])->save();
+
+            app(IntegrationAdminNotificationService::class)->notifyEventDeliveryFailed($client->fresh(), $event, $exception->getMessage());
+
+            return [
+                'client_id' => $client->id,
+                'delivery_id' => $deliveryId,
+                'status' => 'failed',
+                'error' => $exception->getMessage(),
+            ];
+        }
+    }
+}

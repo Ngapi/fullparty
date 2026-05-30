@@ -3,6 +3,7 @@
 use App\Models\User;
 use Illuminate\Auth\Notifications\ResetPassword;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Password;
@@ -60,6 +61,15 @@ it('resets the password for a valid token', function () {
 
     $token = Password::broker()->createToken($user);
 
+    DB::table('sessions')->insert([
+        'id' => 'old-session',
+        'user_id' => $user->id,
+        'ip_address' => '127.0.0.2',
+        'user_agent' => 'Other browser',
+        'payload' => 'payload',
+        'last_activity' => now()->subMinute()->timestamp,
+    ]);
+
     $this->post(route('password.update'), [
         'token' => $token,
         'email' => 'RESET@example.com',
@@ -70,7 +80,8 @@ it('resets the password for a valid token', function () {
         ->assertSessionHas('success', ['password_reset']);
 
     expect(Hash::check('NewPassword123!', $user->fresh()->password))->toBeTrue()
-        ->and(Hash::check('OldPassword123!', $user->fresh()->password))->toBeFalse();
+        ->and(Hash::check('OldPassword123!', $user->fresh()->password))->toBeFalse()
+        ->and(DB::table('sessions')->where('id', 'old-session')->exists())->toBeFalse();
 });
 
 it('rejects an invalid password reset token', function () {

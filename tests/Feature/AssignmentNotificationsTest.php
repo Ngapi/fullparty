@@ -5,15 +5,16 @@ use App\Jobs\SendNotificationEmailDeliveryJob;
 use App\Models\Activity;
 use App\Models\ActivityApplication;
 use App\Models\ActivitySlot;
+use App\Models\ActivitySlotAssignment;
 use App\Models\ActivityType;
 use App\Models\ActivityTypeVersion;
 use App\Models\Character;
 use App\Models\CharacterClass;
+use App\Models\DiscordUserIntegration;
 use App\Models\Group;
 use App\Models\NotificationDelivery;
 use App\Models\NotificationEvent;
 use App\Models\PhantomJob;
-use App\Models\SocialAccount;
 use App\Models\User;
 use App\Models\UserNotification;
 use App\Services\Groups\ActivitySlotBench;
@@ -24,6 +25,16 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Queue;
 
 uses(RefreshDatabase::class);
+
+function createAssignmentDiscordIntegration(User $user, string $discordUserId, string $username): DiscordUserIntegration
+{
+    return DiscordUserIntegration::query()->create([
+        'user_id' => $user->id,
+        'discord_user_id' => $discordUserId,
+        'username' => $username,
+        'user_app_installed_at' => now(),
+    ]);
+}
 
 function createAssignmentNotificationActivity(User $owner, Group $group, array $activityOverrides = []): Activity
 {
@@ -246,21 +257,8 @@ it('notifies signed in applicants of their roster positions when the roster is p
         'assigned_by_user_id' => $owner->id,
     ]);
 
-    SocialAccount::query()->create([
-        'user_id' => $rosterUser->id,
-        'provider' => NotificationChannel::DISCORD,
-        'provider_user_id' => 'discord-roster-user',
-        'provider_name' => 'Roster User',
-        'provider_email' => $rosterUser->email,
-    ]);
-
-    SocialAccount::query()->create([
-        'user_id' => $benchUser->id,
-        'provider' => NotificationChannel::DISCORD,
-        'provider_user_id' => 'discord-bench-user',
-        'provider_name' => 'Bench User',
-        'provider_email' => $benchUser->email,
-    ]);
+    createAssignmentDiscordIntegration($rosterUser, 'discord-roster-user', 'Roster User');
+    createAssignmentDiscordIntegration($benchUser, 'discord-bench-user', 'Bench User');
 
     $rosterApplication = ActivityApplication::factory()->approved($owner)->create([
         'activity_id' => $activity->id,
@@ -412,13 +410,7 @@ it('notifies a manually assigned member when they are added to a published roste
         'is_preferred' => true,
     ]);
 
-    SocialAccount::query()->create([
-        'user_id' => $member->id,
-        'provider' => NotificationChannel::DISCORD,
-        'provider_user_id' => 'discord-manual-member',
-        'provider_name' => 'Manual Member',
-        'provider_email' => $member->email,
-    ]);
+    createAssignmentDiscordIntegration($member, 'discord-manual-member', 'Manual Member');
 
     $this->actingAs($owner);
 
@@ -441,6 +433,128 @@ it('notifies a manually assigned member when they are added to a published roste
         ->and(UserNotification::query()->where('user_id', $member->id)->count())->toBe(1)
         ->and(NotificationDelivery::query()->where('user_id', $member->id)->where('channel', NotificationChannel::EMAIL)->count())->toBe(1)
         ->and(NotificationDelivery::query()->where('user_id', $member->id)->where('channel', NotificationChannel::DISCORD)->count())->toBe(1);
+});
+
+it('includes selected roster details in assignment notification payloads', function () {
+    Queue::fake();
+
+    $owner = User::factory()->create();
+    $group = Group::factory()->open()->create([
+        'owner_id' => $owner->id,
+    ]);
+    $activity = createAssignmentNotificationActivity($owner, $group, [
+        'status' => Activity::STATUS_ASSIGNED,
+        'is_public' => false,
+        'secret_key' => str_repeat('r', 40),
+    ]);
+
+    $class = CharacterClass::create([
+        'name' => 'Astrologian',
+        'shorthand' => 'AST',
+        'role' => 'healer',
+    ]);
+    $phantomJob = PhantomJob::create([
+        'name' => 'Phantom Geomancer',
+        'max_level' => 20,
+    ]);
+
+    $member = User::factory()->create([
+        'assignment_notifications' => true,
+        'email_notifications' => false,
+        'discord_notifications' => false,
+    ]);
+    $character = Character::factory()->primary()->create([
+        'user_id' => $member->id,
+        'name' => 'Payload Target',
+        'lodestone_id' => '12121212',
+        'verified_at' => now(),
+    ]);
+
+    $slot = $activity->slots()->where('group_key', 'party-a')->firstOrFail();
+    $slot->update([
+        'assigned_character_id' => $character->id,
+        'assigned_by_user_id' => $owner->id,
+    ]);
+    $slot->fieldValues()->createMany([
+        [
+            'field_key' => 'character_class',
+            'field_label' => ['en' => 'Character Class'],
+            'field_type' => 'single_select',
+            'source' => 'character_classes',
+            'value' => [
+                'id' => $class->id,
+                'name' => $class->name,
+                'role' => $class->role,
+                'shorthand' => $class->shorthand,
+            ],
+        ],
+        [
+            'field_key' => 'phantom_job',
+            'field_label' => ['en' => 'Phantom Job'],
+            'field_type' => 'single_select',
+            'source' => 'phantom_jobs',
+            'value' => [
+                'id' => $phantomJob->id,
+                'name' => $phantomJob->name,
+            ],
+        ],
+        [
+            'field_key' => 'raid_position',
+            'field_label' => ['en' => 'Raid Position'],
+            'field_type' => 'single_select',
+            'source' => 'static_options',
+            'value' => [
+                'key' => 'h1',
+                'label' => ['en' => 'H1'],
+            ],
+        ],
+    ]);
+
+    app(AssignmentNotificationService::class)->notifyManualPlacementChanged(
+        $activity->fresh('group'),
+        $character,
+        $slot->fresh(['activity.group', 'fieldValues']),
+        $owner,
+    );
+
+    $event = NotificationEvent::query()->where('type', 'assignments.assigned')->sole();
+
+    expect($event->message_params)
+        ->toMatchArray([
+            'class' => 'Astrologian',
+            'class_shorthand' => 'AST',
+            'phantom_job' => 'Phantom Geomancer',
+            'position' => 'H1',
+            'position_key' => 'h1',
+        ])
+        ->and($event->action_url)->toBe(route('groups.activities.overview', [
+            'group' => $group->slug,
+            'activity' => $activity->id,
+            'secretKey' => $activity->secret_key,
+        ]))
+        ->and($event->payload['roster'])
+        ->toMatchArray([
+            'group_key' => 'party-a',
+            'group_label' => 'Party A',
+            'slot_key' => 'party-a-slot-1',
+            'slot_label' => 'Party A 1',
+            'position_in_group' => 1,
+            'selected_class' => [
+                'id' => $class->id,
+                'name' => 'Astrologian',
+                'shorthand' => 'AST',
+                'role' => 'healer',
+            ],
+            'selected_phantom_job' => [
+                'id' => $phantomJob->id,
+                'name' => 'Phantom Geomancer',
+            ],
+            'selected_position' => [
+                'key' => 'h1',
+                'label' => 'H1',
+            ],
+        ])
+        ->and($event->payload['roster']['fields'])->toHaveCount(3);
 });
 
 it('notifies manually assigned members when the roster is published', function () {
@@ -478,13 +592,7 @@ it('notifies manually assigned members when the roster is published', function (
         'assigned_by_user_id' => $owner->id,
     ]);
 
-    SocialAccount::query()->create([
-        'user_id' => $member->id,
-        'provider' => NotificationChannel::DISCORD,
-        'provider_user_id' => 'discord-manual-publish',
-        'provider_name' => 'Manual Publish',
-        'provider_email' => $member->email,
-    ]);
+    createAssignmentDiscordIntegration($member, 'discord-manual-publish', 'Manual Publish');
 
     $this->actingAs($owner);
 
@@ -692,21 +800,8 @@ it('notifies affected users when assignments change after the roster has been pu
         'assigned_by_user_id' => $owner->id,
     ]);
 
-    SocialAccount::query()->create([
-        'user_id' => $rosterUser->id,
-        'provider' => NotificationChannel::DISCORD,
-        'provider_user_id' => 'discord-roster-reassign',
-        'provider_name' => 'Roster User',
-        'provider_email' => $rosterUser->email,
-    ]);
-
-    SocialAccount::query()->create([
-        'user_id' => $benchUser->id,
-        'provider' => NotificationChannel::DISCORD,
-        'provider_user_id' => 'discord-bench-reassign',
-        'provider_name' => 'Bench User',
-        'provider_email' => $benchUser->email,
-    ]);
+    createAssignmentDiscordIntegration($rosterUser, 'discord-roster-reassign', 'Roster User');
+    createAssignmentDiscordIntegration($benchUser, 'discord-bench-reassign', 'Bench User');
 
     $rosterApplication = ActivityApplication::factory()->approved($owner)->create([
         'activity_id' => $activity->id,
@@ -812,21 +907,8 @@ it('notifies affected users when published filled slots are swapped', function (
         'discord_notifications' => true,
     ]);
 
-    SocialAccount::query()->create([
-        'user_id' => $firstUser->id,
-        'provider' => NotificationChannel::DISCORD,
-        'provider_user_id' => 'discord-swap-first',
-        'provider_name' => 'First Swap User',
-        'provider_email' => $firstUser->email,
-    ]);
-
-    SocialAccount::query()->create([
-        'user_id' => $secondUser->id,
-        'provider' => NotificationChannel::DISCORD,
-        'provider_user_id' => 'discord-swap-second',
-        'provider_name' => 'Second Swap User',
-        'provider_email' => $secondUser->email,
-    ]);
+    createAssignmentDiscordIntegration($firstUser, 'discord-swap-first', 'First Swap User');
+    createAssignmentDiscordIntegration($secondUser, 'discord-swap-second', 'Second Swap User');
 
     $firstCharacter = Character::factory()->primary()->create([
         'user_id' => $firstUser->id,
@@ -940,13 +1022,7 @@ it('notifies the applicant when a published roster assignment is returned to the
         'applicant_datacenter' => $character->datacenter,
     ]);
 
-    SocialAccount::query()->create([
-        'user_id' => $applicant->id,
-        'provider' => NotificationChannel::DISCORD,
-        'provider_user_id' => 'discord-returned-user',
-        'provider_name' => 'Returned User',
-        'provider_email' => $applicant->email,
-    ]);
+    createAssignmentDiscordIntegration($applicant, 'discord-returned-user', 'Returned User');
 
     $this->actingAs($owner);
 
@@ -962,7 +1038,10 @@ it('notifies the applicant when a published roster assignment is returned to the
     $notification = UserNotification::query()->where('notification_event_id', $event->id)->sole();
 
     expect($event->category)->toBe(NotificationCategory::ASSIGNMENTS)
-        ->and($event->action_url)->toBe(route('account.applications'))
+        ->and($event->action_url)->toBe(route('groups.activities.overview', [
+            'group' => $group->slug,
+            'activity' => $activity->id,
+        ]))
         ->and($event->message_params['character'])->toBe('Faye Ember')
         ->and($notification->user_id)->toBe($applicant->id)
         ->and($application->fresh()->status)->toBe(ActivityApplication::STATUS_PENDING);
@@ -982,6 +1061,152 @@ it('notifies the applicant when a published roster assignment is returned to the
         ->and($discordDelivery->status_reason)->toBe('discord_transport_unavailable');
 
     Queue::assertPushed(SendNotificationEmailDeliveryJob::class, 1);
+});
+
+it('notifies a manually assigned user when they are removed from a run', function () {
+    Queue::fake();
+
+    $owner = User::factory()->create();
+    $group = Group::factory()->open()->create([
+        'owner_id' => $owner->id,
+    ]);
+    $activity = createAssignmentNotificationActivity($owner, $group, [
+        'status' => Activity::STATUS_ASSIGNED,
+        'title' => null,
+    ]);
+    $activity->activityTypeVersion()->update([
+        'name' => ['en' => 'AAC Cruiserweight M4 (Savage)'],
+    ]);
+
+    $user = User::factory()->create([
+        'assignment_notifications' => true,
+        'email_notifications' => true,
+        'discord_notifications' => false,
+    ]);
+    $character = Character::factory()->primary()->create([
+        'user_id' => $user->id,
+        'name' => 'Manual Mira',
+        'lodestone_id' => '67670000',
+    ]);
+    $slot = $activity->slots()->where('group_key', 'party-a')->firstOrFail();
+    $slot->update([
+        'assigned_character_id' => $character->id,
+        'assigned_by_user_id' => $owner->id,
+    ]);
+    ActivitySlotAssignment::query()->create([
+        'activity_id' => $activity->id,
+        'group_id' => $group->id,
+        'activity_slot_id' => $slot->id,
+        'character_id' => $character->id,
+        'application_id' => null,
+        'assignment_source' => ActivitySlotAssignment::SOURCE_MANUAL,
+        'field_values_snapshot' => [],
+        'attendance_status' => ActivitySlotAssignment::STATUS_ASSIGNED,
+        'assigned_at' => now(),
+        'assigned_by_user_id' => $owner->id,
+    ]);
+
+    $this->actingAs($owner)
+        ->postJson(route('groups.dashboard.activities.slot-unassignments.store', [
+            'group' => $group->slug,
+            'activity' => $activity->id,
+            'slot' => $slot->id,
+        ]), [
+            'expected_slot_state_token' => activity_slot_state_token($slot->fresh()),
+        ])
+        ->assertOk();
+
+    $event = NotificationEvent::query()->where('type', 'assignments.removed')->sole();
+
+    expect($event->message_params['activity'])->toBe('AAC Cruiserweight M4 (Savage)')
+        ->and($event->payload['activity_title'])->toBe('AAC Cruiserweight M4 (Savage)')
+        ->and($event->message_params['character'])->toBe('Manual Mira')
+        ->and($event->payload['status'])->toBe('removed')
+        ->and(UserNotification::query()->where('notification_event_id', $event->id)->where('user_id', $user->id)->exists())->toBeTrue();
+
+    Queue::assertPushed(SendNotificationEmailDeliveryJob::class, 1);
+});
+
+it('notifies an assigned user when they are marked missing and restored', function () {
+    Queue::fake();
+
+    $owner = User::factory()->create();
+    $group = Group::factory()->open()->create([
+        'owner_id' => $owner->id,
+    ]);
+    $activity = createAssignmentNotificationActivity($owner, $group, [
+        'status' => Activity::STATUS_ASSIGNED,
+        'title' => null,
+    ]);
+    $activity->activityTypeVersion()->update([
+        'name' => ['en' => 'Futures Rewritten (Ultimate)'],
+    ]);
+
+    $user = User::factory()->create([
+        'assignment_notifications' => true,
+        'email_notifications' => true,
+        'discord_notifications' => false,
+    ]);
+    $character = Character::factory()->primary()->create([
+        'user_id' => $user->id,
+        'name' => 'Missing Mira',
+        'lodestone_id' => '68680000',
+    ]);
+    $slot = $activity->slots()->where('group_key', 'party-a')->firstOrFail();
+    $slot->update([
+        'assigned_character_id' => $character->id,
+        'assigned_by_user_id' => $owner->id,
+    ]);
+    ActivitySlotAssignment::query()->create([
+        'activity_id' => $activity->id,
+        'group_id' => $group->id,
+        'activity_slot_id' => $slot->id,
+        'character_id' => $character->id,
+        'application_id' => null,
+        'assignment_source' => ActivitySlotAssignment::SOURCE_MANUAL,
+        'field_values_snapshot' => [],
+        'attendance_status' => ActivitySlotAssignment::STATUS_ASSIGNED,
+        'assigned_at' => now(),
+        'assigned_by_user_id' => $owner->id,
+    ]);
+
+    $this->actingAs($owner)
+        ->postJson(route('groups.dashboard.activities.slot-missing.store', [
+            'group' => $group->slug,
+            'activity' => $activity->id,
+            'slot' => $slot->id,
+        ]), [
+            'expected_slot_state_token' => activity_slot_state_token($slot->fresh()),
+        ])
+        ->assertOk();
+
+    $missingAssignment = ActivitySlotAssignment::query()
+        ->where('activity_id', $activity->id)
+        ->where('character_id', $character->id)
+        ->where('attendance_status', ActivitySlotAssignment::STATUS_MISSING)
+        ->sole();
+
+    $this->postJson(route('groups.dashboard.activities.slot-missing.undo', [
+        'group' => $group->slug,
+        'activity' => $activity->id,
+        'assignment' => $missingAssignment->id,
+    ]), [
+        'expected_slot_state_token' => activity_slot_state_token($slot->fresh()),
+    ])
+        ->assertOk();
+
+    $missingEvent = NotificationEvent::query()->where('type', 'assignments.marked_missing')->sole();
+    $restoredEvent = NotificationEvent::query()->where('type', 'assignments.missing_restored')->sole();
+
+    expect($missingEvent->message_params['activity'])->toBe('Futures Rewritten (Ultimate)')
+        ->and($missingEvent->message_params['character'])->toBe('Missing Mira')
+        ->and($missingEvent->payload['attendance_status'])->toBe('missing')
+        ->and($restoredEvent->message_params['activity'])->toBe('Futures Rewritten (Ultimate)')
+        ->and($restoredEvent->message_params['slot'])->toBe('Party A 1')
+        ->and($restoredEvent->payload['attendance_status'])->toBe('assigned')
+        ->and(UserNotification::query()->whereIn('notification_event_id', [$missingEvent->id, $restoredEvent->id])->where('user_id', $user->id)->count())->toBe(2);
+
+    Queue::assertPushed(SendNotificationEmailDeliveryJob::class, 2);
 });
 
 it('notifies the applicant when published slot field assignments change, but not for identical re-saves', function () {
@@ -1039,13 +1264,7 @@ it('notifies the applicant when published slot field assignments change, but not
             'value' => [(string) $phantomKnight->id, (string) $phantomBard->id],
         ]);
 
-    SocialAccount::query()->create([
-        'user_id' => $applicant->id,
-        'provider' => NotificationChannel::DISCORD,
-        'provider_user_id' => 'discord-field-update-user',
-        'provider_name' => 'Field Update User',
-        'provider_email' => $applicant->email,
-    ]);
+    createAssignmentDiscordIntegration($applicant, 'discord-field-update-user', 'Field Update User');
 
     $this->actingAs($owner);
 

@@ -80,6 +80,11 @@
         "linked": "hat ein Social-Konto verknüpft.",
         "unlinked": "hat ein Social-Konto getrennt."
       },
+      "discord_app": {
+        "user_installed": "hat die Discord-App installiert.",
+        "disconnected": "hat die Discord-App getrennt.",
+        "guild_installed": "hat die Discord-App auf einem Server installiert."
+      },
       "settings": {
         "username_updated": "hat die Benutzernamenseinstellungen aktualisiert.",
         "password_updated": "hat die Passworteinstellungen aktualisiert.",
@@ -299,6 +304,11 @@
       "social_account": {
         "linked": "Social-Konto verknüpft",
         "unlinked": "Social-Konto getrennt"
+      },
+      "discord_app": {
+        "user_installed": "Discord-App installiert",
+        "disconnected": "Discord-App getrennt",
+        "guild_installed": "Discord-App auf Server installiert"
       },
       "settings": {
         "username_updated": "Benutzername aktualisiert",

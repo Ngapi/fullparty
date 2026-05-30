@@ -3,9 +3,9 @@
 use App\Jobs\DispatchSystemNotificationBroadcastChunkJob;
 use App\Jobs\DispatchSystemNotificationBroadcastJob;
 use App\Jobs\SendNotificationEmailDeliveryJob;
+use App\Models\DiscordUserIntegration;
 use App\Models\NotificationDelivery;
 use App\Models\NotificationEvent;
-use App\Models\SocialAccount;
 use App\Models\SystemBanner;
 use App\Models\SystemNotificationBroadcast;
 use App\Models\User;
@@ -90,12 +90,11 @@ it('sends mandatory maintenance notifications in app and off site regardless of 
         'discord_notifications' => true,
     ]);
 
-    SocialAccount::query()->create([
+    DiscordUserIntegration::query()->create([
         'user_id' => $recipient->id,
-        'provider' => 'discord',
-        'provider_user_id' => 'discord-system-user',
-        'provider_name' => 'System Recipient',
-        'provider_email' => $recipient->email,
+        'discord_user_id' => 'discord-system-user',
+        'username' => 'System Recipient',
+        'user_app_installed_at' => now(),
     ]);
 
     $this->actingAs($admin)

@@ -5,8 +5,8 @@ namespace App\Services\Notifications;
 use App\Models\Activity;
 use App\Models\ActivityApplication;
 use App\Models\Group;
-use App\Models\GroupMembership;
 use App\Models\User;
+use App\Support\Activities\ActivityDisplayName;
 use App\Support\Notifications\NotificationCategory;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 
@@ -18,34 +18,59 @@ class ApplicationNotificationService
 
     public function notifySubmitted(ActivityApplication $application, mixed $actor): void
     {
-        $recipients = $this->moderatorRecipients($application);
+        $recipients = $this->hostRecipients($application);
 
-        if ($recipients->isEmpty()) {
+        if ($recipients->isNotEmpty()) {
+            $event = $this->notificationService->createEvent(
+                type: 'applications.new_for_review',
+                category: NotificationCategory::APPLICATIONS,
+                titleKey: 'notifications.applications.new_for_review.title',
+                bodyKey: 'notifications.applications.new_for_review.body',
+                messageParams: $this->messageParams($application),
+                actionUrl: $this->moderatorActionUrl($application),
+                actor: $actor instanceof User ? $actor : null,
+                subject: $application->activity,
+                payload: $this->payload($application),
+            );
+
+            $this->notificationService->sendAggregatedInAppNotifications(
+                $event,
+                $recipients,
+                $this->submittedAggregateKey($application),
+            );
+            $this->notificationService->sendOffSiteNotifications($event, $recipients);
+        }
+
+        $this->notifyApplicantSubmitted($application, $actor);
+    }
+
+    private function notifyApplicantSubmitted(ActivityApplication $application, mixed $actor): void
+    {
+        $recipient = $this->applicantRecipient($application);
+
+        if (! $recipient) {
             return;
         }
 
         $event = $this->notificationService->createEvent(
-            type: 'applications.new_for_review',
+            type: 'applications.submitted',
             category: NotificationCategory::APPLICATIONS,
-            titleKey: 'notifications.applications.new_for_review.title',
-            bodyKey: 'notifications.applications.new_for_review.body',
+            titleKey: 'notifications.applications.submitted.title',
+            bodyKey: 'notifications.applications.submitted.body',
             messageParams: $this->messageParams($application),
-            actionUrl: $this->moderatorActionUrl($application),
+            actionUrl: route('account.applications'),
             actor: $actor instanceof User ? $actor : null,
-            subject: $application->activity,
+            subject: $application,
             payload: $this->payload($application),
         );
 
-        $this->notificationService->sendAggregatedInAppNotifications(
-            $event,
-            $recipients,
-            $this->submittedAggregateKey($application),
-        );
+        $this->notificationService->sendInAppNotifications($event, $recipient);
+        $this->notificationService->sendOffSiteNotifications($event, $recipient);
     }
 
     public function notifyUpdated(ActivityApplication $application, mixed $actor): void
     {
-        $recipients = $this->moderatorRecipients($application);
+        $recipients = $this->hostRecipients($application);
 
         if ($recipients->isEmpty()) {
             return;
@@ -64,11 +89,18 @@ class ApplicationNotificationService
         );
 
         $this->notificationService->sendInAppNotifications($event, $recipients);
+        $this->notificationService->sendOffSiteNotifications($event, $recipients);
     }
 
     public function notifyWithdrawn(ActivityApplication $application, mixed $actor): void
     {
-        $recipients = $this->moderatorRecipients($application);
+        $this->notifyHostWithdrawn($application, $actor);
+        $this->notifyApplicantWithdrawn($application, $actor);
+    }
+
+    private function notifyHostWithdrawn(ActivityApplication $application, mixed $actor): void
+    {
+        $recipients = $this->hostRecipients($application);
 
         if ($recipients->isEmpty()) {
             return;
@@ -87,13 +119,38 @@ class ApplicationNotificationService
         );
 
         $this->notificationService->sendInAppNotifications($event, $recipients);
+        $this->notificationService->sendOffSiteNotifications($event, $recipients);
+    }
+
+    private function notifyApplicantWithdrawn(ActivityApplication $application, mixed $actor): void
+    {
+        $recipient = $this->applicantRecipient($application);
+
+        if (! $recipient) {
+            return;
+        }
+
+        $event = $this->notificationService->createEvent(
+            type: 'applications.withdrawn',
+            category: NotificationCategory::APPLICATIONS,
+            titleKey: 'notifications.applications.withdrawn.title',
+            bodyKey: 'notifications.applications.withdrawn.body',
+            messageParams: $this->messageParams($application),
+            actionUrl: route('account.applications'),
+            actor: $actor instanceof User ? $actor : null,
+            subject: $application,
+            payload: $this->payload($application),
+        );
+
+        $this->notificationService->sendInAppNotifications($event, $recipient);
+        $this->notificationService->sendOffSiteNotifications($event, $recipient);
     }
 
     public function notifyDeclined(ActivityApplication $application, mixed $actor): void
     {
         $recipient = $this->applicantRecipient($application);
 
-        if (!$recipient) {
+        if (! $recipient) {
             return;
         }
 
@@ -112,13 +169,14 @@ class ApplicationNotificationService
         );
 
         $this->notificationService->sendInAppNotifications($event, $recipient);
+        $this->notificationService->sendOffSiteNotifications($event, $recipient);
     }
 
     public function notifyCancelled(ActivityApplication $application, mixed $actor): void
     {
         $recipient = $this->applicantRecipient($application);
 
-        if (!$recipient) {
+        if (! $recipient) {
             return;
         }
 
@@ -135,29 +193,24 @@ class ApplicationNotificationService
         );
 
         $this->notificationService->sendInAppNotifications($event, $recipient);
+        $this->notificationService->sendOffSiteNotifications($event, $recipient);
     }
 
     /**
      * @return EloquentCollection<int, User>
      */
-    private function moderatorRecipients(ActivityApplication $application): EloquentCollection
+    private function hostRecipients(ActivityApplication $application): EloquentCollection
     {
-        $group = $application->activity?->group;
+        $activity = $application->activity;
+        $hostId = $activity?->organized_by_user_id;
 
-        if (!$group instanceof Group) {
-            return new EloquentCollection();
+        if (! $hostId) {
+            return new EloquentCollection;
         }
 
         return User::query()
+            ->whereKey($hostId)
             ->where('application_notifications', true)
-            ->where(function ($query) use ($group): void {
-                $query->whereKey($group->owner_id)
-                    ->orWhereHas('groupMemberships', function ($membershipQuery) use ($group): void {
-                        $membershipQuery
-                            ->where('group_id', $group->id)
-                            ->where('role', GroupMembership::ROLE_MODERATOR);
-                    });
-            })
             ->when(
                 $application->user_id !== null,
                 fn ($query) => $query->whereKeyNot($application->user_id),
@@ -171,7 +224,7 @@ class ApplicationNotificationService
 
         $recipient = $application->user;
 
-        if (!$recipient instanceof User || !$recipient->application_notifications) {
+        if (! $recipient instanceof User || ! $recipient->application_notifications) {
             return null;
         }
 
@@ -213,7 +266,7 @@ class ApplicationNotificationService
         $group = $application->activity?->group;
         $activity = $application->activity;
 
-        if (!$group instanceof Group || !$activity instanceof Activity) {
+        if (! $group instanceof Group || ! $activity instanceof Activity) {
             return null;
         }
 
@@ -225,11 +278,7 @@ class ApplicationNotificationService
 
     private function activityTitle(?Activity $activity): string
     {
-        if (filled($activity?->title)) {
-            return (string) $activity->title;
-        }
-
-        return $activity ? sprintf('Activity #%d', $activity->id) : 'Activity';
+        return ActivityDisplayName::for($activity);
     }
 
     private function characterName(ActivityApplication $application): string

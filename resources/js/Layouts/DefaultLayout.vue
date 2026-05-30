@@ -4,6 +4,7 @@ import CTopbar from "@/components/Navigation/CTopbar.vue";
 import DashboardFooter from "@/components/DashboardFooter.vue";
 import GroupNavigation from "@/components/Groups/GroupNavigation.vue";
 import SystemBanner from "@/components/SystemBanner.vue";
+import WelcomeOnboardingModal from "@/components/Home/WelcomeOnboardingModal.vue";
 import { usePage } from '@inertiajs/vue3'
 import { computed, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -103,6 +104,7 @@ defineProps({
 					</template>
 				</UDashboardPanel>
 			</UDashboardGroup>
+			<WelcomeOnboardingModal />
 		</div>
 	</UApp>
 </template>

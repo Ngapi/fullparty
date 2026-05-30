@@ -6,6 +6,7 @@ use App\Models\Activity;
 use App\Models\Group;
 use App\Models\GroupMembership;
 use App\Models\User;
+use App\Support\Activities\ActivityDisplayName;
 use App\Support\Notifications\NotificationCategory;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 
@@ -324,11 +325,7 @@ class GroupUpdateNotificationService
 
     private function activityTitle(Activity $activity): string
     {
-        if (filled($activity->title)) {
-            return (string) $activity->title;
-        }
-
-        return sprintf('Activity #%d', $activity->id);
+        return ActivityDisplayName::for($activity);
     }
 
     private function formatGroupRole(string $role): string

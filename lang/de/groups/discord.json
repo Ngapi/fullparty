@@ -1,0 +1,36 @@
+{
+  "title": "Discord-Integration",
+  "subtitle": "Verbinde {group} mit einem Discord-Server.",
+  "install": {
+    "title": "FullParty-Bot installieren",
+    "subtitle": "Füge den Bot dem Discord-Server hinzu, den du für diese Gruppe nutzt.",
+    "description": "Nachdem der Bot installiert ist, erstelle einen Link-Token und nutze ihn in Discord, damit FullParty diese Gruppe dem richtigen Server zuordnen kann."
+  },
+  "status": {
+    "title": "Verknüpfter Server",
+    "subtitle": "Der aktuell mit dieser Gruppe verbundene Discord-Server.",
+    "linked": "Verknüpft",
+    "not_linked": "Nicht verknüpft",
+    "unknown_guild": "Discord-Server",
+    "empty": "Mit dieser Gruppe ist noch kein Discord-Server verknüpft."
+  },
+  "link": {
+    "title": "Diese Gruppe verknüpfen",
+    "subtitle": "Nutze einen kurzlebigen Token, um den Server aus Discord zu bestätigen.",
+    "description": "Erstelle hier einen Token und führe danach den Link-Befehl des Bots auf dem Discord-Server aus, der mit dieser Gruppe verbunden werden soll.",
+    "generated_token": "Link-Token",
+    "expires_at": "Läuft ab {date}",
+    "active_token_title": "Ein Link-Token ist aktiv",
+    "active_token_description": "Erstelle einen neuen Token, wenn du ihn erneut sehen musst. Der aktuelle Token läuft {date} ab.",
+    "no_token_title": "Kein aktiver Link-Token",
+    "no_token_description": "Erstelle einen Token, wenn du bereit bist, die Verknüpfung aus Discord abzuschließen."
+  },
+  "actions": {
+    "invite": "Bot einladen",
+    "generate_token": "Link-Token erstellen",
+    "copy_token": "Token kopieren"
+  },
+  "toasts": {
+    "token_copied": "Link-Token kopiert."
+  }
+}

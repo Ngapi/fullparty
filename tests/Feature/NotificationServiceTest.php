@@ -3,9 +3,10 @@
 use App\Events\UserNotificationsUpdated;
 use App\Jobs\SendNotificationEmailDeliveryJob;
 use App\Mail\NotificationDeliveryMail;
+use App\Models\DiscordUserIntegration;
+use App\Models\IntegrationClient;
 use App\Models\NotificationDelivery;
 use App\Models\NotificationEvent;
-use App\Models\SocialAccount;
 use App\Models\User;
 use App\Models\UserNotification;
 use App\Services\Notifications\EmailNotificationDeliveryService;
@@ -16,7 +17,9 @@ use App\Support\Notifications\NotificationCategory;
 use App\Support\Notifications\NotificationChannel;
 use Illuminate\Broadcasting\BroadcastEvent;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\Client\Request as HttpRequest;
 use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Queue;
 
@@ -235,12 +238,11 @@ it('creates pending off site delivery rows for eligible email and discord recipi
         'discord_notifications' => true,
     ]);
 
-    SocialAccount::query()->create([
+    DiscordUserIntegration::query()->create([
         'user_id' => $recipient->id,
-        'provider' => 'discord',
-        'provider_user_id' => 'discord-user-123',
-        'provider_name' => 'Notif Tester',
-        'provider_email' => $recipient->email,
+        'discord_user_id' => 'discord-user-123',
+        'username' => 'Notif Tester',
+        'user_app_installed_at' => now(),
     ]);
 
     $service = app(NotificationService::class);
@@ -286,12 +288,11 @@ it('records skipped off site deliveries when preferences or delivery targets do 
         'discord_notifications' => true,
     ]);
 
-    SocialAccount::query()->create([
+    DiscordUserIntegration::query()->create([
         'user_id' => $categoryOptOutUser->id,
-        'provider' => 'discord',
-        'provider_user_id' => 'discord-opt-out',
-        'provider_name' => 'Category Opt Out',
-        'provider_email' => $categoryOptOutUser->email,
+        'discord_user_id' => 'discord-opt-out',
+        'username' => 'Category Opt Out',
+        'user_app_installed_at' => now(),
     ]);
 
     $missingDiscordUser = User::factory()->create([
@@ -363,12 +364,11 @@ it('can promote a previously skipped discord delivery to pending once the recipi
         ->and($firstPass->sole()->status)->toBe(NotificationDelivery::STATUS_SKIPPED)
         ->and($firstPass->sole()->status_reason)->toBe('channel_preference_disabled');
 
-    SocialAccount::query()->create([
+    DiscordUserIntegration::query()->create([
         'user_id' => $recipient->id,
-        'provider' => 'discord',
-        'provider_user_id' => 'discord-linked-456',
-        'provider_name' => 'Late Link',
-        'provider_email' => $recipient->email,
+        'discord_user_id' => 'discord-linked-456',
+        'username' => 'Late Link',
+        'user_app_installed_at' => now(),
     ]);
 
     $recipient->update([
@@ -383,6 +383,80 @@ it('can promote a previously skipped discord delivery to pending once the recipi
         ->and($secondPass->sole()->status_reason)->toBe('discord_transport_unavailable');
 
     expect(NotificationDelivery::query()->count())->toBe(1);
+});
+
+it('sends discord deliveries through the configured discord bot integration', function () {
+    $recipient = User::factory()->create([
+        'name' => 'Discord Ready',
+        'account_character_notifications' => true,
+        'discord_notifications' => true,
+    ]);
+
+    DiscordUserIntegration::query()->create([
+        'user_id' => $recipient->id,
+        'discord_user_id' => 'discord-linked-789',
+        'username' => 'Discord Ready',
+        'user_app_installed_at' => now(),
+    ]);
+
+    IntegrationClient::factory()->create([
+        'name' => 'FullParty Discord Bot',
+        'outbound_events_url' => 'https://discord-bot.fullparty.test/events',
+        'webhook_signing_secret' => 'notification-secret',
+        'allowed_events' => [
+            IntegrationClient::EVENT_DISCORD_NOTIFICATION_DELIVERY,
+        ],
+    ]);
+
+    Http::fake([
+        'https://discord-bot.fullparty.test/events' => Http::response([], 204),
+    ]);
+
+    $service = app(NotificationService::class);
+    $event = $service->createEvent(
+        type: 'user.settings.username_updated',
+        category: NotificationCategory::ACCOUNT_CHARACTER_UPDATES,
+        titleKey: 'notifications.user.settings.username_updated.title',
+        bodyKey: 'notifications.user.settings.username_updated.body',
+        messageParams: [
+            'changed_setting_label_keys' => [
+                'general.username',
+            ],
+        ],
+        actionUrl: '/settings',
+    );
+
+    $deliveries = $service->sendOffSiteNotifications($event, $recipient, [NotificationChannel::DISCORD]);
+    $delivery = $deliveries->sole()->fresh();
+
+    expect($delivery->status)->toBe(NotificationDelivery::STATUS_SENT)
+        ->and($delivery->target)->toBe('discord-linked-789')
+        ->and($delivery->sent_at)->not->toBeNull()
+        ->and($delivery->status_reason)->toBeNull();
+
+    Http::assertSent(function (HttpRequest $request) use ($delivery, $recipient) {
+        if ($request->url() !== 'https://discord-bot.fullparty.test/events') {
+            return false;
+        }
+
+        $body = $request->body();
+        $timestamp = $request->header('X-FullParty-Timestamp')[0] ?? null;
+        $payload = json_decode($body, true);
+
+        expect($payload['event'])->toBe(IntegrationClient::EVENT_DISCORD_NOTIFICATION_DELIVERY)
+            ->and($payload['data']['notification_delivery_id'])->toBe($delivery->id)
+            ->and($payload['data']['user']['id'])->toBe($recipient->id)
+            ->and($payload['data']['discord_user']['id'])->toBe('discord-linked-789')
+            ->and($payload['data']['notification']['type'])->toBe('user.settings.username_updated')
+            ->and($payload['data']['notification']['category'])->toBe(NotificationCategory::ACCOUNT_CHARACTER_UPDATES)
+            ->and($payload['data']['notification']['params']['changed_setting_label_keys'])->toBe(['general.username'])
+            ->and($payload['data']['notification']['action_url'])->toBe('/settings')
+            ->and($payload['data']['notification'])->not->toHaveKeys(['title_key', 'body_key']);
+
+        return is_string($timestamp)
+            && ($request->header('X-FullParty-Event')[0] ?? null) === IntegrationClient::EVENT_DISCORD_NOTIFICATION_DELIVERY
+            && ($request->header('X-FullParty-Signature')[0] ?? null) === 'sha256='.hash_hmac('sha256', $timestamp.'.'.$body, 'notification-secret');
+    });
 });
 
 it('sends email deliveries through the email delivery service and marks them as sent', function () {

@@ -378,6 +378,23 @@ it('returns a friendly validation response when ff logs completion preview proce
         ->assertJsonPath('message', 'Unable to process this FF Logs report right now.');
 });
 
+it('rejects non-ff logs progress links when completing an activity', function () {
+    extract(createModerationEndpointSetup([], [
+        'status' => Activity::STATUS_ASSIGNED,
+    ]));
+
+    $this->actingAs($owner);
+
+    $this->postJson(route('groups.dashboard.activities.complete', [
+        'group' => $group->slug,
+        'activity' => $activity->id,
+    ]), [
+        'progress_link_url' => 'https://example.com/reports/not-fflogs',
+    ])
+        ->assertUnprocessable()
+        ->assertJsonValidationErrors('progress_link_url');
+});
+
 it('allows moderators to decline pending applications with an optional reason', function () {
     extract(createModerationEndpointSetup());
 
@@ -407,6 +424,7 @@ it('allows moderators to decline pending applications with an optional reason', 
     $application->refresh();
 
     expect($application->status)->toBe(ActivityApplication::STATUS_DECLINED)
+        ->and($application->guest_access_token)->toBeNull()
         ->and($application->reviewed_by_user_id)->toBe($owner->id)
         ->and($application->reviewed_at)->not->toBeNull()
         ->and($application->review_reason)->toBe('Roster already locked for this run.');

@@ -1,12 +1,15 @@
 <?php
 
 use App\Models\AuditLog;
+use App\Models\DiscordUserIntegration;
+use App\Models\IntegrationClient;
 use App\Models\NotificationEvent;
-use App\Models\SocialAccount;
 use App\Models\User;
 use App\Models\UserNotification;
 use App\Support\Notifications\NotificationCategory;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\Client\Request as HttpRequest;
+use Illuminate\Support\Facades\Http;
 
 uses(RefreshDatabase::class);
 
@@ -39,12 +42,11 @@ it('updates the new notification category preferences and delivery channels', fu
         'discord_notifications' => false,
     ]);
 
-    SocialAccount::query()->create([
+    DiscordUserIntegration::query()->create([
         'user_id' => $user->id,
-        'provider' => 'discord',
-        'provider_user_id' => 'discord-123',
-        'provider_name' => 'Settings Tester',
-        'provider_email' => $user->email,
+        'discord_user_id' => 'discord-123',
+        'username' => 'Settings Tester',
+        'user_app_installed_at' => now(),
     ]);
 
     $this->actingAs($user);
@@ -122,7 +124,7 @@ it('updates the new notification category preferences and delivery channels', fu
         ->and($user->fresh()->inAppNotifications)->toHaveCount(1);
 });
 
-it('forces discord notifications off when the user does not have a discord account linked', function () {
+it('forces discord notifications off when the user has not installed the discord app', function () {
     $user = User::factory()->create([
         'discord_notifications' => false,
     ]);
@@ -141,4 +143,81 @@ it('forces discord notifications off when the user does not have a discord accou
     ])->assertRedirect(route('settings'));
 
     expect($user->fresh()->discord_notifications)->toBeFalse();
+});
+
+it('generates a short lived discord user link token', function () {
+    $user = User::factory()->create();
+
+    $this->actingAs($user)
+        ->post(route('settings.discord-integration.link-token'))
+        ->assertRedirect(route('settings'))
+        ->assertSessionHas('success', ['discord_user_link_token_generated'])
+        ->assertSessionHas('flash_data.discord_user_link_token.token')
+        ->assertSessionHas('flash_data.discord_user_link_token.expires_at');
+
+    $token = session('flash_data.discord_user_link_token.token');
+
+    $user->refresh();
+
+    expect($token)->toBeString()
+        ->and($user->discord_link_token_hash)->toBe(hash('sha256', $token))
+        ->and($user->discord_link_token_expires_at)->not->toBeNull()
+        ->and($user->discord_link_token_expires_at->isFuture())->toBeTrue();
+});
+
+it('disconnects the discord app, disables discord notifications, and notifies the bot', function () {
+    $user = User::factory()->create([
+        'discord_notifications' => true,
+    ]);
+
+    DiscordUserIntegration::query()->create([
+        'user_id' => $user->id,
+        'discord_user_id' => 'discord-123',
+        'username' => 'Settings Tester',
+        'global_name' => 'Settings Friend',
+        'user_app_installed_at' => now(),
+    ]);
+
+    IntegrationClient::factory()->create([
+        'type' => IntegrationClient::TYPE_DISCORD_BOT,
+        'status' => IntegrationClient::STATUS_ACTIVE,
+        'outbound_events_url' => 'https://discord-bot.fullparty.test/events',
+        'webhook_signing_secret' => 'integration-secret',
+        'allowed_events' => [
+            IntegrationClient::EVENT_DISCORD_USER_APP_DISCONNECTED,
+        ],
+    ]);
+
+    Http::fake([
+        'https://discord-bot.fullparty.test/events' => Http::response([], 204),
+    ]);
+
+    $this->actingAs($user)
+        ->delete(route('settings.discord-integration.destroy'))
+        ->assertRedirect(route('settings'))
+        ->assertSessionHas('success', ['discord_integration_disconnected']);
+
+    $integration = DiscordUserIntegration::query()->sole();
+
+    expect($integration->revoked_at)->not->toBeNull()
+        ->and($user->fresh()->discord_notifications)->toBeFalse()
+        ->and(AuditLog::query()->where('action', 'user.discord_app.disconnected')->exists())->toBeTrue();
+
+    Http::assertSent(function (HttpRequest $request) {
+        if ($request->url() !== 'https://discord-bot.fullparty.test/events') {
+            return false;
+        }
+
+        $body = $request->body();
+        $timestamp = $request->header('X-FullParty-Timestamp')[0] ?? null;
+        $signature = $request->header('X-FullParty-Signature')[0] ?? null;
+        $payload = json_decode($body, true);
+
+        expect($payload['event'])->toBe(IntegrationClient::EVENT_DISCORD_USER_APP_DISCONNECTED)
+            ->and($payload['data']['discord_user']['id'])->toBe('discord-123')
+            ->and($payload['data']['message'])->toContain('FullParty has disconnected the integration');
+
+        return is_string($timestamp)
+            && $signature === 'sha256='.hash_hmac('sha256', $timestamp.'.'.$body, 'integration-secret');
+    });
 });

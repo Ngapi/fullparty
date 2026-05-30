@@ -1,0 +1,36 @@
+{
+  "title": "Discord Integration",
+  "subtitle": "Connect {group} to a Discord server.",
+  "install": {
+    "title": "Install the FullParty bot",
+    "subtitle": "Add the bot to the Discord server you use for this group.",
+    "description": "After the bot is installed, generate a link token and use it in Discord so FullParty can match this group to the correct server."
+  },
+  "status": {
+    "title": "Linked Server",
+    "subtitle": "The Discord server currently connected to this group.",
+    "linked": "Linked",
+    "not_linked": "Not linked",
+    "unknown_guild": "Discord server",
+    "empty": "No Discord server is linked to this group yet."
+  },
+  "link": {
+    "title": "Link this group",
+    "subtitle": "Use a short-lived token to confirm the server from Discord.",
+    "description": "Generate a token here, then run the bot's link command in the Discord server you want connected to this group.",
+    "generated_token": "Link token",
+    "expires_at": "Expires {date}",
+    "active_token_title": "A link token is active",
+    "active_token_description": "Generate a new token if you need to see it again. The current token expires {date}.",
+    "no_token_title": "No active link token",
+    "no_token_description": "Generate a token when you are ready to link from Discord."
+  },
+  "actions": {
+    "invite": "Invite Bot",
+    "generate_token": "Generate Link Token",
+    "copy_token": "Copy Token"
+  },
+  "toasts": {
+    "token_copied": "Link token copied."
+  }
+}

@@ -76,8 +76,8 @@
       "body": "{count} neue Bewerbungen für {activity} warten auf Prüfung."
     },
     "submitted": {
-      "title": "Neue Bewerbung erhalten",
-      "body": "{character} hat sich für {activity} beworben."
+      "title": "Bewerbung gesendet",
+      "body": "Deine Bewerbung als {character} für {activity} wurde gesendet."
     },
     "updated": {
       "title": "Bewerbung aktualisiert",
@@ -85,7 +85,7 @@
     },
     "withdrawn": {
       "title": "Bewerbung zurückgezogen",
-      "body": "{character} hat die Bewerbung für {activity} zurückgezogen."
+      "body": "Die Bewerbung als {character} für {activity} wurde zurückgezogen."
     },
     "declined": {
       "title": "Bewerbung abgelehnt",
@@ -117,6 +117,18 @@
     "returned_to_queue": {
       "title": "Zuweisung zurück in Prüfung",
       "body": "Deine Bewerbung für {activity} als {character} wurde zurück in die Prüfungswarteschlange gesetzt."
+    },
+    "removed": {
+      "title": "Aus Run entfernt",
+      "body": "Du wurdest als {character} aus {activity} entfernt."
+    },
+    "marked_missing": {
+      "title": "Als fehlend markiert",
+      "body": "Du wurdest als {character} für {activity} als fehlend markiert."
+    },
+    "missing_restored": {
+      "title": "Fehlend-Status entfernt",
+      "body": "Du wurdest als {character} für {activity} wieder auf {slot} gesetzt."
     }
   },
   "runs": {
@@ -185,6 +197,12 @@
     "announcement": {
       "title": "{headline}",
       "body": "{message}"
+    }
+  },
+  "integrations": {
+    "delivery_failed": {
+      "title": "Integrationszustellung fehlgeschlagen",
+      "body": "{client} konnte {event} nicht empfangen. Fehler: {error}"
     }
   }
 }

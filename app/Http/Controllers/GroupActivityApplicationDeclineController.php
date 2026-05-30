@@ -55,6 +55,7 @@ class GroupActivityApplicationDeclineController extends Controller
         DB::transaction(function () use ($application, $validated, $request, $activityAuditService): void {
             $application->update([
                 'status' => ActivityApplication::STATUS_DECLINED,
+                'guest_access_token' => null,
                 'reviewed_by_user_id' => $request->user()->id,
                 'reviewed_at' => now(),
                 'review_reason' => filled($validated['reason'] ?? null)

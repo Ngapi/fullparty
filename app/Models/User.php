@@ -28,6 +28,8 @@ use Illuminate\Notifications\Notifiable;
     'system_notice_notifications',
     'email_notifications',
     'discord_notifications',
+    'discord_link_token_hash',
+    'discord_link_token_expires_at',
     'notification_preferences_reviewed_at',
     'account_completion_celebrated_at',
 ])]
@@ -58,6 +60,7 @@ class User extends Authenticatable implements MustVerifyEmail
             'system_notice_notifications' => 'boolean',
             'email_notifications' => 'boolean',
             'discord_notifications' => 'boolean',
+            'discord_link_token_expires_at' => 'datetime',
             'notification_preferences_reviewed_at' => 'datetime',
             'account_completion_celebrated_at' => 'datetime',
         ];
@@ -76,6 +79,11 @@ class User extends Authenticatable implements MustVerifyEmail
     public function socialAccounts(): User|HasMany
     {
         return $this->hasMany(SocialAccount::class);
+    }
+
+    public function discordUserIntegration(): HasOne
+    {
+        return $this->hasOne(DiscordUserIntegration::class)->whereNull('revoked_at');
     }
 
     public function inAppNotifications(): HasMany
@@ -157,5 +165,10 @@ class User extends Authenticatable implements MustVerifyEmail
     public function homeProfile(): HasOne
     {
         return $this->hasOne(UserHomeProfile::class);
+    }
+
+    public function onboardingState(): HasOne
+    {
+        return $this->hasOne(UserOnboardingState::class);
     }
 }

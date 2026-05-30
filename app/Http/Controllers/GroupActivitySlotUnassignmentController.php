@@ -73,7 +73,8 @@ class GroupActivitySlotUnassignmentController extends Controller
 
         if ($isManualAssignment) {
             $slotCharacterId = (int) $slot->assigned_character_id;
-            $slotCharacterName = $slot->assignedCharacter?->name;
+            $removedCharacter = $slot->assignedCharacter?->loadMissing('user');
+            $slotCharacterName = $removedCharacter?->name;
 
             DB::transaction(function () use ($slot, $activity, $attendanceService, $slotCharacterId) {
                 $slot->update([
@@ -102,6 +103,15 @@ class GroupActivitySlotUnassignmentController extends Controller
                     'assignment_source' => ActivitySlotAssignment::SOURCE_MANUAL,
                 ],
             );
+
+            if ($removedCharacter) {
+                $assignmentNotificationService->notifyManualPlacementRemoved(
+                    $activity->fresh(['group', 'activityTypeVersion', 'activityType']) ?? $activity,
+                    $removedCharacter,
+                    $slot,
+                    auth()->user(),
+                );
+            }
 
             $pendingApplicationCount = $activity->applications()
                 ->where('status', ActivityApplication::STATUS_PENDING)

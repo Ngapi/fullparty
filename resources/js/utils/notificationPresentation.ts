@@ -54,6 +54,10 @@ const TYPE_META: Record<string, NotificationDisplayMeta> = {
 		icon: 'i-lucide-megaphone',
 		iconColor: 'text-sky-500',
 	},
+	'integration.event_delivery_failed': {
+		icon: 'i-lucide-plug-zap',
+		iconColor: 'text-rose-500',
+	},
 }
 
 const CATEGORY_META: Record<string, NotificationDisplayMeta> = {

@@ -76,8 +76,8 @@
       "body": "{activity} には審査待ちの新しい応募が {count} 件あります。"
     },
     "submitted": {
-      "title": "新しい応募が届きました",
-      "body": "{character} が {activity} に応募しました。"
+      "title": "応募が送信されました",
+      "body": "{activity} への {character} としての応募が送信されました。"
     },
     "updated": {
       "title": "応募内容が更新されました",
@@ -85,7 +85,7 @@
     },
     "withdrawn": {
       "title": "応募が取り下げられました",
-      "body": "{character} が {activity} の応募を取り下げました。"
+      "body": "{activity} への {character} としての応募が取り下げられました。"
     },
     "declined": {
       "title": "応募が辞退されました",
@@ -117,6 +117,18 @@
     "returned_to_queue": {
       "title": "配置が再審査に戻りました",
       "body": "{activity} への {character} としての応募は、再審査キューに戻されました。"
+    },
+    "removed": {
+      "title": "Run から外されました",
+      "body": "{activity} から {character} としての配置が外されました。"
+    },
+    "marked_missing": {
+      "title": "欠席としてマークされました",
+      "body": "{activity} で {character} として欠席にマークされました。"
+    },
+    "missing_restored": {
+      "title": "欠席ステータスが解除されました",
+      "body": "{activity} で {character} として {slot} に戻されました。"
     }
   },
   "runs": {
@@ -185,6 +197,12 @@
     "announcement": {
       "title": "{headline}",
       "body": "{message}"
+    }
+  },
+  "integrations": {
+    "delivery_failed": {
+      "title": "インテグレーション配信に失敗しました",
+      "body": "{client} が {event} を受信できませんでした。エラー: {error}"
     }
   }
 }

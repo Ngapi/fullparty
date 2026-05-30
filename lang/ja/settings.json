@@ -42,7 +42,22 @@
     "account_character_updates_description": "キャラクター認証、インポート、応募の引き継ぎ、アカウント関連の状態変化を受け取ります。",
     "system_notices_description": "重要なメンテナンスや障害通知は常に送信されます。この設定で制御するのは、任意の機能告知、製品更新、プロジェクト状況のお知らせのみです。",
     "email_notifications_description": "メールで通知を受け取る",
-    "discord_notifications_description": "Discord に通知を送信する（連携が必要）"
+    "discord_notifications_description": "FullParty Discord アプリ経由で通知を送信する",
+    "install_discord_app": "Discordアプリをインストール",
+    "generate_discord_link_token": "連携トークンを生成",
+    "discord_link_token_title": "Discord連携トークン",
+    "discord_link_token_expires": "このトークンをFullParty Discordボットに渡してください。有効期限は {date} です。",
+    "discord_link_token_active": "{date} まで有効な連携トークンがあります。もう一度表示するには新しく生成してください。",
+    "copy_discord_link_token": "トークンをコピー",
+    "discord_link_token_copied": "Discord連携トークンをコピーしました。",
+    "disconnect_discord": "Discord連携を解除",
+    "disconnect_discord_confirm": "FullPartyアカウントからDiscordを解除しますか？FullPartyはこのアカウントでDiscordを使用しなくなります。完全に削除するにはDiscord側でもアプリを削除してください。",
+    "disconnect_discord_modal": {
+      "title": "Discord連携を解除",
+      "description": "FullPartyはこのアカウントでDiscordを使用しなくなり、Discord通知もオフになります。",
+      "warning": "これはDiscord側からアプリを削除する操作ではありません。完全に削除するには、Discord設定の認可済みアプリからFullPartyを削除してください。",
+      "confirm": "Discord連携を解除"
+    }
   },
   "privacy": {
     "title": "プライバシーとセキュリティ",
@@ -67,6 +82,8 @@
     "password_updated": "パスワードを更新しました",
     "notification_updated": "通知設定を更新しました",
     "notification_preferences_reviewed": "通知設定を確認しました。アカウント設定が更新されました。",
+    "discord_integration_disconnected": "Discord連携を解除しました。",
+    "discord_user_link_token_generated": "Discord連携トークンを生成しました。",
     "privacy_updated": "プライバシー設定を更新しました",
     "social_account_unlinked": "連携アカウントを解除しました",
     "social_account_unlink_blocked": "最後のソーシャルアカウントを解除する前に、別のサインイン方法を追加するかパスワードを設定してください。",

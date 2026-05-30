@@ -4,7 +4,6 @@ namespace App\Services\Notifications;
 
 use App\Models\NotificationDelivery;
 use App\Models\NotificationEvent;
-use App\Models\SocialAccount;
 use App\Models\User;
 use App\Models\UserNotification;
 use App\Support\Notifications\NotificationCategory;
@@ -147,7 +146,7 @@ class NotificationService
         ?array $channels = null,
     ): Collection {
         $normalizedRecipients = $this->normalizeRecipients($recipients);
-        $normalizedRecipients->loadMissing('socialAccounts');
+        $normalizedRecipients->loadMissing('discordUserIntegration');
 
         $resolvedChannels = $this->normalizeChannels($channels);
         $deliveries = collect();
@@ -205,7 +204,7 @@ class NotificationService
     public function determineDeliveryOutcome(NotificationEvent $event, User $recipient, string $channel): array
     {
         NotificationChannel::ensureValid($channel);
-        $recipient->loadMissing('socialAccounts');
+        $recipient->loadMissing('discordUserIntegration');
 
         return $this->resolveDeliveryOutcome($event, $recipient, $channel);
     }
@@ -219,7 +218,7 @@ class NotificationService
         int $maxUserId,
     ): EloquentCollection {
         $query = User::query()
-            ->with('socialAccounts')
+            ->with('discordUserIntegration')
             ->whereBetween('id', [$minUserId, $maxUserId])
             ->orderBy('id');
 
@@ -382,10 +381,9 @@ class NotificationService
 
     private function resolveDiscordTarget(User $recipient): ?string
     {
-        $discordAccount = $recipient->socialAccounts
-            ->first(fn (SocialAccount $socialAccount) => $socialAccount->provider === NotificationChannel::DISCORD);
-
-        return filled($discordAccount?->provider_user_id) ? $discordAccount->provider_user_id : null;
+        return filled($recipient->discordUserIntegration?->discord_user_id)
+            ? $recipient->discordUserIntegration->discord_user_id
+            : null;
     }
 
     private function syncAggregateCountOnEvent(NotificationEvent $event, int $count): void

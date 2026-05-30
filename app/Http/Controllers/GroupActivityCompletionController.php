@@ -32,7 +32,17 @@ class GroupActivityCompletionController extends Controller
 
         $validated = $request->validate([
             'progress_entry_mode' => ['sometimes', 'nullable', 'string'],
-            'progress_link_url' => ['sometimes', 'nullable', 'url', 'max:2000'],
+            'progress_link_url' => [
+                'sometimes',
+                'nullable',
+                'url:https',
+                'max:2000',
+                function (string $attribute, mixed $value, \Closure $fail): void {
+                    if (filled($value) && ! $this->isAllowedProgressLink((string) $value)) {
+                        $fail('The progress link must be a valid FF Logs report URL.');
+                    }
+                },
+            ],
             'progress_notes' => ['sometimes', 'nullable', 'string', 'max:'.Activity::PROGRESS_NOTES_MAX_LENGTH],
             'furthest_progress_key' => ['sometimes', 'nullable', 'string', 'max:255'],
             'milestones' => ['sometimes', 'array'],
@@ -52,5 +62,14 @@ class GroupActivityCompletionController extends Controller
         return response()->json([
             'status' => 'completed',
         ]);
+    }
+
+    private function isAllowedProgressLink(string $value): bool
+    {
+        $host = strtolower((string) parse_url($value, PHP_URL_HOST));
+        $path = (string) parse_url($value, PHP_URL_PATH);
+
+        return ($host === 'fflogs.com' || str_ends_with($host, '.fflogs.com'))
+            && preg_match('~/(?:reports|report)/[A-Za-z0-9]+~', $path) === 1;
     }
 }

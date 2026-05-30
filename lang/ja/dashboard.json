@@ -2,6 +2,72 @@
   "title": "Home",
   "welcome": "おかえりなさい、{name}",
   "welcome_subtitle": "また会えてうれしいです。",
+  "onboarding": {
+    "title": "FullParty へようこそ",
+    "eyebrow": "セットアップ",
+    "step_count": "{total} 件中 {current} 件目",
+    "steps": {
+      "welcome": {
+        "title": "FullParty に参加してくれてありがとう！",
+        "description": "ようこそ。FullParty は、ラン探し、グループ参加、レイド予定の整理をもっと分かりやすく、落ち着いて進められる場所にするためのものです。"
+      },
+      "discord": {
+        "title": "FullPartyをDiscordに追加",
+        "description": "ランのリマインダーやグループ機能のために、FullParty Discord ボット/アプリをインストールします。Discordログインとは別の設定です。",
+        "connected_description": "FullPartyの更新をDiscordで受け取れるようになりました。"
+      },
+      "discord_warning": {
+        "title": "Discordをあとで設定しますか？",
+        "description": "FullPartyはそのまま使えますが、Discord関連の一部機能は設定するまで利用できません。"
+      },
+      "notifications": {
+        "title": "通知設定を選ぶ",
+        "description": "FullParty からの更新をどこで受け取るかを選びます。変更するとすぐに保存されます。"
+      },
+      "next": {
+        "title": "次にできること",
+        "description": "FullParty を使い始める準備ができました。まずはここから進めるのがおすすめです。"
+      }
+    },
+    "discord": {
+      "connected": "Discordの準備ができました",
+      "not_connected": "Discordはまだ設定されていません",
+      "hint": "これはFullParty Discord ボット/アプリをインストールするものです。Discordでログインする操作ではなく、ログイン方法も変わりません。",
+      "warning_detail": "ランの検索やグループ参加は引き続きできます。FullParty Discord ボット/アプリをインストールするまで、次の機能は利用できません:",
+      "missing_features": {
+        "notifications": "Discord通知とランのリマインダー",
+        "group_role_assignment": "グループロールの自動付与",
+        "nickname_sync": "Discordサーバー間のニックネーム同期"
+      }
+    },
+    "notifications": {
+      "email_title": "メール通知",
+      "email_description": "重要な更新やリマインダーをメールアドレスに送信します。",
+      "discord_title": "Discord 通知",
+      "discord_description": "対応しているリマインダーやグループ更新を Discord に送信します。",
+      "discord_disabled": "この設定を使うには、先にDiscordを設定してください。",
+      "saved_hint": "変更は自動的に保存されます。",
+      "saving": "設定を保存しています...",
+      "saved": "設定を保存しました。",
+      "error": "設定を保存できませんでした。もう一度お試しください。"
+    },
+    "quick_links": {
+      "character": "プレイしたいキャラクターを追加・管理します。",
+      "runs": "目標に合う募集中のランを探します。",
+      "groups": "メンバーを探しているコミュニティや固定を見つけます。"
+    },
+    "actions": {
+      "connect_discord": "Discordを設定",
+      "skip_discord": "今はスキップ",
+      "continue_without_discord": "Discord なしで続ける",
+      "add_character": "キャラクターを追加",
+      "runs": "ランを探す",
+      "groups": "グループを探す",
+      "back": "戻る",
+      "next": "次へ",
+      "finish": "完了"
+    }
+  },
   "character_panel": {
     "main_character": "メインキャラクター",
     "primary_badge": "メイン",
@@ -128,8 +194,8 @@
         "description": "予定されたランでアクティビティ履歴を作り始めましょう。"
       },
       "connected_discord": {
-        "title": "Discord を連携する",
-        "description": "主催者がサイト外でも連絡しやすくなります。"
+        "title": "Discordを設定",
+        "description": "Discordでリマインダーやグループ更新を受け取れます。"
       },
       "notification_preferences_reviewed": {
         "title": "通知設定を確認する",

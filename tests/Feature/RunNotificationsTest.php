@@ -3,22 +3,32 @@
 use App\Jobs\SendNotificationEmailDeliveryJob;
 use App\Models\Activity;
 use App\Models\ActivityApplication;
+use App\Models\ActivitySlotAssignment;
 use App\Models\ActivityType;
 use App\Models\ActivityTypeVersion;
 use App\Models\Character;
+use App\Models\DiscordUserIntegration;
 use App\Models\Group;
 use App\Models\NotificationDelivery;
 use App\Models\NotificationEvent;
-use App\Models\SocialAccount;
 use App\Models\User;
 use App\Models\UserNotification;
 use App\Support\Input\TextInputSanitizer;
 use App\Support\Notifications\NotificationCategory;
-use App\Support\Notifications\NotificationChannel;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Queue;
 
 uses(RefreshDatabase::class);
+
+function createRunNotificationDiscordIntegration(User $user, string $discordUserId, string $username): DiscordUserIntegration
+{
+    return DiscordUserIntegration::query()->create([
+        'user_id' => $user->id,
+        'discord_user_id' => $discordUserId,
+        'username' => $username,
+        'user_app_installed_at' => now(),
+    ]);
+}
 
 function createRunNotificationActivity(User $owner, Group $group, array $overrides = []): Activity
 {
@@ -74,6 +84,11 @@ it('notifies signed in active applicants when a run is cancelled', function () {
         'email_notifications' => true,
         'discord_notifications' => true,
     ]);
+    $manualUser = User::factory()->create([
+        'run_and_reminder_notifications' => true,
+        'email_notifications' => true,
+        'discord_notifications' => true,
+    ]);
 
     $pendingCharacter = Character::factory()->primary()->create([
         'user_id' => $pendingUser->id,
@@ -85,22 +100,15 @@ it('notifies signed in active applicants when a run is cancelled', function () {
         'name' => 'Rho Vale',
         'lodestone_id' => '20202020',
     ]);
-
-    SocialAccount::query()->create([
-        'user_id' => $pendingUser->id,
-        'provider' => NotificationChannel::DISCORD,
-        'provider_user_id' => 'discord-pending-run',
-        'provider_name' => 'Pending User',
-        'provider_email' => $pendingUser->email,
+    $manualCharacter = Character::factory()->primary()->create([
+        'user_id' => $manualUser->id,
+        'name' => 'Nia Manual',
+        'lodestone_id' => '21212121',
     ]);
 
-    SocialAccount::query()->create([
-        'user_id' => $approvedUser->id,
-        'provider' => NotificationChannel::DISCORD,
-        'provider_user_id' => 'discord-approved-run',
-        'provider_name' => 'Approved User',
-        'provider_email' => $approvedUser->email,
-    ]);
+    createRunNotificationDiscordIntegration($pendingUser, 'discord-pending-run', 'Pending User');
+    createRunNotificationDiscordIntegration($approvedUser, 'discord-approved-run', 'Approved User');
+    createRunNotificationDiscordIntegration($manualUser, 'discord-manual-run', 'Manual User');
 
     ActivityApplication::factory()->create([
         'activity_id' => $activity->id,
@@ -123,6 +131,29 @@ it('notifies signed in active applicants when a run is cancelled', function () {
         'activity_id' => $activity->id,
     ]);
 
+    $manualSlot = $activity->slots()->create([
+        'group_key' => 'party-a',
+        'group_label' => ['en' => 'Party A'],
+        'slot_key' => 'party-a-slot-1',
+        'slot_label' => ['en' => 'Party A 1'],
+        'position_in_group' => 1,
+        'sort_order' => 1,
+        'assigned_character_id' => $manualCharacter->id,
+        'assigned_by_user_id' => $owner->id,
+    ]);
+
+    ActivitySlotAssignment::query()->create([
+        'activity_id' => $activity->id,
+        'group_id' => $group->id,
+        'activity_slot_id' => $manualSlot->id,
+        'character_id' => $manualCharacter->id,
+        'application_id' => null,
+        'field_values_snapshot' => [],
+        'attendance_status' => ActivitySlotAssignment::STATUS_ASSIGNED,
+        'assigned_at' => now()->subHour(),
+        'assigned_by_user_id' => $owner->id,
+    ]);
+
     $this->actingAs($owner)
         ->post(route('groups.dashboard.activities.cancel', [
             'group' => $group->slug,
@@ -139,7 +170,10 @@ it('notifies signed in active applicants when a run is cancelled', function () {
     $sanitizedReason = app(TextInputSanitizer::class)->sanitizeMultiline("  Storm\u{200B} outage\r\nin the data center. ");
 
     expect($event->category)->toBe(NotificationCategory::RUNS_AND_REMINDERS)
-        ->and($event->action_url)->toBe(route('account.applications'))
+        ->and($event->action_url)->toBe(route('groups.activities.overview', [
+            'group' => $group->slug,
+            'activity' => $activity->id,
+        ]))
         ->and($event->body_key)->toBe('notifications.runs.cancelled.body_with_reason')
         ->and($event->message_params['activity'])->toBe('Late Night Prog')
         ->and($event->message_params['reason'])->toBe($sanitizedReason);
@@ -152,12 +186,15 @@ it('notifies signed in active applicants when a run is cancelled', function () {
         ->all();
 
     expect($recipientIds)->toBe(
-        collect([$pendingUser->id, $approvedUser->id])->sort()->values()->all()
+        collect([$pendingUser->id, $approvedUser->id, $manualUser->id])->sort()->values()->all()
     )
-        ->and(NotificationDelivery::query()->where('notification_event_id', $event->id)->count())->toBe(4)
+        ->and(NotificationDelivery::query()->where('notification_event_id', $event->id)->count())->toBe(6)
         ->and(NotificationEvent::query()->where('type', 'applications.cancelled')->doesntExist())->toBeTrue();
 
-    Queue::assertPushed(SendNotificationEmailDeliveryJob::class, 2);
+    expect($manualSlot->fresh()->assigned_character_id)->toBe($manualCharacter->id);
+    expect(ActivitySlotAssignment::query()->where('activity_id', $activity->id)->whereNull('ended_at')->count())->toBe(0);
+
+    Queue::assertPushed(SendNotificationEmailDeliveryJob::class, 3);
 });
 
 it('notifies placed applicants when a run is completed', function () {
@@ -186,6 +223,11 @@ it('notifies placed applicants when a run is completed', function () {
         'email_notifications' => true,
         'discord_notifications' => true,
     ]);
+    $manualUser = User::factory()->create([
+        'run_and_reminder_notifications' => true,
+        'email_notifications' => true,
+        'discord_notifications' => true,
+    ]);
 
     $approvedCharacter = Character::factory()->primary()->create([
         'user_id' => $approvedUser->id,
@@ -202,15 +244,14 @@ it('notifies placed applicants when a run is completed', function () {
         'name' => 'Uma Frost',
         'lodestone_id' => '50505050',
     ]);
+    $manualCharacter = Character::factory()->primary()->create([
+        'user_id' => $manualUser->id,
+        'name' => 'Vera Slot',
+        'lodestone_id' => '51515151',
+    ]);
 
-    foreach ([$approvedUser, $benchUser, $pendingUser] as $index => $user) {
-        SocialAccount::query()->create([
-            'user_id' => $user->id,
-            'provider' => NotificationChannel::DISCORD,
-            'provider_user_id' => 'discord-complete-'.$index,
-            'provider_name' => 'Completion User '.$index,
-            'provider_email' => $user->email,
-        ]);
+    foreach ([$approvedUser, $benchUser, $pendingUser, $manualUser] as $index => $user) {
+        createRunNotificationDiscordIntegration($user, 'discord-complete-'.$index, 'Completion User '.$index);
     }
 
     ActivityApplication::factory()->approved($owner)->create([
@@ -241,6 +282,17 @@ it('notifies placed applicants when a run is completed', function () {
         'applicant_character_name' => $pendingCharacter->name,
     ]);
 
+    $activity->slots()->create([
+        'group_key' => 'party-a',
+        'group_label' => ['en' => 'Party A'],
+        'slot_key' => 'party-a-slot-1',
+        'slot_label' => ['en' => 'Party A 1'],
+        'position_in_group' => 1,
+        'sort_order' => 1,
+        'assigned_character_id' => $manualCharacter->id,
+        'assigned_by_user_id' => $owner->id,
+    ]);
+
     $this->actingAs($owner)
         ->postJson(route('groups.dashboard.activities.complete', [
             'group' => $group->slug,
@@ -250,6 +302,11 @@ it('notifies placed applicants when a run is completed', function () {
 
     $event = NotificationEvent::query()->where('type', 'runs.completed')->sole();
 
+    expect($event->action_url)->toBe(route('groups.activities.overview', [
+        'group' => $group->slug,
+        'activity' => $activity->id,
+    ]));
+
     $recipientIds = UserNotification::query()
         ->where('notification_event_id', $event->id)
         ->pluck('user_id')
@@ -258,11 +315,58 @@ it('notifies placed applicants when a run is completed', function () {
         ->all();
 
     expect($recipientIds)->toBe(
-        collect([$approvedUser->id, $benchUser->id])->sort()->values()->all()
+        collect([$approvedUser->id, $benchUser->id, $manualUser->id])->sort()->values()->all()
     )
-        ->and(NotificationDelivery::query()->where('notification_event_id', $event->id)->count())->toBe(4);
+        ->and(NotificationDelivery::query()->where('notification_event_id', $event->id)->count())->toBe(6);
 
-    Queue::assertPushed(SendNotificationEmailDeliveryJob::class, 2);
+    Queue::assertPushed(SendNotificationEmailDeliveryJob::class, 3);
+});
+
+it('uses the activity type name in run notifications when no custom title is set', function () {
+    Queue::fake();
+
+    $owner = User::factory()->create();
+    $group = Group::factory()->open()->create([
+        'owner_id' => $owner->id,
+    ]);
+    $activity = createRunNotificationActivity($owner, $group, [
+        'status' => Activity::STATUS_ASSIGNED,
+        'title' => null,
+    ]);
+    $activity->activityTypeVersion()->update([
+        'name' => ['en' => 'Forked Tower: Blood'],
+    ]);
+
+    $approvedUser = User::factory()->create([
+        'run_and_reminder_notifications' => true,
+        'email_notifications' => false,
+        'discord_notifications' => false,
+    ]);
+    $approvedCharacter = Character::factory()->primary()->create([
+        'user_id' => $approvedUser->id,
+        'name' => 'Type Name',
+        'lodestone_id' => '62626262',
+    ]);
+
+    ActivityApplication::factory()->approved($owner)->create([
+        'activity_id' => $activity->id,
+        'user_id' => $approvedUser->id,
+        'selected_character_id' => $approvedCharacter->id,
+        'applicant_lodestone_id' => $approvedCharacter->lodestone_id,
+        'applicant_character_name' => $approvedCharacter->name,
+    ]);
+
+    $this->actingAs($owner)
+        ->postJson(route('groups.dashboard.activities.complete', [
+            'group' => $group->slug,
+            'activity' => $activity->id,
+        ]), [])
+        ->assertOk();
+
+    $event = NotificationEvent::query()->where('type', 'runs.completed')->sole();
+
+    expect($event->message_params['activity'])->toBe('Forked Tower: Blood')
+        ->and($event->payload['activity_title'])->toBe('Forked Tower: Blood');
 });
 
 it('sanitizes completion progress notes before storing them', function () {
@@ -289,6 +393,8 @@ it('sanitizes completion progress notes before storing them', function () {
 });
 
 it('stores manually recorded completion progress', function () {
+    Queue::fake();
+
     $owner = User::factory()->create();
     $group = Group::factory()->open()->create([
         'owner_id' => $owner->id,
@@ -328,6 +434,25 @@ it('stores manually recorded completion progress', function () {
         'status' => Activity::STATUS_ASSIGNED,
     ]);
 
+    $recipient = User::factory()->create([
+        'run_and_reminder_notifications' => true,
+        'email_notifications' => true,
+        'discord_notifications' => false,
+    ]);
+    $recipientCharacter = Character::factory()->primary()->create([
+        'user_id' => $recipient->id,
+        'name' => 'Payload Check',
+        'lodestone_id' => '61616161',
+    ]);
+
+    ActivityApplication::factory()->approved($owner)->create([
+        'activity_id' => $activity->id,
+        'user_id' => $recipient->id,
+        'selected_character_id' => $recipientCharacter->id,
+        'applicant_lodestone_id' => $recipientCharacter->lodestone_id,
+        'applicant_character_name' => $recipientCharacter->name,
+    ]);
+
     $this->actingAs($owner)
         ->postJson(route('groups.dashboard.activities.complete', [
             'group' => $group->slug,
@@ -346,6 +471,7 @@ it('stores manually recorded completion progress', function () {
 
     $activity->refresh()->load('progressMilestones');
     $milestones = $activity->progressMilestones->keyBy('milestone_key');
+    $event = NotificationEvent::query()->where('type', 'runs.completed')->sole();
 
     expect($activity->status)->toBe(Activity::STATUS_COMPLETE)
         ->and($activity->progress_entry_mode)->toBe('manual')
@@ -356,7 +482,20 @@ it('stores manually recorded completion progress', function () {
         ->and($milestones->get('boss-1')->best_progress_percent)->toBe('10.00')
         ->and($milestones->get('boss-2')->best_progress_percent)->toBe('0.00')
         ->and($milestones->get('boss-3')->best_progress_percent)->toBe('0.00')
-        ->and($milestones->get('boss-4')->best_progress_percent)->toBe('0.00');
+        ->and($milestones->get('boss-4')->best_progress_percent)->toBe('0.00')
+        ->and($event->payload['completion']['progress_entry_mode'])->toBe('manual')
+        ->and($event->payload['completion']['progress_recorded_by_user_id'])->toBe($owner->id)
+        ->and($event->payload['completion']['furthest_progress_key'])->toBe('boss-1')
+        ->and($event->payload['completion']['furthest_progress_label'])->toBe(['en' => 'Boss 1'])
+        ->and($event->payload['completion']['furthest_progress_percent'])->toBe(10)
+        ->and($event->payload['completion']['milestones'])->toHaveCount(4)
+        ->and($event->payload['completion']['milestones'][0])->toMatchArray([
+            'milestone_key' => 'boss-1',
+            'milestone_label' => ['en' => 'Boss 1'],
+            'kills' => 0,
+            'best_progress_percent' => 10,
+            'source' => 'manual',
+        ]);
 });
 
 it('rejects completion progress notes that exceed the configured limit', function () {
@@ -421,13 +560,7 @@ it('dispatches starting soon and starting now reminders only once', function () 
     ]);
 
     foreach ([$soonUser, $nowUser] as $index => $user) {
-        SocialAccount::query()->create([
-            'user_id' => $user->id,
-            'provider' => NotificationChannel::DISCORD,
-            'provider_user_id' => 'discord-reminder-'.$index,
-            'provider_name' => 'Reminder User '.$index,
-            'provider_email' => $user->email,
-        ]);
+        createRunNotificationDiscordIntegration($user, 'discord-reminder-'.$index, 'Reminder User '.$index);
     }
 
     ActivityApplication::factory()->approved($owner)->create([

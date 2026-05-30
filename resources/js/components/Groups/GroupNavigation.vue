@@ -53,6 +53,8 @@ const discoverySettingsHref = computed(() => route('groups.dashboard.discovery-s
 const discoverySettingsPath = computed(() => routePath('groups.dashboard.discovery-settings'))
 const settingsHref = computed(() => route('groups.dashboard.settings', props.group.slug))
 const settingsPath = computed(() => routePath('groups.dashboard.settings'))
+const discordIntegrationHref = computed(() => route('groups.dashboard.discord-integration', props.group.slug))
+const discordIntegrationPath = computed(() => routePath('groups.dashboard.discord-integration'))
 const isPublicActivityRoute = computed(() => page.url.startsWith(publicActivitiesPath.value))
 
 const isManagementUser = computed(() => Boolean(
@@ -127,6 +129,12 @@ const rightitems = computed(() => {
 			href: discoverySettingsHref.value,
 			active: isRouteActive(discoverySettingsPath.value),
 		}] : []),
+		...(props.group.permissions?.can_manage_group ? [{
+			label: t('groups.index.navigation.discord_integration'),
+			icon: 'ic:baseline-discord',
+			href: discordIntegrationHref.value,
+			active: isRouteActive(discordIntegrationPath.value),
+		}] : []),
 		{
 			label: t('groups.index.navigation.settings'),
 			icon: 'i-lucide-settings-2',
@@ -183,6 +191,12 @@ const moderationMenuItems = computed(() => [
 		icon: 'i-lucide-users',
 		href: membersHref.value,
 		active: isRouteActive(membersPath.value),
+	}] : []),
+	...(props.group.permissions?.can_manage_group ? [{
+		label: t('groups.index.navigation.discord_integration'),
+		icon: 'ic:baseline-discord',
+		href: discordIntegrationHref.value,
+		active: isRouteActive(discordIntegrationPath.value),
 	}] : []),
 ])
 
@@ -273,7 +287,8 @@ const managerMobileItems = computed(() => [
 			|| isRouteActive(discoverySettingsPath.value)
 			|| isRouteActive(membershipApplicationFormPath.value)
 			|| isRouteActive(membershipApplicationsPath.value)
-			|| isRouteActive(membersPath.value),
+			|| isRouteActive(membersPath.value)
+			|| isRouteActive(discordIntegrationPath.value),
 	},
 	{
 		label: t('groups.index.navigation.settings'),

@@ -295,7 +295,7 @@ const accountCompletionTaskRoutes: Record<string, string> = {
 	verified_character: route("account.characters"),
 	primary_character: route("account.characters"),
 	joined_group: route("groups.index"),
-	connected_discord: route("settings"),
+	connected_discord: route("discord-app.user.redirect"),
 	notification_preferences_reviewed: route("settings"),
 }
 

@@ -1,19 +1,35 @@
 <?php
 
+use App\Jobs\SendNotificationEmailDeliveryJob;
 use App\Models\Activity;
 use App\Models\ActivityApplication;
 use App\Models\ActivityType;
 use App\Models\ActivityTypeVersion;
 use App\Models\Character;
+use App\Models\DiscordUserIntegration;
 use App\Models\Group;
 use App\Models\GroupMembership;
+use App\Models\NotificationDelivery;
 use App\Models\NotificationEvent;
 use App\Models\User;
 use App\Models\UserNotification;
+use App\Services\Notifications\ApplicationNotificationService;
 use App\Support\Notifications\NotificationCategory;
+use App\Support\Notifications\NotificationChannel;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Queue;
 
 uses(RefreshDatabase::class);
+
+function createApplicationDiscordIntegration(User $user, string $discordUserId, string $username): DiscordUserIntegration
+{
+    return DiscordUserIntegration::query()->create([
+        'user_id' => $user->id,
+        'discord_user_id' => $discordUserId,
+        'username' => $username,
+        'user_app_installed_at' => now(),
+    ]);
+}
 
 function createApplicationNotificationActivity(User $owner, Group $group, array $activityOverrides = []): Activity
 {
@@ -50,20 +66,35 @@ function createApplicationNotificationActivity(User $owner, Group $group, array 
     ], $activityOverrides));
 }
 
-it('notifies eligible moderators when an authenticated user submits an application', function () {
+it('notifies the run host and applicant when an authenticated user submits an application', function () {
+    Queue::fake();
+
     $owner = User::factory()->create([
         'application_notifications' => true,
+        'email_notifications' => true,
+        'discord_notifications' => true,
     ]);
     $group = Group::factory()->open()->create([
         'owner_id' => $owner->id,
     ]);
     $optedInModerator = User::factory()->create([
         'application_notifications' => true,
+        'email_notifications' => true,
+        'discord_notifications' => true,
+    ]);
+    $admin = User::factory()->create([
+        'application_notifications' => true,
+        'email_notifications' => true,
+        'discord_notifications' => true,
     ]);
     $optedOutModerator = User::factory()->create([
         'application_notifications' => false,
     ]);
-    $applicant = User::factory()->create();
+    $applicant = User::factory()->create([
+        'application_notifications' => true,
+        'email_notifications' => true,
+        'discord_notifications' => true,
+    ]);
     $character = Character::factory()->primary()->create([
         'user_id' => $applicant->id,
         'name' => 'Ciela Dawn',
@@ -79,11 +110,18 @@ it('notifies eligible moderators when an authenticated user submits an applicati
             'joined_at' => now(),
         ],
         [
+            'user_id' => $admin->id,
+            'role' => GroupMembership::ROLE_ADMIN,
+            'joined_at' => now(),
+        ],
+        [
             'user_id' => $optedOutModerator->id,
             'role' => GroupMembership::ROLE_MODERATOR,
             'joined_at' => now(),
         ],
     ]);
+    createApplicationDiscordIntegration($owner, 'discord-application-owner', 'Application Owner');
+    createApplicationDiscordIntegration($applicant, 'discord-application-applicant', 'Application Applicant');
 
     $activity = createApplicationNotificationActivity($owner, $group, [
         'allow_guest_applications' => false,
@@ -105,6 +143,7 @@ it('notifies eligible moderators when an authenticated user submits an applicati
     ]));
 
     $event = NotificationEvent::query()->where('type', 'applications.new_for_review')->sole();
+    $submittedEvent = NotificationEvent::query()->where('type', 'applications.submitted')->sole();
 
     expect($event->category)->toBe(NotificationCategory::APPLICATIONS)
         ->and($event->title_key)->toBe('notifications.applications.new_for_review.title')
@@ -118,6 +157,7 @@ it('notifies eligible moderators when an authenticated user submits an applicati
         ->and($event->message_params['count'])->toBe(1);
 
     $notifications = UserNotification::query()
+        ->where('notification_event_id', $event->id)
         ->orderBy('user_id')
         ->get();
 
@@ -128,12 +168,21 @@ it('notifies eligible moderators when an authenticated user submits an applicati
         ->all();
 
     expect($recipientIds)->toBe(
-        collect([$optedInModerator->id, $owner->id])->sort()->values()->all()
+        [$owner->id]
     )
         ->and($notifications->pluck('aggregate_count')->unique()->values()->all())->toBe([1])
         ->and($notifications->pluck('aggregate_key')->unique()->values()->all())->toBe([
             sprintf('applications.new_for_review.activity.%d', $activity->id),
-        ]);
+        ])
+        ->and(NotificationDelivery::query()->where('notification_event_id', $event->id)->count())->toBe(2)
+        ->and(NotificationDelivery::query()->where('notification_event_id', $event->id)->where('channel', NotificationChannel::EMAIL)->where('status', NotificationDelivery::STATUS_PENDING)->count())->toBe(1)
+        ->and(NotificationDelivery::query()->where('notification_event_id', $event->id)->where('channel', NotificationChannel::DISCORD)->where('status', NotificationDelivery::STATUS_SKIPPED)->count())->toBe(1)
+        ->and(UserNotification::query()->where('notification_event_id', $submittedEvent->id)->pluck('user_id')->all())->toBe([$applicant->id])
+        ->and(NotificationDelivery::query()->where('notification_event_id', $submittedEvent->id)->count())->toBe(2)
+        ->and(NotificationDelivery::query()->where('notification_event_id', $submittedEvent->id)->where('channel', NotificationChannel::EMAIL)->where('status', NotificationDelivery::STATUS_PENDING)->count())->toBe(1)
+        ->and(NotificationDelivery::query()->where('notification_event_id', $submittedEvent->id)->where('channel', NotificationChannel::DISCORD)->where('status', NotificationDelivery::STATUS_SKIPPED)->count())->toBe(1);
+
+    Queue::assertPushed(SendNotificationEmailDeliveryJob::class, 2);
 });
 
 it('aggregates moderator new-application notifications per activity until they are read', function () {
@@ -147,8 +196,12 @@ it('aggregates moderator new-application notifications per activity until they a
         'allow_guest_applications' => false,
     ]);
 
-    $firstApplicant = User::factory()->create();
-    $secondApplicant = User::factory()->create();
+    $firstApplicant = User::factory()->create([
+        'application_notifications' => false,
+    ]);
+    $secondApplicant = User::factory()->create([
+        'application_notifications' => false,
+    ]);
     $firstCharacter = Character::factory()->primary()->create([
         'user_id' => $firstApplicant->id,
         'name' => 'Tala Crest',
@@ -205,7 +258,9 @@ it('aggregates moderator new-application notifications per activity until they a
         ->post(route('account.notifications.read-all'))
         ->assertRedirect();
 
-    $thirdApplicant = User::factory()->create();
+    $thirdApplicant = User::factory()->create([
+        'application_notifications' => false,
+    ]);
     $thirdCharacter = Character::factory()->primary()->create([
         'user_id' => $thirdApplicant->id,
         'name' => 'Wren Vale',
@@ -232,9 +287,13 @@ it('aggregates moderator new-application notifications per activity until they a
         ->and(UserNotification::query()->whereNull('read_at')->sole()->aggregate_count)->toBe(1);
 });
 
-it('notifies eligible moderators when an application is updated', function () {
+it('notifies the run host when an application is updated', function () {
+    Queue::fake();
+
     $owner = User::factory()->create([
         'application_notifications' => true,
+        'email_notifications' => true,
+        'discord_notifications' => true,
     ]);
     $group = Group::factory()->open()->create([
         'owner_id' => $owner->id,
@@ -286,11 +345,21 @@ it('notifies eligible moderators when an application is updated', function () {
 
     expect(UserNotification::query()->where('notification_event_id', $event->id)->pluck('user_id')->all())
         ->toBe([$owner->id]);
+
+    expect(NotificationDelivery::query()->where('notification_event_id', $event->id)->count())->toBe(2)
+        ->and(NotificationDelivery::query()->where('notification_event_id', $event->id)->where('channel', NotificationChannel::EMAIL)->sole()->status)->toBe(NotificationDelivery::STATUS_PENDING)
+        ->and(NotificationDelivery::query()->where('notification_event_id', $event->id)->where('channel', NotificationChannel::DISCORD)->sole()->status)->toBe(NotificationDelivery::STATUS_SKIPPED);
+
+    Queue::assertPushed(SendNotificationEmailDeliveryJob::class, 1);
 });
 
-it('notifies eligible moderators when an application is withdrawn', function () {
+it('notifies the run host and applicant when an application is withdrawn', function () {
+    Queue::fake();
+
     $owner = User::factory()->create([
         'application_notifications' => true,
+        'email_notifications' => true,
+        'discord_notifications' => true,
     ]);
     $group = Group::factory()->open()->create([
         'owner_id' => $owner->id,
@@ -298,7 +367,11 @@ it('notifies eligible moderators when an application is withdrawn', function () 
     $activity = createApplicationNotificationActivity($owner, $group, [
         'allow_guest_applications' => false,
     ]);
-    $applicant = User::factory()->create();
+    $applicant = User::factory()->create([
+        'application_notifications' => true,
+        'email_notifications' => true,
+        'discord_notifications' => true,
+    ]);
     $character = Character::factory()->primary()->create([
         'user_id' => $applicant->id,
         'name' => 'Iris Sol',
@@ -322,14 +395,88 @@ it('notifies eligible moderators when an application is withdrawn', function () 
         'application' => $application->id,
     ]))->assertRedirect(route('account.applications'));
 
+    $events = NotificationEvent::query()
+        ->where('type', 'applications.withdrawn')
+        ->orderBy('id')
+        ->get();
+
+    expect($events)->toHaveCount(2);
+
+    $hostEvent = $events->firstWhere('action_url', route('groups.dashboard.activities.show', [
+        'group' => $group,
+        'activity' => $activity,
+    ]));
+    $applicantEvent = $events->firstWhere('action_url', route('account.applications'));
+
+    expect($hostEvent)->not->toBeNull()
+        ->and($applicantEvent)->not->toBeNull()
+        ->and($hostEvent->message_params['character'])->toBe('Iris Sol')
+        ->and($applicantEvent->message_params['character'])->toBe('Iris Sol');
+
+    expect(UserNotification::query()->where('notification_event_id', $hostEvent->id)->pluck('user_id')->all())
+        ->toBe([$owner->id]);
+    expect(UserNotification::query()->where('notification_event_id', $applicantEvent->id)->pluck('user_id')->all())
+        ->toBe([$applicant->id]);
+
+    expect(NotificationDelivery::query()->where('notification_event_id', $hostEvent->id)->count())->toBe(2)
+        ->and(NotificationDelivery::query()->where('notification_event_id', $hostEvent->id)->where('channel', NotificationChannel::EMAIL)->sole()->status)->toBe(NotificationDelivery::STATUS_PENDING)
+        ->and(NotificationDelivery::query()->where('notification_event_id', $hostEvent->id)->where('channel', NotificationChannel::DISCORD)->sole()->status)->toBe(NotificationDelivery::STATUS_SKIPPED)
+        ->and(NotificationDelivery::query()->where('notification_event_id', $applicantEvent->id)->count())->toBe(2)
+        ->and(NotificationDelivery::query()->where('notification_event_id', $applicantEvent->id)->where('channel', NotificationChannel::EMAIL)->sole()->status)->toBe(NotificationDelivery::STATUS_PENDING)
+        ->and(NotificationDelivery::query()->where('notification_event_id', $applicantEvent->id)->where('channel', NotificationChannel::DISCORD)->sole()->status)->toBe(NotificationDelivery::STATUS_SKIPPED);
+
+    Queue::assertPushed(SendNotificationEmailDeliveryJob::class, 2);
+});
+
+it('does not send a review notification when the applicant hosts the run they withdraw from', function () {
+    Queue::fake();
+
+    $host = User::factory()->create([
+        'application_notifications' => true,
+        'email_notifications' => true,
+        'discord_notifications' => true,
+    ]);
+    $group = Group::factory()->open()->create([
+        'owner_id' => $host->id,
+    ]);
+    $activity = createApplicationNotificationActivity($host, $group, [
+        'allow_guest_applications' => false,
+    ]);
+    $character = Character::factory()->primary()->create([
+        'user_id' => $host->id,
+        'name' => 'Host Applicant',
+        'lodestone_id' => '55557777',
+    ]);
+
+    $application = ActivityApplication::factory()->create([
+        'activity_id' => $activity->id,
+        'user_id' => $host->id,
+        'selected_character_id' => $character->id,
+        'status' => ActivityApplication::STATUS_PENDING,
+        'applicant_lodestone_id' => $character->lodestone_id,
+        'applicant_character_name' => $character->name,
+        'applicant_world' => $character->world,
+        'applicant_datacenter' => $character->datacenter,
+    ]);
+
+    $this->actingAs($host);
+
+    $this->delete(route('account.applications.destroy', [
+        'application' => $application->id,
+    ]))->assertRedirect(route('account.applications'));
+
     $event = NotificationEvent::query()->where('type', 'applications.withdrawn')->sole();
 
-    expect($event->message_params['character'])->toBe('Iris Sol');
+    expect($event->action_url)->toBe(route('account.applications'));
     expect(UserNotification::query()->where('notification_event_id', $event->id)->pluck('user_id')->all())
-        ->toBe([$owner->id]);
+        ->toBe([$host->id]);
+
+    Queue::assertPushed(SendNotificationEmailDeliveryJob::class, 1);
 });
 
 it('notifies a signed in applicant when their application is declined', function () {
+    Queue::fake();
+
     $owner = User::factory()->create();
     $group = Group::factory()->open()->create([
         'owner_id' => $owner->id,
@@ -339,6 +486,8 @@ it('notifies a signed in applicant when their application is declined', function
     ]);
     $applicant = User::factory()->create([
         'application_notifications' => true,
+        'email_notifications' => true,
+        'discord_notifications' => true,
     ]);
     $character = Character::factory()->primary()->create([
         'user_id' => $applicant->id,
@@ -376,6 +525,12 @@ it('notifies a signed in applicant when their application is declined', function
     $notification = UserNotification::query()->where('notification_event_id', $event->id)->sole();
 
     expect($notification->user_id)->toBe($applicant->id);
+
+    expect(NotificationDelivery::query()->where('notification_event_id', $event->id)->count())->toBe(2)
+        ->and(NotificationDelivery::query()->where('notification_event_id', $event->id)->where('channel', NotificationChannel::EMAIL)->sole()->status)->toBe(NotificationDelivery::STATUS_PENDING)
+        ->and(NotificationDelivery::query()->where('notification_event_id', $event->id)->where('channel', NotificationChannel::DISCORD)->sole()->status)->toBe(NotificationDelivery::STATUS_SKIPPED);
+
+    Queue::assertPushed(SendNotificationEmailDeliveryJob::class, 1);
 });
 
 it('does not create a decline notification when the declined application belongs to a guest', function () {
@@ -402,6 +557,54 @@ it('does not create a decline notification when the declined application belongs
 
     expect(NotificationEvent::query()->where('type', 'applications.declined')->count())->toBe(0);
     expect(UserNotification::query()->count())->toBe(0);
+});
+
+it('sends off-site notifications when a signed in application is cancelled directly', function () {
+    Queue::fake();
+
+    $owner = User::factory()->create();
+    $group = Group::factory()->open()->create([
+        'owner_id' => $owner->id,
+    ]);
+    $activity = createApplicationNotificationActivity($owner, $group, [
+        'allow_guest_applications' => false,
+    ]);
+    $applicant = User::factory()->create([
+        'application_notifications' => true,
+        'email_notifications' => true,
+        'discord_notifications' => true,
+    ]);
+    $character = Character::factory()->primary()->create([
+        'user_id' => $applicant->id,
+        'name' => 'Cancel Cora',
+        'lodestone_id' => '88889999',
+    ]);
+
+    $application = ActivityApplication::factory()->create([
+        'activity_id' => $activity->id,
+        'user_id' => $applicant->id,
+        'selected_character_id' => $character->id,
+        'status' => ActivityApplication::STATUS_CANCELLED,
+        'applicant_lodestone_id' => $character->lodestone_id,
+        'applicant_character_name' => $character->name,
+        'applicant_world' => $character->world,
+        'applicant_datacenter' => $character->datacenter,
+    ]);
+
+    app(ApplicationNotificationService::class)->notifyCancelled(
+        $application->fresh(['activity.group', 'user', 'selectedCharacter']),
+        $owner,
+    );
+
+    $event = NotificationEvent::query()->where('type', 'applications.cancelled')->sole();
+    $notification = UserNotification::query()->where('notification_event_id', $event->id)->sole();
+
+    expect($notification->user_id)->toBe($applicant->id)
+        ->and(NotificationDelivery::query()->where('notification_event_id', $event->id)->count())->toBe(2)
+        ->and(NotificationDelivery::query()->where('notification_event_id', $event->id)->where('channel', NotificationChannel::EMAIL)->sole()->status)->toBe(NotificationDelivery::STATUS_PENDING)
+        ->and(NotificationDelivery::query()->where('notification_event_id', $event->id)->where('channel', NotificationChannel::DISCORD)->sole()->status)->toBe(NotificationDelivery::STATUS_SKIPPED);
+
+    Queue::assertPushed(SendNotificationEmailDeliveryJob::class, 1);
 });
 
 it('does not create a separate application-category cancellation notification when a run is cancelled', function () {

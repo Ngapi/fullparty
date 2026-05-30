@@ -37,6 +37,7 @@
     "application_form": "Request Form",
     "audit_log": "Audit Log",
     "discovery_settings": "Discovery Settings",
+    "discord_integration": "Discord",
     "settings": "Settings"
   },
   "table": {

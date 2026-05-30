@@ -42,7 +42,22 @@
     "account_character_updates_description": "Character verification, imports, claim flow updates, and account-related status changes.",
     "system_notices_description": "Critical maintenance and outage notices are always sent. This toggle only controls optional product updates, feature announcements, and project status news.",
     "email_notifications_description": "Receive notifications via email",
-    "discord_notifications_description": "Send notifications to Discord (requires connection)"
+    "discord_notifications_description": "Send notifications through the FullParty Discord app",
+    "install_discord_app": "Install Discord App",
+    "generate_discord_link_token": "Generate Link Token",
+    "discord_link_token_title": "Discord link token",
+    "discord_link_token_expires": "Share this token with the FullParty Discord bot. It expires {date}.",
+    "discord_link_token_active": "A link token is active until {date}. Generate a new one if you need to see it again.",
+    "copy_discord_link_token": "Copy Token",
+    "discord_link_token_copied": "Discord link token copied.",
+    "disconnect_discord": "Disconnect Discord",
+    "disconnect_discord_confirm": "Disconnect Discord from your FullParty account? FullParty will stop using Discord for your account, but you still need to remove the app inside Discord if you want it fully gone.",
+    "disconnect_discord_modal": {
+      "title": "Disconnect Discord",
+      "description": "FullParty will stop using Discord for your account and turn off Discord notifications.",
+      "warning": "This does not remove the app from Discord. To fully remove it, open Discord settings, go to Authorized Apps, and remove FullParty.",
+      "confirm": "Disconnect Discord"
+    }
   },
   "privacy": {
     "title": "Privacy & Security",
@@ -67,6 +82,8 @@
     "password_updated": "Password updated successfully",
     "notification_updated": "Notification preferences updated successfully",
     "notification_preferences_reviewed": "Notification preferences reviewed. Account setup updated.",
+    "discord_integration_disconnected": "Discord disconnected successfully.",
+    "discord_user_link_token_generated": "Discord link token generated.",
     "privacy_updated": "Privacy settings updated successfully",
     "social_account_unlinked": "Connected account unlinked successfully",
     "social_account_unlink_blocked": "Add another sign-in method or set a password before unlinking your last social account.",

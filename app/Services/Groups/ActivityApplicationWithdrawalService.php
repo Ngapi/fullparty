@@ -55,6 +55,7 @@ class ActivityApplicationWithdrawalService
 
             $application->update([
                 'status' => ActivityApplication::STATUS_WITHDRAWN,
+                'guest_access_token' => null,
                 'reviewed_by_user_id' => null,
                 'reviewed_at' => now(),
                 'review_reason' => null,

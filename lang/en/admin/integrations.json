@@ -1,0 +1,106 @@
+{
+  "title": "Integrations",
+  "subtitle": "Authorize trusted services and decide which FullParty events they can receive.",
+  "admin_only": "Admin only",
+  "saved": "Integration settings saved.",
+  "empty": "No integration clients have been created yet.",
+  "no_endpoint": "No outbound event endpoint configured.",
+  "healthcheck_endpoint": "Healthcheck: {value}",
+  "no_healthcheck": "No healthcheck endpoint configured.",
+  "no_samples": "No checks yet",
+  "never": "Never",
+  "last_failure": "Last delivery failed",
+  "last_healthcheck_failure": "Last healthcheck failed",
+  "health_status": {
+    "title": "Health status",
+    "latest_result": "Latest result",
+    "no_latest_result": "No healthcheck has run yet.",
+    "http_status": "HTTP {status}",
+    "duration": "{duration} ms",
+    "day": "Last 24 hours",
+    "week": "Last 7 days",
+    "bucket_title": "{status} from {start} to {end}. Checks: {checked}. Failed: {failed}.",
+    "statuses": {
+      "ok": "Operational",
+      "failed": "Failed",
+      "unknown": "No data"
+    }
+  },
+  "healthcheck_toast": {
+    "title": "Healthcheck complete",
+    "description": "The latest integration health result is now available."
+  },
+  "confirm_regenerate_api_token": "Regenerate this API token? The current token will stop working immediately.",
+  "confirm_regenerate_webhook_secret": "Regenerate this webhook signing secret? The bot must be updated before it can verify new events.",
+  "regenerate_api_token_modal": {
+    "title": "Regenerate API token",
+    "description": "The integration will need the new API token before it can call FullParty again.",
+    "warning": "The current API token will stop working immediately.",
+    "confirm": "Regenerate API Token"
+  },
+  "regenerate_webhook_secret_modal": {
+    "title": "Regenerate webhook secret",
+    "description": "The integration will need the new secret before it can verify events from FullParty.",
+    "warning": "Events sent with the new secret may fail until the bot is updated.",
+    "confirm": "Regenerate Secret"
+  },
+  "types": {
+    "discord_bot": "Discord Bot"
+  },
+  "statuses": {
+    "active": "Active",
+    "paused": "Paused",
+    "revoked": "Revoked"
+  },
+  "scopes": {
+    "runs_read": "Read runs",
+    "users_read": "Read linked users",
+    "users_write": "Link users",
+    "guilds_write": "Link Discord guilds"
+  },
+  "events": {
+    "discord_user_app_installed": "Discord app installed",
+    "discord_user_app_disconnected": "Discord app disconnected",
+    "discord_notification_delivery": "Discord notification delivery"
+  },
+  "credentials": {
+    "title": "Credentials for {name}",
+    "description": "Store these now. For safety, FullParty will not show the plain values again.",
+    "api_token": "API token",
+    "webhook_secret": "Webhook signing secret"
+  },
+  "form": {
+    "create_title": "Create Integration",
+    "edit_title": "Edit Integration",
+    "description": "Use this for trusted services such as the official Discord bot.",
+    "create": "Create Integration"
+  },
+  "fields": {
+    "name": "Name",
+    "type": "Type",
+    "status": "Status",
+    "outbound_events_url": "Outbound Events URL",
+    "healthcheck_url": "Healthcheck URL",
+    "scopes": "API scopes",
+    "allowed_events": "Events to send"
+  },
+  "placeholders": {
+    "name": "FullParty Discord Bot",
+    "outbound_events_url": "https://bot.fullparty.gg/events",
+    "healthcheck_url": "https://bot.fullparty.gg/health"
+  },
+  "actions": {
+    "healthcheck": "Run Healthcheck",
+    "api_token": "Regenerate API Token",
+    "webhook_secret": "Regenerate Secret"
+  },
+  "meta": {
+    "api_token": "API token: {value}",
+    "webhook_secret": "Webhook secret: {value}",
+    "last_api_used": "Last API use: {value}",
+    "last_event_sent": "Last event sent: {value}",
+    "last_healthcheck": "Last healthcheck: {value}",
+    "healthcheck_uptime_day": "24h uptime: {value}",
+    "healthcheck_uptime_week": "7d uptime: {value}"
+  }
+}

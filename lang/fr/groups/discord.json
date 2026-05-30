@@ -1,0 +1,36 @@
+{
+  "title": "Intégration Discord",
+  "subtitle": "Connectez {group} à un serveur Discord.",
+  "install": {
+    "title": "Installer le bot FullParty",
+    "subtitle": "Ajoutez le bot au serveur Discord utilisé par ce groupe.",
+    "description": "Une fois le bot installé, générez un jeton de liaison et utilisez-le dans Discord afin que FullParty associe ce groupe au bon serveur."
+  },
+  "status": {
+    "title": "Serveur lié",
+    "subtitle": "Le serveur Discord actuellement connecté à ce groupe.",
+    "linked": "Lié",
+    "not_linked": "Non lié",
+    "unknown_guild": "Serveur Discord",
+    "empty": "Aucun serveur Discord n'est encore lié à ce groupe."
+  },
+  "link": {
+    "title": "Lier ce groupe",
+    "subtitle": "Utilisez un jeton temporaire pour confirmer le serveur depuis Discord.",
+    "description": "Générez un jeton ici, puis lancez la commande de liaison du bot sur le serveur Discord que vous voulez connecter à ce groupe.",
+    "generated_token": "Jeton de liaison",
+    "expires_at": "Expire le {date}",
+    "active_token_title": "Un jeton de liaison est actif",
+    "active_token_description": "Générez un nouveau jeton si vous devez le revoir. Le jeton actuel expire le {date}.",
+    "no_token_title": "Aucun jeton actif",
+    "no_token_description": "Générez un jeton quand vous êtes prêt à lier depuis Discord."
+  },
+  "actions": {
+    "invite": "Inviter le bot",
+    "generate_token": "Générer un jeton",
+    "copy_token": "Copier le jeton"
+  },
+  "toasts": {
+    "token_copied": "Jeton de liaison copié."
+  }
+}

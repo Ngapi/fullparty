@@ -80,6 +80,11 @@
         "linked": "がソーシャルアカウントを連携しました。",
         "unlinked": "がソーシャルアカウントの連携を解除しました。"
       },
+      "discord_app": {
+        "user_installed": "がDiscordアプリをインストールしました。",
+        "disconnected": "がDiscordアプリの連携を解除しました。",
+        "guild_installed": "がDiscordアプリをサーバーにインストールしました。"
+      },
       "settings": {
         "username_updated": "がユーザー名設定を更新しました。",
         "password_updated": "がパスワード設定を更新しました。",
@@ -299,6 +304,11 @@
       "social_account": {
         "linked": "ソーシャルアカウント連携",
         "unlinked": "ソーシャルアカウント連携解除"
+      },
+      "discord_app": {
+        "user_installed": "Discordアプリをインストール",
+        "disconnected": "Discordアプリの連携解除",
+        "guild_installed": "Discordアプリをサーバーにインストール"
       },
       "settings": {
         "username_updated": "ユーザー名を更新",

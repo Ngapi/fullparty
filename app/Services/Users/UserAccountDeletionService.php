@@ -55,6 +55,7 @@ class UserAccountDeletionService
             $user->receivedGroupNotes()->delete();
             $user->groupMemberships()->delete();
             $user->socialAccounts()->delete();
+            $user->discordUserIntegration()->delete();
             $user->inAppNotifications()->delete();
             $user->notificationDeliveries()->delete();
 

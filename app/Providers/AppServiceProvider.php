@@ -42,6 +42,44 @@ class AppServiceProvider extends ServiceProvider
             return Limit::perMinute(5)->by($email.'|'.$request->ip());
         });
 
+        RateLimiter::for('auth.registration', function (Request $request) {
+            $email = Str::lower(trim((string) $request->input('email')));
+
+            return [
+                Limit::perMinute(5)->by(($email ?: 'unknown').'|'.$request->ip()),
+                Limit::perMinute(30)->by($request->ip()),
+            ];
+        });
+
+        RateLimiter::for('auth.email', function (Request $request) {
+            $email = Str::lower(trim((string) $request->input('email')));
+
+            return [
+                Limit::perMinute(5)->by(($email ?: 'unknown').'|'.$request->ip()),
+                Limit::perMinute(30)->by($request->ip()),
+            ];
+        });
+
+        RateLimiter::for('oauth', fn (Request $request) => Limit::perMinute(20)->by($request->ip()));
+
+        RateLimiter::for('guest.application', fn (Request $request) => Limit::perMinute(60)->by($request->ip()));
+
+        RateLimiter::for('external.lookup', function (Request $request) {
+            $actor = $request->user()
+                ? 'user:'.$request->user()->id
+                : 'ip:'.$request->ip();
+
+            return Limit::perMinute(30)->by($actor);
+        });
+
+        RateLimiter::for('invite', function (Request $request) {
+            $actor = $request->user()
+                ? 'user:'.$request->user()->id
+                : 'ip:'.$request->ip();
+
+            return Limit::perMinute(30)->by($actor);
+        });
+
         Event::listen(function (SocialiteWasCalled $event) {
             $event->extendSocialite('discord', Provider::class);
             $event->extendSocialite('xivauth', \SocialiteProviders\XIVAuth\Provider::class);

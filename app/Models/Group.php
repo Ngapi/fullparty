@@ -52,6 +52,8 @@ class Group extends Model
         'profile_picture_url',
         'banner_image_url',
         'discord_invite_url',
+        'discord_link_token_hash',
+        'discord_link_token_expires_at',
         'datacenter',
         'is_visible',
         'slug',
@@ -76,6 +78,7 @@ class Group extends Model
         'preferred_languages' => 'array',
         'tags' => 'array',
         'active_days' => 'array',
+        'discord_link_token_expires_at' => 'datetime',
     ];
 
     public function getRouteKeyName(): string
@@ -133,6 +136,16 @@ class Group extends Model
     public function membershipApplications(): HasMany
     {
         return $this->hasMany(GroupMembershipApplication::class);
+    }
+
+    public function discordGuildIntegrations(): HasMany
+    {
+        return $this->hasMany(DiscordGuildIntegration::class);
+    }
+
+    public function activeDiscordGuildIntegration(): HasOne
+    {
+        return $this->hasOne(DiscordGuildIntegration::class)->whereNull('removed_at');
     }
 
     public function scopeVisible($query)

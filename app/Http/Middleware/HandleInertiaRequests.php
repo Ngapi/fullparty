@@ -6,6 +6,7 @@ use App\Models\Group;
 use App\Models\GroupMembership;
 use App\Models\SocialAccount;
 use App\Models\User;
+use App\Models\UserOnboardingState;
 use App\Services\Notifications\NotificationInboxService;
 use App\Services\SystemBannerService;
 use App\Support\Groups\GroupDiscoveryBadgePalette;
@@ -97,6 +98,9 @@ class HandleInertiaRequests extends Middleware
                 'controller_name' => fn () => config('services.legal.controller_name'),
                 'contact_email' => fn () => config('services.legal.contact_email'),
             ],
+            'onboarding' => fn () => $request->user()
+                ? $this->serializeOnboardingState($request->user())
+                : null,
             'lookups' => [
                 'datacenters' => fn () => collect(config('datacenters.values', []))
                     ->map(fn (string $value) => [
@@ -147,7 +151,7 @@ class HandleInertiaRequests extends Middleware
      */
     private function serializeAuthenticatedUser(User $user): array
     {
-        $user->loadMissing('primaryCharacter');
+        $user->loadMissing(['primaryCharacter', 'discordUserIntegration']);
         $socialAccounts = $user->socialAccounts()
             ->safeSummary()
             ->get();
@@ -169,6 +173,15 @@ class HandleInertiaRequests extends Middleware
             'system_notice_notifications' => (bool) $user->system_notice_notifications,
             'email_notifications' => (bool) $user->email_notifications,
             'discord_notifications' => (bool) $user->discord_notifications,
+            'discord_link_token_expires_at' => $user->discord_link_token_expires_at?->toIso8601String(),
+            'discord_user_integration' => $user->discordUserIntegration ? [
+                'id' => $user->discordUserIntegration->id,
+                'discord_user_id' => $user->discordUserIntegration->discord_user_id,
+                'username' => $user->discordUserIntegration->username,
+                'global_name' => $user->discordUserIntegration->global_name,
+                'avatar_url' => $user->discordUserIntegration->avatar_url,
+                'user_app_installed_at' => $user->discordUserIntegration->user_app_installed_at?->toIso8601String(),
+            ] : null,
             'notification_preferences_reviewed_at' => $user->notification_preferences_reviewed_at?->toIso8601String(),
             'primary_character' => $user->primaryCharacter ? [
                 'id' => $user->primaryCharacter->id,
@@ -188,5 +201,19 @@ class HandleInertiaRequests extends Middleware
                 ->values()
                 ->all(),
         ];
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function serializeOnboardingState(User $user): array
+    {
+        $state = $user->onboardingState()->firstOrCreate([
+            'user_id' => $user->id,
+        ], [
+            'current_step' => UserOnboardingState::STEP_WELCOME,
+        ]);
+
+        return $state->toSharedPayload();
     }
 }

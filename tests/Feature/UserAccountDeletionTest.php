@@ -3,6 +3,7 @@
 use App\Models\ActivityApplication;
 use App\Models\AuditLog;
 use App\Models\Character;
+use App\Models\DiscordUserIntegration;
 use App\Models\Group;
 use App\Models\GroupMembership;
 use App\Models\SocialAccount;
@@ -34,6 +35,11 @@ it('anonymizes the account while preserving history-bearing records', function (
         'user_id' => $user->id,
         'provider' => 'discord',
         'provider_user_id' => 'discord-123',
+    ]);
+    DiscordUserIntegration::query()->create([
+        'user_id' => $user->id,
+        'discord_user_id' => 'discord-123',
+        'user_app_installed_at' => now(),
     ]);
 
     DB::table('sessions')->insert([
@@ -84,6 +90,7 @@ it('anonymizes the account while preserving history-bearing records', function (
 
     expect($group->memberships()->where('user_id', $user->id)->exists())->toBeFalse()
         ->and(SocialAccount::query()->where('user_id', $user->id)->exists())->toBeFalse()
+        ->and(DiscordUserIntegration::query()->where('user_id', $user->id)->exists())->toBeFalse()
         ->and(DB::table('sessions')->where('user_id', $user->id)->exists())->toBeFalse()
         ->and(DB::table('password_reset_tokens')->where('email', 'test@example.com')->exists())->toBeFalse();
 

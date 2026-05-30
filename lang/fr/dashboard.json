@@ -2,6 +2,72 @@
   "title": "Home",
   "welcome": "Bon retour, {name}",
   "welcome_subtitle": "Content de vous revoir.",
+  "onboarding": {
+    "title": "Bienvenue sur FullParty",
+    "eyebrow": "Configuration",
+    "step_count": "Étape {current} sur {total}",
+    "steps": {
+      "welcome": {
+        "title": "Merci d'avoir rejoint FullParty !",
+        "description": "Bienvenue, vraiment. FullParty est là pour rendre la recherche de runs, les groupes et l'organisation des raids plus clairs, plus calmes et beaucoup moins brouillons."
+      },
+      "discord": {
+        "title": "Ajouter FullParty à Discord",
+        "description": "Installez le bot/l'application Discord FullParty pour les rappels de runs et les fonctionnalités de groupe. C'est séparé de la connexion avec Discord.",
+        "connected_description": "Vous pouvez maintenant recevoir les mises à jour FullParty dans Discord."
+      },
+      "discord_warning": {
+        "title": "Ignorer Discord pour l'instant ?",
+        "description": "Vous pouvez continuer à utiliser FullParty, mais certaines fonctions liées à Discord resteront désactivées jusqu'à sa configuration."
+      },
+      "notifications": {
+        "title": "Réglez vos préférences de notification",
+        "description": "Choisissez où FullParty doit envoyer les mises à jour. Les changements sont enregistrés dès que vous les modifiez."
+      },
+      "next": {
+        "title": "Que faire ensuite ?",
+        "description": "Vous pouvez maintenant commencer à façonner votre expérience FullParty. Voici les meilleurs endroits où aller."
+      }
+    },
+    "discord": {
+      "connected": "Discord est prêt",
+      "not_connected": "Discord n'est pas encore configuré",
+      "hint": "Cela installe le bot/l'application Discord FullParty. Cela ne vous connecte pas avec Discord et ne change pas votre méthode de connexion.",
+      "warning_detail": "Vous pouvez toujours trouver des runs et rejoindre des groupes. Ces fonctions ne seront pas disponibles tant que le bot/l'application Discord FullParty n'est pas installé :",
+      "missing_features": {
+        "notifications": "Notifications Discord et rappels de runs",
+        "group_role_assignment": "Attribution automatique des rôles de groupe",
+        "nickname_sync": "Synchronisation des pseudos entre serveurs Discord"
+      }
+    },
+    "notifications": {
+      "email_title": "Notifications par e-mail",
+      "email_description": "Envoyer les mises à jour et rappels importants à votre adresse e-mail.",
+      "discord_title": "Notifications Discord",
+      "discord_description": "Envoyer les rappels et mises à jour de groupe compatibles via Discord.",
+      "discord_disabled": "Configurez Discord d'abord pour activer cette option.",
+      "saved_hint": "Les changements sont enregistrés automatiquement.",
+      "saving": "Enregistrement des préférences...",
+      "saved": "Préférences enregistrées.",
+      "error": "Impossible d'enregistrer les préférences. Veuillez réessayer."
+    },
+    "quick_links": {
+      "character": "Ajoutez et gérez les personnages que vous voulez jouer.",
+      "runs": "Parcourez les runs ouverts qui correspondent à vos objectifs.",
+      "groups": "Trouvez des communautés et des statics qui recrutent."
+    },
+    "actions": {
+      "connect_discord": "Configurer Discord",
+      "skip_discord": "Passer pour l'instant",
+      "continue_without_discord": "Continuer sans Discord",
+      "add_character": "Ajouter un personnage",
+      "runs": "Trouver des runs",
+      "groups": "Trouver des groupes",
+      "back": "Retour",
+      "next": "Suivant",
+      "finish": "Terminer"
+    }
+  },
   "character_panel": {
     "main_character": "Personnage principal",
     "primary_badge": "Principal",
@@ -128,8 +194,8 @@
         "description": "Commencez votre historique d'activité avec un run planifié."
       },
       "connected_discord": {
-        "title": "Connecter Discord",
-        "description": "Aidez les organisateurs à vous contacter plus facilement hors du site."
+        "title": "Configurer Discord",
+        "description": "Recevez les rappels et mises à jour de groupe dans Discord."
       },
       "notification_preferences_reviewed": {
         "title": "Vérifier les préférences de notification",

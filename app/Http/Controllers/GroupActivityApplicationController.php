@@ -168,6 +168,7 @@ class GroupActivityApplicationController extends Controller
             ->with('answers')
             ->whereNull('user_id')
             ->where('guest_access_token', $accessToken)
+            ->whereIn('status', ActivityApplication::ACTIVE_STATUSES)
             ->firstOrFail();
 
         return Inertia::render('Groups/Activities/ApplicationConfirmation', [
@@ -469,10 +470,9 @@ class GroupActivityApplicationController extends Controller
         $application = $this->findGuestApplicationByAccessToken($activity, $accessToken);
         $this->applicationWithdrawalService->withdraw($application, null);
 
-        return redirect()->route('groups.activities.application.status', [
-            ...$this->activityAttendeeRouteParameters($group, $activity, $secretKey),
-            'accessToken' => $accessToken,
-        ]);
+        return redirect()
+            ->route('groups.activities.application', $this->activityAttendeeRouteParameters($group, $activity, $secretKey))
+            ->with('success', 'application_withdrawn');
     }
 
     private function ensureApplicationPageAccessible(
@@ -924,6 +924,7 @@ class GroupActivityApplicationController extends Controller
             ->with('answers')
             ->whereNull('user_id')
             ->where('guest_access_token', $accessToken)
+            ->whereIn('status', ActivityApplication::ACTIVE_STATUSES)
             ->firstOrFail();
     }
 

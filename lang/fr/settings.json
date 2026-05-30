@@ -42,7 +42,22 @@
     "account_character_updates_description": "Vérification de personnage, imports, récupération d'applications et changements liés à votre compte.",
     "system_notices_description": "Les annonces critiques de maintenance et de panne sont toujours envoyées. Ce réglage ne contrôle que les mises à jour produit optionnelles, les annonces de fonctionnalités et les nouvelles du projet.",
     "email_notifications_description": "Recevoir des notifications par e-mail",
-    "discord_notifications_description": "Envoyer les notifications sur Discord (connexion requise)"
+    "discord_notifications_description": "Envoyer les notifications via l'application Discord FullParty",
+    "install_discord_app": "Installer l'application Discord",
+    "generate_discord_link_token": "Générer un jeton de liaison",
+    "discord_link_token_title": "Jeton de liaison Discord",
+    "discord_link_token_expires": "Transmettez ce jeton au bot Discord FullParty. Il expire le {date}.",
+    "discord_link_token_active": "Un jeton de liaison est actif jusqu'au {date}. Générez-en un nouveau si vous devez le revoir.",
+    "copy_discord_link_token": "Copier le jeton",
+    "discord_link_token_copied": "Jeton de liaison Discord copié.",
+    "disconnect_discord": "Déconnecter Discord",
+    "disconnect_discord_confirm": "Déconnecter Discord de votre compte FullParty ? FullParty cessera d'utiliser Discord pour votre compte, mais vous devrez aussi retirer l'application dans Discord si vous voulez la supprimer complètement.",
+    "disconnect_discord_modal": {
+      "title": "Déconnecter Discord",
+      "description": "FullParty cessera d'utiliser Discord pour votre compte et désactivera les notifications Discord.",
+      "warning": "Cela ne retire pas l'application de Discord. Pour la supprimer complètement, ouvrez les paramètres Discord, allez dans Applications autorisées et retirez FullParty.",
+      "confirm": "Déconnecter Discord"
+    }
   },
   "privacy": {
     "title": "Confidentialité et sécurité",
@@ -67,6 +82,8 @@
     "password_updated": "Mot de passe mis à jour avec succès",
     "notification_updated": "Préférences de notification mises à jour avec succès",
     "notification_preferences_reviewed": "Préférences de notification vérifiées. Configuration du compte mise à jour.",
+    "discord_integration_disconnected": "Discord déconnecté avec succès.",
+    "discord_user_link_token_generated": "Jeton de liaison Discord généré.",
     "privacy_updated": "Paramètres de confidentialité mis à jour avec succès",
     "social_account_unlinked": "Compte connecté dissocié avec succès",
     "social_account_unlink_blocked": "Ajoutez une autre méthode de connexion ou définissez un mot de passe avant de dissocier votre dernier compte social.",

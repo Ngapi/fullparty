@@ -26,7 +26,7 @@ final class HomeAccountCompletionDataService
             $this->item('verified_character', self::IMPORTANT, $user->characters()->exists()),
             $this->item('primary_character', self::IMPORTANT, $user->characters()->where('is_primary', true)->exists()),
             $this->item('joined_group', self::IMPORTANT, $this->hasGroup($user)),
-            $this->item('connected_discord', self::RECOMMENDED, $user->socialAccounts()->where('provider', 'discord')->exists()),
+            $this->item('connected_discord', self::RECOMMENDED, $user->discordUserIntegration()->exists()),
             $this->item('notification_preferences_reviewed', self::RECOMMENDED, $user->notification_preferences_reviewed_at !== null),
         ];
 

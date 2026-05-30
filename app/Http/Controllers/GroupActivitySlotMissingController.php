@@ -3,16 +3,18 @@
 namespace App\Http\Controllers;
 
 use App\Models\Activity;
-use App\Models\ActivitySlotAssignment;
 use App\Models\ActivitySlot;
+use App\Models\ActivitySlotAssignment;
 use App\Models\Group;
-use App\Services\Groups\ActivitySlotBench;
-use App\Services\Groups\ActivitySlotDesignationService;
 use App\Services\Groups\ActivityManagementRealtimeService;
 use App\Services\Groups\ActivitySlotAttendanceService;
+use App\Services\Groups\ActivitySlotBench;
+use App\Services\Groups\ActivitySlotDesignationService;
 use App\Services\Groups\ActivitySlotSerializer;
 use App\Services\Groups\ActivitySlotStateTokenService;
 use App\Services\Groups\GroupActivityAuditService;
+use App\Services\Notifications\AssignmentNotificationService;
+use App\Support\Audit\AuditSeverity;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
@@ -30,6 +32,7 @@ class GroupActivitySlotMissingController extends Controller
         ActivitySlotStateTokenService $slotStateTokenService,
         ActivitySlotDesignationService $slotDesignationService,
         ActivityManagementRealtimeService $activityManagementRealtimeService,
+        AssignmentNotificationService $assignmentNotificationService,
     ): JsonResponse {
         $this->authorize('manageDashboard', [$activity, $group]);
 
@@ -43,7 +46,7 @@ class GroupActivitySlotMissingController extends Controller
             abort(404);
         }
 
-        if (!$slot->assigned_character_id) {
+        if (! $slot->assigned_character_id) {
             throw ValidationException::withMessages([
                 'slot' => 'Only filled slots can be marked missing.',
             ]);
@@ -54,7 +57,8 @@ class GroupActivitySlotMissingController extends Controller
             'expected_slot_state_token' => ['required', 'string'],
         ]);
         $slotStateTokenService->assertMatches($slot, $validated['expected_slot_state_token']);
-        $characterName = $slot->assignedCharacter?->name;
+        $missingCharacter = $slot->assignedCharacter?->loadMissing('user');
+        $characterName = $missingCharacter?->name;
         $missingAssignment = $attendanceService->markMissing($slot, (int) auth()->id());
         $slotDesignationService->clearInvalidDesignations([$slot], auth()->user());
         $slot->load(['assignedCharacter', 'fieldValues', 'assignments']);
@@ -67,8 +71,17 @@ class GroupActivitySlotMissingController extends Controller
                 'character_name' => $characterName,
                 'marked_missing_at' => $missingAssignment?->marked_missing_at?->toIso8601String(),
             ],
-            \App\Support\Audit\AuditSeverity::SEVERE_CHANGE,
+            AuditSeverity::SEVERE_CHANGE,
         );
+
+        if ($missingCharacter) {
+            $assignmentNotificationService->notifyMarkedMissing(
+                $activity->fresh(['group', 'activityTypeVersion', 'activityType']) ?? $activity,
+                $missingCharacter,
+                $missingAssignment?->slot,
+                auth()->user(),
+            );
+        }
 
         $serializedSlot = $slotSerializer->serialize($slot);
         $serializedMissingAssignment = $missingAssignment
@@ -98,6 +111,7 @@ class GroupActivitySlotMissingController extends Controller
         GroupActivityAuditService $activityAuditService,
         ActivitySlotStateTokenService $slotStateTokenService,
         ActivityManagementRealtimeService $activityManagementRealtimeService,
+        AssignmentNotificationService $assignmentNotificationService,
     ): JsonResponse {
         $this->authorize('manageDashboard', [$activity, $group]);
 
@@ -139,6 +153,15 @@ class GroupActivitySlotMissingController extends Controller
                 'restored_destination' => $slotBench->isBench($restoredSlot) ? 'bench' : 'original_slot',
             ],
         );
+
+        if ($result['assignment']->character) {
+            $assignmentNotificationService->notifyMissingRestored(
+                $activity->fresh(['group', 'activityTypeVersion', 'activityType']) ?? $activity,
+                $result['assignment']->character,
+                $restoredSlot,
+                auth()->user(),
+            );
+        }
 
         $serializedSlots = collect($result['slots'])
             ->map(fn (ActivitySlot $slot) => $slotSerializer->serialize($slot))

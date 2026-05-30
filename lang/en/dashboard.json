@@ -2,6 +2,72 @@
   "title": "Home",
   "welcome": "Welcome back, {name}",
   "welcome_subtitle": "Good to see you again.",
+  "onboarding": {
+    "title": "Welcome to FullParty",
+    "eyebrow": "Get set up",
+    "step_count": "Step {current} of {total}",
+    "steps": {
+      "welcome": {
+        "title": "Thank you for joining FullParty!",
+        "description": "FullParty is here to make finding runs, joining groups, and keeping raid plans together feel calmer, clearer, and a lot less messy."
+      },
+      "discord": {
+        "title": "Add FullParty to Discord",
+        "description": "Install the FullParty Discord bot/app for run reminders and group features. This is separate from Discord login.",
+        "connected_description": "You are ready to receive FullParty updates in Discord."
+      },
+      "discord_warning": {
+        "title": "Skip Discord for now?",
+        "description": "You can keep using FullParty, but some Discord-powered features will stay off until you set it up."
+      },
+      "notifications": {
+        "title": "Set your notification preferences",
+        "description": "Choose where FullParty should send updates. These save as soon as you change them."
+      },
+      "next": {
+        "title": "What to do next",
+        "description": "You are ready to start shaping your FullParty experience. These are the best places to jump in."
+      }
+    },
+    "discord": {
+      "connected": "Discord is ready",
+      "not_connected": "Discord is not set up yet",
+      "hint": "This installs the FullParty Discord bot/app. It does not sign you in with Discord or change how you log in.",
+      "warning_detail": "You can still find runs and join groups. These features will not be available until the FullParty Discord bot/app is installed:",
+      "missing_features": {
+        "notifications": "Discord notifications and run reminders",
+        "group_role_assignment": "Automatic group role assignment",
+        "nickname_sync": "Nickname sync across Discord servers"
+      }
+    },
+    "notifications": {
+      "email_title": "Email notifications",
+      "email_description": "Send important updates and reminders to your email address.",
+      "discord_title": "Discord notifications",
+      "discord_description": "Send supported reminders and group updates through Discord.",
+      "discord_disabled": "Set up Discord first to turn these on.",
+      "saved_hint": "Changes save automatically.",
+      "saving": "Saving preferences...",
+      "saved": "Preferences saved.",
+      "error": "Could not save preferences. Please try again."
+    },
+    "quick_links": {
+      "character": "Add and manage the characters you want to play.",
+      "runs": "Browse open runs that match your goals.",
+      "groups": "Find communities and statics looking for players."
+    },
+    "actions": {
+      "connect_discord": "Set Up Discord",
+      "skip_discord": "Skip for now",
+      "continue_without_discord": "Continue without Discord",
+      "add_character": "Add Character",
+      "runs": "Find Runs",
+      "groups": "Find Groups",
+      "back": "Back",
+      "next": "Next",
+      "finish": "Finish"
+    }
+  },
   "character_panel": {
     "main_character": "Main Character",
     "primary_badge": "Primary",
@@ -128,8 +194,8 @@
         "description": "Start building your activity history with a scheduled run."
       },
       "connected_discord": {
-        "title": "Connect Discord",
-        "description": "Make it easier for organizers to reach you outside the site."
+        "title": "Set up Discord",
+        "description": "Get reminders and group updates in Discord."
       },
       "notification_preferences_reviewed": {
         "title": "Review notification preferences",

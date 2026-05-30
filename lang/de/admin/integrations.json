@@ -1,0 +1,106 @@
+{
+  "title": "Integrationen",
+  "subtitle": "Autorisiere vertrauenswürdige Dienste und lege fest, welche FullParty-Events sie erhalten dürfen.",
+  "admin_only": "Nur Admins",
+  "saved": "Integrationseinstellungen gespeichert.",
+  "empty": "Es wurden noch keine Integrationsclients erstellt.",
+  "no_endpoint": "Kein Endpunkt für ausgehende Events eingerichtet.",
+  "healthcheck_endpoint": "Healthcheck: {value}",
+  "no_healthcheck": "Kein Healthcheck-Endpunkt eingerichtet.",
+  "no_samples": "Noch keine Checks",
+  "never": "Nie",
+  "last_failure": "Letzte Zustellung fehlgeschlagen",
+  "last_healthcheck_failure": "Letzter Healthcheck fehlgeschlagen",
+  "health_status": {
+    "title": "Health-Status",
+    "latest_result": "Letztes Ergebnis",
+    "no_latest_result": "Es wurde noch kein Healthcheck ausgeführt.",
+    "http_status": "HTTP {status}",
+    "duration": "{duration} ms",
+    "day": "Letzte 24 Stunden",
+    "week": "Letzte 7 Tage",
+    "bucket_title": "{status} von {start} bis {end}. Checks: {checked}. Fehlgeschlagen: {failed}.",
+    "statuses": {
+      "ok": "Betriebsbereit",
+      "failed": "Fehlgeschlagen",
+      "unknown": "Keine Daten"
+    }
+  },
+  "healthcheck_toast": {
+    "title": "Healthcheck abgeschlossen",
+    "description": "Das neueste Health-Ergebnis der Integration ist jetzt verfügbar."
+  },
+  "confirm_regenerate_api_token": "Diesen API-Token neu erzeugen? Der aktuelle Token funktioniert sofort nicht mehr.",
+  "confirm_regenerate_webhook_secret": "Dieses Webhook-Signatur-Secret neu erzeugen? Der Bot muss aktualisiert werden, bevor er neue Events prüfen kann.",
+  "regenerate_api_token_modal": {
+    "title": "API-Token neu erzeugen",
+    "description": "Die Integration braucht den neuen API-Token, bevor sie FullParty wieder aufrufen kann.",
+    "warning": "Der aktuelle API-Token funktioniert sofort nicht mehr.",
+    "confirm": "API-Token neu erzeugen"
+  },
+  "regenerate_webhook_secret_modal": {
+    "title": "Webhook-Secret neu erzeugen",
+    "description": "Die Integration braucht das neue Secret, bevor sie Events von FullParty prüfen kann.",
+    "warning": "Events mit dem neuen Secret können fehlschlagen, bis der Bot aktualisiert wurde.",
+    "confirm": "Secret neu erzeugen"
+  },
+  "types": {
+    "discord_bot": "Discord-Bot"
+  },
+  "statuses": {
+    "active": "Aktiv",
+    "paused": "Pausiert",
+    "revoked": "Widerrufen"
+  },
+  "scopes": {
+    "runs_read": "Runs lesen",
+    "users_read": "Verknüpfte Benutzer lesen",
+    "users_write": "Benutzer verknüpfen",
+    "guilds_write": "Discord-Server verknüpfen"
+  },
+  "events": {
+    "discord_user_app_installed": "Discord-App installiert",
+    "discord_user_app_disconnected": "Discord-App getrennt",
+    "discord_notification_delivery": "Discord-Benachrichtigung zustellen"
+  },
+  "credentials": {
+    "title": "Zugangsdaten für {name}",
+    "description": "Speichere diese Werte jetzt. Aus Sicherheitsgründen zeigt FullParty die Klartextwerte nicht erneut an.",
+    "api_token": "API-Token",
+    "webhook_secret": "Webhook-Signatur-Secret"
+  },
+  "form": {
+    "create_title": "Integration erstellen",
+    "edit_title": "Integration bearbeiten",
+    "description": "Nutze dies für vertrauenswürdige Dienste wie den offiziellen Discord-Bot.",
+    "create": "Integration erstellen"
+  },
+  "fields": {
+    "name": "Name",
+    "type": "Typ",
+    "status": "Status",
+    "outbound_events_url": "URL für ausgehende Events",
+    "healthcheck_url": "Healthcheck-URL",
+    "scopes": "API-Berechtigungen",
+    "allowed_events": "Events senden"
+  },
+  "placeholders": {
+    "name": "FullParty Discord-Bot",
+    "outbound_events_url": "https://bot.fullparty.gg/events",
+    "healthcheck_url": "https://bot.fullparty.gg/health"
+  },
+  "actions": {
+    "healthcheck": "Healthcheck ausführen",
+    "api_token": "API-Token neu erzeugen",
+    "webhook_secret": "Secret neu erzeugen"
+  },
+  "meta": {
+    "api_token": "API-Token: {value}",
+    "webhook_secret": "Webhook-Secret: {value}",
+    "last_api_used": "Letzte API-Nutzung: {value}",
+    "last_event_sent": "Letztes Event gesendet: {value}",
+    "last_healthcheck": "Letzter Healthcheck: {value}",
+    "healthcheck_uptime_day": "Uptime 24 Std.: {value}",
+    "healthcheck_uptime_week": "Uptime 7 Tage: {value}"
+  }
+}

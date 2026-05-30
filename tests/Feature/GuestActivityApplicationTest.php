@@ -817,7 +817,7 @@ it('shows the guest application status page from its access token', function () 
             ->where('application.answers.experience', 'Cleared to enrage.'));
 });
 
-it('shows the moderator decline reason on the guest status page', function () {
+it('does not expose declined guest applications from their old access token', function () {
     $activity = createGuestApplicationActivity();
 
     $application = ActivityApplication::factory()->guest()->declined($activity->group->owner)->create([
@@ -835,14 +835,7 @@ it('shows the moderator decline reason on the guest status page', function () {
         'accessToken' => $application->guest_access_token,
     ]));
 
-    $response
-        ->assertOk()
-        ->assertInertia(fn (Assert $page) => $page
-            ->component('Groups/Activities/ApplicationConfirmation')
-            ->where('confirmation.view', 'status')
-            ->where('confirmation.can_edit', false)
-            ->where('application.status', ActivityApplication::STATUS_DECLINED)
-            ->where('application.review_reason', 'Roster is already full for this run.'));
+    $response->assertNotFound();
 });
 
 it('loads the guest application form for editing from its access token', function () {
@@ -1189,20 +1182,28 @@ it('allows guests to withdraw approved applications and clears their assigned sl
         'assigned_by_user_id' => $activity->group->owner_id,
     ]);
 
+    $accessToken = $application->guest_access_token;
+
     $response = $this->delete(route('groups.activities.application.destroy-guest', [
         'group' => $activity->group->slug,
         'activity' => $activity->id,
-        'accessToken' => $application->guest_access_token,
+        'accessToken' => $accessToken,
     ]));
 
-    $response->assertRedirect(route('groups.activities.application.status', [
+    $response->assertRedirect(route('groups.activities.application', [
         'group' => $activity->group->slug,
         'activity' => $activity->id,
-        'accessToken' => $application->guest_access_token,
     ]));
 
     expect($application->fresh()->status)->toBe(ActivityApplication::STATUS_WITHDRAWN)
+        ->and($application->fresh()->guest_access_token)->toBeNull()
         ->and($slot->fresh()->assigned_character_id)->toBeNull();
+
+    $this->get(route('groups.activities.application.status', [
+        'group' => $activity->group->slug,
+        'activity' => $activity->id,
+        'accessToken' => $accessToken,
+    ]))->assertNotFound();
 });
 
 it('returns assigned guest applications back to the queue', function () {

@@ -9,6 +9,7 @@
     "applications": "Candidatures",
     "groups": "Groupes",
     "my_requests": "Mes demandes",
+    "discord_bot": "Bot Discord",
     "my_groups": "Mes groupes",
     "joined_groups": "Groupes rejoints",
     "members": "Membres",
@@ -18,6 +19,7 @@
     "character_definitions": "Données des personnages",
     "admin_audit_log": "Journal d'audit",
     "system_notifications": "Notifications système",
+    "integrations": "Intégrations",
     "activity_types": "Activity Types",
     "pulse": "Pulse",
     "notice": {

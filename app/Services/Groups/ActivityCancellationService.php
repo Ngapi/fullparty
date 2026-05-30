@@ -4,7 +4,6 @@ namespace App\Services\Groups;
 
 use App\Models\Activity;
 use App\Models\ActivityApplication;
-use App\Models\ActivitySlot;
 use App\Services\Notifications\ApplicationNotificationService;
 use App\Services\Notifications\RunNotificationService;
 use Illuminate\Support\Collection;
@@ -53,6 +52,7 @@ class ActivityCancellationService
             $applicationsToCancel->each(function (ActivityApplication $application) use ($cancelledByUserId, $cancelledAt, $reviewReason): void {
                 $application->update([
                     'status' => ActivityApplication::STATUS_CANCELLED,
+                    'guest_access_token' => null,
                     'reviewed_by_user_id' => $cancelledByUserId,
                     'reviewed_at' => $cancelledAt,
                     'review_reason' => $reviewReason,
@@ -64,23 +64,6 @@ class ActivityCancellationService
                 ->update([
                     'ended_at' => $cancelledAt,
                 ]);
-
-            $activity->slots->each(function (ActivitySlot $slot): void {
-                if ($slot->assigned_character_id !== null || $slot->assigned_by_user_id !== null) {
-                    $slot->update([
-                        'assigned_character_id' => null,
-                        'assigned_by_user_id' => null,
-                    ]);
-                }
-
-                foreach ($slot->fieldValues as $fieldValue) {
-                    if ($fieldValue->value !== null) {
-                        $fieldValue->update([
-                            'value' => null,
-                        ]);
-                    }
-                }
-            });
 
             $activity->update([
                 'status' => Activity::STATUS_CANCELLED,
@@ -101,7 +84,7 @@ class ActivityCancellationService
         });
 
         $this->runNotificationService->notifyCancelled(
-            $activity->fresh(['group', 'applications.user', 'applications.selectedCharacter']),
+            $activity->fresh(['group', 'applications.user', 'applications.selectedCharacter', 'slots.assignedCharacter.user']),
             $actor,
             $cancelledApplications,
             $cancellationReason,

@@ -6,6 +6,7 @@ use App\Models\User;
 use App\Models\UserNotification;
 use App\Support\Notifications\NotificationCategory;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 
 uses(RefreshDatabase::class);
@@ -116,6 +117,42 @@ it('creates an in app notification when privacy settings are updated', function 
     expect($userNotification->user_id)->toBe($user->id);
 });
 
+it('returns json when notification settings are updated from an async flow', function () {
+    $user = User::factory()->create([
+        'application_notifications' => true,
+        'run_and_reminder_notifications' => true,
+        'group_update_notifications' => true,
+        'assignment_notifications' => true,
+        'account_character_notifications' => true,
+        'system_notice_notifications' => true,
+        'email_notifications' => true,
+        'discord_notifications' => false,
+        'notification_preferences_reviewed_at' => null,
+    ]);
+
+    $this->actingAs($user);
+
+    $this->postJson(route('settings.notifications'), [
+        'application_notifications' => true,
+        'run_and_reminder_notifications' => true,
+        'group_update_notifications' => true,
+        'assignment_notifications' => true,
+        'account_character_notifications' => true,
+        'system_notice_notifications' => true,
+        'email_notifications' => false,
+        'discord_notifications' => false,
+    ])
+        ->assertOk()
+        ->assertJsonPath('success', true)
+        ->assertJsonPath('notifications.email_notifications', false)
+        ->assertJsonPath('notifications.discord_notifications', false);
+
+    $user->refresh();
+
+    expect($user->email_notifications)->toBeFalse()
+        ->and($user->notification_preferences_reviewed_at)->not->toBeNull();
+});
+
 it('updates the password and creates an in app notification when the current password is valid', function () {
     $user = User::factory()->create([
         'password' => Hash::make('OldPassword123!'),
@@ -197,4 +234,31 @@ it('allows a social-only user without an existing password to set one from setti
 
     expect($user->password)->not->toBeNull()
         ->and(Hash::check('BrandNew123!', $user->password))->toBeTrue();
+});
+
+it('invalidates other sessions when the password is changed', function () {
+    $user = User::factory()->create([
+        'password' => Hash::make('OldPassword123!'),
+    ]);
+
+    DB::table('sessions')->insert([
+        [
+            'id' => 'other-session',
+            'user_id' => $user->id,
+            'ip_address' => '127.0.0.2',
+            'user_agent' => 'Other browser',
+            'payload' => 'payload',
+            'last_activity' => now()->subMinute()->timestamp,
+        ],
+    ]);
+
+    $this->actingAs($user);
+
+    $this->post(route('settings.password'), [
+        'current_password' => 'OldPassword123!',
+        'password' => 'NewPassword123!',
+        'password_confirmation' => 'NewPassword123!',
+    ])->assertRedirect(route('settings'));
+
+    expect(DB::table('sessions')->where('id', 'other-session')->exists())->toBeFalse();
 });

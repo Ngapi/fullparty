@@ -1,0 +1,36 @@
+{
+  "title": "Discord連携",
+  "subtitle": "{group} をDiscordサーバーに接続します。",
+  "install": {
+    "title": "FullParty Botをインストール",
+    "subtitle": "このグループで使うDiscordサーバーにBotを追加します。",
+    "description": "Botをインストールしたら、リンクトークンを生成してDiscord内で使用し、FullPartyが正しいサーバーとグループを紐付けられるようにします。"
+  },
+  "status": {
+    "title": "連携中のサーバー",
+    "subtitle": "このグループに現在接続されているDiscordサーバーです。",
+    "linked": "連携済み",
+    "not_linked": "未連携",
+    "unknown_guild": "Discordサーバー",
+    "empty": "このグループにはまだDiscordサーバーが連携されていません。"
+  },
+  "link": {
+    "title": "このグループを連携",
+    "subtitle": "短時間だけ有効なトークンでDiscord側からサーバーを確認します。",
+    "description": "ここでトークンを生成し、このグループに接続したいDiscordサーバーでBotのリンクコマンドを実行してください。",
+    "generated_token": "リンクトークン",
+    "expires_at": "{date} に期限切れ",
+    "active_token_title": "有効なリンクトークンがあります",
+    "active_token_description": "もう一度表示する必要がある場合は新しいトークンを生成してください。現在のトークンは {date} に期限切れになります。",
+    "no_token_title": "有効なリンクトークンはありません",
+    "no_token_description": "Discordから連携する準備ができたらトークンを生成してください。"
+  },
+  "actions": {
+    "invite": "Botを招待",
+    "generate_token": "リンクトークンを生成",
+    "copy_token": "トークンをコピー"
+  },
+  "toasts": {
+    "token_copied": "リンクトークンをコピーしました。"
+  }
+}

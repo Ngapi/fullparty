@@ -858,7 +858,7 @@ it('rejects prohibited fields during activity updates', function () {
     expect(AuditLog::query()->count())->toBe(0);
 });
 
-it('cancels active applications, clears live slots, and keeps guest status pages read only', function () {
+it('cancels active applications, preserves roster slots, and keeps guest status pages read only', function () {
     $owner = User::factory()->create();
     $group = Group::factory()->open()->create([
         'owner_id' => $owner->id,
@@ -918,6 +918,7 @@ it('cancels active applications, clears live slots, and keeps guest status pages
         'reviewed_at' => now(),
     ]);
     $benchApplication->load('selectedCharacter');
+    $benchApplicationAccessToken = $benchApplication->guest_access_token;
 
     $declinedApplication = ActivityApplication::factory()->guest()->declined($owner)->create([
         'activity_id' => $activity->id,
@@ -1010,14 +1011,18 @@ it('cancels active applications, clears live slots, and keeps guest status pages
         ->and($approvedApplication->review_reason)->toBe($sanitizedReason)
         ->and($benchApplication->status)->toBe(ActivityApplication::STATUS_CANCELLED)
         ->and($benchApplication->review_reason)->toBe($sanitizedReason)
+        ->and($benchApplication->guest_access_token)->toBeNull()
         ->and($declinedApplication->status)->toBe(ActivityApplication::STATUS_DECLINED)
         ->and($withdrawnApplication->status)->toBe(ActivityApplication::STATUS_WITHDRAWN);
 
-    expect($rosterSlot->assigned_character_id)->toBeNull()
-        ->and($rosterSlot->assigned_by_user_id)->toBeNull()
-        ->and($benchSlot->assigned_character_id)->toBeNull()
-        ->and($benchSlot->assigned_by_user_id)->toBeNull()
-        ->and($rosterSlot->fieldValues()->firstOrFail()->fresh()->value)->toBeNull();
+    expect($rosterSlot->assigned_character_id)->toBe($approvedCharacter->id)
+        ->and($rosterSlot->assigned_by_user_id)->toBe($owner->id)
+        ->and($benchSlot->assigned_character_id)->toBe($benchApplication->selected_character_id)
+        ->and($benchSlot->assigned_by_user_id)->toBe($owner->id)
+        ->and($rosterSlot->fieldValues()->firstOrFail()->fresh()->value)->toBe([
+            'key' => 'mt',
+            'label' => ['en' => 'MT'],
+        ]);
 
     expect(ActivitySlotAssignment::query()->where('activity_id', $activity->id)->count())->toBe(2);
     expect(ActivitySlotAssignment::query()->where('activity_id', $activity->id)->whereNull('ended_at')->count())->toBe(0);
@@ -1033,29 +1038,18 @@ it('cancels active applications, clears live slots, and keeps guest status pages
     $statusResponse = $this->get(route('groups.activities.application.status', [
         'group' => $group->slug,
         'activity' => $activity->id,
-        'accessToken' => $benchApplication->guest_access_token,
+        'accessToken' => $benchApplicationAccessToken,
     ]));
 
-    $statusResponse
-        ->assertOk()
-        ->assertInertia(fn (Assert $page) => $page
-            ->component('Groups/Activities/ApplicationConfirmation')
-            ->where('confirmation.view', 'status')
-            ->where('confirmation.can_edit', false)
-            ->where('application.status', ActivityApplication::STATUS_CANCELLED)
-            ->where('application.review_reason', $sanitizedReason));
+    $statusResponse->assertNotFound();
 
     $editResponse = $this->get(route('groups.activities.application.edit-guest', [
         'group' => $group->slug,
         'activity' => $activity->id,
-        'accessToken' => $benchApplication->guest_access_token,
+        'accessToken' => $benchApplicationAccessToken,
     ]));
 
-    $editResponse->assertRedirect(route('groups.activities.application.status', [
-        'group' => $group->slug,
-        'activity' => $activity->id,
-        'accessToken' => $benchApplication->guest_access_token,
-    ]));
+    $editResponse->assertNotFound();
 
     $managementDataResponse = $this->getJson(route('groups.dashboard.activities.management-data', [
         'group' => $group->slug,

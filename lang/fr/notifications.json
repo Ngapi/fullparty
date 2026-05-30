@@ -76,8 +76,8 @@
       "body": "{count} nouvelles candidatures pour {activity} attendent une révision."
     },
     "submitted": {
-      "title": "Nouvelle candidature reçue",
-      "body": "{character} a envoyé une candidature pour {activity}."
+      "title": "Candidature envoyée",
+      "body": "Votre candidature en tant que {character} pour {activity} a été envoyée."
     },
     "updated": {
       "title": "Candidature mise à jour",
@@ -85,7 +85,7 @@
     },
     "withdrawn": {
       "title": "Candidature retirée",
-      "body": "{character} a retiré sa candidature pour {activity}."
+      "body": "La candidature en tant que {character} pour {activity} a été retirée."
     },
     "declined": {
       "title": "Candidature refusée",
@@ -117,6 +117,18 @@
     "returned_to_queue": {
       "title": "Affectation renvoyée en révision",
       "body": "Votre candidature pour {activity} en tant que {character} a été renvoyée dans la file de révision."
+    },
+    "removed": {
+      "title": "Retiré du run",
+      "body": "Vous avez été retiré de {activity} en tant que {character}."
+    },
+    "marked_missing": {
+      "title": "Marqué absent",
+      "body": "Vous avez été marqué absent pour {activity} en tant que {character}."
+    },
+    "missing_restored": {
+      "title": "Statut absent retiré",
+      "body": "Vous avez été restauré sur {slot} pour {activity} en tant que {character}."
     }
   },
   "runs": {
@@ -185,6 +197,12 @@
     "announcement": {
       "title": "{headline}",
       "body": "{message}"
+    }
+  },
+  "integrations": {
+    "delivery_failed": {
+      "title": "Échec d'envoi vers l'intégration",
+      "body": "{client} n'a pas pu recevoir {event}. Erreur : {error}"
     }
   }
 }
