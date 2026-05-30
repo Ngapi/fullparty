@@ -3,20 +3,20 @@
 return [
     'runs' => [
         'cancelled' => [
-            'title' => 'Run cancelled',
-            'body' => ':activity was cancelled.',
+            'title' => 'ランがキャンセルされました',
+            'body' => ':activity はキャンセルされました。',
         ],
         'starting_soon' => [
-            'title' => 'Run starting soon',
-            'body' => ':activity is starting soon.',
+            'title' => 'ランがまもなく開始します',
+            'body' => ':activity はまもなく開始します。',
         ],
         'starting_now' => [
-            'title' => 'Run starting now',
-            'body' => ':activity is starting now.',
+            'title' => 'ランが開始しました',
+            'body' => ':activity が開始しました。',
         ],
         'completed' => [
-            'title' => 'Run complete',
-            'body' => ':activity is now complete.',
+            'title' => 'ランが完了しました',
+            'body' => ':activity は完了しました。',
         ],
     ],
     'assignments' => [
@@ -39,6 +39,14 @@ return [
         'returned_to_queue' => [
             'title' => '割り当てが審査に戻されました',
             'body' => ':activity への :character としての申請は審査キューに戻されました。',
+        ],
+        'designation_assigned' => [
+            'title' => 'ラン内ロールを更新しました',
+            'body' => ':activity の :slot で :designation に指定されました。',
+        ],
+        'designation_removed' => [
+            'title' => 'ラン内ロールを更新しました',
+            'body' => ':activity の :designation 指定が解除されました。',
         ],
     ],
     'user' => [
@@ -89,7 +97,8 @@ return [
         'maintenance' => [
             'title' => ':headline',
             'body' => ':message',
-            'body_with_schedule' => ":message\nScheduled for: :scheduled_for",
+            'body_with_schedule' => ':message
+予定日時: :scheduled_for',
         ],
         'announcement' => [
             'title' => ':headline',

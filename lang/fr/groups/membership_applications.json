@@ -1,156 +1,156 @@
 {
-  "statuses": {
-    "pending": "Pending",
-    "approved": "Approved",
-    "declined": "Declined"
-  },
-  "answers": {
-    "yes": "Yes",
-    "no": "No",
-    "no_answer": "No answer"
-  },
-  "apply": {
-    "title": "Demander à rejoindre {group}",
-    "subtitle": "Envoyez une demande à l'équipe du groupe.",
-    "toggle_answer": "Your answer",
-    "submitted_answers": "Submitted Answers",
-    "actions": {
-      "back": "Back to Groups",
-      "submit": "Envoyer la demande",
-      "update": "Mettre à jour la demande"
+    "statuses": {
+        "pending": "En attente",
+        "approved": "Approuvees",
+        "declined": "Refusee"
     },
-    "status_messages": {
-      "pending": "Votre demande attend une réponse. Vous pouvez modifier vos réponses tant qu'elle est en attente.",
-      "approved": "Cette demande a été acceptée.",
-      "declined": "Cette demande a été refusée. Vous pouvez en envoyer une nouvelle."
+    "answers": {
+        "yes": "Oui",
+        "no": "Non",
+        "no_answer": "No answer"
     },
-    "validation": {
-      "pending_exists": "Vous avez déjà une demande en attente pour ce groupe."
+    "apply": {
+        "title": "Demander à rejoindre {group}",
+        "subtitle": "Envoyez une demande à l'équipe du groupe.",
+        "toggle_answer": "Your answer",
+        "submitted_answers": "Submitted Answers",
+        "actions": {
+            "back": "Back to Groups",
+            "submit": "Envoyer la demande",
+            "update": "Mettre à jour la demande"
+        },
+        "status_messages": {
+            "pending": "Votre demande attend une réponse. Vous pouvez modifier vos réponses tant qu'elle est en attente.",
+            "approved": "Cette demande a été acceptée.",
+            "declined": "Cette demande a été refusée. Vous pouvez en envoyer une nouvelle."
+        },
+        "validation": {
+            "pending_exists": "Vous avez déjà une demande en attente pour ce groupe."
+        }
+    },
+    "review": {
+        "title": "Demandes",
+        "subtitle": "Review, approve, or decline people waiting to join this group.",
+        "pending_title": "Demandes en attente",
+        "pending_subtitle": "{count} waiting for review",
+        "reviewed_title": "Demandes traitées",
+        "reviewed_subtitle": "Demandes récemment acceptées ou refusées.",
+        "empty_pending_title": "Aucune demande en attente",
+        "empty_pending_description": "Les nouvelles demandes apparaîtront ici.",
+        "empty_reviewed_title": "Aucune demande traitée",
+        "empty_reviewed_description": "Les demandes acceptées et refusées apparaîtront ici.",
+        "not_reviewed": "Not reviewed",
+        "unknown_user": "Unknown user",
+        "submitted_at": "Envoyée {date}",
+        "reviewed_at": "Traitée {date}",
+        "reviewed_by": "Reviewed by {user}",
+        "actions": {
+            "approve": "Approve",
+            "decline": "Refuser",
+            "cancel": "Annuler"
+        },
+        "decline_modal": {
+            "title": "Refuser la demande",
+            "reason_label": "Raison",
+            "reason_help": "Optional. Keep it short and useful for the group record."
+        },
+        "validation": {
+            "already_reviewed": "Cette demande a déjà été traitée.",
+            "applicant_banned": "Les utilisateurs bannis ne peuvent pas etre acceptes dans le groupe."
+        }
+    },
+    "requests": {
+        "title": "Mes demandes",
+        "subtitle": "Suivez vos demandes de groupe et modifiez celles qui sont encore en attente.",
+        "empty_title": "Aucune demande pour le moment",
+        "empty_description": "Les groupes que vous demandez à rejoindre apparaîtront ici.",
+        "unknown_group": "Groupe inconnu",
+        "not_available": "Non disponible",
+        "submitted": "Envoyée {date}",
+        "reviewed": "Traitée {date}",
+        "sections": {
+            "active_title": "Demandes actives",
+            "active_description": "Demandes encore en attente d'une réponse.",
+            "active_empty_title": "Aucune demande active",
+            "active_empty_description": "Les demandes en attente apparaîtront ici.",
+            "history_title": "Historique",
+            "history_description": "Les demandes acceptées et refusées restent ici.",
+            "history_empty_title": "Aucun historique de demandes",
+            "history_empty_description": "Les demandes traitées seront déplacées ici."
+        },
+        "actions": {
+            "edit": "Modifier la demande",
+            "open_group": "Ouvrir le groupe",
+            "request_again": "Redemander"
+        }
+    },
+    "form": {
+        "title": "Formulaire de demande",
+        "subtitle": "Créez les questions auxquelles les personnes répondent avant de rejoindre.",
+        "inactive_title": "This form is ready, but the group is not application based",
+        "inactive_description": "Switch the group join mode to Application Based when you want this form to appear to applicants.",
+        "question_count": "{count} of {max} questions",
+        "new_question": "New question",
+        "new_option": "New option",
+        "question_title": "Question {number}",
+        "question_hint": "Name, describe, and configure this application field.",
+        "actions": {
+            "add_question": "Add Question",
+            "save": "Save Form",
+            "move_up": "Move question up",
+            "move_down": "Move question down",
+            "remove_question": "Remove question",
+            "add_option": "Add Option",
+            "remove_option": "Remove option"
+        },
+        "field_types": {
+            "small_text": "Small Text",
+            "big_text": "Big Text",
+            "select": "Select Menu",
+            "toggle": "Toggle"
+        },
+        "fields": {
+            "name": {
+                "label": "Nom",
+                "help": "The question shown to applicants.",
+                "placeholder": "Question"
+            },
+            "description": {
+                "label": "Description",
+                "help": "Optional extra context below the question.",
+                "placeholder": "Description"
+            },
+            "type": {
+                "label": "Input Type"
+            },
+            "required": {
+                "label": "Required",
+                "help": "Applicants must provide an answer. A toggle can be on or off."
+            }
+        },
+        "options": {
+            "title": "Options",
+            "subtitle": "Les questions a selection doivent avoir au moins une option.",
+            "label": "Option {number}",
+            "placeholder": "Option"
+        },
+        "validation": {
+            "fields_required": "Ajoutez au moins une question.",
+            "minimum_fields": "Les formulaires de demande doivent avoir au moins une question.",
+            "max_fields": "Application forms can have up to {max} questions.",
+            "field_invalid": "Chaque question doit etre un objet valide.",
+            "type_invalid": "Choisissez un type de champ valide.",
+            "name_required": "Le nom anglais est obligatoire.",
+            "localized_text_invalid": "Le texte localise doit etre du texte.",
+            "localized_text_max": "Localized text must be {max} characters or fewer.",
+            "options_required": "Les questions a selection doivent avoir au moins une option.",
+            "options_max": "Select menu questions can have up to {max} options.",
+            "option_invalid": "Chaque option doit etre un objet valide.",
+            "answer_unknown": "Cette reponse ne correspond pas au formulaire actuel.",
+            "answer_required": "Cette reponse est obligatoire.",
+            "answer_invalid": "Saisissez une reponse valide.",
+            "answer_max": "This answer must be {max} characters or fewer.",
+            "answer_option_invalid": "Choisissez une des options disponibles."
+        }
     }
-  },
-  "review": {
-    "title": "Demandes",
-    "subtitle": "Review, approve, or decline people waiting to join this group.",
-    "pending_title": "Demandes en attente",
-    "pending_subtitle": "{count} waiting for review",
-    "reviewed_title": "Demandes traitées",
-    "reviewed_subtitle": "Demandes récemment acceptées ou refusées.",
-    "empty_pending_title": "Aucune demande en attente",
-    "empty_pending_description": "Les nouvelles demandes apparaîtront ici.",
-    "empty_reviewed_title": "Aucune demande traitée",
-    "empty_reviewed_description": "Les demandes acceptées et refusées apparaîtront ici.",
-    "not_reviewed": "Not reviewed",
-    "unknown_user": "Unknown user",
-    "submitted_at": "Submitted {date}",
-    "reviewed_at": "Reviewed {date}",
-    "reviewed_by": "Reviewed by {user}",
-    "actions": {
-      "approve": "Approve",
-      "decline": "Decline",
-      "cancel": "Cancel"
-    },
-    "decline_modal": {
-      "title": "Refuser la demande",
-      "reason_label": "Reason",
-      "reason_help": "Optional. Keep it short and useful for the group record."
-    },
-    "validation": {
-      "already_reviewed": "Cette demande a déjà été traitée.",
-      "applicant_banned": "Banned users cannot be approved into the group."
-    }
-  },
-  "requests": {
-    "title": "Mes demandes",
-    "subtitle": "Suivez vos demandes de groupe et modifiez celles qui sont encore en attente.",
-    "empty_title": "Aucune demande pour le moment",
-    "empty_description": "Les groupes que vous demandez à rejoindre apparaîtront ici.",
-    "unknown_group": "Groupe inconnu",
-    "not_available": "Non disponible",
-    "submitted": "Envoyée {date}",
-    "reviewed": "Traitée {date}",
-    "sections": {
-      "active_title": "Demandes actives",
-      "active_description": "Demandes encore en attente d'une réponse.",
-      "active_empty_title": "Aucune demande active",
-      "active_empty_description": "Les demandes en attente apparaîtront ici.",
-      "history_title": "Historique",
-      "history_description": "Les demandes acceptées et refusées restent ici.",
-      "history_empty_title": "Aucun historique de demandes",
-      "history_empty_description": "Les demandes traitées seront déplacées ici."
-    },
-    "actions": {
-      "edit": "Modifier la demande",
-      "open_group": "Ouvrir le groupe",
-      "request_again": "Redemander"
-    }
-  },
-  "form": {
-    "title": "Formulaire de demande",
-    "subtitle": "Créez les questions auxquelles les personnes répondent avant de rejoindre.",
-    "inactive_title": "This form is ready, but the group is not application based",
-    "inactive_description": "Switch the group join mode to Application Based when you want this form to appear to applicants.",
-    "question_count": "{count} of {max} questions",
-    "new_question": "New question",
-    "new_option": "New option",
-    "question_title": "Question {number}",
-    "question_hint": "Name, describe, and configure this application field.",
-    "actions": {
-      "add_question": "Add Question",
-      "save": "Save Form",
-      "move_up": "Move question up",
-      "move_down": "Move question down",
-      "remove_question": "Remove question",
-      "add_option": "Add Option",
-      "remove_option": "Remove option"
-    },
-    "field_types": {
-      "small_text": "Small Text",
-      "big_text": "Big Text",
-      "select": "Select Menu",
-      "toggle": "Toggle"
-    },
-    "fields": {
-      "name": {
-        "label": "Name",
-        "help": "The question shown to applicants.",
-        "placeholder": "Question"
-      },
-      "description": {
-        "label": "Description",
-        "help": "Optional extra context below the question.",
-        "placeholder": "Description"
-      },
-      "type": {
-        "label": "Input Type"
-      },
-      "required": {
-        "label": "Required",
-        "help": "Applicants must provide an answer. A toggle can be on or off."
-      }
-    },
-    "options": {
-      "title": "Options",
-      "subtitle": "Select menu questions need at least one option.",
-      "label": "Option {number}",
-      "placeholder": "Option"
-    },
-    "validation": {
-      "fields_required": "Provide at least one question.",
-      "minimum_fields": "Application forms need at least one question.",
-      "max_fields": "Application forms can have up to {max} questions.",
-      "field_invalid": "Each question must be a valid object.",
-      "type_invalid": "Choose a valid input type.",
-      "name_required": "The English name is required.",
-      "localized_text_invalid": "Localized text must be text.",
-      "localized_text_max": "Localized text must be {max} characters or fewer.",
-      "options_required": "Select menu questions need at least one option.",
-      "options_max": "Select menu questions can have up to {max} options.",
-      "option_invalid": "Each option must be a valid object.",
-      "answer_unknown": "This answer does not match the current application form.",
-      "answer_required": "This answer is required.",
-      "answer_invalid": "Provide a valid answer.",
-      "answer_max": "This answer must be {max} characters or fewer.",
-      "answer_option_invalid": "Choose one of the available options."
-    }
-  }
 }

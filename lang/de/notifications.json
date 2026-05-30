@@ -1,208 +1,216 @@
 {
-  "ui": {
-    "title": "Benachrichtigungen",
-    "empty": "Noch keine Benachrichtigungen.",
-    "view_all": "Alle Benachrichtigungen anzeigen",
-    "mark_all_as_read": "Alle als gelesen markieren",
-    "new_badge": "Neu",
-    "important_badge": "Wichtig",
-    "fallback_title": "Benachrichtigung",
-    "just_now": "Gerade eben"
-  },
-  "page": {
-    "title": "Benachrichtigungen",
-    "subtitle": "Behalte Konto-, Run- und Gruppen-Updates vom neuesten bis zum ältesten im Blick.",
-    "empty_title": "Noch keine Benachrichtigungen",
-    "empty_description": "Sobald FullParty dir etwas mitteilen möchte, erscheint es hier.",
-    "showing_latest_first": "Neueste Benachrichtigungen werden zuerst angezeigt.",
-    "total_count": "{count} Benachrichtigungen in deinem Verlauf.",
-    "unread_count": "{count} ungelesen",
-    "load_more": "Mehr laden",
-    "loading_more": "Lädt...",
-    "mark_all_success_title": "Benachrichtigungen aktualisiert",
-    "mark_all_success_description": "Alle Benachrichtigungen wurden als gelesen markiert."
-  },
-  "user": {
-    "social_account": {
-      "linked": {
-        "title": "Verknüpftes Konto hinzugefügt",
-        "body": "Dein {provider}-Konto wurde mit FullParty verknüpft."
-      },
-      "unlinked": {
-        "title": "Verknüpftes Konto getrennt",
-        "body": "Dein {provider}-Konto wurde von FullParty getrennt."
-      }
+    "ui": {
+        "title": "Benachrichtigungen",
+        "empty": "Noch keine Benachrichtigungen.",
+        "view_all": "Alle Benachrichtigungen anzeigen",
+        "mark_all_as_read": "Alle als gelesen markieren",
+        "new_badge": "Neu",
+        "important_badge": "Wichtig",
+        "fallback_title": "Benachrichtigung",
+        "just_now": "Gerade eben"
     },
-    "settings": {
-      "notifications_updated": {
-        "title": "Benachrichtigungseinstellungen aktualisiert",
-        "body": "Deine Benachrichtigungseinstellungen wurden aktualisiert. Geänderte Präferenzen: {settings}"
-      },
-      "username_updated": {
-        "title": "Kontoeinstellungen aktualisiert",
-        "body": "Deine Kontoeinstellungen wurden aktualisiert. Geänderte Einstellungen: {settings}"
-      },
-      "password_updated": {
-        "title": "Passwort aktualisiert",
-        "body": "Dein Kontopasswort wurde aktualisiert."
-      },
-      "privacy_updated": {
-        "title": "Datenschutzeinstellungen aktualisiert",
-        "body": "Deine Datenschutzeinstellungen wurden aktualisiert. Geänderte Einstellungen: {settings}"
-      }
+    "page": {
+        "title": "Benachrichtigungen",
+        "subtitle": "Behalte Konto-, Run- und Gruppen-Updates vom neuesten bis zum ältesten im Blick.",
+        "empty_title": "Noch keine Benachrichtigungen",
+        "empty_description": "Sobald FullParty dir etwas mitteilen möchte, erscheint es hier.",
+        "showing_latest_first": "Neueste Benachrichtigungen werden zuerst angezeigt.",
+        "total_count": "{count} Benachrichtigungen in deinem Verlauf.",
+        "unread_count": "{count} ungelesen",
+        "load_more": "Mehr laden",
+        "loading_more": "Lädt...",
+        "mark_all_success_title": "Benachrichtigungen aktualisiert",
+        "mark_all_success_description": "Alle Benachrichtigungen wurden als gelesen markiert."
+    },
+    "user": {
+        "social_account": {
+            "linked": {
+                "title": "Verknüpftes Konto hinzugefügt",
+                "body": "Dein {provider}-Konto wurde mit FullParty verknüpft."
+            },
+            "unlinked": {
+                "title": "Verknüpftes Konto getrennt",
+                "body": "Dein {provider}-Konto wurde von FullParty getrennt."
+            }
+        },
+        "settings": {
+            "notifications_updated": {
+                "title": "Benachrichtigungseinstellungen aktualisiert",
+                "body": "Deine Benachrichtigungseinstellungen wurden aktualisiert. Geänderte Präferenzen: {settings}"
+            },
+            "username_updated": {
+                "title": "Kontoeinstellungen aktualisiert",
+                "body": "Deine Kontoeinstellungen wurden aktualisiert. Geänderte Einstellungen: {settings}"
+            },
+            "password_updated": {
+                "title": "Passwort aktualisiert",
+                "body": "Dein Kontopasswort wurde aktualisiert."
+            },
+            "privacy_updated": {
+                "title": "Datenschutzeinstellungen aktualisiert",
+                "body": "Deine Datenschutzeinstellungen wurden aktualisiert. Geänderte Einstellungen: {settings}"
+            }
+        }
+    },
+    "characters": {
+        "added": {
+            "title": "Charakter hinzugefügt",
+            "body": "{character} ({world} / {datacenter}) wurde über {method} zu deinem Konto hinzugefügt."
+        },
+        "refreshed": {
+            "title": "Charakter aktualisiert",
+            "body": "{character} ({world} / {datacenter}) wurde mit den neuesten Profildaten aktualisiert."
+        },
+        "primary_changed": {
+            "title": "Primärcharakter aktualisiert",
+            "body": "{character} ({world} / {datacenter}) ist jetzt dein Primärcharakter."
+        },
+        "unclaimed": {
+            "title": "Charakter freigegeben",
+            "body": "{character} ({world} / {datacenter}) wurde aus deinem Konto entfernt."
+        }
+    },
+    "applications": {
+        "new_for_review": {
+            "title": "Bewerbungen warten auf Prüfung",
+            "body": "{count} neue Bewerbungen für {activity} warten auf Prüfung."
+        },
+        "submitted": {
+            "title": "Bewerbung gesendet",
+            "body": "Deine Bewerbung als {character} für {activity} wurde gesendet."
+        },
+        "updated": {
+            "title": "Bewerbung aktualisiert",
+            "body": "{character} hat die Bewerbung für {activity} aktualisiert."
+        },
+        "withdrawn": {
+            "title": "Bewerbung zurückgezogen",
+            "body": "Die Bewerbung als {character} für {activity} wurde zurückgezogen."
+        },
+        "declined": {
+            "title": "Bewerbung abgelehnt",
+            "body": "Deine Bewerbung als {character} für {activity} wurde abgelehnt.",
+            "body_with_reason": "Deine Bewerbung als {character} für {activity} wurde abgelehnt. Grund: {reason}"
+        },
+        "cancelled": {
+            "title": "Bewerbung storniert",
+            "body": "Deine Bewerbung als {character} für {activity} wurde storniert, weil der Run abgesagt wurde."
+        }
+    },
+    "assignments": {
+        "roster_published_assigned": {
+            "title": "Roster veröffentlicht",
+            "body": "Die Aufstellung für {activity} wurde veröffentlicht. Du bist als {character} auf {slot} eingetragen."
+        },
+        "roster_published_bench": {
+            "title": "Roster veröffentlicht",
+            "body": "Die Aufstellung für {activity} wurde veröffentlicht. Du bist als {character} auf der Bank."
+        },
+        "assigned": {
+            "title": "Roster-Zuweisung aktualisiert",
+            "body": "Du bist jetzt als {character} auf {slot} für {activity} eingetragen."
+        },
+        "on_bench": {
+            "title": "Bank-Zuweisung aktualisiert",
+            "body": "Du bist jetzt als {character} auf der Bank für {activity}."
+        },
+        "returned_to_queue": {
+            "title": "Zuweisung zurück in Prüfung",
+            "body": "Deine Bewerbung für {activity} als {character} wurde zurück in die Prüfungswarteschlange gesetzt."
+        },
+        "removed": {
+            "title": "Aus Run entfernt",
+            "body": "Du wurdest als {character} aus {activity} entfernt."
+        },
+        "marked_missing": {
+            "title": "Als fehlend markiert",
+            "body": "Du wurdest als {character} für {activity} als fehlend markiert."
+        },
+        "missing_restored": {
+            "title": "Fehlend-Status entfernt",
+            "body": "Du wurdest als {character} für {activity} wieder auf {slot} gesetzt."
+        },
+        "designation_assigned": {
+            "title": "Run-Rolle aktualisiert",
+            "body": "Du wurdest für {activity} in {slot} als {designation} markiert."
+        },
+        "designation_removed": {
+            "title": "Run-Rolle aktualisiert",
+            "body": "Du bist für {activity} nicht mehr als {designation} markiert."
+        }
+    },
+    "runs": {
+        "cancelled": {
+            "title": "Run cancelled",
+            "body": "{activity} was cancelled.",
+            "body_with_reason": "{activity} was cancelled. Grund: {reason}"
+        },
+        "starting_soon": {
+            "title": "Run starting soon",
+            "body": "{activity} is starting soon."
+        },
+        "starting_now": {
+            "title": "Run starting now",
+            "body": "{activity} is starting now."
+        },
+        "completed": {
+            "title": "Run complete",
+            "body": "{activity} is now complete."
+        }
+    },
+    "groups": {
+        "run_draft": {
+            "title": "Run-Entwurf erstellt",
+            "body": "{activity} ist für {group} aktuell noch im Entwurf."
+        },
+        "run_scheduled": {
+            "title": "New run scheduled",
+            "body": "{activity} was scheduled for {group}."
+        },
+        "member_promoted": {
+            "title": "Role updated",
+            "body": "Your role in {group} was updated to {role}."
+        },
+        "member_demoted": {
+            "title": "Role updated",
+            "body": "Your role in {group} was updated to {role}."
+        },
+        "ownership_transferred_to_you": {
+            "title": "Gruppenbesitz übertragen",
+            "body": "{group} was transferred to you by {user}."
+        },
+        "ownership_transferred_from_you": {
+            "title": "Gruppenbesitz übertragen",
+            "body": "You transferred ownership of {group} to {user}."
+        },
+        "member_joined": {
+            "title": "Member joined",
+            "body": "{user} joined {group}."
+        },
+        "member_left": {
+            "title": "Member left",
+            "body": "{user} left {group}."
+        },
+        "member_banned": {
+            "title": "Removed from group",
+            "body": "You were banned from {group}."
+        }
+    },
+    "system": {
+        "maintenance": {
+            "title": "{headline}",
+            "body": "{message}",
+            "body_with_schedule": "{message}\nScheduled for: {scheduled_for}"
+        },
+        "announcement": {
+            "title": "{headline}",
+            "body": "{message}"
+        }
+    },
+    "integrations": {
+        "delivery_failed": {
+            "title": "Integrationszustellung fehlgeschlagen",
+            "body": "{client} konnte {event} nicht empfangen. Fehler: {error}"
+        }
     }
-  },
-  "characters": {
-    "added": {
-      "title": "Charakter hinzugefügt",
-      "body": "{character} ({world} / {datacenter}) wurde über {method} zu deinem Konto hinzugefügt."
-    },
-    "refreshed": {
-      "title": "Charakter aktualisiert",
-      "body": "{character} ({world} / {datacenter}) wurde mit den neuesten Profildaten aktualisiert."
-    },
-    "primary_changed": {
-      "title": "Primärcharakter aktualisiert",
-      "body": "{character} ({world} / {datacenter}) ist jetzt dein Primärcharakter."
-    },
-    "unclaimed": {
-      "title": "Charakter freigegeben",
-      "body": "{character} ({world} / {datacenter}) wurde aus deinem Konto entfernt."
-    }
-  },
-  "applications": {
-    "new_for_review": {
-      "title": "Bewerbungen warten auf Prüfung",
-      "body": "{count} neue Bewerbungen für {activity} warten auf Prüfung."
-    },
-    "submitted": {
-      "title": "Bewerbung gesendet",
-      "body": "Deine Bewerbung als {character} für {activity} wurde gesendet."
-    },
-    "updated": {
-      "title": "Bewerbung aktualisiert",
-      "body": "{character} hat die Bewerbung für {activity} aktualisiert."
-    },
-    "withdrawn": {
-      "title": "Bewerbung zurückgezogen",
-      "body": "Die Bewerbung als {character} für {activity} wurde zurückgezogen."
-    },
-    "declined": {
-      "title": "Bewerbung abgelehnt",
-      "body": "Deine Bewerbung als {character} für {activity} wurde abgelehnt.",
-      "body_with_reason": "Deine Bewerbung als {character} für {activity} wurde abgelehnt. Grund: {reason}"
-    },
-    "cancelled": {
-      "title": "Bewerbung storniert",
-      "body": "Deine Bewerbung als {character} für {activity} wurde storniert, weil der Run abgesagt wurde."
-    }
-  },
-  "assignments": {
-    "roster_published_assigned": {
-      "title": "Roster veröffentlicht",
-      "body": "Die Aufstellung für {activity} wurde veröffentlicht. Du bist als {character} auf {slot} eingetragen."
-    },
-    "roster_published_bench": {
-      "title": "Roster veröffentlicht",
-      "body": "Die Aufstellung für {activity} wurde veröffentlicht. Du bist als {character} auf der Bank."
-    },
-    "assigned": {
-      "title": "Roster-Zuweisung aktualisiert",
-      "body": "Du bist jetzt als {character} auf {slot} für {activity} eingetragen."
-    },
-    "on_bench": {
-      "title": "Bank-Zuweisung aktualisiert",
-      "body": "Du bist jetzt als {character} auf der Bank für {activity}."
-    },
-    "returned_to_queue": {
-      "title": "Zuweisung zurück in Prüfung",
-      "body": "Deine Bewerbung für {activity} als {character} wurde zurück in die Prüfungswarteschlange gesetzt."
-    },
-    "removed": {
-      "title": "Aus Run entfernt",
-      "body": "Du wurdest als {character} aus {activity} entfernt."
-    },
-    "marked_missing": {
-      "title": "Als fehlend markiert",
-      "body": "Du wurdest als {character} für {activity} als fehlend markiert."
-    },
-    "missing_restored": {
-      "title": "Fehlend-Status entfernt",
-      "body": "Du wurdest als {character} für {activity} wieder auf {slot} gesetzt."
-    }
-  },
-  "runs": {
-    "cancelled": {
-      "title": "Run cancelled",
-      "body": "{activity} was cancelled.",
-      "body_with_reason": "{activity} was cancelled. Grund: {reason}"
-    },
-    "starting_soon": {
-      "title": "Run starting soon",
-      "body": "{activity} is starting soon."
-    },
-    "starting_now": {
-      "title": "Run starting now",
-      "body": "{activity} is starting now."
-    },
-    "completed": {
-      "title": "Run complete",
-      "body": "{activity} is now complete."
-    }
-  },
-  "groups": {
-    "run_draft": {
-      "title": "Run-Entwurf erstellt",
-      "body": "{activity} ist für {group} aktuell noch im Entwurf."
-    },
-    "run_scheduled": {
-      "title": "New run scheduled",
-      "body": "{activity} was scheduled for {group}."
-    },
-    "member_promoted": {
-      "title": "Role updated",
-      "body": "Your role in {group} was updated to {role}."
-    },
-    "member_demoted": {
-      "title": "Role updated",
-      "body": "Your role in {group} was updated to {role}."
-    },
-    "ownership_transferred_to_you": {
-      "title": "Group ownership transferred",
-      "body": "{group} was transferred to you by {user}."
-    },
-    "ownership_transferred_from_you": {
-      "title": "Group ownership transferred",
-      "body": "You transferred ownership of {group} to {user}."
-    },
-    "member_joined": {
-      "title": "Member joined",
-      "body": "{user} joined {group}."
-    },
-    "member_left": {
-      "title": "Member left",
-      "body": "{user} left {group}."
-    },
-    "member_banned": {
-      "title": "Removed from group",
-      "body": "You were banned from {group}."
-    }
-  },
-  "system": {
-    "maintenance": {
-      "title": "{headline}",
-      "body": "{message}",
-      "body_with_schedule": "{message}\nScheduled for: {scheduled_for}"
-    },
-    "announcement": {
-      "title": "{headline}",
-      "body": "{message}"
-    }
-  },
-  "integrations": {
-    "delivery_failed": {
-      "title": "Integrationszustellung fehlgeschlagen",
-      "body": "{client} konnte {event} nicht empfangen. Fehler: {error}"
-    }
-  }
 }

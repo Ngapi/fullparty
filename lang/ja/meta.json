@@ -1,37 +1,37 @@
 {
-  "title": "FullParty.gg",
-  "tagline": "本当のエンドゲームは整理整頓だ。",
-  "seo": {
-    "defaults": {
-      "description": "FullParty は Final Fantasy XIV のグループ向けに、募集、申請、ロスター、レイド運営をまとめて整理します。"
-    },
-    "home": {
-      "title": "FFXIV グループとロスター管理",
-      "description": "FullParty で Final Fantasy XIV のグループ、申請、ロスター、レイド進行を整理しましょう。"
-    },
-    "legal": {
-      "privacy_title": "プライバシーポリシー",
-      "privacy_description": "この FullParty インスタンスが個人データ、プライバシー、アカウント情報をどのように扱うかを確認できます。",
-      "cookies_title": "Cookie ポリシー",
-      "cookies_description": "この FullParty インスタンスがセッション、安全性、設定保持のために Cookie と類似技術をどう使うかを確認できます。"
-    },
-    "auth": {
-      "login_description": "FullParty にログインして、キャラクター、グループ、ラン、通知を管理しましょう。",
-      "register_description": "FullParty アカウントを作成して、グループ参加、申請送信、キャラクター管理を始めましょう。",
-      "forgot_password_description": "FullParty アカウントのパスワード再設定リンクをリクエストします。",
-      "reset_password_description": "FullParty アカウントの新しいパスワードを設定します。",
-      "verify_email_description": "FullParty アカウントを続けて利用するにはメールアドレスを確認してください。"
-    },
-    "groups": {
-      "profile_description": "{datacenter} の FFXIV グループ {group} の現在のラン、運営メンバー、最近の活動を確認できます。"
-    },
-    "activities": {
-      "overview_description": "{group} が主催する FullParty ラン {title} の詳細を確認できます。",
-      "application_description": "{group} の {title} に応募できます。",
-      "application_status_description": "{group} の {title} への応募状況を確認できます。"
-    },
-    "invite": {
-      "description": "グループ招待の内容を確認し、FullParty にサインインして参加できます。"
+    "title": "FullParty.gg",
+    "tagline": "本当のエンドゲームは整理整頓だ。",
+    "seo": {
+        "defaults": {
+            "description": "FullParty は Final Fantasy XIV のグループ向けに、募集、申請、ロスター、レイド運営をまとめて整理します。"
+        },
+        "home": {
+            "title": "FFXIV グループとロスター管理",
+            "description": "FullParty で Final Fantasy XIV のグループ、申請、ロスター、レイド進行を整理しましょう。"
+        },
+        "legal": {
+            "privacy_title": "プライバシーポリシー",
+            "privacy_description": "この FullParty インスタンスが個人データ、プライバシー、アカウント情報をどのように扱うかを確認できます。",
+            "cookies_title": "Cookie ポリシー",
+            "cookies_description": "この FullParty インスタンスがセッション、安全性、設定保持のために Cookie と類似技術をどう使うかを確認できます。"
+        },
+        "auth": {
+            "login_description": "FullParty にログインして、キャラクター、グループ、ラン、通知を管理しましょう。",
+            "register_description": "FullParty アカウントを作成して、グループ参加、申請送信、キャラクター管理を始めましょう。",
+            "forgot_password_description": "FullParty アカウントのパスワード再設定リンクをリクエストします。",
+            "reset_password_description": "FullParty アカウントの新しいパスワードを設定します。",
+            "verify_email_description": "FullParty アカウントを続けて利用するにはメールアドレスを確認してください。"
+        },
+        "groups": {
+            "profile_description": "{datacenter} の FFXIV グループ {group} の現在のラン、運営メンバー、最近の活動を確認できます。"
+        },
+        "activities": {
+            "overview_description": "{group} が主催する FullParty ラン {title} の詳細を確認できます。",
+            "application_description": "{group} の {title} に応募できます。",
+            "application_status_description": "{group} の {title} への応募状況を確認できます。"
+        },
+        "invite": {
+            "description": "グループ招待の内容を確認し、FullParty にサインインして参加できます。"
+        }
     }
-  }
 }

@@ -1,138 +1,131 @@
 {
-  "subtitle": "A shared home for {datacenter} group details, runs, and activity.",
-  "actions": {
-    "view_runs": "View Runs",
-    "view_members": "View Members",
-    "open_settings": "Open Settings",
-    "open_discord": "Open Discord",
-    "mute_notifications": "Mute Notifications",
-    "unmute_notifications": "Unmute Notifications",
-    "leave_group": "Leave Group"
-  },
-  "leave_group_modal": {
-    "title": "Leave {name}?",
-    "description": "You will lose member access to this group until you join again or receive a new invite.",
-    "warning": "Any group-specific access, moderation privileges, and member-only dashboard actions will no longer be available after you leave.",
-    "confirm": "Leave Group"
-  },
-  "labels": {
-    "just_now": "just now",
-    "not_available": "Not available",
-    "no_recent_activity": "No recent activity yet",
-    "no_member_joins": "No member joins recorded"
-  },
-  "hero": {
-    "visible_group": "Visible in Discovery",
-    "hidden_group": "Hidden from Discovery",
-    "no_description": "This group has not added a description yet. Use this space to clarify what you run, who it is for, and how people should approach joining.",
-    "owner": "Owner",
-    "discord": "Discord",
-    "activity_window": "Activity Window",
-    "last_activity": "Last Run Activity",
-    "latest_member": "Latest Member Join",
-    "reach": "Reach",
-    "public_runs": "{count} public runs",
-    "guest_friendly_runs": "{count} guest-friendly runs"
-  },
-  "stats": {
-    "members": "Members",
-    "members_hint": "{count} leadership seats",
-    "leadership": "Leadership",
-    "leadership_hint": "{count} owner seat",
-    "draft_runs": "Entwurfsruns",
-    "draft_runs_hint": "Not published yet",
-    "active_runs": "Active Runs",
-    "active_runs_hint": "{count} scheduled or assigned",
-    "open_applications": "Open Applications",
-    "open_applications_hint": "{count} open to guests",
-    "completed_runs": "Completed Runs",
-    "completed_runs_hint": "{count} cancelled total"
-  },
-  "upcoming_runs": {
-    "title": "Coming Up",
-    "subtitle": "See what this group has lined up next.",
-    "accepting_applications": "Accepting Applications",
-    "public": "Public",
-    "private": "Invite Only",
-    "guest_welcome": "Guests Welcome",
-    "starts": "Starts {time}",
-    "view_more": "View More",
-    "apply": "Apply",
-    "view_application": "Bewerbung ansehen",
-    "view_overview": "View Overview",
-    "open_board": "Open Board",
-    "empty_title": "No upcoming runs are scheduled.",
-    "empty_description": "Once this group has future runs on the calendar, they will appear here in start-time order."
-  },
-  "week_overview": {
-    "title": "This Week",
-    "subtitle": "A simple week-at-a-glance look at what is on the schedule.",
-    "count": "{count} runs",
-    "empty": "No runs are scheduled for this week."
-  },
-  "content": {
-    "title": "What This Group Runs",
-    "subtitle": "See the kinds of content this group keeps coming back to, along with their history for each one.",
-    "total_runs": "{count} visible runs",
-    "visible_runs": "Visible Runs",
-    "visible_runs_hint": "This reflects the run history visible to the current viewer, including the group's status mix.",
-    "library": "Activity Types",
-    "library_hint": "Grouped by the kinds of content this group has actually been running.",
-    "completed": "Completed: {count}",
-    "active": "Active: {count}",
-    "last_run": "Last Run",
-    "next_run": "Next Run",
-    "run_singular": "run",
-    "run_plural": "runs",
-    "empty": "No visible run history yet.",
-    "statuses": {
-      "draft": "Entwurf",
-      "scheduled": "Scheduled",
-      "active": "Active",
-      "complete": "Completed",
-      "cancelled": "Cancelled"
+    "actions": {
+        "view_runs": "View Runs",
+        "view_members": "View Members",
+        "open_settings": "Open Settings",
+        "open_discord": "Discord öffnen",
+        "mute_notifications": "Mute Notifications",
+        "unmute_notifications": "Unmute Notifications",
+        "leave_group": "Gruppe verlassen"
+    },
+    "leave_group_modal": {
+        "title": "Leave {name}?",
+        "description": "You will lose member access to this group until you join again or receive a new invite.",
+        "warning": "Any group-specific access, moderation privileges, and member-only dashboard actions will no longer be available after you leave.",
+        "confirm": "Gruppe verlassen"
+    },
+    "labels": {
+        "just_now": "gerade eben",
+        "not_available": "Nicht verfügbar",
+        "no_recent_activity": "No recent activity yet",
+        "no_member_joins": "No member joins recorded"
+    },
+    "hero": {
+        "last_activity": "Last Run Activity",
+        "latest_member": "Latest Member Join",
+        "reach": "Reach",
+        "public_runs": "{count} public runs",
+        "guest_friendly_runs": "{count} guest-friendly runs"
+    },
+    "stats": {
+        "members": "Mitglieder",
+        "members_hint": "{count} leadership seats",
+        "leadership": "Leadership",
+        "leadership_hint": "{count} owner seat",
+        "draft_runs": "Entwurfsruns",
+        "draft_runs_hint": "Not published yet",
+        "active_runs": "Aktive Runs",
+        "active_runs_hint": "{count} scheduled or assigned",
+        "open_applications": "Open Applications",
+        "open_applications_hint": "{count} open to guests",
+        "completed_runs": "Completed Runs",
+        "completed_runs_hint": "{count} cancelled total"
+    },
+    "upcoming_runs": {
+        "title": "Coming Up",
+        "subtitle": "See what this group has lined up next.",
+        "accepting_applications": "Accepting Applications",
+        "public": "Öffentlich",
+        "private": "Invite Only",
+        "guest_welcome": "Guests Welcome",
+        "starts": "Starts {time}",
+        "view_more": "View More",
+        "apply": "Apply",
+        "view_application": "Bewerbung ansehen",
+        "view_overview": "View Overview",
+        "open_board": "Open Board",
+        "empty_title": "No upcoming runs are scheduled.",
+        "empty_description": "Once this group has future runs on the calendar, they will appear here in start-time order."
+    },
+    "week_overview": {
+        "title": "Diese Woche",
+        "subtitle": "A simple week-at-a-glance look at what is on the schedule.",
+        "count": "{count} runs",
+        "empty": "No runs are scheduled for this week."
+    },
+    "content": {
+        "title": "What This Group Runs",
+        "subtitle": "See the kinds of content this group keeps coming back to, along with their history for each one.",
+        "total_runs": "{count} visible runs",
+        "visible_runs": "Visible Runs",
+        "visible_runs_hint": "This reflects the run history visible to the current viewer, including the group's status mix.",
+        "library": "Activity Types",
+        "library_hint": "Grouped by the kinds of content this group has actually been running.",
+        "completed": "Completed: {count}",
+        "active": "Active: {count}",
+        "last_run": "Last Run",
+        "next_run": "Next Run",
+        "run_singular": "Run",
+        "run_plural": "Runs",
+        "empty": "No visible run history yet.",
+        "statuses": {
+            "draft": "Entwurf",
+            "scheduled": "Geplant",
+            "active": "Aktiv",
+            "complete": "Abgeschlossen",
+            "cancelled": "Abgebrochen"
+        }
+    },
+    "history_runs": {
+        "title": "Run History",
+        "count": "{count} angezeigt",
+        "public": "Öffentlich",
+        "private": "Invite Only",
+        "ran": "Ran {time}",
+        "view_overview": "View Overview",
+        "open_board": "Open Board",
+        "empty_title": "No completed runs yet."
+    },
+    "pipeline": {
+        "title": "Run Pipeline",
+        "total": "{count} total",
+        "active_management": "In Management",
+        "archived": "Archived",
+        "empty": "No run data is available yet."
+    },
+    "setup": {
+        "title": "Setup Health",
+        "subtitle": "Quick checks for the pieces that make the group feel established and easier to join.",
+        "score": "{configured}/{total} configured",
+        "coverage": "Coverage",
+        "configured": "Configured",
+        "missing": "Missing",
+        "join_mode": "Join Mode",
+        "join_mode_open": "Gruppe öffnen",
+        "join_mode_invite_only": "Invite Only",
+        "join_mode_application": "Application Based",
+        "discovery": "Entdeckung",
+        "discovery_visible": "Auffindbar",
+        "discovery_hidden": "Versteckt",
+        "items": {
+            "description": "Group Description",
+            "profile_picture": "Profilbild",
+            "discord": "Discord-Einladung"
+        }
+    },
+    "members": {
+        "title": "Member Snapshot",
+        "subtitle": "A quick read on who is around the table right now.",
+        "empty": "No members are available to preview yet."
     }
-  },
-  "history_runs": {
-    "title": "Run History",
-    "count": "{count} shown",
-    "public": "Public",
-    "private": "Invite Only",
-    "ran": "Ran {time}",
-    "view_overview": "View Overview",
-    "open_board": "Open Board",
-    "empty_title": "No completed runs yet."
-  },
-  "pipeline": {
-    "title": "Run Pipeline",
-    "total": "{count} total",
-    "active_management": "In Management",
-    "archived": "Archived",
-    "empty": "No run data is available yet."
-  },
-  "setup": {
-    "title": "Setup Health",
-    "subtitle": "Quick checks for the pieces that make the group feel established and easier to join.",
-    "score": "{configured}/{total} configured",
-    "coverage": "Coverage",
-    "configured": "Configured",
-    "missing": "Missing",
-    "join_mode": "Join Mode",
-    "join_mode_open": "Open Group",
-    "join_mode_invite_only": "Invite Only",
-    "join_mode_application": "Application Based",
-    "discovery": "Discovery",
-    "discovery_visible": "Discoverable",
-    "discovery_hidden": "Hidden",
-    "items": {
-      "description": "Group Description",
-      "profile_picture": "Profile Picture",
-      "discord": "Discord Invite"
-    }
-  },
-  "members": {
-    "title": "Member Snapshot",
-    "subtitle": "A quick read on who is around the table right now.",
-    "empty": "No members are available to preview yet."
-  }
 }

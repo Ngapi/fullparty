@@ -1,75 +1,75 @@
 {
-  "roles": {
-    "owner": "オーナー",
-    "admin": "管理者",
-    "moderator": "モデレーター",
-    "member": "メンバー"
-  },
-  "group_types": {
-    "community": "コミュニティ",
-    "static": "固定"
-  },
-  "join_modes": {
-    "open": {
-      "label": "Open Group",
-      "description": "People can join whenever. Community open groups also get a permanent slug invite."
+    "roles": {
+        "owner": "オーナー",
+        "admin": "管理者",
+        "moderator": "モデレーター",
+        "member": "メンバー"
     },
-    "invite_only": {
-      "label": "Invite Only",
-      "description": "People can only join through generated invite links."
+    "group_types": {
+        "community": "コミュニティ",
+        "static": "固定"
     },
-    "application": {
-      "label": "Application Based",
-      "description": "People apply for review. Generated invite links can still add members directly."
+    "join_modes": {
+        "open": {
+            "label": "グループを開く",
+            "description": "People can join whenever. Community open groups also get a permanent slug invite."
+        },
+        "invite_only": {
+            "label": "Invite Only",
+            "description": "People can only join through generated invite links."
+        },
+        "application": {
+            "label": "Application Based",
+            "description": "People apply for review. Generated invite links can still add members directly."
+        }
+    },
+    "voice_expectations": {
+        "required": "Voice Required",
+        "preferred": "Voice Preferred",
+        "optional": "Voice Optional"
+    },
+    "active_days": {
+        "mon": "月曜日",
+        "tue": "火曜日",
+        "wed": "水曜日",
+        "thu": "木曜日",
+        "fri": "金曜日",
+        "sat": "土曜日",
+        "sun": "日曜日"
+    },
+    "labels": {
+        "about_us": "About Us",
+        "owner": "オーナー",
+        "members": "メンバー",
+        "role": "ロール",
+        "discord": "Discord",
+        "languages": "Languages",
+        "metadata_tags": "Metadata Tags",
+        "extra_tags": "追加タグ",
+        "activity_window": "活動時間帯",
+        "recent_activity": "Recent Activity",
+        "region": "Region",
+        "group_type": "グループタイプ",
+        "join_mode": "Join Mode",
+        "timezone": "Timezone",
+        "active_days": "主な活動曜日",
+        "active_hours": "Active Hours"
+    },
+    "states": {
+        "open_group": "グループを開く",
+        "invite_only_group": "Invite Only",
+        "application_group": "Application Based",
+        "visible_in_discovery": "検索に表示する",
+        "hidden_from_discovery": "Hidden from Discovery",
+        "not_shared": "Not shared",
+        "no_description_short": "This group has not added a description yet.",
+        "no_description_long": "This group has not added a description yet. Use this space to clarify what you run, who it is for, and how people should approach joining.",
+        "no_recent_activity": "No recent activity yet"
+    },
+    "validation": {
+        "active_time_pair_required": "活動開始時刻と終了時刻は両方とも指定してください。",
+        "active_timezone_required": "活動日または活動時間を設定する場合は、活動タイムゾーンが必要です。",
+        "active_end_time_after_start": "活動終了時刻は開始時刻より後である必要があります。",
+        "invalid_join_mode_for_group_type": "Choose a join mode supported by this group type."
     }
-  },
-  "voice_expectations": {
-    "required": "Voice Required",
-    "preferred": "Voice Preferred",
-    "optional": "Voice Optional"
-  },
-  "active_days": {
-    "mon": "月曜日",
-    "tue": "火曜日",
-    "wed": "水曜日",
-    "thu": "木曜日",
-    "fri": "金曜日",
-    "sat": "土曜日",
-    "sun": "日曜日"
-  },
-  "labels": {
-    "about_us": "About Us",
-    "owner": "Owner",
-    "members": "Members",
-    "role": "Role",
-    "discord": "Discord",
-    "languages": "Languages",
-    "metadata_tags": "Metadata Tags",
-    "extra_tags": "Extra Tags",
-    "activity_window": "Activity Window",
-    "recent_activity": "Recent Activity",
-    "region": "Region",
-    "group_type": "Group Type",
-    "join_mode": "Join Mode",
-    "timezone": "Timezone",
-    "active_days": "Active Days",
-    "active_hours": "Active Hours"
-  },
-  "states": {
-    "open_group": "Open Group",
-    "invite_only_group": "Invite Only",
-    "application_group": "Application Based",
-    "visible_in_discovery": "Visible in Discovery",
-    "hidden_from_discovery": "Hidden from Discovery",
-    "not_shared": "Not shared",
-    "no_description_short": "This group has not added a description yet.",
-    "no_description_long": "This group has not added a description yet. Use this space to clarify what you run, who it is for, and how people should approach joining.",
-    "no_recent_activity": "No recent activity yet"
-  },
-  "validation": {
-    "active_time_pair_required": "活動開始時刻と終了時刻は両方とも指定してください。",
-    "active_timezone_required": "活動日または活動時間を設定する場合は、活動タイムゾーンが必要です。",
-    "active_end_time_after_start": "活動終了時刻は開始時刻より後である必要があります。",
-    "invalid_join_mode_for_group_type": "Choose a join mode supported by this group type."
-  }
 }

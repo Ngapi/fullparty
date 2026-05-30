@@ -1,67 +1,67 @@
 {
-  "title": "Discord-Integration",
-  "subtitle": "Verbinde {group} mit einem Discord-Server.",
-  "install": {
-    "title": "FullParty-Bot installieren",
-    "subtitle": "Füge den Bot dem Discord-Server hinzu, den du für diese Gruppe nutzt.",
-    "description": "Nachdem der Bot installiert ist, erstelle einen Link-Token und nutze ihn in Discord, damit FullParty diese Gruppe dem richtigen Server zuordnen kann."
-  },
-  "status": {
-    "title": "Verknüpfter Server",
-    "subtitle": "Der aktuell mit dieser Gruppe verbundene Discord-Server.",
-    "linked": "Verknüpft",
-    "not_linked": "Nicht verknüpft",
-    "unknown_guild": "Discord-Server",
-    "empty": "Mit dieser Gruppe ist noch kein Discord-Server verknüpft."
-  },
-  "link": {
-    "title": "Diese Gruppe verknüpfen",
-    "subtitle": "Nutze einen kurzlebigen Token, um den Server aus Discord zu bestätigen.",
-    "description": "Erstelle hier einen Token und führe danach den Link-Befehl des Bots auf dem Discord-Server aus, der mit dieser Gruppe verbunden werden soll.",
-    "generated_token": "Link-Token",
-    "expires_at": "Läuft ab {date}",
-    "active_token_title": "Ein Link-Token ist aktiv",
-    "active_token_description": "Erstelle einen neuen Token, wenn du ihn erneut sehen musst. Der aktuelle Token läuft {date} ab.",
-    "no_token_title": "Kein aktiver Link-Token",
-    "no_token_description": "Erstelle einen Token, wenn du bereit bist, die Verknüpfung aus Discord abzuschließen."
-  },
-  "settings": {
-    "title": "Bot-Einstellungen",
-    "subtitle": "Wähle aus, wo der Bot posten soll und welche Rollen er nutzen darf.",
-    "none": "Keine",
-    "bot_log_channel": "Bot-Log-Kanal",
-    "member_facing_channel": "Mitglieder-Kanal",
-    "template_role": "Template-Rolle",
-    "moderation_role": "Moderationsrolle",
-    "name_sync": "Namenssync aktivieren",
-    "name_sync_hint": "Hält Discord-Anzeigenamen mit verknüpften Charakternamen synchron.",
-    "option_unavailable": "Nicht verfügbar",
-    "not_linked_title": "Verknüpfe zuerst einen Discord-Server",
-    "not_linked_description": "Installiere den Bot und verknüpfe diese Gruppe, bevor du Bot-Einstellungen änderst.",
-    "snapshot_unavailable_title": "Bot-Snapshot nicht verfügbar",
-    "snapshot_unavailable_description": "Der verknüpfte Bot hat keine Serverkanäle oder Rollen zurückgegeben. Versuche es erneut, wenn der Bot online ist."
-  },
-  "stats": {
-    "title": "Server-Abdeckung",
-    "members": "Mitglieder gesamt",
-    "app_linked": "Per App verknüpft",
-    "not_linked": "Nicht verknüpft",
-    "available_percent": "auf FullParty verfügbar",
-    "coverage_hint": "Verknüpfte Benutzer sind Mitglieder, die die FullParty-Discord-App installiert haben, nicht nur Discord-Login genutzt haben.",
-    "coverage_unavailable": "Abdeckungsdaten sind erst verfügbar, wenn der Bot eine Mitgliederliste zwischengespeichert hat.",
-    "bot_permissions": "Bot-Berechtigungen",
-    "unknown": "Unbekannt",
-    "none": "Keine"
-  },
-  "actions": {
-    "invite": "Bot einladen",
-    "generate_token": "Link-Token erstellen",
-    "copy_token": "Token kopieren",
-    "save_settings": "Einstellungen speichern",
-    "refresh_snapshot": "Aktualisieren"
-  },
-  "toasts": {
-    "token_copied": "Link-Token kopiert.",
-    "settings_saved": "Discord-Bot-Einstellungen gespeichert."
-  }
+    "title": "Discord-Integration",
+    "subtitle": "Verbinde {group} mit einem Discord-Server.",
+    "install": {
+        "title": "FullParty-Bot installieren",
+        "subtitle": "Füge den Bot dem Discord-Server hinzu, den du für diese Gruppe nutzt.",
+        "description": "Nachdem der Bot installiert ist, erstelle einen Link-Token und nutze ihn in Discord, damit FullParty diese Gruppe dem richtigen Server zuordnen kann."
+    },
+    "status": {
+        "title": "Verknüpfter Server",
+        "subtitle": "Der aktuell mit dieser Gruppe verbundene Discord-Server.",
+        "linked": "Verknüpft",
+        "not_linked": "Nicht verknüpft",
+        "unknown_guild": "Discord-Server",
+        "empty": "Mit dieser Gruppe ist noch kein Discord-Server verknüpft."
+    },
+    "link": {
+        "title": "Diese Gruppe verknüpfen",
+        "subtitle": "Nutze einen kurzlebigen Token, um den Server aus Discord zu bestätigen.",
+        "description": "Erstelle hier einen Token und führe danach den Link-Befehl des Bots auf dem Discord-Server aus, der mit dieser Gruppe verbunden werden soll.",
+        "generated_token": "Link-Token",
+        "expires_at": "Läuft ab {date}",
+        "active_token_title": "Ein Link-Token ist aktiv",
+        "active_token_description": "Erstelle einen neuen Token, wenn du ihn erneut sehen musst. Der aktuelle Token läuft {date} ab.",
+        "no_token_title": "Kein aktiver Link-Token",
+        "no_token_description": "Erstelle einen Token, wenn du bereit bist, die Verknüpfung aus Discord abzuschließen."
+    },
+    "settings": {
+        "title": "Bot-Einstellungen",
+        "subtitle": "Wähle aus, wo der Bot posten soll und welche Rollen er nutzen darf.",
+        "none": "Keine",
+        "bot_log_channel": "Bot-Log-Kanal",
+        "member_facing_channel": "Mitglieder-Kanal",
+        "template_role": "Template-Rolle",
+        "moderation_role": "Moderationsrolle",
+        "name_sync": "Namenssync aktivieren",
+        "name_sync_hint": "Hält Discord-Anzeigenamen mit verknüpften Charakternamen synchron.",
+        "option_unavailable": "Nicht verfügbar",
+        "not_linked_title": "Verknüpfe zuerst einen Discord-Server",
+        "not_linked_description": "Installiere den Bot und verknüpfe diese Gruppe, bevor du Bot-Einstellungen änderst.",
+        "snapshot_unavailable_title": "Bot-Snapshot nicht verfügbar",
+        "snapshot_unavailable_description": "Der verknüpfte Bot hat keine Serverkanäle oder Rollen zurückgegeben. Versuche es erneut, wenn der Bot online ist."
+    },
+    "stats": {
+        "title": "Server-Abdeckung",
+        "members": "Mitglieder gesamt",
+        "app_linked": "Per App verknüpft",
+        "not_linked": "Nicht verknüpft",
+        "available_percent": "auf FullParty verfügbar",
+        "coverage_hint": "Verknüpfte Benutzer sind Mitglieder, die die FullParty-Discord-App installiert haben, nicht nur Discord-Login genutzt haben.",
+        "coverage_unavailable": "Abdeckungsdaten sind erst verfügbar, wenn der Bot eine Mitgliederliste zwischengespeichert hat.",
+        "bot_permissions": "Bot-Berechtigungen",
+        "unknown": "Unbekannt",
+        "none": "Keine"
+    },
+    "actions": {
+        "invite": "Bot einladen",
+        "generate_token": "Link-Token erstellen",
+        "copy_token": "Token kopieren",
+        "save_settings": "Einstellungen speichern",
+        "refresh_snapshot": "Aktualisieren"
+    },
+    "toasts": {
+        "token_copied": "Link-Token kopiert.",
+        "settings_saved": "Discord-Bot-Einstellungen gespeichert."
+    }
 }

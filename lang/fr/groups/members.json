@@ -1,141 +1,141 @@
 {
-  "title": "Membres du groupe",
-  "subtitle": "Consultez la liste des membres de votre groupe, leurs personnages liés et les actions de gestion au même endroit.",
-  "roster": {
-    "title": "Liste des membres",
-    "subtitle": "Voyez qui fait partie du groupe, quels personnages ils ont liés et quelles actions sont disponibles.",
-    "count": "{count} membres",
-    "search_placeholder": "Rechercher des membres",
-    "joined_at": "A rejoint le {date}",
-    "runs_participated": "{count} runs effectués",
-    "characters_label": "Personnages",
-    "no_characters": "Aucun personnage vérifié lié pour le moment.",
-    "not_available": "Non disponible",
-    "empty": "Aucun membre à afficher pour le moment."
-  },
-  "bans": {
-    "title": "Membres bannis",
-    "subtitle": "Consultez les utilisateurs empêchés de rejoindre à nouveau ce groupe.",
-    "count": "{count} bannis",
-    "search_placeholder": "Rechercher des membres bannis",
-    "empty": "Aucun membre banni à afficher.",
-    "columns": {
-      "member": "Membre",
-      "characters": "Personnages",
-      "reason": "Raison",
-      "banned_by": "Banni par",
-      "banned_at": "Banni le",
-      "actions": "Actions"
+    "title": "Membres du groupe",
+    "subtitle": "Consultez la liste des membres de votre groupe, leurs personnages liés et les actions de gestion au même endroit.",
+    "roster": {
+        "title": "Liste des membres",
+        "subtitle": "Voyez qui fait partie du groupe, quels personnages ils ont liés et quelles actions sont disponibles.",
+        "count": "{count} membres",
+        "search_placeholder": "Rechercher des membres",
+        "joined_at": "A rejoint le {date}",
+        "runs_participated": "{count} runs effectués",
+        "characters_label": "Personnages",
+        "no_characters": "Aucun personnage vérifié lié pour le moment.",
+        "not_available": "Non disponible",
+        "empty": "Aucun membre à afficher pour le moment."
     },
-    "no_reason": "Aucune raison fournie",
-    "system": "Système"
-  },
-  "table": {
-    "columns": {
-      "member": "Membre",
-      "joined_at": "A rejoint",
-      "runs_participated": "Runs",
-      "characters": "Personnages"
-    }
-  },
-  "actions": {
-    "notes": "Notes",
-    "promote": "Promouvoir",
-    "demote": "Rétrograder",
-    "kick": "Expulser",
-    "ban": "Bannir",
-    "unban": "Débannir"
-  },
-  "notes": {
-    "hidden": "Aucune note n'est disponible pour cet utilisateur.",
-    "load_error": "Les notes n'ont pas pu être chargées pour le moment.",
-    "unknown_group": "Groupe inconnu",
-    "shared_badge": "Partagé",
-    "shared_from": "Partagé par {author} le {date}",
+    "bans": {
+        "title": "Membres bannis",
+        "subtitle": "Consultez les utilisateurs empêchés de rejoindre à nouveau ce groupe.",
+        "count": "{count} bannis",
+        "search_placeholder": "Rechercher des membres bannis",
+        "empty": "Aucun membre banni à afficher.",
+        "columns": {
+            "member": "Membre",
+            "characters": "Personnages",
+            "reason": "Raison",
+            "banned_by": "Banni par",
+            "banned_at": "Banni le",
+            "actions": "Actions"
+        },
+        "no_reason": "Aucune raison fournie",
+        "system": "Système"
+    },
+    "table": {
+        "columns": {
+            "member": "Membre",
+            "joined_at": "A rejoint",
+            "runs_participated": "Runs",
+            "characters": "Personnages"
+        }
+    },
     "actions": {
-      "add_context": "Ajouter du contexte",
-      "save_context": "Enregistrer le contexte"
+        "notes": "Notes",
+        "promote": "Promouvoir",
+        "demote": "Rétrograder",
+        "kick": "Expulser",
+        "ban": "Bannir",
+        "unban": "Débannir"
     },
-    "addenda": {
-      "title": "Mises à jour de contexte",
-      "byline": "{author} a ajouté le {date}",
-      "form": {
-        "label": "Ajouter du contexte",
-        "placeholder": "Ajouter du contexte complémentaire à cette note"
-      }
+    "notes": {
+        "hidden": "Aucune note n'est disponible pour cet utilisateur.",
+        "load_error": "Les notes n'ont pas pu être chargées pour le moment.",
+        "unknown_group": "Groupe inconnu",
+        "shared_badge": "Partagé",
+        "shared_from": "Partagé par {author} le {date}",
+        "actions": {
+            "add_context": "Ajouter du contexte",
+            "save_context": "Enregistrer le contexte"
+        },
+        "addenda": {
+            "title": "Mises à jour de contexte",
+            "byline": "{author} a ajouté le {date}",
+            "form": {
+                "label": "Ajouter du contexte",
+                "placeholder": "Ajouter du contexte complémentaire à cette note"
+            }
+        },
+        "modal": {
+            "title": "Notes de membre pour {name}",
+            "subtitle": "Ces notes appartiennent au groupe et restent cachées à l'utilisateur concerné."
+        },
+        "count": {
+            "total": "{count} notes visibles",
+            "current_group": "{count} provenant de ce groupe",
+            "shared": "{count} partagées par d'autres groupes"
+        },
+        "create": {
+            "title": "Ajouter une note",
+            "subtitle": "Utilisez les notes pour conserver le contexte, les préoccupations et les préférences propres au groupe.",
+            "submit": "Ajouter une note"
+        },
+        "fields": {
+            "severity": {
+                "label": "Gravité"
+            },
+            "shared": {
+                "label": "Partager avec d'autres groupes",
+                "help": "Activez cette option pour permettre aux modérateurs et propriétaires d'autres groupes de voir cette note lorsqu'ils consultent le même utilisateur."
+            },
+            "body": {
+                "label": "Note",
+                "help": "Les notes sont internes uniquement et ne sont jamais montrées à l'utilisateur concerné.",
+                "placeholder": "Ajouter une note à propos de cet utilisateur"
+            }
+        },
+        "severities": {
+            "info": "Infos",
+            "warning": "Avertissement",
+            "critical": "Critique"
+        },
+        "sections": {
+            "current_group": {
+                "title": "Notes de ce groupe",
+                "subtitle": "Notes internes appartenant à ce groupe.",
+                "empty": "Aucune note de ce groupe pour le moment."
+            },
+            "shared": {
+                "title": "Notes partagées d'autres groupes",
+                "subtitle": "Notes que d'autres groupes ont explicitement choisi de partager.",
+                "empty": "Aucune note partagée disponible."
+            }
+        }
     },
-    "modal": {
-      "title": "Notes de membre pour {name}",
-      "subtitle": "Ces notes appartiennent au groupe et restent cachées à l'utilisateur concerné."
+    "kick_modal": {
+        "title": "Retirer {name} ?",
+        "subtitle": "Cela retirera le membre sélectionné de {group}.",
+        "warning": "They will lose dashboard access immediately and will need to rejoin through an open join mode or a fresh invite."
     },
-    "count": {
-      "total": "{count} notes visibles",
-      "current_group": "{count} provenant de ce groupe",
-      "shared": "{count} partagées par d'autres groupes"
+    "ban_modal": {
+        "title": "Bannir {name} ?",
+        "subtitle": "Cela retirera le membre sélectionné de {group} et l'empêchera de rejoindre à nouveau.",
+        "warning": "Banned users can still view discoverable groups, but they will not be able to join through open access or invite links.",
+        "reason": {
+            "label": "Raison",
+            "help": "Optionnel. Ajoutez une note expliquant pourquoi ce bannissement a été appliqué.",
+            "placeholder": "Saisissez une raison optionnelle pour le bannissement"
+        }
     },
-    "create": {
-      "title": "Ajouter une note",
-      "subtitle": "Utilisez les notes pour conserver le contexte, les préoccupations et les préférences propres au groupe.",
-      "submit": "Ajouter une note"
-    },
-    "fields": {
-      "severity": {
-        "label": "Gravité"
-      },
-      "shared": {
-        "label": "Partager avec d'autres groupes",
-        "help": "Activez cette option pour permettre aux modérateurs et propriétaires d'autres groupes de voir cette note lorsqu'ils consultent le même utilisateur."
-      },
-      "body": {
-        "label": "Note",
-        "help": "Les notes sont internes uniquement et ne sont jamais montrées à l'utilisateur concerné.",
-        "placeholder": "Ajouter une note à propos de cet utilisateur"
-      }
-    },
-    "severities": {
-      "info": "Info",
-      "warning": "Avertissement",
-      "critical": "Critique"
-    },
-    "sections": {
-      "current_group": {
-        "title": "Notes de ce groupe",
-        "subtitle": "Notes internes appartenant à ce groupe.",
-        "empty": "Aucune note de ce groupe pour le moment."
-      },
-      "shared": {
-        "title": "Notes partagées d'autres groupes",
-        "subtitle": "Notes que d'autres groupes ont explicitement choisi de partager.",
-        "empty": "Aucune note partagée disponible."
-      }
+    "toasts": {
+        "note_added": "Note de membre ajoutée.",
+        "note_updated": "Note de membre mise à jour.",
+        "note_deleted": "Note de membre supprimée.",
+        "note_addendum_added": "Contexte ajouté à la note.",
+        "note_addendum_updated": "Contexte de note mis à jour.",
+        "note_addendum_deleted": "Contexte de note supprimé.",
+        "promoted": "Rôle du membre promu.",
+        "demoted": "Rôle du membre rétrogradé.",
+        "removed": "Membre retiré du groupe.",
+        "banned": "Membre banni du groupe.",
+        "unbanned": "Membre débanni avec succès."
     }
-  },
-  "kick_modal": {
-    "title": "Retirer {name} ?",
-    "subtitle": "Cela retirera le membre sélectionné de {group}.",
-    "warning": "They will lose dashboard access immediately and will need to rejoin through an open join mode or a fresh invite."
-  },
-  "ban_modal": {
-    "title": "Bannir {name} ?",
-    "subtitle": "Cela retirera le membre sélectionné de {group} et l'empêchera de rejoindre à nouveau.",
-    "warning": "Banned users can still view discoverable groups, but they will not be able to join through open access or invite links.",
-    "reason": {
-      "label": "Raison",
-      "help": "Optionnel. Ajoutez une note expliquant pourquoi ce bannissement a été appliqué.",
-      "placeholder": "Saisissez une raison optionnelle pour le bannissement"
-    }
-  },
-  "toasts": {
-    "note_added": "Note de membre ajoutée.",
-    "note_updated": "Note de membre mise à jour.",
-    "note_deleted": "Note de membre supprimée.",
-    "note_addendum_added": "Contexte ajouté à la note.",
-    "note_addendum_updated": "Contexte de note mis à jour.",
-    "note_addendum_deleted": "Contexte de note supprimé.",
-    "promoted": "Rôle du membre promu.",
-    "demoted": "Rôle du membre rétrogradé.",
-    "removed": "Membre retiré du groupe.",
-    "banned": "Membre banni du groupe.",
-    "unbanned": "Membre débanni avec succès."
-  }
 }

@@ -1,104 +1,104 @@
 {
-  "nav": {
-    "home": "FullParty ホーム",
-    "features": "機能",
-    "this_week": "今週",
-    "players": "プレイヤー向け",
-    "leaders": "リーダー向け",
-    "discord": "Discord",
-    "menu": "メニュー"
-  },
-  "hero": {
-    "badge": "レイダーが作り、コミュニティ全体のために。",
-    "title_prefix": "本当のエンドゲームは",
-    "title_accent": "整理整頓",
-    "subtitle": "レイド予定、固定募集、コミュニティ運営をまとめるオールインワンハブ。",
-    "primary_action": "最初のランを始める",
-    "secondary_action": "機能を見る",
-    "trust_badges": {
-      "ffxiv": "FFXIV 向け",
-      "raiders": "レイダーに信頼されています",
-      "communities": "大規模コミュニティにも最適"
+    "nav": {
+        "home": "FullParty ホーム",
+        "features": "機能",
+        "this_week": "今週",
+        "players": "プレイヤー向け",
+        "leaders": "リーダー向け",
+        "discord": "Discord",
+        "menu": "メニュー"
     },
-    "separator": "高難度コンテンツ運営に必要なものすべて"
-  },
-  "features": {
-    "items": {
-      "applications": {
-        "title": "応募とレビュー",
-        "description": "構造化された応募を集め、候補者を比較し、文脈を失わずにロスター判断ができます。"
-      },
-      "rosters": {
-        "title": "ロスター構築",
-        "description": "承認済みプレイヤーをスロット、控え、ホスト、レイドリードへ明確に割り当てられます。"
-      },
-      "groups": {
-        "title": "グループ管理",
-        "description": "メンバー、モデレーター、招待、公開設定、メモ、権限をひとつの場所で管理できます。"
-      },
-      "scheduling": {
-        "title": "ラン予定管理",
-        "description": "日時、条件、公開範囲、応募、ゲスト参加を含めて高難度コンテンツを計画できます。"
-      }
+    "hero": {
+        "badge": "レイダーが作り、コミュニティ全体のために。",
+        "title_prefix": "本当のエンドゲームは",
+        "title_accent": "整理整頓",
+        "subtitle": "レイド予定、固定募集、コミュニティ運営をまとめるオールインワンハブ。",
+        "primary_action": "最初のランを始める",
+        "secondary_action": "機能を見る",
+        "trust_badges": {
+            "ffxiv": "FFXIV 向け",
+            "raiders": "レイダーに信頼されています",
+            "communities": "大規模コミュニティにも最適"
+        },
+        "separator": "高難度コンテンツ運営に必要なものすべて"
+    },
+    "features": {
+        "items": {
+            "applications": {
+                "title": "応募とレビュー",
+                "description": "構造化された応募を集め、候補者を比較し、文脈を失わずにロスター判断ができます。"
+            },
+            "rosters": {
+                "title": "ロスター構築",
+                "description": "承認済みプレイヤーをスロット、控え、ホスト、レイドリードへ明確に割り当てられます。"
+            },
+            "groups": {
+                "title": "グループ管理",
+                "description": "メンバー、モデレーター、招待、公開設定、メモ、権限をひとつの場所で管理できます。"
+            },
+            "scheduling": {
+                "title": "ラン予定管理",
+                "description": "日時、条件、公開範囲、応募、ゲスト参加を含めて高難度コンテンツを計画できます。"
+            }
+        }
+    },
+    "audience": {
+        "title": "プレイヤーにも、リーダーにも使いやすく。",
+        "players": {
+            "title": "プレイヤー向け",
+            "points": {
+                "verify": "信頼できるプロフィール情報でキャラクターを表示できます",
+                "apply": "目的に合うランを見つけられます",
+                "progress": "キャラクター情報を添えて応募できます",
+                "groups": "応募状況と割り当て済みランを確認できます",
+                "updates": "グループをフォローして最新情報を確認できます"
+            }
+        },
+        "leaders": {
+            "title": "グループリーダー向け",
+            "points": {
+                "recruit": "キャラクター情報を見ながら応募を確認できます",
+                "manage": "ロスター、控え、ホスト、レイドリードを組めます",
+                "schedule": "公開、非公開、ゲスト対応のランを予定できます",
+                "communicate": "メンバー、ロール、リクエストを管理できます",
+                "ready": "ラン履歴と通知をつなげて管理できます"
+            }
+        },
+        "cta_text": "最初のプルからクリアまで、パーティを支えます。",
+        "cta_action": "今日から始める"
+    },
+    "footer": {
+        "copyright": "FullParty. All rights reserved.",
+        "privacy": "プライバシーポリシー",
+        "cookies": "Cookie ポリシー",
+        "discord": "Discord"
+    },
+    "this_week": {
+        "title": "今週",
+        "date_range": "2026年5月19日 - 5月25日",
+        "previous": "前の週",
+        "next": "次の週",
+        "today": "今日",
+        "more_runs_action": "もっとランを見る",
+        "empty_day": "公開ランはありません。",
+        "more_runs": "+{count} 件のラン",
+        "days": {
+            "mon": "月",
+            "tue": "火",
+            "wed": "水",
+            "thu": "木",
+            "fri": "金",
+            "sat": "土",
+            "sun": "日"
+        },
+        "styles": {
+            "savage": "零式",
+            "ultimate": "絶",
+            "unknown": "ラン"
+        },
+        "applications": {
+            "open": "応募受付中",
+            "closed": "応募終了"
+        }
     }
-  },
-  "audience": {
-    "title": "プレイヤーにも、リーダーにも使いやすく。",
-    "players": {
-      "title": "プレイヤー向け",
-      "points": {
-        "verify": "信頼できるプロフィール情報でキャラクターを表示できます",
-        "apply": "目的に合うランを見つけられます",
-        "progress": "キャラクター情報を添えて応募できます",
-        "groups": "応募状況と割り当て済みランを確認できます",
-        "updates": "グループをフォローして最新情報を確認できます"
-      }
-    },
-    "leaders": {
-      "title": "グループリーダー向け",
-      "points": {
-        "recruit": "キャラクター情報を見ながら応募を確認できます",
-        "manage": "ロスター、控え、ホスト、レイドリードを組めます",
-        "schedule": "公開、非公開、ゲスト対応のランを予定できます",
-        "communicate": "メンバー、ロール、リクエストを管理できます",
-        "ready": "ラン履歴と通知をつなげて管理できます"
-      }
-    },
-    "cta_text": "最初のプルからクリアまで、パーティを支えます。",
-    "cta_action": "今日から始める"
-  },
-  "footer": {
-    "copyright": "FullParty. All rights reserved.",
-    "privacy": "プライバシーポリシー",
-    "cookies": "Cookie ポリシー",
-    "discord": "Discord"
-  },
-  "this_week": {
-    "title": "今週",
-    "date_range": "2026年5月19日 - 5月25日",
-    "previous": "前の週",
-    "next": "次の週",
-    "today": "今日",
-    "more_runs_action": "もっとランを見る",
-    "empty_day": "公開ランはありません。",
-    "more_runs": "+{count} 件のラン",
-    "days": {
-      "mon": "月",
-      "tue": "火",
-      "wed": "水",
-      "thu": "木",
-      "fri": "金",
-      "sat": "土",
-      "sun": "日"
-    },
-    "styles": {
-      "savage": "零式",
-      "ultimate": "絶",
-      "unknown": "ラン"
-    },
-    "applications": {
-      "open": "応募受付中",
-      "closed": "応募終了"
-    }
-  }
 }

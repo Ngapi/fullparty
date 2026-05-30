@@ -1,59 +1,59 @@
 {
-  "sidebar": {
-    "dashboard": "Home",
-    "runs": "Runs",
-    "find_runs": "Runs finden",
-    "account": "Konto",
-    "characters": "Meine Charaktere",
-    "notifications": "Benachrichtigungen",
-    "applications": "Bewerbungen",
-    "groups": "Gruppen",
-    "my_requests": "Meine Anfragen",
-    "discord_bot": "Discord-Bot",
-    "my_groups": "Meine Gruppen",
-    "joined_groups": "Beigetretene Gruppen",
-    "members": "Mitglieder",
-    "schedule": "Zeitplan",
-    "audit": "Audit",
-    "admin": "Admin",
-    "character_definitions": "Charakterdaten",
-    "admin_audit_log": "Audit-Log",
-    "system_notifications": "Systembenachrichtigungen",
-    "featured_groups": "Empfohlene Gruppen",
-    "integrations": "Integrationen",
-    "activity_types": "Activity Types",
-    "pulse": "Pulse",
-    "notice": {
-      "title": "Hinweis",
-      "description": "FullParty befindet sich noch in aktiver Entwicklung. Wenn du auf ein Problem stößt oder Feedback teilen möchtest, tritt dem Discord-Server bei.",
-      "github": "GitHub",
-      "discord": "Discord beitreten",
-      "dev_tag": "Entwickler"
-    }
-  },
-  "topbar": {
-    "search": "Suche",
-    "search_bar": "Suche Runs, Gruppen oder Aktivitäten...",
-    "global_search": {
-      "sections": {
+    "sidebar": {
+        "dashboard": "Start",
         "runs": "Runs",
+        "find_runs": "Runs finden",
+        "account": "Konto",
+        "characters": "Meine Charaktere",
+        "notifications": "Benachrichtigungen",
+        "applications": "Bewerbungen",
         "groups": "Gruppen",
-        "activities": "Aktivitäten"
-      },
-      "min_chars": "Gib mindestens 2 Zeichen ein, um zu suchen.",
-      "empty": "Keine passenden Runs, Gruppen oder Aktivitäten gefunden."
+        "my_requests": "Meine Anfragen",
+        "discord_bot": "Discord-Bot",
+        "my_groups": "Meine Gruppen",
+        "joined_groups": "Beigetretene Gruppen",
+        "members": "Mitglieder",
+        "schedule": "Zeitplan",
+        "audit": "Audit",
+        "admin": "Admin",
+        "character_definitions": "Charakterdaten",
+        "admin_audit_log": "Audit-Log",
+        "system_notifications": "Systembenachrichtigungen",
+        "featured_groups": "Empfohlene Gruppen",
+        "integrations": "Integrationen",
+        "activity_types": "Activity Types",
+        "pulse": "Pulse",
+        "notice": {
+            "title": "Hinweis",
+            "description": "FullParty befindet sich noch in aktiver Entwicklung. Wenn du auf ein Problem stößt oder Feedback teilen möchtest, tritt dem Discord-Server bei.",
+            "github": "GitHub",
+            "discord": "Discord beitreten",
+            "dev_tag": "Entwickler"
+        }
     },
-    "menu": {
-      "profile": "Profil",
-      "settings": "Einstellungen",
-      "logout": "Abmelden"
+    "topbar": {
+        "search": "Suche",
+        "search_bar": "Suche Runs, Gruppen oder Aktivitäten...",
+        "global_search": {
+            "sections": {
+                "runs": "Runs",
+                "groups": "Gruppen",
+                "activities": "Aktivitäten"
+            },
+            "min_chars": "Gib mindestens 2 Zeichen ein, um zu suchen.",
+            "empty": "Keine passenden Runs, Gruppen oder Aktivitäten gefunden."
+        },
+        "menu": {
+            "profile": "Profil",
+            "settings": "Einstellungen",
+            "logout": "Abmelden"
+        }
+    },
+    "footer": {
+        "cookies": "Cookies",
+        "privacy": "Datenschutz",
+        "github": "GitHub",
+        "discord": "Discord",
+        "copyright": "Copyright {year} FullParty"
     }
-  },
-  "footer": {
-    "cookies": "Cookies",
-    "privacy": "Datenschutz",
-    "github": "GitHub",
-    "discord": "Discord",
-    "copyright": "Copyright {year} FullParty"
-  }
 }

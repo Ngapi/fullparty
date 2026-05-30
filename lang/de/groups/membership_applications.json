@@ -1,156 +1,156 @@
 {
-  "statuses": {
-    "pending": "Pending",
-    "approved": "Approved",
-    "declined": "Declined"
-  },
-  "answers": {
-    "yes": "Yes",
-    "no": "No",
-    "no_answer": "No answer"
-  },
-  "apply": {
-    "title": "Beitritt zu {group} anfragen",
-    "subtitle": "Sende eine Anfrage zur Prüfung an das Gruppenteam.",
-    "toggle_answer": "Your answer",
-    "submitted_answers": "Submitted Answers",
-    "actions": {
-      "back": "Back to Groups",
-      "submit": "Anfrage senden",
-      "update": "Anfrage aktualisieren"
+    "statuses": {
+        "pending": "Ausstehend",
+        "approved": "Angenommen",
+        "declined": "Abgelehnt"
     },
-    "status_messages": {
-      "pending": "Deine Anfrage wartet auf Prüfung. Du kannst deine Antworten aktualisieren, solange sie offen ist.",
-      "approved": "Diese Anfrage wurde angenommen.",
-      "declined": "Diese Anfrage wurde abgelehnt. Du kannst eine neue senden."
+    "answers": {
+        "yes": "Ja",
+        "no": "Nein",
+        "no_answer": "No answer"
     },
-    "validation": {
-      "pending_exists": "Du hast bereits eine offene Anfrage für diese Gruppe."
+    "apply": {
+        "title": "Beitritt zu {group} anfragen",
+        "subtitle": "Sende eine Anfrage zur Prüfung an das Gruppenteam.",
+        "toggle_answer": "Your answer",
+        "submitted_answers": "Submitted Answers",
+        "actions": {
+            "back": "Back to Groups",
+            "submit": "Anfrage senden",
+            "update": "Anfrage aktualisieren"
+        },
+        "status_messages": {
+            "pending": "Deine Anfrage wartet auf Prüfung. Du kannst deine Antworten aktualisieren, solange sie offen ist.",
+            "approved": "Diese Anfrage wurde angenommen.",
+            "declined": "Diese Anfrage wurde abgelehnt. Du kannst eine neue senden."
+        },
+        "validation": {
+            "pending_exists": "Du hast bereits eine offene Anfrage für diese Gruppe."
+        }
+    },
+    "review": {
+        "title": "Anfragen",
+        "subtitle": "Review, approve, or decline people waiting to join this group.",
+        "pending_title": "Offene Anfragen",
+        "pending_subtitle": "{count} waiting for review",
+        "reviewed_title": "Geprüfte Anfragen",
+        "reviewed_subtitle": "Kürzlich angenommene und abgelehnte Anfragen.",
+        "empty_pending_title": "Keine offenen Anfragen",
+        "empty_pending_description": "Neue Anfragen erscheinen hier.",
+        "empty_reviewed_title": "Keine geprüften Anfragen",
+        "empty_reviewed_description": "Angenommene und abgelehnte Anfragen erscheinen hier.",
+        "not_reviewed": "Not reviewed",
+        "unknown_user": "Unknown user",
+        "submitted_at": "Gesendet {date}",
+        "reviewed_at": "Geprüft {date}",
+        "reviewed_by": "Reviewed by {user}",
+        "actions": {
+            "approve": "Approve",
+            "decline": "Ablehnen",
+            "cancel": "Abbrechen"
+        },
+        "decline_modal": {
+            "title": "Anfrage ablehnen",
+            "reason_label": "Grund",
+            "reason_help": "Optional. Keep it short and useful for the group record."
+        },
+        "validation": {
+            "already_reviewed": "Diese Anfrage wurde bereits geprüft.",
+            "applicant_banned": "Gesperrte Benutzer koennen nicht in die Gruppe aufgenommen werden."
+        }
+    },
+    "requests": {
+        "title": "Meine Anfragen",
+        "subtitle": "Verfolge deine Gruppenanfragen und aktualisiere alles, was noch offen ist.",
+        "empty_title": "Noch keine Anfragen",
+        "empty_description": "Gruppen, denen du beitreten möchtest, erscheinen hier.",
+        "unknown_group": "Unbekannte Gruppe",
+        "not_available": "Nicht verfügbar",
+        "submitted": "Gesendet {date}",
+        "reviewed": "Geprüft {date}",
+        "sections": {
+            "active_title": "Aktive Anfragen",
+            "active_description": "Anfragen, die noch auf Prüfung warten.",
+            "active_empty_title": "Keine aktiven Anfragen",
+            "active_empty_description": "Offene Anfragen erscheinen hier.",
+            "history_title": "Historie",
+            "history_description": "Angenommene und abgelehnte Anfragen bleiben hier sichtbar.",
+            "history_empty_title": "Noch keine Anfragehistorie",
+            "history_empty_description": "Geprüfte Anfragen werden hierher verschoben."
+        },
+        "actions": {
+            "edit": "Anfrage bearbeiten",
+            "open_group": "Gruppe öffnen",
+            "request_again": "Erneut anfragen"
+        }
+    },
+    "form": {
+        "title": "Anfrageformular",
+        "subtitle": "Erstelle die Fragen, die Leute vor dem Beitritt beantworten.",
+        "inactive_title": "This form is ready, but the group is not application based",
+        "inactive_description": "Switch the group join mode to Application Based when you want this form to appear to applicants.",
+        "question_count": "{count} of {max} questions",
+        "new_question": "New question",
+        "new_option": "New option",
+        "question_title": "Question {number}",
+        "question_hint": "Name, describe, and configure this application field.",
+        "actions": {
+            "add_question": "Add Question",
+            "save": "Save Form",
+            "move_up": "Move question up",
+            "move_down": "Move question down",
+            "remove_question": "Remove question",
+            "add_option": "Add Option",
+            "remove_option": "Remove option"
+        },
+        "field_types": {
+            "small_text": "Small Text",
+            "big_text": "Big Text",
+            "select": "Select Menu",
+            "toggle": "Toggle"
+        },
+        "fields": {
+            "name": {
+                "label": "Name",
+                "help": "The question shown to applicants.",
+                "placeholder": "Question"
+            },
+            "description": {
+                "label": "Beschreibung",
+                "help": "Optional extra context below the question.",
+                "placeholder": "Beschreibung"
+            },
+            "type": {
+                "label": "Input Type"
+            },
+            "required": {
+                "label": "Required",
+                "help": "Applicants must provide an answer. A toggle can be on or off."
+            }
+        },
+        "options": {
+            "title": "Options",
+            "subtitle": "Auswahlfragen benoetigen mindestens eine Option.",
+            "label": "Option {number}",
+            "placeholder": "Option"
+        },
+        "validation": {
+            "fields_required": "Gib mindestens eine Frage an.",
+            "minimum_fields": "Anfrageformulare benoetigen mindestens eine Frage.",
+            "max_fields": "Application forms can have up to {max} questions.",
+            "field_invalid": "Jede Frage muss ein gueltiges Objekt sein.",
+            "type_invalid": "Waehle einen gueltigen Eingabetyp.",
+            "name_required": "Der englische Name ist erforderlich.",
+            "localized_text_invalid": "Lokalisierter Text muss Text sein.",
+            "localized_text_max": "Localized text must be {max} characters or fewer.",
+            "options_required": "Auswahlfragen benoetigen mindestens eine Option.",
+            "options_max": "Select menu questions can have up to {max} options.",
+            "option_invalid": "Jede Option muss ein gueltiges Objekt sein.",
+            "answer_unknown": "Diese Antwort passt nicht zum aktuellen Anfrageformular.",
+            "answer_required": "Diese Antwort ist erforderlich.",
+            "answer_invalid": "Gib eine gueltige Antwort an.",
+            "answer_max": "This answer must be {max} characters or fewer.",
+            "answer_option_invalid": "Waehle eine der verfuegbaren Optionen."
+        }
     }
-  },
-  "review": {
-    "title": "Anfragen",
-    "subtitle": "Review, approve, or decline people waiting to join this group.",
-    "pending_title": "Offene Anfragen",
-    "pending_subtitle": "{count} waiting for review",
-    "reviewed_title": "Geprüfte Anfragen",
-    "reviewed_subtitle": "Kürzlich angenommene und abgelehnte Anfragen.",
-    "empty_pending_title": "Keine offenen Anfragen",
-    "empty_pending_description": "Neue Anfragen erscheinen hier.",
-    "empty_reviewed_title": "Keine geprüften Anfragen",
-    "empty_reviewed_description": "Angenommene und abgelehnte Anfragen erscheinen hier.",
-    "not_reviewed": "Not reviewed",
-    "unknown_user": "Unknown user",
-    "submitted_at": "Submitted {date}",
-    "reviewed_at": "Reviewed {date}",
-    "reviewed_by": "Reviewed by {user}",
-    "actions": {
-      "approve": "Approve",
-      "decline": "Decline",
-      "cancel": "Cancel"
-    },
-    "decline_modal": {
-      "title": "Anfrage ablehnen",
-      "reason_label": "Reason",
-      "reason_help": "Optional. Keep it short and useful for the group record."
-    },
-    "validation": {
-      "already_reviewed": "Diese Anfrage wurde bereits geprüft.",
-      "applicant_banned": "Banned users cannot be approved into the group."
-    }
-  },
-  "requests": {
-    "title": "Meine Anfragen",
-    "subtitle": "Verfolge deine Gruppenanfragen und aktualisiere alles, was noch offen ist.",
-    "empty_title": "Noch keine Anfragen",
-    "empty_description": "Gruppen, denen du beitreten möchtest, erscheinen hier.",
-    "unknown_group": "Unbekannte Gruppe",
-    "not_available": "Nicht verfügbar",
-    "submitted": "Gesendet {date}",
-    "reviewed": "Geprüft {date}",
-    "sections": {
-      "active_title": "Aktive Anfragen",
-      "active_description": "Anfragen, die noch auf Prüfung warten.",
-      "active_empty_title": "Keine aktiven Anfragen",
-      "active_empty_description": "Offene Anfragen erscheinen hier.",
-      "history_title": "Historie",
-      "history_description": "Angenommene und abgelehnte Anfragen bleiben hier sichtbar.",
-      "history_empty_title": "Noch keine Anfragehistorie",
-      "history_empty_description": "Geprüfte Anfragen werden hierher verschoben."
-    },
-    "actions": {
-      "edit": "Anfrage bearbeiten",
-      "open_group": "Gruppe öffnen",
-      "request_again": "Erneut anfragen"
-    }
-  },
-  "form": {
-    "title": "Anfrageformular",
-    "subtitle": "Erstelle die Fragen, die Leute vor dem Beitritt beantworten.",
-    "inactive_title": "This form is ready, but the group is not application based",
-    "inactive_description": "Switch the group join mode to Application Based when you want this form to appear to applicants.",
-    "question_count": "{count} of {max} questions",
-    "new_question": "New question",
-    "new_option": "New option",
-    "question_title": "Question {number}",
-    "question_hint": "Name, describe, and configure this application field.",
-    "actions": {
-      "add_question": "Add Question",
-      "save": "Save Form",
-      "move_up": "Move question up",
-      "move_down": "Move question down",
-      "remove_question": "Remove question",
-      "add_option": "Add Option",
-      "remove_option": "Remove option"
-    },
-    "field_types": {
-      "small_text": "Small Text",
-      "big_text": "Big Text",
-      "select": "Select Menu",
-      "toggle": "Toggle"
-    },
-    "fields": {
-      "name": {
-        "label": "Name",
-        "help": "The question shown to applicants.",
-        "placeholder": "Question"
-      },
-      "description": {
-        "label": "Description",
-        "help": "Optional extra context below the question.",
-        "placeholder": "Description"
-      },
-      "type": {
-        "label": "Input Type"
-      },
-      "required": {
-        "label": "Required",
-        "help": "Applicants must provide an answer. A toggle can be on or off."
-      }
-    },
-    "options": {
-      "title": "Options",
-      "subtitle": "Select menu questions need at least one option.",
-      "label": "Option {number}",
-      "placeholder": "Option"
-    },
-    "validation": {
-      "fields_required": "Provide at least one question.",
-      "minimum_fields": "Application forms need at least one question.",
-      "max_fields": "Application forms can have up to {max} questions.",
-      "field_invalid": "Each question must be a valid object.",
-      "type_invalid": "Choose a valid input type.",
-      "name_required": "The English name is required.",
-      "localized_text_invalid": "Localized text must be text.",
-      "localized_text_max": "Localized text must be {max} characters or fewer.",
-      "options_required": "Select menu questions need at least one option.",
-      "options_max": "Select menu questions can have up to {max} options.",
-      "option_invalid": "Each option must be a valid object.",
-      "answer_unknown": "This answer does not match the current application form.",
-      "answer_required": "This answer is required.",
-      "answer_invalid": "Provide a valid answer.",
-      "answer_max": "This answer must be {max} characters or fewer.",
-      "answer_option_invalid": "Choose one of the available options."
-    }
-  }
 }

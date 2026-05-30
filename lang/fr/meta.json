@@ -1,37 +1,37 @@
 {
-  "title": "FullParty.gg",
-  "tagline": "La véritable fin de jeu, c'est l'organisation.",
-  "seo": {
-    "defaults": {
-      "description": "FullParty aide les groupes Final Fantasy XIV à organiser leurs runs, candidatures, rosters et la coordination de raid."
-    },
-    "home": {
-      "title": "Organisation de groupes et rosters FFXIV",
-      "description": "Organisez vos groupes Final Fantasy XIV, candidatures, rosters et runs de raid avec FullParty."
-    },
-    "legal": {
-      "privacy_title": "Politique de confidentialité",
-      "privacy_description": "Découvrez comment cette instance FullParty traite les données personnelles, la confidentialité et les informations de compte.",
-      "cookies_title": "Politique relative aux cookies",
-      "cookies_description": "Découvrez comment cette instance FullParty utilise les cookies et technologies similaires pour les sessions, la sécurité et les préférences."
-    },
-    "auth": {
-      "login_description": "Connectez-vous à FullParty pour gérer vos personnages, groupes, runs et notifications.",
-      "register_description": "Créez un compte FullParty pour rejoindre des groupes, envoyer des candidatures et gérer vos personnages.",
-      "forgot_password_description": "Demandez un lien de réinitialisation du mot de passe pour votre compte FullParty.",
-      "reset_password_description": "Définissez un nouveau mot de passe pour votre compte FullParty.",
-      "verify_email_description": "Vérifiez votre adresse e-mail pour continuer à utiliser votre compte FullParty."
-    },
-    "groups": {
-      "profile_description": "Consultez {group}, un groupe FFXIV sur {datacenter}, avec ses runs en cours, son staff et son activité récente."
-    },
-    "activities": {
-      "overview_description": "Consultez {title}, un run FullParty organisé par {group}.",
-      "application_description": "Envoyez une candidature pour {title} dans {group}.",
-      "application_status_description": "Consultez l'état de votre candidature pour {title} dans {group}."
-    },
-    "invite": {
-      "description": "Consultez une invitation de groupe et connectez-vous pour l'accepter sur FullParty."
+    "title": "FullParty.gg",
+    "tagline": "La véritable fin de jeu, c'est l'organisation.",
+    "seo": {
+        "defaults": {
+            "description": "FullParty aide les groupes Final Fantasy XIV à organiser leurs runs, candidatures, rosters et la coordination de raid."
+        },
+        "home": {
+            "title": "Organisation de groupes et rosters FFXIV",
+            "description": "Organisez vos groupes Final Fantasy XIV, candidatures, rosters et runs de raid avec FullParty."
+        },
+        "legal": {
+            "privacy_title": "Politique de confidentialité",
+            "privacy_description": "Découvrez comment cette instance FullParty traite les données personnelles, la confidentialité et les informations de compte.",
+            "cookies_title": "Politique relative aux cookies",
+            "cookies_description": "Découvrez comment cette instance FullParty utilise les cookies et technologies similaires pour les sessions, la sécurité et les préférences."
+        },
+        "auth": {
+            "login_description": "Connectez-vous à FullParty pour gérer vos personnages, groupes, runs et notifications.",
+            "register_description": "Créez un compte FullParty pour rejoindre des groupes, envoyer des candidatures et gérer vos personnages.",
+            "forgot_password_description": "Demandez un lien de réinitialisation du mot de passe pour votre compte FullParty.",
+            "reset_password_description": "Définissez un nouveau mot de passe pour votre compte FullParty.",
+            "verify_email_description": "Vérifiez votre adresse e-mail pour continuer à utiliser votre compte FullParty."
+        },
+        "groups": {
+            "profile_description": "Consultez {group}, un groupe FFXIV sur {datacenter}, avec ses runs en cours, son staff et son activité récente."
+        },
+        "activities": {
+            "overview_description": "Consultez {title}, un run FullParty organisé par {group}.",
+            "application_description": "Envoyez une candidature pour {title} dans {group}.",
+            "application_status_description": "Consultez l'état de votre candidature pour {title} dans {group}."
+        },
+        "invite": {
+            "description": "Consultez une invitation de groupe et connectez-vous pour l'accepter sur FullParty."
+        }
     }
-  }
 }

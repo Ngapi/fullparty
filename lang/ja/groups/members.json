@@ -1,141 +1,141 @@
 {
-  "title": "グループメンバー",
-  "subtitle": "グループのメンバー一覧、連携済みキャラクター、メンバー操作をまとめて確認できます。",
-  "roster": {
-    "title": "メンバー一覧",
-    "subtitle": "グループ内のメンバー、連携済みキャラクター、利用可能な操作を確認できます。",
-    "count": "{count} 人のメンバー",
-    "search_placeholder": "メンバーを検索",
-    "joined_at": "{date} に参加",
-    "runs_participated": "{count} 回のRunsに参加",
-    "characters_label": "キャラクター",
-    "no_characters": "まだ確認済みキャラクターは連携されていません。",
-    "not_available": "利用不可",
-    "empty": "表示するメンバーはいません。"
-  },
-  "bans": {
-    "title": "BANされたメンバー",
-    "subtitle": "このグループへの再参加が禁止されているユーザーを確認します。",
-    "count": "{count} 人がBAN中",
-    "search_placeholder": "BANメンバーを検索",
-    "empty": "表示するBANメンバーはいません。",
-    "columns": {
-      "member": "メンバー",
-      "characters": "キャラクター",
-      "reason": "理由",
-      "banned_by": "BAN実行者",
-      "banned_at": "BAN日時",
-      "actions": "操作"
+    "title": "グループメンバー",
+    "subtitle": "グループのメンバー一覧、連携済みキャラクター、メンバー操作をまとめて確認できます。",
+    "roster": {
+        "title": "メンバー一覧",
+        "subtitle": "グループ内のメンバー、連携済みキャラクター、利用可能な操作を確認できます。",
+        "count": "{count} 人のメンバー",
+        "search_placeholder": "メンバーを検索",
+        "joined_at": "{date} に参加",
+        "runs_participated": "{count} 回のRunsに参加",
+        "characters_label": "キャラクター",
+        "no_characters": "まだ確認済みキャラクターは連携されていません。",
+        "not_available": "利用不可",
+        "empty": "表示するメンバーはいません。"
     },
-    "no_reason": "理由はありません",
-    "system": "システム"
-  },
-  "table": {
-    "columns": {
-      "member": "メンバー",
-      "joined_at": "参加日",
-      "runs_participated": "Runs",
-      "characters": "キャラクター"
-    }
-  },
-  "actions": {
-    "notes": "メモ",
-    "promote": "昇格",
-    "demote": "降格",
-    "kick": "キック",
-    "ban": "BAN",
-    "unban": "BAN解除"
-  },
-  "notes": {
-    "hidden": "このユーザーに対するメモは利用できません。",
-    "load_error": "現在メモを読み込めませんでした。",
-    "unknown_group": "不明なグループ",
-    "shared_badge": "共有",
-    "shared_from": "{author} が {date} に共有",
+    "bans": {
+        "title": "BANされたメンバー",
+        "subtitle": "このグループへの再参加が禁止されているユーザーを確認します。",
+        "count": "{count} 人がBAN中",
+        "search_placeholder": "BANメンバーを検索",
+        "empty": "表示するBANメンバーはいません。",
+        "columns": {
+            "member": "メンバー",
+            "characters": "キャラクター",
+            "reason": "理由",
+            "banned_by": "BAN実行者",
+            "banned_at": "BAN日時",
+            "actions": "操作"
+        },
+        "no_reason": "理由はありません",
+        "system": "システム"
+    },
+    "table": {
+        "columns": {
+            "member": "メンバー",
+            "joined_at": "参加日",
+            "runs_participated": "ラン",
+            "characters": "キャラクター"
+        }
+    },
     "actions": {
-      "add_context": "補足を追加",
-      "save_context": "補足を保存"
+        "notes": "メモ",
+        "promote": "昇格",
+        "demote": "降格",
+        "kick": "キック",
+        "ban": "BAN",
+        "unban": "BAN解除"
     },
-    "addenda": {
-      "title": "補足コンテキスト",
-      "byline": "{author} が {date} に追加",
-      "form": {
-        "label": "補足を追加",
-        "placeholder": "このメモに補足コンテキストを追加"
-      }
+    "notes": {
+        "hidden": "このユーザーに対するメモは利用できません。",
+        "load_error": "現在メモを読み込めませんでした。",
+        "unknown_group": "不明なグループ",
+        "shared_badge": "共有",
+        "shared_from": "{author} が {date} に共有",
+        "actions": {
+            "add_context": "補足を追加",
+            "save_context": "補足を保存"
+        },
+        "addenda": {
+            "title": "補足コンテキスト",
+            "byline": "{author} が {date} に追加",
+            "form": {
+                "label": "補足を追加",
+                "placeholder": "このメモに補足コンテキストを追加"
+            }
+        },
+        "modal": {
+            "title": "{name} のメンバーメモ",
+            "subtitle": "これらのメモはグループ所有であり、対象ユーザー本人には表示されません。"
+        },
+        "count": {
+            "total": "表示中のメモ {count} 件",
+            "current_group": "このグループ {count} 件",
+            "shared": "他グループ共有 {count} 件"
+        },
+        "create": {
+            "title": "メモを追加",
+            "subtitle": "グループ固有の文脈、懸念事項、好みを記録するために使います。",
+            "submit": "メモを追加"
+        },
+        "fields": {
+            "severity": {
+                "label": "重要度"
+            },
+            "shared": {
+                "label": "他のグループにも共有する",
+                "help": "有効にすると、他グループのモデレーターやオーナーが同じユーザーを確認する際にこのメモを閲覧できます。"
+            },
+            "body": {
+                "label": "メモ",
+                "help": "メモは内部用であり、対象ユーザーには一切表示されません。",
+                "placeholder": "このユーザーについてメモを追加"
+            }
+        },
+        "severities": {
+            "info": "情報",
+            "warning": "警告",
+            "critical": "重大"
+        },
+        "sections": {
+            "current_group": {
+                "title": "このグループのメモ",
+                "subtitle": "このグループが所有する内部メモです。",
+                "empty": "このグループのメモはまだありません。"
+            },
+            "shared": {
+                "title": "他グループから共有されたメモ",
+                "subtitle": "他グループが明示的に共有したメモです。",
+                "empty": "共有メモはありません。"
+            }
+        }
     },
-    "modal": {
-      "title": "{name} のメンバーメモ",
-      "subtitle": "これらのメモはグループ所有であり、対象ユーザー本人には表示されません。"
+    "kick_modal": {
+        "title": "{name} を削除しますか？",
+        "subtitle": "選択したメンバーを {group} から削除します。",
+        "warning": "このユーザーは直ちにダッシュボードへのアクセスを失い、公開参加か新しい招待で再参加する必要があります。"
     },
-    "count": {
-      "total": "表示中のメモ {count} 件",
-      "current_group": "このグループ {count} 件",
-      "shared": "他グループ共有 {count} 件"
+    "ban_modal": {
+        "title": "{name} をBANしますか？",
+        "subtitle": "選択したメンバーを {group} から削除し、再参加できないようにします。",
+        "warning": "BANされたユーザーは公開中のグループを見ることはできますが、公開参加や招待リンクでは参加できません。",
+        "reason": {
+            "label": "理由",
+            "help": "任意。このBANの理由をメモとして残せます。",
+            "placeholder": "BAN理由を任意で入力してください"
+        }
     },
-    "create": {
-      "title": "メモを追加",
-      "subtitle": "グループ固有の文脈、懸念事項、好みを記録するために使います。",
-      "submit": "メモを追加"
-    },
-    "fields": {
-      "severity": {
-        "label": "重要度"
-      },
-      "shared": {
-        "label": "他のグループにも共有する",
-        "help": "有効にすると、他グループのモデレーターやオーナーが同じユーザーを確認する際にこのメモを閲覧できます。"
-      },
-      "body": {
-        "label": "メモ",
-        "help": "メモは内部用であり、対象ユーザーには一切表示されません。",
-        "placeholder": "このユーザーについてメモを追加"
-      }
-    },
-    "severities": {
-      "info": "情報",
-      "warning": "警告",
-      "critical": "重大"
-    },
-    "sections": {
-      "current_group": {
-        "title": "このグループのメモ",
-        "subtitle": "このグループが所有する内部メモです。",
-        "empty": "このグループのメモはまだありません。"
-      },
-      "shared": {
-        "title": "他グループから共有されたメモ",
-        "subtitle": "他グループが明示的に共有したメモです。",
-        "empty": "共有メモはありません。"
-      }
+    "toasts": {
+        "note_added": "メンバーメモを追加しました。",
+        "note_updated": "メンバーメモを更新しました。",
+        "note_deleted": "メンバーメモを削除しました。",
+        "note_addendum_added": "メモに補足を追加しました。",
+        "note_addendum_updated": "メモの補足を更新しました。",
+        "note_addendum_deleted": "メモの補足を削除しました。",
+        "promoted": "メンバーの役職を昇格しました。",
+        "demoted": "メンバーの役職を降格しました。",
+        "removed": "メンバーをグループから削除しました。",
+        "banned": "メンバーをグループからBANしました。",
+        "unbanned": "BANを解除しました。"
     }
-  },
-  "kick_modal": {
-    "title": "{name} を削除しますか？",
-    "subtitle": "選択したメンバーを {group} から削除します。",
-    "warning": "このユーザーは直ちにダッシュボードへのアクセスを失い、公開参加か新しい招待で再参加する必要があります。"
-  },
-  "ban_modal": {
-    "title": "{name} をBANしますか？",
-    "subtitle": "選択したメンバーを {group} から削除し、再参加できないようにします。",
-    "warning": "BANされたユーザーは公開中のグループを見ることはできますが、公開参加や招待リンクでは参加できません。",
-    "reason": {
-      "label": "理由",
-      "help": "任意。このBANの理由をメモとして残せます。",
-      "placeholder": "BAN理由を任意で入力してください"
-    }
-  },
-  "toasts": {
-    "note_added": "メンバーメモを追加しました。",
-    "note_updated": "メンバーメモを更新しました。",
-    "note_deleted": "メンバーメモを削除しました。",
-    "note_addendum_added": "メモに補足を追加しました。",
-    "note_addendum_updated": "メモの補足を更新しました。",
-    "note_addendum_deleted": "メモの補足を削除しました。",
-    "promoted": "メンバーの役職を昇格しました。",
-    "demoted": "メンバーの役職を降格しました。",
-    "removed": "メンバーをグループから削除しました。",
-    "banned": "メンバーをグループからBANしました。",
-    "unbanned": "BANを解除しました。"
-  }
 }

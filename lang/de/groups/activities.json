@@ -2,14 +2,15 @@
     "title": "Runs",
     "subtitle": "{group}'s upcoming schedule and monthly calendar at a glance.",
     "header_badge": "{count} upcoming",
+    "back": "Zurück zu Runs",
     "statuses": {
         "draft": "Entwurf",
-        "scheduled": "Scheduled",
-        "assigned": "Assigned",
-        "upcoming": "Upcoming",
-        "ongoing": "Ongoing",
-        "complete": "Complete",
-        "cancelled": "Cancelled"
+        "scheduled": "Geplant",
+        "assigned": "Eingeteilt",
+        "upcoming": "Anstehend",
+        "ongoing": "Läuft",
+        "complete": "Abgeschlossen",
+        "cancelled": "Abgebrochen"
     },
     "intensities": {
         "casual": "Casual",
@@ -37,7 +38,7 @@
         "criterion": "Criterion"
     },
     "upcoming": {
-        "title": "Upcoming Runs",
+        "title": "Bevorstehende Runs",
         "subtitle": "A detailed view of what's coming up next for the group.",
         "count": "{count} scheduled",
         "empty": "No upcoming runs are scheduled yet."
@@ -54,8 +55,8 @@
         "title": "Monthly Calendar",
         "subtitle": "A month view of the group's run schedule.",
         "month_count": "{count} this month",
-        "previous": "Previous",
-        "next": "Next",
+        "previous": "Vorherige",
+        "next": "Nächste",
         "day_count": "{count} items",
         "more": "+{count} more",
         "member_count": "Mitglieder {assigned}/{total}",
@@ -82,7 +83,7 @@
         "copy_run_link_error_title": "Unable to copy run link",
         "copy_run_link_error_description": "Please try copying the run link again.",
         "copy_application_link": "Copy Link to Application",
-        "copy_application_link_success_title": "Application link copied",
+        "copy_application_link_success_title": "Bewerbungslink kopiert",
         "copy_application_link_success_description": "The application link is ready to share.",
         "copy_application_link_error_title": "Unable to copy application link",
         "copy_application_link_error_description": "Please try copying the application link again.",
@@ -96,16 +97,16 @@
         "copy_info_error_title": "Unable to copy run summary",
         "copy_info_error_description": "Please try copying the run summary again.",
         "summary_labels": {
-            "title": "Title",
-            "type": "Type",
+            "title": "Titel",
+            "type": "Typ",
             "status": "Status",
-            "date": "Date",
+            "date": "Datum",
             "time": "Time",
             "duration": "Duration",
             "host": "Host",
-            "datacenter": "Datacenter",
+            "datacenter": "Datenzentrum",
             "slots": "Slots",
-            "applications": "Applications"
+            "applications": "Bewerbungen"
         }
     },
     "legend": {
@@ -178,13 +179,14 @@
             "mark_late_failed": "Unable to mark this slot as late.",
             "check_in_group_failed": "Unable to check in this group.",
             "mark_missing_failed": "Unable to mark this slot as missing.",
-            "warning_title": "Warning",
+            "mark_designation_failed": "Diese Slot-Kennzeichnung konnte nicht aktualisiert werden.",
+            "warning_title": "Warnung",
             "undo_missing_failed": "Unable to undo this missing slot.",
             "assign_failed": "Unable to assign this application to the selected slot.",
             "manual_assign_failed": "Unable to assign this group member to the selected slot.",
             "missing_title": "Missing",
             "undo_missing": "Undo missing",
-            "unknown_character": "Unknown character",
+            "unknown_character": "Unbekannter Charakter",
             "unknown_world": "Unknown world",
             "unknown_slot": "Roster slot"
         },
@@ -205,7 +207,7 @@
         "complete_activity_modal": {
             "title": "Complete Run",
             "description": "Record the final run outcome before this run is archived.",
-            "progress": "Step {current} of {total}",
+            "progress": "Schritt {current} von {total}",
             "warning_title": "Completed runs become immutable",
             "warning_body": "Once completed, this run becomes archival-only. Moderators will no longer be able to edit the roster, applications, or activity details.",
             "warning_points": {
@@ -234,7 +236,7 @@
                 "percent_numeric": "Gib Fortschritt als Zahl von 0 bis 100 ein, ohne Sonderzeichen.",
                 "percent_range": "Fortschritt muss zwischen 0 und 100 liegen."
             },
-            "notes": "Notes",
+            "notes": "Notizen",
             "notes_placeholder": "Optional notes about the result or evidence.",
             "confirm_title": "Final Confirmation",
             "confirm_body": "Double check this progression result before completing the activity.",
@@ -247,7 +249,7 @@
                 "manual_help": "Enter the final progression result directly from the run outcome."
             },
             "steps": {
-                "warning": "Warning",
+                "warning": "Warnung",
                 "method": "Method",
                 "fflogs_link": "FF Logs Link",
                 "fflogs_review": "Review Autofill",
@@ -256,14 +258,14 @@
             }
         },
         "view_overview": "View Overview",
-        "type": "Activity Type",
-        "starts_at": "Starts At",
-        "organizer": "Organizer",
+        "type": "Aktivitätstyp",
+        "starts_at": "Beginnt am",
+        "organizer": "Organisator",
         "slots": "Slots",
-        "applications": "Applications",
+        "applications": "Bewerbungen",
         "milestones": "Milestones",
         "overview": {
-            "group": "Group",
+            "group": "Gruppe",
             "applicants": "Applicants",
             "assigned": "{assigned}/{total} Assigned",
             "pending_applicants": "{count} pending",
@@ -297,17 +299,17 @@
                 "view_fflogs": "View FF Logs Report",
                 "notes": "Progress Notes",
                 "milestones": "Milestones",
-                "not_recorded": "Not recorded"
+                "not_recorded": "Nicht erfasst"
             }
         },
         "roster": {
             "title": "Roster Assignments",
             "subtitle": "Parties and slots are generated from the activity layout and ready to be filled.",
             "slots_count": "{count} slots",
-            "assigned": "Assigned",
+            "assigned": "Eingeteilt",
             "checked_in": "Checked in",
             "late": "Late",
-            "open": "Open",
+            "open": "Offen",
             "slot_placeholder": "Click to assign",
             "filled_placeholder": "Assigned character details and controls will live here next.",
             "filled_slot": "Filled Slot",
@@ -329,10 +331,16 @@
             "cut_assignment_action": "Zuweisung ausschneiden",
             "cancel_cut_assignment_action": "Ausschneiden abbrechen",
             "paste_assignment_action": "Zuweisung hier einfügen",
+            "mark_host_action": "Als Host markieren",
+            "unmark_host_action": "Host-Markierung entfernen",
+            "mark_raid_leader_action": "Als Raid-Leitung markieren",
+            "unmark_raid_leader_action": "Raid-Leitungs-Markierung entfernen",
             "undo_check_in": "Undo Checkin",
+            "host_badge": "Host",
+            "raid_leader_badge": "Raid-Leitung",
             "roles": {
                 "tank": "Tank",
-                "healer": "Healer",
+                "healer": "Heiler",
                 "dps": "DPS"
             },
             "list_headers": {
@@ -342,19 +350,19 @@
                 "status": "Status"
             },
             "csv_headers": {
-                "group": "Group",
+                "group": "Gruppe",
                 "slot": "Slot",
                 "status": "Status",
-                "character": "Character",
+                "character": "Charakter",
                 "world": "World",
-                "datacenter": "Datacenter"
+                "datacenter": "Datenzentrum"
             },
             "empty": "No roster slots were generated for this activity."
         },
         "queue": {
             "title": "Applicant Queue",
             "search_placeholder": "Search applicants...",
-            "filters": "Filters",
+            "filters": "Filter",
             "filters_with_count": "Filters ({count})",
             "filter_any": "Any match",
             "filter_any_milestone": "Any milestone reached",
@@ -362,68 +370,68 @@
             "min_knowledge_level": "Minimum Knowledge Level",
             "min_phantom_mastery": "Minimum Phantom Mastery",
             "minimum_value_placeholder": "Minimum value",
-            "clear_filters": "Clear Filters",
-            "pending": "Pending",
+            "clear_filters": "Filter zurücksetzen",
+            "pending": "Ausstehend",
             "expand": "Expand",
             "assign_to_roster": "Assign to Roster",
             "approve": "Approve",
-            "decline": "Decline",
+            "decline": "Ablehnen",
             "decline_footer_hint": "Declining removes this application from the pending queue and cannot be undone.",
-            "decline_success_title": "Application declined",
+            "decline_success_title": "Bewerbung abgelehnt",
             "decline_success_description": "The application was declined and removed from the queue.",
             "decline_error_title": "Unable to decline application",
             "decline_error_description": "This application could not be declined right now.",
             "can_play": "Can Play",
             "empty": "No pending applicants right now.",
             "placeholder": "Applicant details, playable jobs, and notes will be expanded here next.",
-                "decline_modal": {
-                    "title": "Decline Application",
-                    "description": "Remove this application from the pending review queue.",
-                    "warning_title": "This cannot be undone",
-                    "warning_description": "Once an application is declined, moderators cannot return it to pending review from the dashboard.",
-                    "reason_label": "Optional reason",
-                    "reason_description": "If you add a reason here, the applicant will be able to see it on their application page.",
-                    "reason_placeholder": "Share any context the applicant should know.",
-                    "confirm": "Decline Application"
-                },
-                "modal": {
-                    "applicant": "Applicant",
-                    "account": "Account",
-                    "submitted": "Submitted",
-                    "world": "World",
-                    "datacenter": "Datacenter",
-                    "occult_level": "Occult Level",
-                    "phantom_mastery": "Phantom Mastery",
-                    "character": "Character",
-                    "guest_account": "Gastbewerbung",
-                    "fflogs_title": "FF Logs Progress",
-                    "fflogs_not_configured": "This activity type does not have an FF Logs zone configured.",
-                    "fflogs_empty": "No FF Logs progress was found for this character in the configured zone.",
-                    "fflogs_error": "FF Logs progress could not be loaded right now.",
-                    "fflogs_unavailable_guest": "FF Logs progress is only available once this application is linked to a verified FullParty character.",
-                    "fflogs_encounters": "Encounters",
-                    "fflogs_total_kills": "Total Kills",
-                    "fflogs_best_progress": "Best Progress",
-                    "user_stats": "User History",
-                    "most_played_class": "Most Played Class",
-                    "most_played_phantom_job": "Most Played Phantom Job",
-                    "with_group": "With Group",
-                    "overall": "Overall",
-                    "no_user_stats": "No previous roster history was found for this user.",
-                    "no_user_stats_guest": "Roster history is not available for guest applications.",
-                    "answers": "Application Details",
-                    "notes": "Notes",
-                    "no_answers": "No application answers were provided.",
-                    "no_notes": "No extra notes were provided."
-                },
-                "guest_badge": "Guest",
-                "unknown_applicant": "Unknown applicant",
-                "no_submission_time": "Submission time not available"
+            "decline_modal": {
+                "title": "Decline Application",
+                "description": "Remove this application from the pending review queue.",
+                "warning_title": "This cannot be undone",
+                "warning_description": "Once an application is declined, moderators cannot return it to pending review from the dashboard.",
+                "reason_label": "Optional reason",
+                "reason_description": "If you add a reason here, the applicant will be able to see it on their application page.",
+                "reason_placeholder": "Share any context the applicant should know.",
+                "confirm": "Decline Application"
             },
+            "modal": {
+                "applicant": "Applicant",
+                "account": "Konto",
+                "submitted": "Gesendet",
+                "world": "World",
+                "datacenter": "Datenzentrum",
+                "occult_level": "Occult Level",
+                "phantom_mastery": "Phantom Mastery",
+                "character": "Charakter",
+                "guest_account": "Gastbewerbung",
+                "fflogs_title": "FF Logs Progress",
+                "fflogs_not_configured": "This activity type does not have an FF Logs zone configured.",
+                "fflogs_empty": "No FF Logs progress was found for this character in the configured zone.",
+                "fflogs_error": "FF Logs progress could not be loaded right now.",
+                "fflogs_unavailable_guest": "FF Logs progress is only available once this application is linked to a verified FullParty character.",
+                "fflogs_encounters": "Encounters",
+                "fflogs_total_kills": "Total Kills",
+                "fflogs_best_progress": "Best Progress",
+                "user_stats": "User History",
+                "most_played_class": "Most Played Class",
+                "most_played_phantom_job": "Most Played Phantom Job",
+                "with_group": "With Group",
+                "overall": "Overall",
+                "no_user_stats": "No previous roster history was found for this user.",
+                "no_user_stats_guest": "Roster history is not available for guest applications.",
+                "answers": "Application Details",
+                "notes": "Notizen",
+                "no_answers": "No application answers were provided.",
+                "no_notes": "No extra notes were provided."
+            },
+            "guest_badge": "Guest",
+            "unknown_applicant": "Unknown applicant",
+            "no_submission_time": "Submission time not available"
+        },
         "controls": {
             "view": "View",
             "party": "Party",
-            "role": "Role",
+            "role": "Rolle",
             "list": "List",
             "applications_toggle": "Applications: {count}",
             "show_queue": "Show Applicant Queue",
@@ -444,7 +452,7 @@
         "hide_details": "Details ausblenden",
         "summary_title": "Quick Summary",
         "summary_subtitle": "The key details before the application tools land here.",
-        "applications_title": "Applications",
+        "applications_title": "Bewerbungen",
         "applications_ready": "Application submission will live from this page. For now, this direct link is the right access path.",
         "applications_login": "You will need to log in before applying once the application flow is added here.",
         "meta": {
@@ -455,10 +463,10 @@
             "no_duration": "No duration set"
         },
         "details": {
-            "description": "Description",
-            "target_prog_point": "Target Prog Point",
+            "description": "Beschreibung",
+            "target_prog_point": "Ziel-Prog-Punkt",
             "guest_applications": "Guest Applications",
-            "pending_applications": "Applications",
+            "pending_applications": "Bewerbungen",
             "no_description": "No description provided.",
             "no_target_prog_point": "No target prog point selected",
             "no_min_item_level": "No minimum"
@@ -508,10 +516,10 @@
         }
     },
     "application": {
-        "title": "Application",
+        "title": "Bewerbung",
         "subtitle": "Apply to join {group}'s {type} run.",
         "subtitle_existing": "Update your application for {group}'s {type} run.",
-        "back": "Back to Run Overview",
+        "back": "Zurueck zur Run-Uebersicht",
         "run_info_title": "Run Info",
         "run_info_subtitle": "A quick reminder of the run details while you apply.",
         "summary_schema": "Application Questions",
@@ -519,10 +527,10 @@
         "summary_notes": "Host Notes",
         "class_picker": {
             "empty": "Select classes",
-            "selected_count": "{count} selected",
+            "selected_count": "{count} ausgewahlt",
             "categories": {
                 "tank": "Tank",
-                "healer": "Healer",
+                "healer": "Heiler",
                 "melee": "Melee",
                 "phys": "Physical Ranged",
                 "magic": "Magic Ranged"
@@ -542,7 +550,7 @@
             "subtitle": "Share the details moderators need so they can review your application.",
             "character_title": "Character Selection",
             "character_description": "Applicants will be able to choose which of their characters they want to apply with.",
-            "character_field": "Character",
+            "character_field": "Charakter",
             "character_placeholder": "Select a character",
             "guest_mode_title": "Mit einem FullParty-Konto bekommst du mehr",
             "guest_mode_description": "Du kannst dich trotzdem als Gast bewerben, aber mit einem Login behältst du verknüpfte Charaktere, kannst Bewerbungen leichter bearbeiten und baust deine Run-Historie gruppenübergreifend auf.",
@@ -557,10 +565,10 @@
             "guest_search_error_title": "Search failed",
             "guest_search_failed": "We could not search Lodestone right now. Please try again in a moment.",
             "guest_search_invalid": "Please check the search details and try again.",
-            "guest_results_title": "Search Results",
+            "guest_results_title": "Suchergebnisse",
             "guest_results_description": "Select the character that matches your application.",
             "guest_results_count": "{count} results",
-            "guest_result_select": "Select",
+            "guest_result_select": "Auswahl",
             "guest_result_selected": "Selected",
             "guest_no_results_title": "No matching characters found",
             "guest_no_results_description": "Double check the spelling and world, then try the search again.",
@@ -568,11 +576,11 @@
             "answers_description": "The form will render {count} activity-type question fields here.",
             "notes_title": "Extra Notes",
             "notes_description": "A freeform notes area will live here for any extra context the applicant wants to share.",
-            "notes_field": "Notes",
+            "notes_field": "Notizen",
             "notes_placeholder": "Anything else the moderators should know?",
             "remember_defaults_label": "Meine Auswahl fuer diesen Aktivitaetstyp merken",
             "remember_defaults_description": "Beim naechsten Start einer neuen Bewerbung fuer diesen Aktivitaetstyp werden derselbe Charakter, dieselben Antworten und dieselben Notizen vorausgefuellt.",
-            "cancel": "Cancel",
+            "cancel": "Abbrechen",
             "submit": "Submit Application",
             "update": "Update Application",
             "login_required_title": "Login required",
@@ -594,14 +602,14 @@
             "run_info_subtitle": "Hier ist die finale Zusammenfassung deiner Bewerbung.",
             "character": "Charakter",
             "status": "Status",
-              "statuses": {
-                  "pending": "Pruefung ausstehend",
-                  "approved": "Angenommen",
-                  "on_bench": "Auf der Bank",
-                  "declined": "Abgelehnt",
-                  "cancelled": "Abgesagt",
-                  "withdrawn": "Zurueckgezogen"
-              },
+            "statuses": {
+                "pending": "Pruefung ausstehend",
+                "approved": "Angenommen",
+                "on_bench": "Auf der Bank",
+                "declined": "Abgelehnt",
+                "cancelled": "Abgesagt",
+                "withdrawn": "Zurueckgezogen"
+            },
             "guest_cta_title": "Mit einem FullParty-Konto bekommst du das volle Erlebnis",
             "guest_cta_description": "Erstelle ein Konto, wenn du richtige Benachrichtigungen, Run-Historie und einen einfacheren Weg fuer kuenftige Anmeldungen moechtest.",
             "guest_link_title": "Diesen Bewerbungslink speichern",
@@ -637,11 +645,11 @@
         },
         "steps": {
             "schedule": {
-                "title": "Schedule",
+                "title": "Zeitplan",
                 "description": "When are we dropping?"
             },
             "activity": {
-                "title": "Activity",
+                "title": "Aktivität",
                 "description": "What content are we running?"
             },
             "requirements": {
@@ -654,12 +662,12 @@
             }
         },
         "navigation": {
-            "back": "Back",
-            "next": "Next",
+            "back": "Zurück",
+            "next": "Nächste",
             "review": "Review Run"
         },
         "roles": {
-            "owner": "Owner",
+            "owner": "Besitzer",
             "moderator": "Moderator"
         },
         "form": {
@@ -672,7 +680,7 @@
                 "subtitle": "Choose the activity, organizer, and the main setup details."
             },
             "schedule": {
-                "title": "Schedule",
+                "title": "Zeitplan",
                 "subtitle": "Set the start time in FF14 Server Time and how long the activity will run."
             },
             "run_details": {
@@ -684,7 +692,7 @@
                 "subtitle": "Decide who can see the activity and how people join it."
             },
             "notes": {
-                "title": "Notes",
+                "title": "Notizen",
                 "subtitle": "Add any extra context for the roster, applicants, or attendees."
             }
         },
@@ -694,11 +702,11 @@
                 "all": "Alle Inhalte"
             },
             "activity_type": {
-                "label": "Activity Type",
+                "label": "Aktivitätstyp",
                 "placeholder": "Select an activity type"
             },
             "organizer": {
-                "label": "Organizer Character",
+                "label": "Organisator-Charakter",
                 "placeholder": "Select an organizer character",
                 "no_user": "User not set"
             },
@@ -707,15 +715,15 @@
                 "placeholder": "Optional custom title for this activity"
             },
             "duration": {
-                "label": "Duration (Hours)",
+                "label": "Dauer (Stunden)",
                 "placeholder": "Custom duration in hours",
                 "preset": "{count} Hour",
                 "custom": "Custom",
                 "select_placeholder": "Select a duration"
             },
             "datacenter": {
-                "label": "Data Center",
-                "placeholder": "Select a data center"
+                "label": "Datenzentrum",
+                "placeholder": "Wähle ein Datenzentrum"
             },
             "intensity": {
                 "label": "Run Intensity",
@@ -736,7 +744,7 @@
                 "help": "Mark this run as welcoming to first timers or learners."
             },
             "prog_point": {
-                "label": "Target Prog Point",
+                "label": "Ziel-Prog-Punkt",
                 "placeholder": "Select the intended prog point"
             },
             "status": {
@@ -744,7 +752,7 @@
                 "placeholder": "Select a status"
             },
             "notes": {
-                "label": "Notes",
+                "label": "Notizen",
                 "placeholder": "Optional notes for the roster and applicants"
             },
             "start_date": {
@@ -756,7 +764,7 @@
                 "minute_placeholder": "Minute"
             },
             "starts_at": {
-                "label": "Starts At",
+                "label": "Beginnt am",
                 "server_time_hint": "All activity times are entered in FF14 Server Time (UTC+0)."
             },
             "is_public": {
@@ -764,30 +772,30 @@
                 "help": "Public activities are visible based on the group's visibility rules."
             },
             "needs_application": {
-                "label": "Needs Application",
+                "label": "Benötigt Bewerbung",
                 "help": "Turn this on if members should apply instead of assigning themselves."
             },
             "allow_guest_applications": {
-                "label": "Allow Guest Applications",
+                "label": "Gastbewerbungen erlauben",
                 "help": "Let people apply without a FullParty account. They will use the guest application flow in a later stage."
             }
         },
         "summary": {
             "title": "Draft Summary",
             "subtitle": "A quick preview of what this activity currently looks like.",
-            "activity": "Activity",
+            "activity": "Aktivität",
             "slots": "Slots",
             "status": "Status",
-            "organizer": "Organizer",
-            "starts_at": "Starts At",
+            "organizer": "Organisator",
+            "starts_at": "Beginnt am",
             "starts_at_st": "FF14 ST",
             "starts_at_local": "Your Local ({timezone})",
             "duration": "Duration",
             "duration_value": "{count}h",
-            "visibility": "Visibility",
-            "visibility_public": "Public",
+            "visibility": "Sichtbarkeit",
+            "visibility_public": "Öffentlich",
             "visibility_private": "Private link only",
-            "datacenter": "Data Center",
+            "datacenter": "Datenzentrum",
             "run_style": "Run Style",
             "intensity": "Intensity",
             "difficulty": "Difficulty",
@@ -801,8 +809,8 @@
             "guest_applications_enabled": "Allowed",
             "guest_applications_disabled": "Account required",
             "guest_applications_not_applicable": "Not used when applications are off",
-            "target_prog_point": "Target Prog Point",
-            "notes": "Notes",
+            "target_prog_point": "Ziel-Prog-Punkt",
+            "notes": "Notizen",
             "no_type": "No activity type selected",
             "no_organizer": "Organizer not selected",
             "no_date": "Date not set",
@@ -815,7 +823,7 @@
         "title": "Edit Run",
         "subtitle": "Update the run details moderators are allowed to change.",
         "back": "Back to Run Management",
-        "submit": "Save Changes",
+        "submit": "Änderungen speichern",
         "form": {
             "title": "Edit Run",
             "subtitle": "Update the mutable details for this run without changing its core structure."

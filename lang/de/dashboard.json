@@ -1,381 +1,381 @@
 {
-  "title": "Home",
-  "welcome": "Willkommen zurück, {name}",
-  "welcome_subtitle": "Schön, dich wiederzusehen.",
-  "onboarding": {
-    "title": "Willkommen bei FullParty",
-    "eyebrow": "Einrichtung",
-    "step_count": "Schritt {current} von {total}",
-    "steps": {
-      "welcome": {
-        "title": "Danke, dass du bei FullParty dabei bist!",
-        "description": "Schön, dass du hier bist. FullParty soll dir helfen, Runs zu finden, Gruppen beizutreten und Raid-Pläne ruhiger, klarer und mit weniger Chaos zusammenzuhalten."
-      },
-      "discord": {
-        "title": "FullParty zu Discord hinzufügen",
-        "description": "Installiere die FullParty-Discord-Bot/App für Run-Erinnerungen und Gruppenfunktionen. Das ist getrennt vom Discord-Login.",
-        "connected_description": "Du kannst FullParty-Updates jetzt in Discord erhalten."
-      },
-      "discord_warning": {
-        "title": "Discord vorerst überspringen?",
-        "description": "Du kannst FullParty weiter nutzen, aber einige Discord-Funktionen bleiben aus, bis du es einrichtest."
-      },
-      "notifications": {
-        "title": "Lege deine Benachrichtigungen fest",
-        "description": "Wähle, wohin FullParty Updates senden soll. Änderungen werden sofort gespeichert."
-      },
-      "next": {
-        "title": "Was kommt als Nächstes?",
-        "description": "Du bist bereit, FullParty für dich einzurichten. Hier sind die besten nächsten Schritte."
-      }
-    },
-    "discord": {
-      "connected": "Discord ist bereit",
-      "not_connected": "Discord ist noch nicht eingerichtet",
-      "hint": "Dadurch wird die FullParty-Discord-Bot/App installiert. Du meldest dich damit nicht über Discord an und dein Login bleibt unverändert.",
-      "warning_detail": "Du kannst weiterhin Runs finden und Gruppen beitreten. Diese Funktionen sind erst verfügbar, wenn die FullParty-Discord-Bot/App installiert ist:",
-      "missing_features": {
-        "notifications": "Discord-Benachrichtigungen und Run-Erinnerungen",
-        "group_role_assignment": "Automatische Gruppenrollen-Zuweisung",
-        "nickname_sync": "Nickname-Sync über Discord-Server hinweg"
-      }
-    },
-    "notifications": {
-      "email_title": "E-Mail-Benachrichtigungen",
-      "email_description": "Sende wichtige Updates und Erinnerungen an deine E-Mail-Adresse.",
-      "discord_title": "Discord-Benachrichtigungen",
-      "discord_description": "Sende unterstützte Erinnerungen und Gruppenupdates über Discord.",
-      "discord_disabled": "Richte Discord zuerst ein, um diese Option zu aktivieren.",
-      "saved_hint": "Änderungen werden automatisch gespeichert.",
-      "saving": "Einstellungen werden gespeichert...",
-      "saved": "Einstellungen gespeichert.",
-      "error": "Einstellungen konnten nicht gespeichert werden. Bitte versuche es erneut."
-    },
-    "quick_links": {
-      "character": "Füge Charaktere hinzu und verwalte sie.",
-      "runs": "Durchsuche offene Runs, die zu deinen Zielen passen.",
-      "groups": "Finde Communities und Statics, die Spieler suchen."
-    },
-    "actions": {
-      "connect_discord": "Discord einrichten",
-      "skip_discord": "Vorerst überspringen",
-      "continue_without_discord": "Ohne Discord fortfahren",
-      "add_character": "Charakter hinzufügen",
-      "runs": "Runs finden",
-      "groups": "Gruppen finden",
-      "back": "Zurück",
-      "next": "Weiter",
-      "finish": "Fertig"
-    }
-  },
-  "character_panel": {
-    "main_character": "Hauptcharakter",
-    "primary_badge": "Primär",
-    "keeper_tag": "Mondstreunerin",
-    "level": "Lv. {level}",
-    "item_level": "{level}",
-    "no_display_job": "Kein Job ausgewählt",
-    "hero_quote": "Die Sterne leiten uns, doch unsere Herzen bringen das Licht.",
-    "view_character": "Charakter ansehen",
-    "active_groups": "Aktiv in {count} Gruppen",
-    "extra_groups": "+{count}",
-    "recent_performance": "Aktuelle Leistung",
-    "view_all_runs": "Weitere Runs finden",
-    "favorite_jobs": "Lieblingsjobs",
-    "upcoming_runs": "Anstehende Runs",
-    "no_upcoming_runs": "Für diesen Charakter stehen keine Runs an.",
-    "other_characters": "Weitere Charaktere",
-    "member_since": "Mitglied seit {date}",
-    "next_run": {
-      "title": "Dein nächster Run",
-      "unknown_activity": "Run"
-    },
-    "customization": {
-      "open": "Home-Profil bearbeiten",
-      "title": "Home-Profil bearbeiten",
-      "subtitle": "Wähle aus, was auf deinem Home-Banner erscheint.",
-      "updated": "Home-Profil aktualisiert.",
-      "display_job_default": "Standardjob verwenden",
-      "fields": {
-        "display_job": {
-          "label": "Angezeigter Job",
-          "placeholder": "Job auswählen"
+    "title": "Start",
+    "welcome": "Willkommen zurück, {name}",
+    "welcome_subtitle": "Schön, dich wiederzusehen.",
+    "onboarding": {
+        "title": "Willkommen bei FullParty",
+        "eyebrow": "Einrichtung",
+        "step_count": "Schritt {current} von {total}",
+        "steps": {
+            "welcome": {
+                "title": "Danke, dass du bei FullParty dabei bist!",
+                "description": "Schön, dass du hier bist. FullParty soll dir helfen, Runs zu finden, Gruppen beizutreten und Raid-Pläne ruhiger, klarer und mit weniger Chaos zusammenzuhalten."
+            },
+            "discord": {
+                "title": "FullParty zu Discord hinzufügen",
+                "description": "Installiere die FullParty-Discord-Bot/App für Run-Erinnerungen und Gruppenfunktionen. Das ist getrennt vom Discord-Login.",
+                "connected_description": "Du kannst FullParty-Updates jetzt in Discord erhalten."
+            },
+            "discord_warning": {
+                "title": "Discord vorerst überspringen?",
+                "description": "Du kannst FullParty weiter nutzen, aber einige Discord-Funktionen bleiben aus, bis du es einrichtest."
+            },
+            "notifications": {
+                "title": "Lege deine Benachrichtigungen fest",
+                "description": "Wähle, wohin FullParty Updates senden soll. Änderungen werden sofort gespeichert."
+            },
+            "next": {
+                "title": "Was kommt als Nächstes?",
+                "description": "Du bist bereit, FullParty für dich einzurichten. Hier sind die besten nächsten Schritte."
+            }
         },
-        "description": {
-          "label": "Bio",
-          "placeholder": "Schreibe eine kurze Zeile für dein Banner"
+        "discord": {
+            "connected": "Discord ist bereit",
+            "not_connected": "Discord ist noch nicht eingerichtet",
+            "hint": "Dadurch wird die FullParty-Discord-Bot/App installiert. Du meldest dich damit nicht über Discord an und dein Login bleibt unverändert.",
+            "warning_detail": "Du kannst weiterhin Runs finden und Gruppen beitreten. Diese Funktionen sind erst verfügbar, wenn die FullParty-Discord-Bot/App installiert ist:",
+            "missing_features": {
+                "notifications": "Discord-Benachrichtigungen und Run-Erinnerungen",
+                "group_role_assignment": "Automatische Gruppenrollen-Zuweisung",
+                "nickname_sync": "Nickname-Sync über Discord-Server hinweg"
+            }
         },
-        "background_image": {
-          "label": "Hintergrundbild",
-          "placeholder": "Bild auswählen",
-          "reset": "Bild zurücksetzen",
-          "preview_alt": "Vorschau des Home-Profil-Hintergrunds"
+        "notifications": {
+            "email_title": "E-Mail-Benachrichtigungen",
+            "email_description": "Sende wichtige Updates und Erinnerungen an deine E-Mail-Adresse.",
+            "discord_title": "Discord-Benachrichtigungen",
+            "discord_description": "Sende unterstützte Erinnerungen und Gruppenupdates über Discord.",
+            "discord_disabled": "Richte Discord zuerst ein, um diese Option zu aktivieren.",
+            "saved_hint": "Änderungen werden automatisch gespeichert.",
+            "saving": "Einstellungen werden gespeichert...",
+            "saved": "Einstellungen gespeichert.",
+            "error": "Einstellungen konnten nicht gespeichert werden. Bitte versuche es erneut."
+        },
+        "quick_links": {
+            "character": "Füge Charaktere hinzu und verwalte sie.",
+            "runs": "Durchsuche offene Runs, die zu deinen Zielen passen.",
+            "groups": "Finde Communities und Statics, die Spieler suchen."
+        },
+        "actions": {
+            "connect_discord": "Discord einrichten",
+            "skip_discord": "Vorerst überspringen",
+            "continue_without_discord": "Ohne Discord fortfahren",
+            "add_character": "Charakter hinzufügen",
+            "runs": "Runs finden",
+            "groups": "Gruppen finden",
+            "back": "Zurück",
+            "next": "Weiter",
+            "finish": "Fertig"
         }
-      },
-      "validation": {
-        "image_invalid_format": "Das Bild muss eine JPG-, PNG- oder WEBP-Datei sein.",
-        "image_too_large": "Das Bild darf höchstens 5 MB groß sein."
-      }
     },
-    "performance": {
-      "encounter": "Cloud of Darkness (Chaotic)",
-      "difficulty": "Savage",
-      "date": "18. Mai 2026",
-      "best_parse": "Beste Analyse",
-      "all_stars": "Alle Sterne",
-      "fastest_kill": "Schnellster Kill",
-      "week": "Woche 3",
-      "rank": "Rang",
-      "all_regions": "Alle Regionen"
+    "character_panel": {
+        "main_character": "Hauptcharakter",
+        "primary_badge": "Primär",
+        "keeper_tag": "Mondstreunerin",
+        "level": "Lv. {level}",
+        "item_level": "{level}",
+        "no_display_job": "Kein Job ausgewählt",
+        "hero_quote": "Die Sterne leiten uns, doch unsere Herzen bringen das Licht.",
+        "view_character": "Charakter ansehen",
+        "active_groups": "Aktiv in {count} Gruppen",
+        "extra_groups": "+{count}",
+        "recent_performance": "Aktuelle Leistung",
+        "view_all_runs": "Weitere Runs finden",
+        "favorite_jobs": "Lieblingsjobs",
+        "upcoming_runs": "Anstehende Runs",
+        "no_upcoming_runs": "Für diesen Charakter stehen keine Runs an.",
+        "other_characters": "Weitere Charaktere",
+        "member_since": "Mitglied seit {date}",
+        "next_run": {
+            "title": "Dein nächster Run",
+            "unknown_activity": "Run"
+        },
+        "customization": {
+            "open": "Home-Profil bearbeiten",
+            "title": "Home-Profil bearbeiten",
+            "subtitle": "Wähle aus, was auf deinem Home-Banner erscheint.",
+            "updated": "Home-Profil aktualisiert.",
+            "display_job_default": "Standardjob verwenden",
+            "fields": {
+                "display_job": {
+                    "label": "Angezeigter Job",
+                    "placeholder": "Job auswählen"
+                },
+                "description": {
+                    "label": "Bio",
+                    "placeholder": "Schreibe eine kurze Zeile für dein Banner"
+                },
+                "background_image": {
+                    "label": "Hintergrundbild",
+                    "placeholder": "Bild auswählen",
+                    "reset": "Bild zurücksetzen",
+                    "preview_alt": "Vorschau des Home-Profil-Hintergrunds"
+                }
+            },
+            "validation": {
+                "image_invalid_format": "Das Bild muss eine JPG-, PNG- oder WEBP-Datei sein.",
+                "image_too_large": "Das Bild darf höchstens 5 MB groß sein."
+            }
+        },
+        "performance": {
+            "encounter": "Cloud of Darkness (Chaotic)",
+            "difficulty": "Savage",
+            "date": "18. Mai 2026",
+            "best_parse": "Beste Analyse",
+            "all_stars": "Alle Sterne",
+            "fastest_kill": "Schnellster Kill",
+            "week": "Woche 3",
+            "rank": "Rang",
+            "all_regions": "Alle Regionen"
+        },
+        "participation": {
+            "title": "Teilnahmeübersicht",
+            "current_run": "Aktueller Run-Fortschritt",
+            "current_progress": "Deine aktiven Gruppen arbeiten sich durch geplante Inhalte.",
+            "updated_at": "Heute aktualisiert",
+            "runs_joined": "Runs teilgenommen",
+            "past_month": "Letzte 30 Tage",
+            "average_progress": "Durchschnittsfortschritt",
+            "across_joined_runs": "Über teilgenommene Runs",
+            "upcoming_runs": "Anstehende Runs",
+            "scheduled": "Geplant",
+            "runs": "Runs",
+            "run_singular": "Run",
+            "run_plural": "Runs",
+            "week_tooltip": "Woche {range}: {count} {runLabel}"
+        },
+        "last_run": {
+            "title": "Letzter Run",
+            "completed_at": "Abgeschlossen am {date}",
+            "progress": "Run-Fortschritt",
+            "class_played": "Gespielte Klasse",
+            "phantom_job": "Phantom-Job",
+            "empty": "Noch keine abgeschlossenen Runs",
+            "complete": "Abgeschlossen",
+            "not_recorded": "Nicht erfasst",
+            "no_class": "Nicht erfasst",
+            "no_phantom_job": "Keiner"
+        },
+        "stats": {
+            "joined": "Beigetreten",
+            "hosted": "Geleitet",
+            "groups": "Gruppen",
+            "upcoming": "Anstehend"
+        }
     },
-    "participation": {
-      "title": "Teilnahmeübersicht",
-      "current_run": "Aktueller Run-Fortschritt",
-      "current_progress": "Deine aktiven Gruppen arbeiten sich durch geplante Inhalte.",
-      "updated_at": "Heute aktualisiert",
-      "runs_joined": "Runs teilgenommen",
-      "past_month": "Letzte 30 Tage",
-      "average_progress": "Durchschnittsfortschritt",
-      "across_joined_runs": "Über teilgenommene Runs",
-      "upcoming_runs": "Anstehende Runs",
-      "scheduled": "Geplant",
-      "runs": "Runs",
-      "run_singular": "Run",
-      "run_plural": "Runs",
-      "week_tooltip": "Woche {range}: {count} {runLabel}"
+    "account_status": {
+        "title": "Kontostatus",
+        "subtitle": "Eine kurze Checkliste, um mehr aus FullParty herauszuholen.",
+        "important": "Wichtig",
+        "recommended": "Empfohlen",
+        "complete": "Erledigt",
+        "todo": "Offen",
+        "percent_ready": "{percent}% bereit",
+        "completed_tooltip": "Kontoeinrichtung abgeschlossen",
+        "items": {
+            "email_verified": {
+                "title": "E-Mail verifizieren",
+                "description": "Schütze dein Konto und erhalte wichtige Updates."
+            },
+            "verified_character": {
+                "title": "Charakter hinzufügen und verifizieren",
+                "description": "Beanspruche mindestens einen Charakter, damit Organisatoren wissen, wen du spielst."
+            },
+            "primary_character": {
+                "title": "Primären Charakter wählen",
+                "description": "Zeige Gruppen, welcher Charakter dich zuerst repräsentiert."
+            },
+            "joined_group": {
+                "title": "Einer Gruppe beitreten",
+                "description": "Finde eine Community, damit deine Runs und Bewerbungen ein Zuhause haben."
+            },
+            "joined_run": {
+                "title": "Run beitreten oder hosten",
+                "description": "Baue deine Aktivitätshistorie mit einem geplanten Run auf."
+            },
+            "connected_discord": {
+                "title": "Discord einrichten",
+                "description": "Erhalte Erinnerungen und Gruppenupdates in Discord."
+            },
+            "notification_preferences_reviewed": {
+                "title": "Benachrichtigungseinstellungen prüfen",
+                "description": "Prüfe, wie FullParty dich über Runs, Gruppen und Bewerbungen benachrichtigen soll."
+            },
+            "public_character": {
+                "title": "Charaktersichtbarkeit teilen",
+                "description": "Lass Organisatoren deinen Charakter bei Bewerbungen prüfen."
+            }
+        }
     },
-    "last_run": {
-      "title": "Letzter Run",
-      "completed_at": "Abgeschlossen am {date}",
-      "progress": "Run-Fortschritt",
-      "class_played": "Gespielte Klasse",
-      "phantom_job": "Phantom-Job",
-      "empty": "Noch keine abgeschlossenen Runs",
-      "complete": "Abgeschlossen",
-      "not_recorded": "Nicht erfasst",
-      "no_class": "Nicht erfasst",
-      "no_phantom_job": "Keiner"
+    "home_sections": {
+        "runs": {
+            "title": "Deine Runs",
+            "subtitle": "Runs, in denen du bist, nach Run-Datum sortiert.",
+            "empty": "Noch keine Runs.",
+            "statuses": {
+                "confirmed": "Bestätigt",
+                "benched": "Bank",
+                "pending": "Ausstehend",
+                "ongoing": "Läuft",
+                "completed": "Abgeschlossen",
+                "cancelled": "Abgesagt"
+            }
+        },
+        "applications": {
+            "title": "Bewerbungen",
+            "subtitle": "Aktuelle Anmeldungen und Roster-Entscheidungen.",
+            "view_all": "Alle Bewerbungen ansehen",
+            "empty": "Noch keine aktuellen Bewerbungen.",
+            "statuses": {
+                "assigned": "Eingeteilt",
+                "pending": "Ausstehend",
+                "waitlist": "Warteliste",
+                "accepted": "Angenommen",
+                "declined": "Abgelehnt",
+                "cancelled": "Abgebrochen",
+                "withdrawn": "Zurückgezogen",
+                "unknown": "Unbekannt"
+            }
+        },
+        "groups": {
+            "title": "Deine Gruppen",
+            "subtitle": "Zuletzt aktive Communities.",
+            "empty": "Noch keine Gruppen.",
+            "members": "{count} Mitglieder",
+            "actions": {
+                "view_group": "Zur Gruppe",
+                "view_runs": "Zu Gruppen-Runs",
+                "settings": "Zu Gruppeneinstellungen"
+            },
+            "activity": {
+                "group_updated": "Gruppe aktualisiert {time}",
+                "run_created": "Run erstellt {time}",
+                "run_completed": "Run abgeschlossen {time}",
+                "run_joined": "Run beigetreten {time}",
+                "run_updated": "Run-Aktivität {time}",
+                "application_updated": "Bewerbungsaktivität {time}",
+                "assignment_updated": "Roster-Aktivität {time}"
+            },
+            "roles": {
+                "owner": "Besitzer",
+                "moderator": "Moderator",
+                "member": "Mitglied"
+            },
+            "mock": {
+                "roster_edited": "Roster vor 22 Min. bearbeitet",
+                "run_hosted": "Run vor 2 Std. gehostet",
+                "application_sent": "Bewerbung vor 5 Std. gesendet",
+                "discovery_updated": "Discovery gestern aktualisiert"
+            }
+        },
+        "activity": {
+            "title": "Gruppenaktivität",
+            "subtitle": "Aktuelle Änderungen aus deinen Communities.",
+            "empty": "Noch keine aktuellen Benachrichtigungen.",
+            "items": {
+                "run_posted": "Neuer Run veröffentlicht",
+                "new_applications": "Neue Bewerbungen warten",
+                "assignment_updated": "Roster-Einteilung aktualisiert",
+                "group_updated": "Gruppenprofil geändert"
+            }
+        }
     },
-    "stats": {
-      "joined": "Beigetreten",
-      "hosted": "Geleitet",
-      "groups": "Gruppen",
-      "upcoming": "Anstehend"
-    }
-  },
-  "account_status": {
-    "title": "Kontostatus",
-    "subtitle": "Eine kurze Checkliste, um mehr aus FullParty herauszuholen.",
-    "important": "Wichtig",
-    "recommended": "Empfohlen",
-    "complete": "Erledigt",
-    "todo": "Offen",
-    "percent_ready": "{percent}% bereit",
-    "completed_tooltip": "Kontoeinrichtung abgeschlossen",
-    "items": {
-      "email_verified": {
-        "title": "E-Mail verifizieren",
-        "description": "Schütze dein Konto und erhalte wichtige Updates."
-      },
-      "verified_character": {
-        "title": "Charakter hinzufügen und verifizieren",
-        "description": "Beanspruche mindestens einen Charakter, damit Organisatoren wissen, wen du spielst."
-      },
-      "primary_character": {
-        "title": "Primären Charakter wählen",
-        "description": "Zeige Gruppen, welcher Charakter dich zuerst repräsentiert."
-      },
-      "joined_group": {
-        "title": "Einer Gruppe beitreten",
-        "description": "Finde eine Community, damit deine Runs und Bewerbungen ein Zuhause haben."
-      },
-      "joined_run": {
-        "title": "Run beitreten oder hosten",
-        "description": "Baue deine Aktivitätshistorie mit einem geplanten Run auf."
-      },
-      "connected_discord": {
-        "title": "Discord einrichten",
-        "description": "Erhalte Erinnerungen und Gruppenupdates in Discord."
-      },
-      "notification_preferences_reviewed": {
-        "title": "Benachrichtigungseinstellungen prüfen",
-        "description": "Prüfe, wie FullParty dich über Runs, Gruppen und Bewerbungen benachrichtigen soll."
-      },
-      "public_character": {
-        "title": "Charaktersichtbarkeit teilen",
-        "description": "Lass Organisatoren deinen Charakter bei Bewerbungen prüfen."
-      }
-    }
-  },
-  "home_sections": {
-    "runs": {
-      "title": "Deine Runs",
-      "subtitle": "Runs, in denen du bist, nach Run-Datum sortiert.",
-      "empty": "Noch keine Runs.",
-      "statuses": {
-        "confirmed": "Bestätigt",
-        "benched": "Bank",
-        "pending": "Ausstehend",
-        "ongoing": "Läuft",
-        "completed": "Abgeschlossen",
-        "cancelled": "Abgesagt"
-      }
+    "subtitle": "Your personal base for runs, groups, alerts, and account readiness.",
+    "actions": {
+        "characters": "Meine Charaktere",
+        "applications": "Meine Bewerbungen",
+        "groups": "Meine Gruppen",
+        "notifications": "Benachrichtigungen",
+        "settings": "Einstellungen"
     },
-    "applications": {
-      "title": "Bewerbungen",
-      "subtitle": "Aktuelle Anmeldungen und Roster-Entscheidungen.",
-      "view_all": "Alle Bewerbungen ansehen",
-      "empty": "Noch keine aktuellen Bewerbungen.",
-      "statuses": {
-        "assigned": "Eingeteilt",
-        "pending": "Ausstehend",
-        "waitlist": "Warteliste",
-        "accepted": "Angenommen",
-        "declined": "Abgelehnt",
-        "cancelled": "Abgebrochen",
-        "withdrawn": "Zurückgezogen",
-        "unknown": "Unbekannt"
-      }
+    "labels": {
+        "just_now": "gerade eben",
+        "not_available": "Nicht verfügbar"
+    },
+    "identity": {
+        "eyebrow": "Your Home Base",
+        "setup_score": "{configured}/{total} ready",
+        "verified_email": "Email verified",
+        "email_needs_attention": "Email needs attention",
+        "ready_badge": "Ready to join runs",
+        "with_character": "This page is your home surface: what is coming up, what needs attention, and where to jump back into content the fastest.",
+        "without_character": "This page becomes much more useful once you connect a primary character and start joining groups or applying to runs.",
+        "no_connected_accounts": "No connected accounts yet"
+    },
+    "hero_stats": {
+        "unread": "Unread Alerts",
+        "unread_hint": "Fresh inbox items waiting for you",
+        "active_applications": "Aktive Bewerbungen",
+        "active_applications_hint": "{count} still pending review",
+        "confirmed_runs": "Confirmed Runs",
+        "confirmed_runs_hint": "Approved or benched runs still ahead",
+        "groups": "Gruppen",
+        "groups_hint": "{count} owned directly"
+    },
+    "profile": {
+        "title": "Profile Snapshot",
+        "subtitle": "A quick read on the identity other players and organizers meet on the site.",
+        "visible": "Sichtbar",
+        "hidden": "Versteckt",
+        "none_yet": "None yet",
+        "group_presence_value": "{owned} owned · {moderated} moderated · {member} member",
+        "details": {
+            "email": "E-Mail",
+            "primary_character": "Primärcharakter",
+            "linked_accounts": "Linked Accounts",
+            "public_profile": "Public Profile",
+            "public_characters": "Public Characters",
+            "group_presence": "Group Presence"
+        }
+    },
+    "setup": {
+        "title": "Readiness",
+        "subtitle": "The small things that make groups, rosters, and applications work better.",
+        "coverage": "Coverage",
+        "complete": "Ready",
+        "incomplete": "Missing",
+        "items": {
+            "primary_character": "Primärcharakter",
+            "verified_characters": "Verified Characters",
+            "xivauth": "XIVAuth Connected",
+            "discord": "Discord Connected",
+            "public_profile": "Public Profile",
+            "public_characters": "Public Characters"
+        }
     },
     "groups": {
-      "title": "Deine Gruppen",
-      "subtitle": "Zuletzt aktive Communities.",
-      "empty": "Noch keine Gruppen.",
-      "members": "{count} Mitglieder",
-      "actions": {
-        "view_group": "Zur Gruppe",
-        "view_runs": "Zu Gruppen-Runs",
-        "settings": "Zu Gruppeneinstellungen"
-      },
-      "activity": {
-        "group_updated": "Gruppe aktualisiert {time}",
-        "run_created": "Run erstellt {time}",
-        "run_completed": "Run abgeschlossen {time}",
-        "run_joined": "Run beigetreten {time}",
-        "run_updated": "Run-Aktivität {time}",
-        "application_updated": "Bewerbungsaktivität {time}",
-        "assignment_updated": "Roster-Aktivität {time}"
-      },
-      "roles": {
-        "owner": "Besitzer",
-        "moderator": "Moderator",
-        "member": "Mitglied"
-      },
-      "mock": {
-        "roster_edited": "Roster vor 22 Min. bearbeitet",
-        "run_hosted": "Run vor 2 Std. gehostet",
-        "application_sent": "Bewerbung vor 5 Std. gesendet",
-        "discovery_updated": "Discovery gestern aktualisiert"
-      }
+        "title": "Deine Gruppen",
+        "subtitle": "The communities where you already have a place, role, or dashboard to check.",
+        "count": "{count} total",
+        "empty_title": "Noch keine Gruppen.",
+        "empty_description": "Once you start joining or creating groups, your quick links will live here.",
+        "sections": {
+            "owned": "Owned",
+            "moderated": "Moderated",
+            "member": "Mitglied"
+        }
+    },
+    "next_up": {
+        "title": "Next Up",
+        "subtitle": "Your clearest look at the content you are actively moving through right now.",
+        "queue_label": "Coming Up Next",
+        "submitted": "Submitted {time}",
+        "more_title": "Also In Motion",
+        "no_description": "No additional notes were provided for this run.",
+        "empty_title": "Nothing is lined up right now.",
+        "empty_description": "Once you start applying to runs or getting placed onto rosters, this becomes your fastest way back into the action."
+    },
+    "alerts": {
+        "title": "Latest Alerts",
+        "subtitle": "Recent updates, reminders, and system notices that may need your attention.",
+        "empty_title": "Your inbox is quiet.",
+        "empty_description": "New reminders, roster updates, and notices will show up here."
     },
     "activity": {
-      "title": "Gruppenaktivität",
-      "subtitle": "Aktuelle Änderungen aus deinen Communities.",
-      "empty": "Noch keine aktuellen Benachrichtigungen.",
-      "items": {
-        "run_posted": "Neuer Run veröffentlicht",
-        "new_applications": "Neue Bewerbungen warten",
-        "assignment_updated": "Roster-Einteilung aktualisiert",
-        "group_updated": "Gruppenprofil geändert"
-      }
+        "title": "Application Activity",
+        "subtitle": "Your latest signups, approvals, and older run entries in one place.",
+        "submitted": "Submitted {time}",
+        "empty_title": "No application history yet.",
+        "empty_description": "Once you begin signing up for content, your recent activity will appear here."
     }
-  },
-  "subtitle": "Your personal base for runs, groups, alerts, and account readiness.",
-  "actions": {
-    "characters": "My Characters",
-    "applications": "My Applications",
-    "groups": "My Groups",
-    "notifications": "Notifications",
-    "settings": "Settings"
-  },
-  "labels": {
-    "just_now": "just now",
-    "not_available": "Not available"
-  },
-  "identity": {
-    "eyebrow": "Your Home Base",
-    "setup_score": "{configured}/{total} ready",
-    "verified_email": "Email verified",
-    "email_needs_attention": "Email needs attention",
-    "ready_badge": "Ready to join runs",
-    "with_character": "This page is your home surface: what is coming up, what needs attention, and where to jump back into content the fastest.",
-    "without_character": "This page becomes much more useful once you connect a primary character and start joining groups or applying to runs.",
-    "no_connected_accounts": "No connected accounts yet"
-  },
-  "hero_stats": {
-    "unread": "Unread Alerts",
-    "unread_hint": "Fresh inbox items waiting for you",
-    "active_applications": "Active Applications",
-    "active_applications_hint": "{count} still pending review",
-    "confirmed_runs": "Confirmed Runs",
-    "confirmed_runs_hint": "Approved or benched runs still ahead",
-    "groups": "Groups",
-    "groups_hint": "{count} owned directly"
-  },
-  "profile": {
-    "title": "Profile Snapshot",
-    "subtitle": "A quick read on the identity other players and organizers meet on the site.",
-    "visible": "Visible",
-    "hidden": "Hidden",
-    "none_yet": "None yet",
-    "group_presence_value": "{owned} owned · {moderated} moderated · {member} member",
-    "details": {
-      "email": "Email",
-      "primary_character": "Primary Character",
-      "linked_accounts": "Linked Accounts",
-      "public_profile": "Public Profile",
-      "public_characters": "Public Characters",
-      "group_presence": "Group Presence"
-    }
-  },
-  "setup": {
-    "title": "Readiness",
-    "subtitle": "The small things that make groups, rosters, and applications work better.",
-    "coverage": "Coverage",
-    "complete": "Ready",
-    "incomplete": "Missing",
-    "items": {
-      "primary_character": "Primary Character",
-      "verified_characters": "Verified Characters",
-      "xivauth": "XIVAuth Connected",
-      "discord": "Discord Connected",
-      "public_profile": "Public Profile",
-      "public_characters": "Public Characters"
-    }
-  },
-  "groups": {
-    "title": "Your Groups",
-    "subtitle": "The communities where you already have a place, role, or dashboard to check.",
-    "count": "{count} total",
-    "empty_title": "No groups yet.",
-    "empty_description": "Once you start joining or creating groups, your quick links will live here.",
-    "sections": {
-      "owned": "Owned",
-      "moderated": "Moderated",
-      "member": "Member"
-    }
-  },
-  "next_up": {
-    "title": "Next Up",
-    "subtitle": "Your clearest look at the content you are actively moving through right now.",
-    "queue_label": "Coming Up Next",
-    "submitted": "Submitted {time}",
-    "more_title": "Also In Motion",
-    "no_description": "No additional notes were provided for this run.",
-    "empty_title": "Nothing is lined up right now.",
-    "empty_description": "Once you start applying to runs or getting placed onto rosters, this becomes your fastest way back into the action."
-  },
-  "alerts": {
-    "title": "Latest Alerts",
-    "subtitle": "Recent updates, reminders, and system notices that may need your attention.",
-    "empty_title": "Your inbox is quiet.",
-    "empty_description": "New reminders, roster updates, and notices will show up here."
-  },
-  "activity": {
-    "title": "Application Activity",
-    "subtitle": "Your latest signups, approvals, and older run entries in one place.",
-    "submitted": "Submitted {time}",
-    "empty_title": "No application history yet.",
-    "empty_description": "Once you begin signing up for content, your recent activity will appear here."
-  }
 }

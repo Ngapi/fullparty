@@ -1,208 +1,216 @@
 {
-  "ui": {
-    "title": "通知",
-    "empty": "まだ通知はありません。",
-    "view_all": "すべての通知を見る",
-    "mark_all_as_read": "すべて既読にする",
-    "new_badge": "新着",
-    "important_badge": "重要",
-    "fallback_title": "通知",
-    "just_now": "たった今"
-  },
-  "page": {
-    "title": "通知",
-    "subtitle": "アカウント、募集、グループの更新を新しい順に確認できます。",
-    "empty_title": "まだ通知はありません",
-    "empty_description": "FullParty からお知らせがあると、ここに表示されます。",
-    "showing_latest_first": "新しい通知から表示しています。",
-    "total_count": "履歴に {count} 件の通知があります。",
-    "unread_count": "未読 {count} 件",
-    "load_more": "さらに読み込む",
-    "loading_more": "読み込み中...",
-    "mark_all_success_title": "通知を更新しました",
-    "mark_all_success_description": "すべての通知を既読にしました。"
-  },
-  "user": {
-    "social_account": {
-      "linked": {
-        "title": "連携アカウントを追加しました",
-        "body": "{provider} アカウントが FullParty に連携されました。"
-      },
-      "unlinked": {
-        "title": "連携アカウントを解除しました",
-        "body": "{provider} アカウントの連携を FullParty から解除しました。"
-      }
+    "ui": {
+        "title": "通知",
+        "empty": "まだ通知はありません。",
+        "view_all": "すべての通知を見る",
+        "mark_all_as_read": "すべて既読にする",
+        "new_badge": "新着",
+        "important_badge": "重要",
+        "fallback_title": "通知",
+        "just_now": "たった今"
     },
-    "settings": {
-      "notifications_updated": {
-        "title": "通知設定を更新しました",
-        "body": "通知設定が更新されました。変更された設定: {settings}"
-      },
-      "username_updated": {
-        "title": "アカウント設定を更新しました",
-        "body": "アカウント設定が更新されました。変更された設定: {settings}"
-      },
-      "password_updated": {
-        "title": "パスワードを更新しました",
-        "body": "アカウントのパスワードが更新されました。"
-      },
-      "privacy_updated": {
-        "title": "プライバシー設定を更新しました",
-        "body": "プライバシー設定が更新されました。変更された設定: {settings}"
-      }
+    "page": {
+        "title": "通知",
+        "subtitle": "アカウント、募集、グループの更新を新しい順に確認できます。",
+        "empty_title": "まだ通知はありません",
+        "empty_description": "FullParty からお知らせがあると、ここに表示されます。",
+        "showing_latest_first": "新しい通知から表示しています。",
+        "total_count": "履歴に {count} 件の通知があります。",
+        "unread_count": "未読 {count} 件",
+        "load_more": "さらに読み込む",
+        "loading_more": "読み込み中...",
+        "mark_all_success_title": "通知を更新しました",
+        "mark_all_success_description": "すべての通知を既読にしました。"
+    },
+    "user": {
+        "social_account": {
+            "linked": {
+                "title": "連携アカウントを追加しました",
+                "body": "{provider} アカウントが FullParty に連携されました。"
+            },
+            "unlinked": {
+                "title": "連携アカウントを解除しました",
+                "body": "{provider} アカウントの連携を FullParty から解除しました。"
+            }
+        },
+        "settings": {
+            "notifications_updated": {
+                "title": "通知設定を更新しました",
+                "body": "通知設定が更新されました。変更された設定: {settings}"
+            },
+            "username_updated": {
+                "title": "アカウント設定を更新しました",
+                "body": "アカウント設定が更新されました。変更された設定: {settings}"
+            },
+            "password_updated": {
+                "title": "パスワードを更新しました",
+                "body": "アカウントのパスワードが更新されました。"
+            },
+            "privacy_updated": {
+                "title": "プライバシー設定を更新しました",
+                "body": "プライバシー設定が更新されました。変更された設定: {settings}"
+            }
+        }
+    },
+    "characters": {
+        "added": {
+            "title": "キャラクターを追加しました",
+            "body": "{character} ({world} / {datacenter}) を {method} 経由でアカウントに追加しました。"
+        },
+        "refreshed": {
+            "title": "キャラクターを更新しました",
+            "body": "{character} ({world} / {datacenter}) のプロフィール情報を最新の状態に更新しました。"
+        },
+        "primary_changed": {
+            "title": "メインキャラクターを更新しました",
+            "body": "{character} ({world} / {datacenter}) がメインキャラクターになりました。"
+        },
+        "unclaimed": {
+            "title": "キャラクターの紐付けを解除",
+            "body": "{character} ({world} / {datacenter}) はアカウントから解除されました。"
+        }
+    },
+    "applications": {
+        "new_for_review": {
+            "title": "審査待ちの応募があります",
+            "body": "{activity} には審査待ちの新しい応募が {count} 件あります。"
+        },
+        "submitted": {
+            "title": "応募が送信されました",
+            "body": "{activity} への {character} としての応募が送信されました。"
+        },
+        "updated": {
+            "title": "応募内容が更新されました",
+            "body": "{character} が {activity} の応募内容を更新しました。"
+        },
+        "withdrawn": {
+            "title": "応募が取り下げられました",
+            "body": "{activity} への {character} としての応募が取り下げられました。"
+        },
+        "declined": {
+            "title": "応募が辞退されました",
+            "body": "{activity} への {character} としての応募は見送られました。",
+            "body_with_reason": "{activity} への {character} としての応募は見送られました。理由: {reason}"
+        },
+        "cancelled": {
+            "title": "応募がキャンセルされました",
+            "body": "{activity} への {character} としての応募は、募集が中止されたためキャンセルされました。"
+        }
+    },
+    "assignments": {
+        "roster_published_assigned": {
+            "title": "ロスターが公開されました",
+            "body": "{activity} のロスターが公開されました。あなたは {character} として {slot} に配置されています。"
+        },
+        "roster_published_bench": {
+            "title": "ロスターが公開されました",
+            "body": "{activity} のロスターが公開されました。あなたは {character} としてベンチに入っています。"
+        },
+        "assigned": {
+            "title": "ロスター配置が更新されました",
+            "body": "あなたは {activity} で {character} として {slot} に再配置されました。"
+        },
+        "on_bench": {
+            "title": "ベンチ配置が更新されました",
+            "body": "あなたは {activity} で {character} としてベンチに再配置されました。"
+        },
+        "returned_to_queue": {
+            "title": "配置が再審査に戻りました",
+            "body": "{activity} への {character} としての応募は、再審査キューに戻されました。"
+        },
+        "removed": {
+            "title": "Run から外されました",
+            "body": "{activity} から {character} としての配置が外されました。"
+        },
+        "marked_missing": {
+            "title": "欠席としてマークされました",
+            "body": "{activity} で {character} として欠席にマークされました。"
+        },
+        "missing_restored": {
+            "title": "欠席ステータスが解除されました",
+            "body": "{activity} で {character} として {slot} に戻されました。"
+        },
+        "designation_assigned": {
+            "title": "ラン内ロールを更新しました",
+            "body": "{activity} の {slot} で {designation} に指定されました。"
+        },
+        "designation_removed": {
+            "title": "ラン内ロールを更新しました",
+            "body": "{activity} の {designation} 指定が解除されました。"
+        }
+    },
+    "runs": {
+        "cancelled": {
+            "title": "Run cancelled",
+            "body": "{activity} was cancelled.",
+            "body_with_reason": "{activity} was cancelled. 理由: {reason}"
+        },
+        "starting_soon": {
+            "title": "Run starting soon",
+            "body": "{activity} is starting soon."
+        },
+        "starting_now": {
+            "title": "Run starting now",
+            "body": "{activity} is starting now."
+        },
+        "completed": {
+            "title": "Run complete",
+            "body": "{activity} is now complete."
+        }
+    },
+    "groups": {
+        "run_draft": {
+            "title": "ランの下書きが作成されました",
+            "body": "{activity} は {group} 用の下書き状態です。"
+        },
+        "run_scheduled": {
+            "title": "New run scheduled",
+            "body": "{activity} was scheduled for {group}."
+        },
+        "member_promoted": {
+            "title": "Role updated",
+            "body": "Your role in {group} was updated to {role}."
+        },
+        "member_demoted": {
+            "title": "Role updated",
+            "body": "Your role in {group} was updated to {role}."
+        },
+        "ownership_transferred_to_you": {
+            "title": "グループ所有権を移譲",
+            "body": "{group} was transferred to you by {user}."
+        },
+        "ownership_transferred_from_you": {
+            "title": "グループ所有権を移譲",
+            "body": "You transferred ownership of {group} to {user}."
+        },
+        "member_joined": {
+            "title": "Member joined",
+            "body": "{user} joined {group}."
+        },
+        "member_left": {
+            "title": "Member left",
+            "body": "{user} left {group}."
+        },
+        "member_banned": {
+            "title": "Removed from group",
+            "body": "You were banned from {group}."
+        }
+    },
+    "system": {
+        "maintenance": {
+            "title": "{headline}",
+            "body": "{message}",
+            "body_with_schedule": "{message}\nScheduled for: {scheduled_for}"
+        },
+        "announcement": {
+            "title": "{headline}",
+            "body": "{message}"
+        }
+    },
+    "integrations": {
+        "delivery_failed": {
+            "title": "インテグレーション配信に失敗しました",
+            "body": "{client} が {event} を受信できませんでした。エラー: {error}"
+        }
     }
-  },
-  "characters": {
-    "added": {
-      "title": "キャラクターを追加しました",
-      "body": "{character} ({world} / {datacenter}) を {method} 経由でアカウントに追加しました。"
-    },
-    "refreshed": {
-      "title": "キャラクターを更新しました",
-      "body": "{character} ({world} / {datacenter}) のプロフィール情報を最新の状態に更新しました。"
-    },
-    "primary_changed": {
-      "title": "メインキャラクターを更新しました",
-      "body": "{character} ({world} / {datacenter}) がメインキャラクターになりました。"
-    },
-    "unclaimed": {
-      "title": "キャラクターの紐付けを解除",
-      "body": "{character} ({world} / {datacenter}) はアカウントから解除されました。"
-    }
-  },
-  "applications": {
-    "new_for_review": {
-      "title": "審査待ちの応募があります",
-      "body": "{activity} には審査待ちの新しい応募が {count} 件あります。"
-    },
-    "submitted": {
-      "title": "応募が送信されました",
-      "body": "{activity} への {character} としての応募が送信されました。"
-    },
-    "updated": {
-      "title": "応募内容が更新されました",
-      "body": "{character} が {activity} の応募内容を更新しました。"
-    },
-    "withdrawn": {
-      "title": "応募が取り下げられました",
-      "body": "{activity} への {character} としての応募が取り下げられました。"
-    },
-    "declined": {
-      "title": "応募が辞退されました",
-      "body": "{activity} への {character} としての応募は見送られました。",
-      "body_with_reason": "{activity} への {character} としての応募は見送られました。理由: {reason}"
-    },
-    "cancelled": {
-      "title": "応募がキャンセルされました",
-      "body": "{activity} への {character} としての応募は、募集が中止されたためキャンセルされました。"
-    }
-  },
-  "assignments": {
-    "roster_published_assigned": {
-      "title": "ロスターが公開されました",
-      "body": "{activity} のロスターが公開されました。あなたは {character} として {slot} に配置されています。"
-    },
-    "roster_published_bench": {
-      "title": "ロスターが公開されました",
-      "body": "{activity} のロスターが公開されました。あなたは {character} としてベンチに入っています。"
-    },
-    "assigned": {
-      "title": "ロスター配置が更新されました",
-      "body": "あなたは {activity} で {character} として {slot} に再配置されました。"
-    },
-    "on_bench": {
-      "title": "ベンチ配置が更新されました",
-      "body": "あなたは {activity} で {character} としてベンチに再配置されました。"
-    },
-    "returned_to_queue": {
-      "title": "配置が再審査に戻りました",
-      "body": "{activity} への {character} としての応募は、再審査キューに戻されました。"
-    },
-    "removed": {
-      "title": "Run から外されました",
-      "body": "{activity} から {character} としての配置が外されました。"
-    },
-    "marked_missing": {
-      "title": "欠席としてマークされました",
-      "body": "{activity} で {character} として欠席にマークされました。"
-    },
-    "missing_restored": {
-      "title": "欠席ステータスが解除されました",
-      "body": "{activity} で {character} として {slot} に戻されました。"
-    }
-  },
-  "runs": {
-    "cancelled": {
-      "title": "Run cancelled",
-      "body": "{activity} was cancelled.",
-      "body_with_reason": "{activity} was cancelled. 理由: {reason}"
-    },
-    "starting_soon": {
-      "title": "Run starting soon",
-      "body": "{activity} is starting soon."
-    },
-    "starting_now": {
-      "title": "Run starting now",
-      "body": "{activity} is starting now."
-    },
-    "completed": {
-      "title": "Run complete",
-      "body": "{activity} is now complete."
-    }
-  },
-  "groups": {
-    "run_draft": {
-      "title": "ランの下書きが作成されました",
-      "body": "{activity} は {group} 用の下書き状態です。"
-    },
-    "run_scheduled": {
-      "title": "New run scheduled",
-      "body": "{activity} was scheduled for {group}."
-    },
-    "member_promoted": {
-      "title": "Role updated",
-      "body": "Your role in {group} was updated to {role}."
-    },
-    "member_demoted": {
-      "title": "Role updated",
-      "body": "Your role in {group} was updated to {role}."
-    },
-    "ownership_transferred_to_you": {
-      "title": "Group ownership transferred",
-      "body": "{group} was transferred to you by {user}."
-    },
-    "ownership_transferred_from_you": {
-      "title": "Group ownership transferred",
-      "body": "You transferred ownership of {group} to {user}."
-    },
-    "member_joined": {
-      "title": "Member joined",
-      "body": "{user} joined {group}."
-    },
-    "member_left": {
-      "title": "Member left",
-      "body": "{user} left {group}."
-    },
-    "member_banned": {
-      "title": "Removed from group",
-      "body": "You were banned from {group}."
-    }
-  },
-  "system": {
-    "maintenance": {
-      "title": "{headline}",
-      "body": "{message}",
-      "body_with_schedule": "{message}\nScheduled for: {scheduled_for}"
-    },
-    "announcement": {
-      "title": "{headline}",
-      "body": "{message}"
-    }
-  },
-  "integrations": {
-    "delivery_failed": {
-      "title": "インテグレーション配信に失敗しました",
-      "body": "{client} が {event} を受信できませんでした。エラー: {error}"
-    }
-  }
 }

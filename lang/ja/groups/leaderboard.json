@@ -1,63 +1,63 @@
 {
-  "title": "リーダーボード",
-  "subtitle": "{group} のロスター参加ランキングです。",
-  "summary": {
-    "total_participations": "総参加数",
-    "ranked_participants": "ランキング対象者",
-    "raid_leaders": "レイドリーダー参加",
-    "hosts": "ホスト参加"
-  },
-  "common": {
-    "participations": "参加",
-    "runs": "回",
-    "complete_runs_only": "完了済みランのみ",
-    "no_date": "最近のランなし"
-  },
-  "cache": {
-    "refresh": "リーダーボードを更新",
-    "refreshing": "更新中...",
-    "cooldown": "{time} 後に更新",
-    "tooltip": "キャッシュ: {cached}。期限: {expires}。",
-    "unknown": "不明"
-  },
-  "featured": {
-    "mvp_title": "最多参加プレイヤー",
-    "mvp_subtitle": "ロスター入りしたラン参加数が最も多いキャラクターです。",
-    "host_success_title": "最高ホストパフォーマンス",
-    "host_success_subtitle": "完了済みホストランの加重パフォーマンススコアです。",
-    "last_seen": "最終参加: {date}"
-  },
-  "boards": {
-    "overall": {
-      "title": "総合参加",
-      "subtitle": "ロスター入りしたラン参加数です。"
+    "title": "リーダーボード",
+    "subtitle": "{group} のロスター参加ランキングです。",
+    "summary": {
+        "total_participations": "総参加数",
+        "ranked_participants": "ランキング対象者",
+        "raid_leaders": "レイドリーダー参加",
+        "hosts": "ホスト参加"
     },
-    "raid_leaders": {
-      "title": "レイドリーダー",
-      "subtitle": "レイドリーダーとしてマークされたラン数です。"
+    "common": {
+        "participations": "参加",
+        "runs": "回",
+        "complete_runs_only": "完了済みランのみ",
+        "no_date": "最近のランなし"
     },
-    "hosts": {
-      "title": "ホスト",
-      "subtitle": "ホストとしてマークされたラン数です。"
+    "cache": {
+        "refresh": "リーダーボードを更新",
+        "refreshing": "更新中...",
+        "cooldown": "{time} 後に更新",
+        "tooltip": "キャッシュ: {cached}。期限: {expires}。",
+        "unknown": "不明"
+    },
+    "featured": {
+        "mvp_title": "最多参加プレイヤー",
+        "mvp_subtitle": "ロスター入りしたラン参加数が最も多いキャラクターです。",
+        "host_success_title": "最高ホストパフォーマンス",
+        "host_success_subtitle": "完了済みホストランの加重パフォーマンススコアです。",
+        "last_seen": "最終参加: {date}"
+    },
+    "boards": {
+        "overall": {
+            "title": "総合参加",
+            "subtitle": "ロスター入りしたラン参加数です。"
+        },
+        "raid_leaders": {
+            "title": "レイドリーダー",
+            "subtitle": "レイドリーダーとしてマークされたラン数です。"
+        },
+        "hosts": {
+            "title": "ホスト",
+            "subtitle": "ホストとしてマークされたラン数です。"
+        }
+    },
+    "host_success": {
+        "title": "ホストパフォーマンス",
+        "subtitle": "完了済みホストランを加重成功とベイズ平滑化で順位付けします。表示には2回以上の完了済みホストランが必要です。",
+        "record": "{successes}/{total} 成功",
+        "failed": "{count} 目標未達",
+        "minimum": "完了済みホストラン2回以上",
+        "formula_label": "ホストパフォーマンス計算式",
+        "formula_hint": "スコア = (記録済み成功 + 自動成功 x 0.5 + 事前値) / (完了済みホストラン + 10)。1回だけのホストは非表示です。",
+        "raw_success": "通常成功率 {rate}",
+        "documented": "{count} 記録済み",
+        "auto": "{count} 自動",
+        "breakdown": "{documented} 記録済み / {auto} 自動 / {failed} 未達"
+    },
+    "empty": {
+        "overall": "スロットに割り当てられた参加者がいると、ここに表示されます。",
+        "raid_leaders": "スロットがレイドリーダーとしてマークされると、ランキングが表示されます。",
+        "hosts": "スロットがホストとしてマークされると、ランキングが表示されます。",
+        "host_success": "完了済みのホストランがあると、成功率が表示されます。"
     }
-  },
-  "host_success": {
-    "title": "ホストパフォーマンス",
-    "subtitle": "完了済みホストランを加重成功とベイズ平滑化で順位付けします。表示には2回以上の完了済みホストランが必要です。",
-    "record": "{successes}/{total} 成功",
-    "failed": "{count} 目標未達",
-    "minimum": "完了済みホストラン2回以上",
-    "formula_label": "ホストパフォーマンス計算式",
-    "formula_hint": "スコア = (記録済み成功 + 自動成功 x 0.5 + 事前値) / (完了済みホストラン + 10)。1回だけのホストは非表示です。",
-    "raw_success": "通常成功率 {rate}",
-    "documented": "{count} 記録済み",
-    "auto": "{count} 自動",
-    "breakdown": "{documented} 記録済み / {auto} 自動 / {failed} 未達"
-  },
-  "empty": {
-    "overall": "スロットに割り当てられた参加者がいると、ここに表示されます。",
-    "raid_leaders": "スロットがレイドリーダーとしてマークされると、ランキングが表示されます。",
-    "hosts": "スロットがホストとしてマークされると、ランキングが表示されます。",
-    "host_success": "完了済みのホストランがあると、成功率が表示されます。"
-  }
 }

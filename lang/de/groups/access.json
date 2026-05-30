@@ -1,6 +1,6 @@
 {
-  "owner": "Besitzerzugriff",
-  "admin": "Admin-Zugriff",
-  "moderator": "Moderatorzugriff",
-  "member": "Mitgliedszugriff"
+    "owner": "Besitzerzugriff",
+    "admin": "Admin-Zugriff",
+    "moderator": "Moderatorzugriff",
+    "member": "Mitgliedszugriff"
 }

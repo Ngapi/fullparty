@@ -1,20 +1,21 @@
 {
-    "title": "Runs",
+    "title": "ラン",
     "subtitle": "{group}'s upcoming schedule and monthly calendar at a glance.",
     "header_badge": "{count} upcoming",
+    "back": "ランに戻る",
     "statuses": {
         "draft": "下書き",
-        "scheduled": "Scheduled",
-        "assigned": "Assigned",
-        "upcoming": "Upcoming",
-        "ongoing": "Ongoing",
-        "complete": "Complete",
-        "cancelled": "Cancelled"
+        "scheduled": "予定済み",
+        "assigned": "割り当て済み",
+        "upcoming": "予定",
+        "ongoing": "進行中",
+        "complete": "完了",
+        "cancelled": "キャンセル"
     },
     "intensities": {
-        "casual": "Casual",
-        "midcore": "Midcore",
-        "hardcore": "Hardcore"
+        "casual": "カジュアル",
+        "midcore": "ミッドコア",
+        "hardcore": "ハードコア"
     },
     "run_styles": {
         "progression": "Prog",
@@ -31,13 +32,13 @@
         "extreme": "Extreme",
         "unreal": "Unreal",
         "exploration": "Exploration",
-        "savage": "Savage",
-        "ultimate": "Ultimate",
+        "savage": "零式",
+        "ultimate": "絶",
         "chaotic": "Chaotic",
         "criterion": "Criterion"
     },
     "upcoming": {
-        "title": "Upcoming Runs",
+        "title": "今後のRuns",
         "subtitle": "A detailed view of what's coming up next for the group.",
         "count": "{count} scheduled",
         "empty": "No upcoming runs are scheduled yet."
@@ -54,8 +55,8 @@
         "title": "Monthly Calendar",
         "subtitle": "A month view of the group's run schedule.",
         "month_count": "{count} this month",
-        "previous": "Previous",
-        "next": "Next",
+        "previous": "前へ",
+        "next": "次へ",
         "day_count": "{count} items",
         "more": "+{count} more",
         "member_count": "メンバー {assigned}/{total}",
@@ -96,16 +97,16 @@
         "copy_info_error_title": "Unable to copy run summary",
         "copy_info_error_description": "Please try copying the run summary again.",
         "summary_labels": {
-            "title": "Title",
-            "type": "Type",
-            "status": "Status",
-            "date": "Date",
+            "title": "タイトル",
+            "type": "種類",
+            "status": "ステータス",
+            "date": "日付",
             "time": "Time",
             "duration": "Duration",
             "host": "Host",
-            "datacenter": "Datacenter",
+            "datacenter": "データセンター",
             "slots": "Slots",
-            "applications": "Applications"
+            "applications": "応募"
         }
     },
     "legend": {
@@ -178,7 +179,8 @@
             "mark_late_failed": "Unable to mark this slot as late.",
             "check_in_group_failed": "Unable to check in this group.",
             "mark_missing_failed": "Unable to mark this slot as missing.",
-            "warning_title": "Warning",
+            "mark_designation_failed": "このスロット指定を更新できませんでした。",
+            "warning_title": "警告",
             "undo_missing_failed": "Unable to undo this missing slot.",
             "assign_failed": "Unable to assign this application to the selected slot.",
             "manual_assign_failed": "Unable to assign this group member to the selected slot.",
@@ -205,7 +207,7 @@
         "complete_activity_modal": {
             "title": "Complete Run",
             "description": "Record the final run outcome before this run is archived.",
-            "progress": "Step {current} of {total}",
+            "progress": "ステップ {current} / {total}",
             "warning_title": "Completed runs become immutable",
             "warning_body": "Once completed, this run becomes archival-only. Moderators will no longer be able to edit the roster, applications, or activity details.",
             "warning_points": {
@@ -227,14 +229,14 @@
             "milestones_hint": "Enter the normalized final result that should be stored for this run.",
             "milestones_autofilled_hint": "Review the autofilled result and adjust anything that needs correction.",
             "manual_step_help": "Enter the final normalized progression result for this run.",
-            "kills": "Kills",
+            "kills": "討伐数",
             "best_progress_percent": "Best Progress %",
             "errors": {
                 "kills_integer": "Killsは整数で入力してください。",
                 "percent_numeric": "進捗は特殊記号を使わずに0から100の数値で入力してください。",
                 "percent_range": "進捗は0から100の範囲で入力してください。"
             },
-            "notes": "Notes",
+            "notes": "メモ",
             "notes_placeholder": "Optional notes about the result or evidence.",
             "confirm_title": "Final Confirmation",
             "confirm_body": "Double check this progression result before completing the activity.",
@@ -247,7 +249,7 @@
                 "manual_help": "Enter the final progression result directly from the run outcome."
             },
             "steps": {
-                "warning": "Warning",
+                "warning": "警告",
                 "method": "Method",
                 "fflogs_link": "FF Logs Link",
                 "fflogs_review": "Review Autofill",
@@ -256,14 +258,14 @@
             }
         },
         "view_overview": "View Overview",
-        "type": "Activity Type",
-        "starts_at": "Starts At",
-        "organizer": "Organizer",
+        "type": "アクティビティ種別",
+        "starts_at": "開始日時",
+        "organizer": "主催者",
         "slots": "Slots",
-        "applications": "Applications",
+        "applications": "応募",
         "milestones": "Milestones",
         "overview": {
-            "group": "Group",
+            "group": "グループ",
             "applicants": "Applicants",
             "assigned": "{assigned}/{total} Assigned",
             "pending_applicants": "{count} pending",
@@ -297,17 +299,17 @@
                 "view_fflogs": "View FF Logs Report",
                 "notes": "Progress Notes",
                 "milestones": "Milestones",
-                "not_recorded": "Not recorded"
+                "not_recorded": "未記録"
             }
         },
         "roster": {
             "title": "Roster Assignments",
             "subtitle": "Parties and slots are generated from the activity layout and ready to be filled.",
             "slots_count": "{count} slots",
-            "assigned": "Assigned",
+            "assigned": "割り当て済み",
             "checked_in": "Checked in",
             "late": "Late",
-            "open": "Open",
+            "open": "オープン",
             "slot_placeholder": "Click to assign",
             "filled_placeholder": "Assigned character details and controls will live here next.",
             "filled_slot": "Filled Slot",
@@ -329,32 +331,38 @@
             "cut_assignment_action": "割り当てを切り取り",
             "cancel_cut_assignment_action": "切り取りをキャンセル",
             "paste_assignment_action": "ここに割り当てを貼り付け",
+            "mark_host_action": "ホストに指定",
+            "unmark_host_action": "ホスト指定を解除",
+            "mark_raid_leader_action": "レイドリーダーに指定",
+            "unmark_raid_leader_action": "レイドリーダー指定を解除",
             "undo_check_in": "Undo Checkin",
+            "host_badge": "ホスト",
+            "raid_leader_badge": "レイドリーダー",
             "roles": {
-                "tank": "Tank",
-                "healer": "Healer",
+                "tank": "タンク",
+                "healer": "ヒーラー",
                 "dps": "DPS"
             },
             "list_headers": {
                 "party": "Party",
-                "slot": "Slot",
-                "details": "Details",
-                "status": "Status"
+                "slot": "枠",
+                "details": "詳細",
+                "status": "ステータス"
             },
             "csv_headers": {
-                "group": "Group",
-                "slot": "Slot",
-                "status": "Status",
-                "character": "Character",
+                "group": "グループ",
+                "slot": "枠",
+                "status": "ステータス",
+                "character": "キャラクター",
                 "world": "World",
-                "datacenter": "Datacenter"
+                "datacenter": "データセンター"
             },
             "empty": "No roster slots were generated for this activity."
         },
         "queue": {
             "title": "Applicant Queue",
             "search_placeholder": "Search applicants...",
-            "filters": "Filters",
+            "filters": "フィルター",
             "filters_with_count": "Filters ({count})",
             "filter_any": "Any match",
             "filter_any_milestone": "Any milestone reached",
@@ -362,68 +370,68 @@
             "min_knowledge_level": "Minimum Knowledge Level",
             "min_phantom_mastery": "Minimum Phantom Mastery",
             "minimum_value_placeholder": "Minimum value",
-            "clear_filters": "Clear Filters",
-            "pending": "Pending",
+            "clear_filters": "フィルターをクリア",
+            "pending": "保留中",
             "expand": "Expand",
             "assign_to_roster": "Assign to Roster",
             "approve": "Approve",
-            "decline": "Decline",
+            "decline": "辞退",
             "decline_footer_hint": "Declining removes this application from the pending queue and cannot be undone.",
-            "decline_success_title": "Application declined",
+            "decline_success_title": "応募が辞退されました",
             "decline_success_description": "The application was declined and removed from the queue.",
             "decline_error_title": "Unable to decline application",
             "decline_error_description": "This application could not be declined right now.",
             "can_play": "Can Play",
             "empty": "No pending applicants right now.",
             "placeholder": "Applicant details, playable jobs, and notes will be expanded here next.",
-                "decline_modal": {
-                    "title": "Decline Application",
-                    "description": "Remove this application from the pending review queue.",
-                    "warning_title": "This cannot be undone",
-                    "warning_description": "Once an application is declined, moderators cannot return it to pending review from the dashboard.",
-                    "reason_label": "Optional reason",
-                    "reason_description": "If you add a reason here, the applicant will be able to see it on their application page.",
-                    "reason_placeholder": "Share any context the applicant should know.",
-                    "confirm": "Decline Application"
-                },
-                "modal": {
-                    "applicant": "Applicant",
-                    "account": "Account",
-                    "submitted": "Submitted",
-                    "world": "World",
-                    "datacenter": "Datacenter",
-                    "occult_level": "Occult Level",
-                    "phantom_mastery": "Phantom Mastery",
-                    "character": "Character",
-                    "guest_account": "ゲスト応募",
-                    "fflogs_title": "FF Logs Progress",
-                    "fflogs_not_configured": "This activity type does not have an FF Logs zone configured.",
-                    "fflogs_empty": "No FF Logs progress was found for this character in the configured zone.",
-                    "fflogs_error": "FF Logs progress could not be loaded right now.",
-                    "fflogs_unavailable_guest": "FF Logs progress is only available once this application is linked to a verified FullParty character.",
-                    "fflogs_encounters": "Encounters",
-                    "fflogs_total_kills": "Total Kills",
-                    "fflogs_best_progress": "Best Progress",
-                    "user_stats": "User History",
-                    "most_played_class": "Most Played Class",
-                    "most_played_phantom_job": "Most Played Phantom Job",
-                    "with_group": "With Group",
-                    "overall": "Overall",
-                    "no_user_stats": "No previous roster history was found for this user.",
-                    "no_user_stats_guest": "Roster history is not available for guest applications.",
-                    "answers": "Application Details",
-                    "notes": "Notes",
-                    "no_answers": "No application answers were provided.",
-                    "no_notes": "No extra notes were provided."
-                },
-                "guest_badge": "Guest",
-                "unknown_applicant": "Unknown applicant",
-                "no_submission_time": "Submission time not available"
+            "decline_modal": {
+                "title": "Decline Application",
+                "description": "Remove this application from the pending review queue.",
+                "warning_title": "This cannot be undone",
+                "warning_description": "Once an application is declined, moderators cannot return it to pending review from the dashboard.",
+                "reason_label": "Optional reason",
+                "reason_description": "If you add a reason here, the applicant will be able to see it on their application page.",
+                "reason_placeholder": "Share any context the applicant should know.",
+                "confirm": "Decline Application"
             },
+            "modal": {
+                "applicant": "Applicant",
+                "account": "アカウント",
+                "submitted": "Submitted",
+                "world": "World",
+                "datacenter": "データセンター",
+                "occult_level": "Occult Level",
+                "phantom_mastery": "Phantom Mastery",
+                "character": "キャラクター",
+                "guest_account": "ゲスト応募",
+                "fflogs_title": "FF Logs Progress",
+                "fflogs_not_configured": "This activity type does not have an FF Logs zone configured.",
+                "fflogs_empty": "No FF Logs progress was found for this character in the configured zone.",
+                "fflogs_error": "FF Logs progress could not be loaded right now.",
+                "fflogs_unavailable_guest": "FF Logs progress is only available once this application is linked to a verified FullParty character.",
+                "fflogs_encounters": "Encounters",
+                "fflogs_total_kills": "Total Kills",
+                "fflogs_best_progress": "Best Progress",
+                "user_stats": "User History",
+                "most_played_class": "Most Played Class",
+                "most_played_phantom_job": "Most Played Phantom Job",
+                "with_group": "With Group",
+                "overall": "Overall",
+                "no_user_stats": "No previous roster history was found for this user.",
+                "no_user_stats_guest": "Roster history is not available for guest applications.",
+                "answers": "Application Details",
+                "notes": "メモ",
+                "no_answers": "No application answers were provided.",
+                "no_notes": "No extra notes were provided."
+            },
+            "guest_badge": "Guest",
+            "unknown_applicant": "Unknown applicant",
+            "no_submission_time": "Submission time not available"
+        },
         "controls": {
             "view": "View",
             "party": "Party",
-            "role": "Role",
+            "role": "ロール",
             "list": "List",
             "applications_toggle": "Applications: {count}",
             "show_queue": "Show Applicant Queue",
@@ -444,7 +452,7 @@
         "hide_details": "詳細を非表示",
         "summary_title": "Quick Summary",
         "summary_subtitle": "The key details before the application tools land here.",
-        "applications_title": "Applications",
+        "applications_title": "応募",
         "applications_ready": "Application submission will live from this page. For now, this direct link is the right access path.",
         "applications_login": "You will need to log in before applying once the application flow is added here.",
         "meta": {
@@ -455,10 +463,10 @@
             "no_duration": "No duration set"
         },
         "details": {
-            "description": "Description",
-            "target_prog_point": "Target Prog Point",
+            "description": "説明",
+            "target_prog_point": "目標Progポイント",
             "guest_applications": "Guest Applications",
-            "pending_applications": "Applications",
+            "pending_applications": "応募",
             "no_description": "No description provided.",
             "no_target_prog_point": "No target prog point selected",
             "no_min_item_level": "No minimum"
@@ -508,7 +516,7 @@
         }
     },
     "application": {
-        "title": "Application",
+        "title": "応募",
         "subtitle": "Apply to join {group}'s {type} run.",
         "subtitle_existing": "Update your application for {group}'s {type} run.",
         "back": "Back to Run Overview",
@@ -519,10 +527,10 @@
         "summary_notes": "Host Notes",
         "class_picker": {
             "empty": "Select classes",
-            "selected_count": "{count} selected",
+            "selected_count": "{count}件選択中",
             "categories": {
-                "tank": "Tank",
-                "healer": "Healer",
+                "tank": "タンク",
+                "healer": "ヒーラー",
                 "melee": "Melee",
                 "phys": "Physical Ranged",
                 "magic": "Magic Ranged"
@@ -542,7 +550,7 @@
             "subtitle": "Share the details moderators need so they can review your application.",
             "character_title": "Character Selection",
             "character_description": "Applicants will be able to choose which of their characters they want to apply with.",
-            "character_field": "Character",
+            "character_field": "キャラクター",
             "character_placeholder": "Select a character",
             "guest_mode_title": "FullParty account gives you more",
             "guest_mode_description": "You can still apply as a guest, but signing in lets you keep linked characters, update applications more easily, and build your run history across groups.",
@@ -557,10 +565,10 @@
             "guest_search_error_title": "Search failed",
             "guest_search_failed": "We could not search Lodestone right now. Please try again in a moment.",
             "guest_search_invalid": "Please check the search details and try again.",
-            "guest_results_title": "Search Results",
+            "guest_results_title": "検索結果",
             "guest_results_description": "Select the character that matches your application.",
             "guest_results_count": "{count} results",
-            "guest_result_select": "Select",
+            "guest_result_select": "選択",
             "guest_result_selected": "Selected",
             "guest_no_results_title": "No matching characters found",
             "guest_no_results_description": "Double check the spelling and world, then try the search again.",
@@ -568,11 +576,11 @@
             "answers_description": "The form will render {count} activity-type question fields here.",
             "notes_title": "Extra Notes",
             "notes_description": "A freeform notes area will live here for any extra context the applicant wants to share.",
-            "notes_field": "Notes",
+            "notes_field": "メモ",
             "notes_placeholder": "Anything else the moderators should know?",
             "remember_defaults_label": "このアクティビティ種別の入力内容を記憶する",
             "remember_defaults_description": "次回このアクティビティ種別で新しい応募を始めるとき、同じキャラクター、回答、メモを自動入力します。",
-            "cancel": "Cancel",
+            "cancel": "キャンセル",
             "submit": "Submit Application",
             "update": "Update Application",
             "login_required_title": "Login required",
@@ -585,23 +593,23 @@
             "locked_description": "This application is no longer editable because it is no longer pending review."
         },
         "confirmation": {
-            "submitted_title": "Application submitted",
+            "submitted_title": "応募が送信されました",
             "submitted_description": "Your application for {group}'s {type} run is in and ready for moderator review.",
-            "updated_title": "Application updated",
+            "updated_title": "応募内容が更新されました",
             "updated_description": "Your latest changes are saved and ready for moderator review.",
             "status_title": "Application status",
             "status_description": "Here is the current status of your application for {group}'s {type} run.",
             "run_info_subtitle": "Here is the final summary of what you sent.",
-            "character": "Character",
+            "character": "キャラクター",
             "status": "Submission Status",
-              "statuses": {
-                  "pending": "Pending review",
-                  "approved": "Approved",
-                  "on_bench": "On bench",
-                  "declined": "Declined",
-                  "cancelled": "Cancelled",
-                  "withdrawn": "Withdrawn"
-              },
+            "statuses": {
+                "pending": "Pending review",
+                "approved": "承認",
+                "on_bench": "On bench",
+                "declined": "却下",
+                "cancelled": "キャンセル",
+                "withdrawn": "取り下げ"
+            },
             "guest_cta_title": "FullParty account gives you the full experience",
             "guest_cta_description": "Create an account if you want proper notifications, run history, and easier access when signing up for future runs.",
             "guest_link_title": "Save this application link",
@@ -616,7 +624,7 @@
             "review_reason_description": "The moderation team left this note on your application.",
             "answers_title": "Application Summary",
             "answers_description": "This is the information you sent to the moderators.",
-            "notes_title": "Notes",
+            "notes_title": "メモ",
             "notes_description": "Your extra notes are included below.",
             "no_notes": "No extra notes were included.",
             "back_to_overview": "Back to Run Overview",
@@ -637,11 +645,11 @@
         },
         "steps": {
             "schedule": {
-                "title": "Schedule",
+                "title": "スケジュール",
                 "description": "When are we dropping?"
             },
             "activity": {
-                "title": "Activity",
+                "title": "アクティビティ",
                 "description": "What content are we running?"
             },
             "requirements": {
@@ -654,13 +662,13 @@
             }
         },
         "navigation": {
-            "back": "Back",
-            "next": "Next",
+            "back": "戻る",
+            "next": "次へ",
             "review": "Review Run"
         },
         "roles": {
-            "owner": "Owner",
-            "moderator": "Moderator"
+            "owner": "オーナー",
+            "moderator": "モデレーター"
         },
         "form": {
             "title": "Activity Setup",
@@ -672,7 +680,7 @@
                 "subtitle": "Choose the activity, organizer, and the main setup details."
             },
             "schedule": {
-                "title": "Schedule",
+                "title": "スケジュール",
                 "subtitle": "Set the start time in FF14 Server Time and how long the activity will run."
             },
             "run_details": {
@@ -684,7 +692,7 @@
                 "subtitle": "Decide who can see the activity and how people join it."
             },
             "notes": {
-                "title": "Notes",
+                "title": "メモ",
                 "subtitle": "Add any extra context for the roster, applicants, or attendees."
             }
         },
@@ -694,11 +702,11 @@
                 "all": "すべてのコンテンツ"
             },
             "activity_type": {
-                "label": "Activity Type",
+                "label": "アクティビティ種別",
                 "placeholder": "Select an activity type"
             },
             "organizer": {
-                "label": "Organizer Character",
+                "label": "主催キャラクター",
                 "placeholder": "Select an organizer character",
                 "no_user": "User not set"
             },
@@ -707,15 +715,15 @@
                 "placeholder": "Optional custom title for this activity"
             },
             "duration": {
-                "label": "Duration (Hours)",
+                "label": "時間数",
                 "placeholder": "Custom duration in hours",
                 "preset": "{count} Hour",
                 "custom": "Custom",
                 "select_placeholder": "Select a duration"
             },
             "datacenter": {
-                "label": "Data Center",
-                "placeholder": "Select a data center"
+                "label": "データセンター",
+                "placeholder": "データセンターを選択"
             },
             "intensity": {
                 "label": "Run Intensity",
@@ -736,7 +744,7 @@
                 "help": "Mark this run as welcoming to first timers or learners."
             },
             "prog_point": {
-                "label": "Target Prog Point",
+                "label": "目標Progポイント",
                 "placeholder": "Select the intended prog point"
             },
             "status": {
@@ -744,7 +752,7 @@
                 "placeholder": "Select a status"
             },
             "notes": {
-                "label": "Notes",
+                "label": "メモ",
                 "placeholder": "Optional notes for the roster and applicants"
             },
             "start_date": {
@@ -756,7 +764,7 @@
                 "minute_placeholder": "Minute"
             },
             "starts_at": {
-                "label": "Starts At",
+                "label": "開始日時",
                 "server_time_hint": "All activity times are entered in FF14 Server Time (UTC+0)."
             },
             "is_public": {
@@ -764,30 +772,30 @@
                 "help": "Public activities are visible based on the group's visibility rules."
             },
             "needs_application": {
-                "label": "Needs Application",
+                "label": "応募必須",
                 "help": "Turn this on if members should apply instead of assigning themselves."
             },
             "allow_guest_applications": {
-                "label": "Allow Guest Applications",
+                "label": "ゲスト応募を許可",
                 "help": "Let people apply without a FullParty account. They will use the guest application flow in a later stage."
             }
         },
         "summary": {
             "title": "Draft Summary",
             "subtitle": "A quick preview of what this activity currently looks like.",
-            "activity": "Activity",
+            "activity": "アクティビティ",
             "slots": "Slots",
-            "status": "Status",
-            "organizer": "Organizer",
-            "starts_at": "Starts At",
+            "status": "ステータス",
+            "organizer": "主催者",
+            "starts_at": "開始日時",
             "starts_at_st": "FF14 ST",
             "starts_at_local": "Your Local ({timezone})",
             "duration": "Duration",
             "duration_value": "{count}h",
-            "visibility": "Visibility",
-            "visibility_public": "Public",
+            "visibility": "表示設定",
+            "visibility_public": "公開",
             "visibility_private": "Private link only",
-            "datacenter": "Data Center",
+            "datacenter": "データセンター",
             "run_style": "Run Style",
             "intensity": "Intensity",
             "difficulty": "Difficulty",
@@ -801,8 +809,8 @@
             "guest_applications_enabled": "Allowed",
             "guest_applications_disabled": "Account required",
             "guest_applications_not_applicable": "Not used when applications are off",
-            "target_prog_point": "Target Prog Point",
-            "notes": "Notes",
+            "target_prog_point": "目標Progポイント",
+            "notes": "メモ",
             "no_type": "No activity type selected",
             "no_organizer": "Organizer not selected",
             "no_date": "Date not set",
@@ -815,7 +823,7 @@
         "title": "Edit Run",
         "subtitle": "Update the run details moderators are allowed to change.",
         "back": "Back to Run Management",
-        "submit": "Save Changes",
+        "submit": "変更を保存",
         "form": {
             "title": "Edit Run",
             "subtitle": "Update the mutable details for this run without changing its core structure."

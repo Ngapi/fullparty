@@ -3,20 +3,20 @@
 return [
     'runs' => [
         'cancelled' => [
-            'title' => 'Run cancelled',
-            'body' => ':activity was cancelled.',
+            'title' => 'Run annulé',
+            'body' => ':activity a été annulé.',
         ],
         'starting_soon' => [
-            'title' => 'Run starting soon',
-            'body' => ':activity is starting soon.',
+            'title' => 'Run bientôt lancé',
+            'body' => ':activity commence bientôt.',
         ],
         'starting_now' => [
-            'title' => 'Run starting now',
-            'body' => ':activity is starting now.',
+            'title' => 'Run lancé maintenant',
+            'body' => ':activity commence maintenant.',
         ],
         'completed' => [
-            'title' => 'Run complete',
-            'body' => ':activity is now complete.',
+            'title' => 'Run terminé',
+            'body' => ':activity est maintenant terminé.',
         ],
     ],
     'assignments' => [
@@ -39,6 +39,14 @@ return [
         'returned_to_queue' => [
             'title' => 'Affectation retournee en revue',
             'body' => 'Votre candidature pour :activity en tant que :character a ete renvoyee dans la file de revue.',
+        ],
+        'designation_assigned' => [
+            'title' => 'Rôle de run mis à jour',
+            'body' => 'Tu as été marqué comme :designation pour :activity dans :slot.',
+        ],
+        'designation_removed' => [
+            'title' => 'Rôle de run mis à jour',
+            'body' => 'Tu n’es plus marqué comme :designation pour :activity.',
         ],
     ],
     'user' => [
@@ -89,7 +97,8 @@ return [
         'maintenance' => [
             'title' => ':headline',
             'body' => ':message',
-            'body_with_schedule' => ":message\nScheduled for: :scheduled_for",
+            'body_with_schedule' => ':message
+Prévu pour : :scheduled_for',
         ],
         'announcement' => [
             'title' => ':headline',

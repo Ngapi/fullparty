@@ -1,75 +1,75 @@
 {
-  "roles": {
-    "owner": "Propriétaire",
-    "admin": "Admin",
-    "moderator": "Modérateur",
-    "member": "Membre"
-  },
-  "group_types": {
-    "community": "Communauté",
-    "static": "Static"
-  },
-  "join_modes": {
-    "open": {
-      "label": "Open Group",
-      "description": "People can join whenever. Community open groups also get a permanent slug invite."
+    "roles": {
+        "owner": "Propriétaire",
+        "admin": "Admin",
+        "moderator": "Modérateur",
+        "member": "Membre"
     },
-    "invite_only": {
-      "label": "Invite Only",
-      "description": "People can only join through generated invite links."
+    "group_types": {
+        "community": "Communauté",
+        "static": "Static"
     },
-    "application": {
-      "label": "Application Based",
-      "description": "People apply for review. Generated invite links can still add members directly."
+    "join_modes": {
+        "open": {
+            "label": "Ouvrir le groupe",
+            "description": "People can join whenever. Community open groups also get a permanent slug invite."
+        },
+        "invite_only": {
+            "label": "Invite Only",
+            "description": "People can only join through generated invite links."
+        },
+        "application": {
+            "label": "Application Based",
+            "description": "People apply for review. Generated invite links can still add members directly."
+        }
+    },
+    "voice_expectations": {
+        "required": "Voice Required",
+        "preferred": "Voice Preferred",
+        "optional": "Voice Optional"
+    },
+    "active_days": {
+        "mon": "Lundi",
+        "tue": "Mardi",
+        "wed": "Mercredi",
+        "thu": "Jeudi",
+        "fri": "Vendredi",
+        "sat": "Samedi",
+        "sun": "Dimanche"
+    },
+    "labels": {
+        "about_us": "About Us",
+        "owner": "Propriétaire",
+        "members": "Membres",
+        "role": "Rôle",
+        "discord": "Discord",
+        "languages": "Languages",
+        "metadata_tags": "Metadata Tags",
+        "extra_tags": "Tags supplémentaires",
+        "activity_window": "Fenêtre d'activité",
+        "recent_activity": "Recent Activity",
+        "region": "Region",
+        "group_type": "Type de groupe",
+        "join_mode": "Join Mode",
+        "timezone": "Timezone",
+        "active_days": "Jours actifs",
+        "active_hours": "Active Hours"
+    },
+    "states": {
+        "open_group": "Ouvrir le groupe",
+        "invite_only_group": "Invite Only",
+        "application_group": "Application Based",
+        "visible_in_discovery": "Visible dans la découverte",
+        "hidden_from_discovery": "Hidden from Discovery",
+        "not_shared": "Not shared",
+        "no_description_short": "This group has not added a description yet.",
+        "no_description_long": "This group has not added a description yet. Use this space to clarify what you run, who it is for, and how people should approach joining.",
+        "no_recent_activity": "No recent activity yet"
+    },
+    "validation": {
+        "active_time_pair_required": "Les heures de début et de fin d'activité doivent être fournies ensemble.",
+        "active_timezone_required": "Un fuseau horaire actif est requis lorsque des jours ou des heures d'activité sont fournis.",
+        "active_end_time_after_start": "L'heure de fin d'activité doit être postérieure à l'heure de début.",
+        "invalid_join_mode_for_group_type": "Choose a join mode supported by this group type."
     }
-  },
-  "voice_expectations": {
-    "required": "Voice Required",
-    "preferred": "Voice Preferred",
-    "optional": "Voice Optional"
-  },
-  "active_days": {
-    "mon": "Lundi",
-    "tue": "Mardi",
-    "wed": "Mercredi",
-    "thu": "Jeudi",
-    "fri": "Vendredi",
-    "sat": "Samedi",
-    "sun": "Dimanche"
-  },
-  "labels": {
-    "about_us": "About Us",
-    "owner": "Owner",
-    "members": "Members",
-    "role": "Role",
-    "discord": "Discord",
-    "languages": "Languages",
-    "metadata_tags": "Metadata Tags",
-    "extra_tags": "Extra Tags",
-    "activity_window": "Activity Window",
-    "recent_activity": "Recent Activity",
-    "region": "Region",
-    "group_type": "Group Type",
-    "join_mode": "Join Mode",
-    "timezone": "Timezone",
-    "active_days": "Active Days",
-    "active_hours": "Active Hours"
-  },
-  "states": {
-    "open_group": "Open Group",
-    "invite_only_group": "Invite Only",
-    "application_group": "Application Based",
-    "visible_in_discovery": "Visible in Discovery",
-    "hidden_from_discovery": "Hidden from Discovery",
-    "not_shared": "Not shared",
-    "no_description_short": "This group has not added a description yet.",
-    "no_description_long": "This group has not added a description yet. Use this space to clarify what you run, who it is for, and how people should approach joining.",
-    "no_recent_activity": "No recent activity yet"
-  },
-  "validation": {
-    "active_time_pair_required": "Les heures de début et de fin d'activité doivent être fournies ensemble.",
-    "active_timezone_required": "Un fuseau horaire actif est requis lorsque des jours ou des heures d'activité sont fournis.",
-    "active_end_time_after_start": "L'heure de fin d'activité doit être postérieure à l'heure de début.",
-    "invalid_join_mode_for_group_type": "Choose a join mode supported by this group type."
-  }
 }

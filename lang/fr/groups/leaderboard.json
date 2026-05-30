@@ -1,63 +1,63 @@
 {
-  "title": "Classement",
-  "subtitle": "Classements de participation de {group} sur les runs avec roster.",
-  "summary": {
-    "total_participations": "Participations totales",
-    "ranked_participants": "Participants classes",
-    "raid_leaders": "Runs en raid leader",
-    "hosts": "Runs en host"
-  },
-  "common": {
-    "participations": "participations",
-    "runs": "runs",
-    "complete_runs_only": "Runs termines uniquement",
-    "no_date": "Aucun run recent"
-  },
-  "cache": {
-    "refresh": "Actualiser le classement",
-    "refreshing": "Actualisation...",
-    "cooldown": "Actualisation dans {time}",
-    "tooltip": "Mis en cache {cached}. Expire {expires}.",
-    "unknown": "Inconnu"
-  },
-  "featured": {
-    "mvp_title": "Joueur le plus present",
-    "mvp_subtitle": "Le personnage avec le plus d'apparitions dans des runs rosteres.",
-    "host_success_title": "Meilleure performance host",
-    "host_success_subtitle": "Le meilleur score de performance pondere sur les runs host termines.",
-    "last_seen": "Derniere participation le {date}"
-  },
-  "boards": {
-    "overall": {
-      "title": "Participation globale",
-      "subtitle": "Le plus d'apparitions dans des runs rosteres."
+    "title": "Classement",
+    "subtitle": "Classements de participation de {group} sur les runs avec roster.",
+    "summary": {
+        "total_participations": "Participations totales",
+        "ranked_participants": "Participants classes",
+        "raid_leaders": "Runs en raid leader",
+        "hosts": "Runs en host"
     },
-    "raid_leaders": {
-      "title": "Raid leaders",
-      "subtitle": "Le plus de runs marques comme raid leader."
+    "common": {
+        "participations": "participations",
+        "runs": "runs",
+        "complete_runs_only": "Runs termines uniquement",
+        "no_date": "Aucun run recent"
     },
-    "hosts": {
-      "title": "Hosts",
-      "subtitle": "Le plus de runs marques comme host."
+    "cache": {
+        "refresh": "Actualiser le classement",
+        "refreshing": "Actualisation...",
+        "cooldown": "Actualisation dans {time}",
+        "tooltip": "Mis en cache {cached}. Expire {expires}.",
+        "unknown": "Inconnu"
+    },
+    "featured": {
+        "mvp_title": "Joueur le plus present",
+        "mvp_subtitle": "Le personnage avec le plus d'apparitions dans des runs rosteres.",
+        "host_success_title": "Meilleure performance host",
+        "host_success_subtitle": "Le meilleur score de performance pondere sur les runs host termines.",
+        "last_seen": "Derniere participation le {date}"
+    },
+    "boards": {
+        "overall": {
+            "title": "Participation globale",
+            "subtitle": "Le plus d'apparitions dans des runs rosteres."
+        },
+        "raid_leaders": {
+            "title": "Raid leaders",
+            "subtitle": "Le plus de runs marques comme raid leader."
+        },
+        "hosts": {
+            "title": "Hosts",
+            "subtitle": "Le plus de runs marques comme host."
+        }
+    },
+    "host_success": {
+        "title": "Performance host",
+        "subtitle": "Runs host termines classes par reussite ponderee et lissage bayesien. Les hosts doivent avoir au moins deux runs host termines.",
+        "record": "{successes}/{total} reussis",
+        "failed": "{count} cible manquee",
+        "minimum": "2+ runs host termines",
+        "formula_label": "Formule de performance host",
+        "formula_hint": "Score = (reussites documentees + reussites auto x 0.5 + prior) / (runs host termines + 10). Les hosts avec un seul run sont masques.",
+        "raw_success": "Reussite brute {rate}",
+        "documented": "{count} documentees",
+        "auto": "{count} auto",
+        "breakdown": "{documented} documentees / {auto} auto / {failed} manquees"
+    },
+    "empty": {
+        "overall": "Les participants rosteres apparaitront ici lorsque des runs auront des slots assignes.",
+        "raid_leaders": "Le classement raid leader apparaitra lorsque des slots seront marques comme raid leader.",
+        "hosts": "Le classement host apparaitra lorsque des slots seront marques comme host.",
+        "host_success": "La reussite host apparaitra apres des runs host termines."
     }
-  },
-  "host_success": {
-    "title": "Performance host",
-    "subtitle": "Runs host termines classes par reussite ponderee et lissage bayesien. Les hosts doivent avoir au moins deux runs host termines.",
-    "record": "{successes}/{total} reussis",
-    "failed": "{count} cible manquee",
-    "minimum": "2+ runs host termines",
-    "formula_label": "Formule de performance host",
-    "formula_hint": "Score = (reussites documentees + reussites auto x 0.5 + prior) / (runs host termines + 10). Les hosts avec un seul run sont masques.",
-    "raw_success": "Reussite brute {rate}",
-    "documented": "{count} documentees",
-    "auto": "{count} auto",
-    "breakdown": "{documented} documentees / {auto} auto / {failed} manquees"
-  },
-  "empty": {
-    "overall": "Les participants rosteres apparaitront ici lorsque des runs auront des slots assignes.",
-    "raid_leaders": "Le classement raid leader apparaitra lorsque des slots seront marques comme raid leader.",
-    "hosts": "Le classement host apparaitra lorsque des slots seront marques comme host.",
-    "host_success": "La reussite host apparaitra apres des runs host termines."
-  }
 }

@@ -1,80 +1,80 @@
 {
-  "title": "Statistiken",
-  "subtitle": "Aktivitaet, Teilnahme, Bewerbungen und Loadout-Trends fuer {group}.",
-  "common": {
-    "other": "Andere"
-  },
-  "cache": {
-    "refresh": "Statistiken aktualisieren",
-    "refreshing": "Aktualisieren...",
-    "cooldown": "Aktualisieren in {time}",
-    "tooltip": "Zwischengespeichert {cached}. Laeuft ab {expires}.",
-    "unknown": "Unbekannt"
-  },
-  "metrics": {
-    "total_runs": {
-      "label": "Runs gesamt",
-      "description": "{count} mit Teilnehmern"
+    "title": "Statistiken",
+    "subtitle": "Aktivitaet, Teilnahme, Bewerbungen und Loadout-Trends fuer {group}.",
+    "common": {
+        "other": "Andere"
     },
-    "total_participants": {
-      "label": "Teilnahmen gesamt",
-      "description": "Roster-Auftritte in Hauptslots"
+    "cache": {
+        "refresh": "Statistiken aktualisieren",
+        "refreshing": "Aktualisieren...",
+        "cooldown": "Aktualisieren in {time}",
+        "tooltip": "Zwischengespeichert {cached}. Laeuft ab {expires}.",
+        "unknown": "Unbekannt"
     },
-    "unique_participants": {
-      "label": "Einzigartige Teilnehmer",
-      "description": "Unterschiedliche Charaktere im Roster"
+    "metrics": {
+        "total_runs": {
+            "label": "Runs gesamt",
+            "description": "{count} mit Teilnehmern"
+        },
+        "total_participants": {
+            "label": "Teilnahmen gesamt",
+            "description": "Roster-Auftritte in Hauptslots"
+        },
+        "unique_participants": {
+            "label": "Einzigartige Teilnehmer",
+            "description": "Unterschiedliche Charaktere im Roster"
+        },
+        "average_participants": {
+            "label": "Durchschnitt / Raid",
+            "description": "Ueber alle Runs"
+        },
+        "active_players": {
+            "label": "Aktive Spieler",
+            "description": "Teilgenommen im letzten Monat"
+        }
     },
-    "average_participants": {
-      "label": "Durchschnitt / Raid",
-      "description": "Ueber alle Runs"
+    "participation": {
+        "title": "Teilnahme-Trend",
+        "subtitle": "Personen pro Tag an Tagen mit Runs im letzten Monat.",
+        "badge": "Letzte 30 Tage",
+        "tooltip": "{date}: {participants} Teilnehmer in {runs} Runs",
+        "empty_title": "Keine aktuelle Teilnahme",
+        "empty_description": "Runs mit rostered Teilnehmern erscheinen hier, sobald sie stattfinden."
     },
-    "active_players": {
-      "label": "Aktive Spieler",
-      "description": "Teilgenommen im letzten Monat"
+    "applications": {
+        "distribution_title": "Bewerbungs-Verteilung",
+        "distribution_subtitle": "Aktuelle Bewerbungsergebnisse ueber alle Runs der Gruppe.",
+        "volume_title": "Bewerbungs-Volumen",
+        "volume_subtitle": "Monatliches Bewerbungsvolumen der letzten 12 Monate.",
+        "total_label": "Bewerbungen",
+        "empty_title": "Noch keine Bewerbungen",
+        "empty_description": "Bewerbungsaktivitaet erscheint hier, sobald Spieler sich fuer Runs bewerben.",
+        "statuses": {
+            "pending": "Ausstehend",
+            "approved": "Angenommen",
+            "declined": "Abgelehnt",
+            "cancelled": "Abgebrochen",
+            "withdrawn": "Zurueckgezogen"
+        }
+    },
+    "loadouts": {
+        "total_label": "Zuweisungen",
+        "assignment_count": "{count} Nutzungen"
+    },
+    "classes": {
+        "title": "Klassen-Verteilung",
+        "subtitle": "Meistgespielte Kampfklassen aus Roster-Zuweisungen.",
+        "trend_title": "Klassen-Trend im Detail",
+        "trend_subtitle": "Monatlicher Trend der meistgespielten Klassen.",
+        "empty_title": "Noch keine Klassendaten",
+        "empty_description": "Klassennutzung erscheint, sobald Zuweisungen Klassen-Auswahlen enthalten."
+    },
+    "phantom_jobs": {
+        "title": "Phantomjob-Verteilung",
+        "subtitle": "Meistgespielte Phantomjobs aus Roster-Zuweisungen.",
+        "trend_title": "Phantomjob-Trend im Detail",
+        "trend_subtitle": "Monatlicher Trend der meistgespielten Phantomjobs.",
+        "empty_title": "Noch keine Phantomjob-Daten",
+        "empty_description": "Phantomjob-Nutzung erscheint, sobald Zuweisungen Phantomjob-Auswahlen enthalten."
     }
-  },
-  "participation": {
-    "title": "Teilnahme-Trend",
-    "subtitle": "Personen pro Tag an Tagen mit Runs im letzten Monat.",
-    "badge": "Letzte 30 Tage",
-    "tooltip": "{date}: {participants} Teilnehmer in {runs} Runs",
-    "empty_title": "Keine aktuelle Teilnahme",
-    "empty_description": "Runs mit rostered Teilnehmern erscheinen hier, sobald sie stattfinden."
-  },
-  "applications": {
-    "distribution_title": "Bewerbungs-Verteilung",
-    "distribution_subtitle": "Aktuelle Bewerbungsergebnisse ueber alle Runs der Gruppe.",
-    "volume_title": "Bewerbungs-Volumen",
-    "volume_subtitle": "Monatliches Bewerbungsvolumen der letzten 12 Monate.",
-    "total_label": "Bewerbungen",
-    "empty_title": "Noch keine Bewerbungen",
-    "empty_description": "Bewerbungsaktivitaet erscheint hier, sobald Spieler sich fuer Runs bewerben.",
-    "statuses": {
-      "pending": "Ausstehend",
-      "approved": "Angenommen",
-      "declined": "Abgelehnt",
-      "cancelled": "Abgebrochen",
-      "withdrawn": "Zurueckgezogen"
-    }
-  },
-  "loadouts": {
-    "total_label": "Zuweisungen",
-    "assignment_count": "{count} Nutzungen"
-  },
-  "classes": {
-    "title": "Klassen-Verteilung",
-    "subtitle": "Meistgespielte Kampfklassen aus Roster-Zuweisungen.",
-    "trend_title": "Klassen-Trend im Detail",
-    "trend_subtitle": "Monatlicher Trend der meistgespielten Klassen.",
-    "empty_title": "Noch keine Klassendaten",
-    "empty_description": "Klassennutzung erscheint, sobald Zuweisungen Klassen-Auswahlen enthalten."
-  },
-  "phantom_jobs": {
-    "title": "Phantomjob-Verteilung",
-    "subtitle": "Meistgespielte Phantomjobs aus Roster-Zuweisungen.",
-    "trend_title": "Phantomjob-Trend im Detail",
-    "trend_subtitle": "Monatlicher Trend der meistgespielten Phantomjobs.",
-    "empty_title": "Noch keine Phantomjob-Daten",
-    "empty_description": "Phantomjob-Nutzung erscheint, sobald Zuweisungen Phantomjob-Auswahlen enthalten."
-  }
 }

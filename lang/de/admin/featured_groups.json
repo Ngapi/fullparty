@@ -1,51 +1,51 @@
 {
-  "title": "Empfohlene Gruppen",
-  "subtitle": "Kurate die Gruppen, die in der Suche zuerst erscheinen. Freie Plätze werden mit aktiven Gruppen gefüllt.",
-  "admin_only": "Nur Admins",
-  "saved": "Einstellungen für empfohlene Gruppen gespeichert.",
-  "empty": "Noch keine Gruppen kuratiert. Die Suche nutzt aktive Gruppen als Fallback.",
-  "eligibility_hint": "Nur sichtbare Gruppen mit Beschreibung, Banner und aktueller Aktivität können empfohlen werden.",
-  "form": {
-    "create_title": "Gruppe empfehlen",
-    "edit_title": "Empfohlene Gruppe bearbeiten",
-    "create": "Gruppe empfehlen"
-  },
-  "fields": {
-    "group": "Gruppe",
-    "priority": "Priorität",
-    "starts_at": "Startet am",
-    "ends_at": "Endet am",
-    "internal_note": "Interne Notiz"
-  },
-  "placeholders": {
-    "group": "Gruppe auswählen",
-    "internal_note": "Warum diese Gruppe empfohlen wird, Kampagnennotizen oder Launch-Kontext."
-  },
-  "status": {
-    "active": "Aktiv",
-    "scheduled": "Geplant",
-    "ended": "Beendet",
-    "hidden_group": "Versteckte Gruppe"
-  },
-  "table": {
-    "group": "Gruppe",
-    "window": "Zeitraum",
-    "priority": "Priorität",
-    "note": "Notiz"
-  },
-  "actions": {
-    "save": "Empfohlene Gruppe speichern",
-    "edit": "Bearbeiten",
-    "delete": "Entfernen"
-  },
-  "delete_modal": {
-    "title": "Empfohlene Gruppe entfernen",
-    "description": "Dies entfernt nur die kuratierte Platzierung. Die Gruppe selbst wird nicht gelöscht.",
-    "confirm": "Entfernen"
-  },
-  "toasts": {
-    "created": "Gruppe wurde zur empfohlenen Suche hinzugefügt.",
-    "updated": "Empfohlene Gruppe aktualisiert.",
-    "deleted": "Empfohlene Gruppe entfernt."
-  }
+    "title": "Empfohlene Gruppen",
+    "subtitle": "Kurate die Gruppen, die in der Suche zuerst erscheinen. Freie Plätze werden mit aktiven Gruppen gefüllt.",
+    "admin_only": "Nur Admins",
+    "saved": "Einstellungen für empfohlene Gruppen gespeichert.",
+    "empty": "Noch keine Gruppen kuratiert. Die Suche nutzt aktive Gruppen als Fallback.",
+    "eligibility_hint": "Nur sichtbare Gruppen mit Beschreibung, Banner und aktueller Aktivität können empfohlen werden.",
+    "form": {
+        "create_title": "Gruppe empfehlen",
+        "edit_title": "Empfohlene Gruppe bearbeiten",
+        "create": "Gruppe empfehlen"
+    },
+    "fields": {
+        "group": "Gruppe",
+        "priority": "Priorität",
+        "starts_at": "Startet am",
+        "ends_at": "Endet am",
+        "internal_note": "Interne Notiz"
+    },
+    "placeholders": {
+        "group": "Gruppe auswählen",
+        "internal_note": "Warum diese Gruppe empfohlen wird, Kampagnennotizen oder Launch-Kontext."
+    },
+    "status": {
+        "active": "Aktiv",
+        "scheduled": "Geplant",
+        "ended": "Beendet",
+        "hidden_group": "Versteckte Gruppe"
+    },
+    "table": {
+        "group": "Gruppe",
+        "window": "Zeitraum",
+        "priority": "Priorität",
+        "note": "Notiz"
+    },
+    "actions": {
+        "save": "Empfohlene Gruppe speichern",
+        "edit": "Bearbeiten",
+        "delete": "Entfernen"
+    },
+    "delete_modal": {
+        "title": "Empfohlene Gruppe entfernen",
+        "description": "Dies entfernt nur die kuratierte Platzierung. Die Gruppe selbst wird nicht gelöscht.",
+        "confirm": "Entfernen"
+    },
+    "toasts": {
+        "created": "Gruppe wurde zur empfohlenen Suche hinzugefügt.",
+        "updated": "Empfohlene Gruppe aktualisiert.",
+        "deleted": "Empfohlene Gruppe entfernt."
+    }
 }

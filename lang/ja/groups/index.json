@@ -1,416 +1,362 @@
 {
-  "title": "グループ",
-  "subtitle": "レイドグループを管理し、新しいコミュニティを見つけましょう",
-  "tabs": {
-    "my_groups": "自分のグループ",
-    "discover": "探す"
-  },
-  "search": {
-    "placeholder": "自分のグループと表示可能なコミュニティを検索",
-    "clear": "検索をクリア",
-    "title": "検索結果",
-    "subtitle": "{count} 件の一致するグループ",
-    "loading": "グループを検索中..."
-  },
-  "sections": {
-    "owned": "自分が所有するグループ",
-    "moderated": "自分が管理するグループ",
-    "member": "参加中のグループ",
-    "discover": "公開されているグループ"
-  },
-  "section_subtitles": {
-    "owned": "完全な管理権と所有権",
-    "moderated": "共同責任とグループ管理",
-    "member": "参加して活動できるグループ",
-    "discover": "最新の活動順に並んだ表示可能なグループ"
-  },
-  "roles": {
-    "owner": "オーナー",
-    "admin": "管理者",
-    "moderator": "モデレーター",
-    "member": "メンバー"
-  },
-  "navigation": {
-    "general": "概要",
-    "home": "ホーム",
-    "info": "情報",
-    "activities": "Runs",
-    "statistics": "統計",
-    "leaderboard": "リーダーボード",
-    "members": "メンバー",
-    "moderation": "モデレーション",
-    "membership_applications": "リクエスト",
-    "application_form": "リクエストフォーム",
-    "audit_log": "監査ログ",
-    "discovery_settings": "Discovery 設定",
-    "discord_integration": "Discord",
-    "settings": "設定"
-  },
-  "table": {
-    "columns": {
-      "group": "グループ",
-      "upcoming_runs": "今後のRuns",
-      "last_activity": "最終活動"
-    },
-    "no_description": "まだ説明はありません。",
-    "no_activity": "まだ活動はありません。",
-    "empty": "まだ表示するものはありません。"
-  },
-  "featured": {
-    "title": "Featured Groups",
-    "subtitle": "Handpicked groups that are active, welcoming, and ready to raid.",
-    "badge": "Featured",
-    "previous": "Previous featured groups",
-    "next": "Next featured groups",
-    "empty_title": "No featured groups yet",
-    "empty_description": "Featured groups will appear here once discovery data is available."
-  },
-  "discovery": {
-    "title": "Search & Filter",
-    "subtitle": "Narrow the field by group type, experience level, region, size, and the discovery metadata each group chose to share.",
+    "title": "グループ",
+    "subtitle": "レイドグループを管理し、新しいコミュニティを見つけましょう",
     "tabs": {
-      "all": "All Groups",
-      "communities": "Communities",
-      "statics": "Statics"
+        "my_groups": "自分のグループ",
+        "discover": "探す"
     },
-    "filters": {
-      "search_placeholder": "Search by group name, vibe, or notable tag",
-      "experience_placeholder": "Experience",
-      "region_placeholder": "Region",
-      "size_placeholder": "Size",
-      "sort_placeholder": "Sort By",
-      "more_filters_open": "More Filters",
-      "more_filters_close": "Hide Extra Filters",
-      "clear_filters": "フィルターをクリア",
-      "recruiting_method_label": "募集方法",
-      "recruiting_method_placeholder": "募集方法を選択",
-      "tags_placeholder": "Search by extra tag",
-      "tags_help": "Use this for optional freeform tags such as Late Night or Blind Prog.",
-      "recruiting_methods": {
-        "open": "オープン",
-        "invite_only": "招待",
-        "application": "応募"
-      },
-      "size_options": {
-        "1": "1+ Members",
-        "50": "50+ Members",
-        "100": "100+ Members",
-        "500": "500+ Members"
-      },
-      "sort_options": {
-        "created_at_desc": "Created Recently (Newest First)",
-        "created_at_asc": "Created Recently (Oldest First)",
-        "active_at_desc": "Active Recently (Most Recent First)",
-        "active_at_asc": "Active Recently (Least Recent First)",
-        "member_count_desc": "Member Count (High to Low)",
-        "member_count_asc": "Member Count (Low to High)"
-      }
-    },
-    "placeholder": {
-      "owner_label": "Verified Leader",
-      "schedule_label": "Active Schedule",
-      "activity_label": "Recent Activity",
-      "page_status": "Page {current} out of {total}"
-    },
-    "detail": {
-      "title": "Group Details",
-      "loading": "Loading group details...",
-      "actions": {
-        "join": "Join Group",
-        "leave": "Leave Group",
-        "dashboard": "Dashboard",
-        "apply": "Apply to Join",
-        "mute_notifications": "Mute Notifications",
-        "unmute_notifications": "Unmute Notifications",
-        "invite_required": "Invite Required",
-        "application_required": "Application Based",
-        "application_pending": "Application Pending"
-      },
-      "tabs": {
-        "about": "Info",
-        "activity": "Activity",
-        "content": "Content",
-        "team": "Team"
-      },
-      "content": {
-        "summary": "Content Snapshot",
-        "summary_hint": "A quick breakdown of the public runs this group has put together.",
-        "total_public_runs": "Public Runs",
-        "library": "Content Library",
-        "library_hint": "Grouped by the activity types this group has actually been running.",
-        "completed": "Completed",
-        "active": "Active",
-        "last_run": "Last Run",
-        "next_run": "Next Run",
-        "run_singular": "run",
-        "run_plural": "runs",
-        "empty": "No public run history yet.",
-        "statuses": {
-          "draft": "下書き",
-          "scheduled": "Scheduled",
-          "active": "Active",
-          "complete": "Completed",
-          "cancelled": "Cancelled"
-        }
-      },
-      "team": {
-        "core_leadership": "Owner & Admins",
-        "core_leadership_hint": "The people leading the group at the highest level and keeping it moving forward.",
-        "owner_copy": "This player owns the group, handles the big calls, and sets the overall direction.",
-        "moderation_team": "Moderation Team",
-        "moderation_hint": "The people helping organize, moderate, and keep the group healthy.",
-        "role": "Role",
-        "no_moderation": "No moderators are listed for this group yet."
-      },
-      "description": "About Us",
-      "metadata_tags": "Metadata Tags",
-      "extra_tags": "Extra Tags",
-      "activity_summary": "Activity Summary",
-      "owner": "Owner",
-      "members": "Members",
-      "recent_activity": "Recent Activity",
-      "recent_runs": "Recent Runs",
-      "recent_runs_hint": "A quick look at what this group has been running lately.",
-      "no_recent_runs": "No completed or archived runs yet.",
-      "runs_total": "Total Runs",
-      "runs_upcoming": "Upcoming Runs",
-      "completed_runs": "Completed Runs",
-      "total_runs": "Total Runs",
-      "runs_per_week": "Runs / Week",
-      "average_turnout": "Avg. Turnout",
-      "latest_member": "Latest Member Join",
-      "about": "About",
-      "discord": "Discord",
-      "languages": "Languages",
-      "discovery_fit": "Discovery & Group Fit",
-      "core_metadata": "Core Metadata",
-      "tags": "Extra Tags",
-      "schedule": "Activity Window",
-      "access": "Access & Presence",
-      "region": "Region",
-      "type": "Group Type",
-      "timezone": "Timezone",
-      "active_days": "Active Days",
-      "active_hours": "Active Hours",
-      "progress": "Progress",
-      "visible_in_discovery": "Visible in Discovery",
-      "description_fallback": "This group has not added a description yet.",
-      "not_shared": "Not shared",
-      "closed": "Closed",
-      "showed_up": "{count} showed up",
-      "statuses": {
-        "complete": "Completed",
-        "cancelled": "Cancelled"
-      },
-      "yes": "Yes",
-      "no": "No"
-    }
-  },
-  "create_modal": {
-    "title": "グループを作成",
-    "subtitle": "Runs の管理を始める前に、グループの基本情報、プレゼンス、発見用の詳細、活動時間帯を整えましょう。",
-    "open_button": "グループを作成",
-    "progress": "ステップ {current} / {total}",
-    "steps": {
-      "1": "基本情報",
-      "2": "プレゼンス",
-      "3": "発見設定",
-      "4": "活動時間帯",
-      "5": "Access"
-    },
-    "slug_preview": "Group slug: {slug}",
-    "slug_fallback": "yourslug",
-    "slug_warning": "グループ作成後、slug は変更できません。",
-    "validation": {
-      "required": "{field} は必須です。",
-      "max_characters": "{field} は {max} 文字以内で入力してください。",
-      "slug_letters_only": "Slug には小文字の英字のみ使用できます。",
-      "slug_reserved": "この slug は予約済みです。別のものを選んでください。",
-      "invalid_option": "{field} の有効な値を選択してください。",
-      "invalid_url": "有効な URL を入力してください。",
-      "invalid_discord_invite": "有効な Discord 招待リンクを入力してください。",
-      "image_invalid_format": "画像は JPG、JPEG、PNG、WEBP のいずれかである必要があります。",
-      "image_too_large": "画像は 5 MB 以下にしてください。",
-      "max_tags": "タグは最大 {max} 個まで選択できます。",
-      "tag_too_long": "各タグは {max} 文字以内で入力してください。"
+    "search": {
+        "placeholder": "自分のグループと表示可能なコミュニティを検索",
+        "clear": "検索をクリア",
+        "title": "検索結果",
+        "subtitle": "{count} 件の一致するグループ",
+        "loading": "グループを検索中..."
     },
     "sections": {
-      "identity": {
-        "title": "グループ情報",
-        "subtitle": "グループ名、slug、データセンターを選択してください。"
-      },
-      "presence": {
-        "title": "コミュニティ情報",
-        "subtitle": "任意のリンクや画像を追加して、グループの雰囲気を整えましょう。"
-      },
-      "discovery": {
-        "title": "発見設定と相性",
-        "subtitle": "どんなグループなのか、誰向けなのか、どう関わってほしいのかを伝えましょう。"
-      },
-      "schedule": {
-        "title": "活動時間帯",
-        "subtitle": "普段のタイムゾーン、活動日、よくプレイする時間帯を伝えましょう。"
-      },
-      "visibility": {
-        "title": "Access",
-        "subtitle": "Choose how people can join, then decide whether this group appears in discovery."
-      }
+        "owned": "自分が所有するグループ",
+        "moderated": "自分が管理するグループ",
+        "member": "参加中のグループ",
+        "discover": "公開されているグループ"
     },
-    "fields": {
-      "name": {
-        "placeholder": "Forked Tower Enjoyers"
-      },
-      "slug": {
-        "label": "Slug",
-        "placeholder": "ftel",
-        "help": "小文字英字のみ、最大8文字。"
-      },
-      "group_type": {
-        "label": "グループタイプ",
-        "placeholder": "グループタイプを選択",
-        "options": {
-          "community": "コミュニティ",
-          "static": "固定"
-        }
-      },
-      "description": {
-        "placeholder": "グループの目的や対象メンバーを説明してください。"
-      },
-      "datacenter": {
-        "placeholder": "データセンターを選択"
-      },
-      "profile_picture_url": {
-        "label": "プロフィール画像URL",
-        "placeholder": "https://example.com/group-image.png"
-      },
-      "profile_picture": {
-        "placeholder": "画像を選択",
-        "help": "任意。グループを表す画像をアップロードします。",
-        "preview_alt": "グループプロフィール画像のプレビュー",
-        "preview_label": "表示される切り抜きプレビュー",
-        "preview_help": "このプレビューは、中央の正方形トリミングがリサイズされ、グループのプロフィール画像として使われることを示します。"
-      },
-      "banner_image": {
-        "label": "バナー画像",
-        "placeholder": "横長のバナー画像を選択",
-        "help": "任意。グループプロフィールや発見画面の上部に表示する横長バナーです。",
-        "preview_alt": "グループバナーのプレビュー",
-        "preview_label": "バナープレビュー",
-        "preview_help": "このプレビューは、グループヘッダーや発見カードで使われる横長の切り抜きを示します。"
-      },
-      "discord_invite_url": {
-        "placeholder": "https://discord.gg/yourserver",
-        "help": "任意。メンバーが簡単に参加できるように Discord 招待を追加します。"
-      },
-      "primary_focuses": {
-        "label": "主な方針",
-        "placeholder": "1つ以上の方針を選択",
-        "help": "このグループに期待してほしい主な活動や雰囲気を選びます。",
-        "options": {
-          "progression": "攻略進行",
-          "clears": "クリア",
-          "reclears": "再クリア",
-          "farming": "周回",
-          "mount_farming": "マウント周回",
-          "maps": "地図",
-          "casual_roulettes": "カジュアルルーレット"
-        }
-      },
-      "experience_expectation": {
-        "label": "想定する経験値",
-        "placeholder": "想定する経験レベルを選択",
-        "help": "参加者にどれくらいの事前知識や経験を期待するかを設定します。",
-        "options": {
-          "beginner_friendly": "初心者歓迎",
-          "casual": "カジュアル",
-          "midcore": "ミッドコア",
-          "semi_hardcore": "セミハードコア",
-          "hardcore": "ハードコア",
-          "mixed": "混合"
-        }
-      },
-      "voice_expectation": {
-        "label": "VC / Discord の期待値",
-        "placeholder": "VC の期待値を選択",
-        "help": "ボイスチャットが必須か、推奨か、任意かを伝えます。",
-        "options": {
-          "required": "Voice Required",
-          "preferred": "Voice Preferred",
-          "optional": "Voice Optional"
-        }
-      },
-      "preferred_languages": {
-        "label": "主な使用言語",
-        "placeholder": "1つ以上の言語を選択",
-        "help": "グループで主に使われる言語を示します。"
-      },
-      "tags": {
-        "label": "追加タグ",
-        "placeholder": "Late Night や Blind Prog のようなタグを追加または作成",
-        "help": "任意。最大 {max} 個まで、雰囲気やニッチな特徴を表す自由タグを使えます。",
-        "suggestions": {
-          "late_night": "Late Night",
-          "lgbtq_friendly": "LGBTQ+ Friendly",
-          "blind_prog": "Blind Prog",
-          "alt_friendly": "Alt Friendly",
-          "achievement_hunting": "Achievement Hunting",
-          "weekend_raids": "Weekend Raids"
-        }
-      },
-      "region": {
-        "label": "主な活動リージョン",
-        "inferred": "{datacenter} をもとに、このグループは {region} で活動するものとして表示されます。",
-        "pending": "まずデータセンターを選択すると、このグループの主な活動リージョンを推測できます。"
-      },
-      "active_timezone": {
-        "label": "活動タイムゾーン",
-        "placeholder": "タイムゾーンを選択",
-        "help": "任意。下で曜日や時間帯を設定する場合、それらをどのタイムゾーンで解釈するかを選びます。"
-      },
-      "active_days": {
-        "label": "主な活動曜日",
-        "placeholder": "1つ以上の活動曜日を選択",
-        "help": "任意。普段よく活動したり募集したりする曜日を選びます。",
-        "options": {
-          "mon": "月曜日",
-          "tue": "火曜日",
-          "wed": "水曜日",
-          "thu": "木曜日",
-          "fri": "金曜日",
-          "sat": "土曜日",
-          "sun": "日曜日"
-        }
-      },
-      "active_start_time": {
-        "label": "活動開始時間",
-        "help": "任意。普段の活動時間帯の開始時刻です。"
-      },
-      "active_end_time": {
-        "label": "活動終了時間",
-        "help": "任意。普段の活動時間帯の終了時刻です。"
-      },
-      "join_mode": {
-        "label": "Join Mode",
-        "placeholder": "Select a join mode",
-        "help": "Open is community-only. Invite-only and application-based groups can still use generated invite links."
-      },
-      "is_visible": {
-        "label": "検索に表示する",
-        "help": "Visible groups can appear in discovery and search."
-      }
+    "section_subtitles": {
+        "owned": "完全な管理権と所有権",
+        "moderated": "共同責任とグループ管理",
+        "member": "参加して活動できるグループ",
+        "discover": "最新の活動順に並んだ表示可能なグループ"
     },
-    "visibility_summary": {
-      "label": "この設定の意味",
-      "default_name": "このグループ",
-      "open_visible": "{name} can be joined by anyone and can appear in discovery.",
-      "open_hidden": "{name} can be joined by anyone with the permanent slug invite, but will stay out of discovery.",
-      "invite_only_visible": "{name} requires a generated invite link and can appear in discovery.",
-      "invite_only_hidden": "{name} requires a generated invite link and will stay out of discovery.",
-      "application_visible": "{name} will use applications for new members and can appear in discovery. Invite links can still add members directly.",
-      "application_hidden": "{name} will use applications for new members and stay out of discovery. Invite links can still add members directly."
+    "navigation": {
+        "general": "概要",
+        "home": "ホーム",
+        "info": "情報",
+        "activities": "ラン",
+        "statistics": "統計",
+        "leaderboard": "リーダーボード",
+        "members": "メンバー",
+        "moderation": "モデレーション",
+        "membership_applications": "リクエスト",
+        "application_form": "リクエストフォーム",
+        "audit_log": "監査ログ",
+        "discovery_settings": "Discovery 設定",
+        "discord_integration": "Discord",
+        "settings": "設定"
     },
-    "toasts": {
-      "created": "グループを作成しました。"
+    "table": {
+        "columns": {
+            "group": "グループ",
+            "upcoming_runs": "今後のRuns",
+            "last_activity": "最終活動"
+        },
+        "no_description": "まだ説明はありません。",
+        "no_activity": "まだ活動はありません。",
+        "empty": "まだ表示するものはありません。"
+    },
+    "featured": {
+        "title": "注目グループ",
+        "subtitle": "Handpicked groups that are active, welcoming, and ready to raid.",
+        "badge": "Featured",
+        "previous": "Previous featured groups",
+        "next": "Next featured groups",
+        "empty_title": "No featured groups yet",
+        "empty_description": "Featured groups will appear here once discovery data is available."
+    },
+    "discovery": {
+        "title": "Search & Filter",
+        "subtitle": "Narrow the field by group type, experience level, region, size, and the discovery metadata each group chose to share.",
+        "tabs": {
+            "all": "All Groups",
+            "communities": "Communities",
+            "statics": "Statics"
+        },
+        "filters": {
+            "search_placeholder": "Search by group name, vibe, or notable tag",
+            "experience_placeholder": "Experience",
+            "region_placeholder": "Region",
+            "size_placeholder": "Size",
+            "sort_placeholder": "Sort By",
+            "more_filters_open": "More Filters",
+            "more_filters_close": "Hide Extra Filters",
+            "clear_filters": "フィルターをクリア",
+            "recruiting_method_label": "募集方法",
+            "recruiting_method_placeholder": "募集方法を選択",
+            "tags_placeholder": "Search by extra tag",
+            "tags_help": "Use this for optional freeform tags such as Late Night or Blind Prog.",
+            "recruiting_methods": {
+                "open": "オープン",
+                "invite_only": "招待",
+                "application": "応募"
+            },
+            "size_options": {
+                "1": "1+ Members",
+                "50": "50+ Members",
+                "100": "100+ Members",
+                "500": "500+ Members"
+            },
+            "sort_options": {
+                "created_at_desc": "Created Recently (Newest First)",
+                "created_at_asc": "Created Recently (Oldest First)",
+                "active_at_desc": "Active Recently (Most Recent First)",
+                "active_at_asc": "Active Recently (Least Recent First)",
+                "member_count_desc": "Member Count (High to Low)",
+                "member_count_asc": "Member Count (Low to High)"
+            }
+        },
+        "placeholder": {
+            "owner_label": "Verified Leader",
+            "schedule_label": "Active Schedule",
+            "activity_label": "Recent Activity",
+            "page_status": "Page {current} out of {total}"
+        },
+        "detail": {
+            "title": "Group Details",
+            "loading": "Loading group details...",
+            "actions": {
+                "join": "グループに参加",
+                "leave": "グループを退出",
+                "dashboard": "Dashboard",
+                "apply": "Apply to Join",
+                "mute_notifications": "Mute Notifications",
+                "unmute_notifications": "Unmute Notifications",
+                "invite_required": "Invite Required",
+                "application_required": "Application Based",
+                "application_pending": "Application Pending"
+            },
+            "tabs": {
+                "about": "情報",
+                "activity": "アクティビティ",
+                "content": "Content",
+                "team": "Team"
+            },
+            "content": {
+                "summary": "Content Snapshot",
+                "summary_hint": "A quick breakdown of the public runs this group has put together.",
+                "total_public_runs": "Public Runs",
+                "library": "Content Library",
+                "library_hint": "Grouped by the activity types this group has actually been running.",
+                "completed": "完了",
+                "active": "有効",
+                "last_run": "Last Run",
+                "next_run": "Next Run",
+                "run_singular": "ラン",
+                "run_plural": "回",
+                "empty": "No public run history yet.",
+                "statuses": {
+                    "draft": "下書き",
+                    "scheduled": "予定済み",
+                    "active": "有効",
+                    "complete": "完了",
+                    "cancelled": "キャンセル"
+                }
+            },
+            "team": {
+                "core_leadership": "Owner & Admins",
+                "core_leadership_hint": "The people leading the group at the highest level and keeping it moving forward.",
+                "moderation_team": "Moderation Team",
+                "moderation_hint": "The people helping organize, moderate, and keep the group healthy.",
+                "no_moderation": "No moderators are listed for this group yet."
+            },
+            "activity_summary": "Activity Summary",
+            "recent_runs": "Recent Runs",
+            "recent_runs_hint": "A quick look at what this group has been running lately.",
+            "no_recent_runs": "No completed or archived runs yet.",
+            "completed_runs": "Completed Runs",
+            "total_runs": "総Run数",
+            "runs_per_week": "Runs / Week",
+            "average_turnout": "Avg. Turnout",
+            "progress": "Progress",
+            "showed_up": "{count} showed up",
+            "statuses": {
+                "complete": "完了",
+                "cancelled": "キャンセル"
+            }
+        }
+    },
+    "create_modal": {
+        "title": "グループを作成",
+        "subtitle": "Runs の管理を始める前に、グループの基本情報、プレゼンス、発見用の詳細、活動時間帯を整えましょう。",
+        "open_button": "グループを作成",
+        "progress": "ステップ {current} / {total}",
+        "steps": {
+            "1": "基本情報",
+            "2": "プレゼンス",
+            "3": "発見設定",
+            "4": "活動時間帯",
+            "5": "Access"
+        },
+        "slug_preview": "Group slug: {slug}",
+        "slug_fallback": "yourslug",
+        "slug_warning": "グループ作成後、slug は変更できません。",
+        "validation": {
+            "required": "{field} は必須です。",
+            "max_characters": "{field} は {max} 文字以内で入力してください。",
+            "slug_letters_only": "Slug には小文字の英字のみ使用できます。",
+            "slug_reserved": "この slug は予約済みです。別のものを選んでください。",
+            "invalid_option": "{field} の有効な値を選択してください。",
+            "invalid_url": "有効な URL を入力してください。",
+            "invalid_discord_invite": "有効な Discord 招待リンクを入力してください。",
+            "image_invalid_format": "画像は JPG、JPEG、PNG、WEBP のいずれかである必要があります。",
+            "image_too_large": "画像は 5 MB 以下にしてください。",
+            "max_tags": "タグは最大 {max} 個まで選択できます。",
+            "tag_too_long": "各タグは {max} 文字以内で入力してください。"
+        },
+        "sections": {
+            "identity": {
+                "title": "グループ情報",
+                "subtitle": "グループ名、slug、データセンターを選択してください。"
+            },
+            "presence": {
+                "title": "コミュニティ情報",
+                "subtitle": "任意のリンクや画像を追加して、グループの雰囲気を整えましょう。"
+            },
+            "discovery": {
+                "title": "発見設定と相性",
+                "subtitle": "どんなグループなのか、誰向けなのか、どう関わってほしいのかを伝えましょう。"
+            },
+            "schedule": {
+                "title": "活動時間帯",
+                "subtitle": "普段のタイムゾーン、活動日、よくプレイする時間帯を伝えましょう。"
+            },
+            "visibility": {
+                "title": "Access",
+                "subtitle": "Choose how people can join, then decide whether this group appears in discovery."
+            }
+        },
+        "fields": {
+            "name": {
+                "placeholder": "Forked Tower Enjoyers"
+            },
+            "slug": {
+                "label": "Slug",
+                "placeholder": "ftel",
+                "help": "小文字英字のみ、最大8文字。"
+            },
+            "group_type": {
+                "label": "グループタイプ",
+                "placeholder": "グループタイプを選択"
+            },
+            "description": {
+                "placeholder": "グループの目的や対象メンバーを説明してください。"
+            },
+            "datacenter": {
+                "placeholder": "データセンターを選択"
+            },
+            "profile_picture_url": {
+                "label": "プロフィール画像URL",
+                "placeholder": "https://example.com/group-image.png"
+            },
+            "profile_picture": {
+                "placeholder": "画像を選択",
+                "help": "任意。グループを表す画像をアップロードします。",
+                "preview_alt": "グループプロフィール画像のプレビュー",
+                "preview_label": "表示される切り抜きプレビュー",
+                "preview_help": "このプレビューは、中央の正方形トリミングがリサイズされ、グループのプロフィール画像として使われることを示します。"
+            },
+            "banner_image": {
+                "label": "バナー画像",
+                "placeholder": "横長のバナー画像を選択",
+                "help": "任意。グループプロフィールや発見画面の上部に表示する横長バナーです。",
+                "preview_alt": "グループバナーのプレビュー",
+                "preview_label": "バナープレビュー",
+                "preview_help": "このプレビューは、グループヘッダーや発見カードで使われる横長の切り抜きを示します。"
+            },
+            "discord_invite_url": {
+                "placeholder": "https://discord.gg/yourserver",
+                "help": "任意。メンバーが簡単に参加できるように Discord 招待を追加します。"
+            },
+            "primary_focuses": {
+                "label": "主な方針",
+                "placeholder": "1つ以上の方針を選択",
+                "help": "このグループに期待してほしい主な活動や雰囲気を選びます。",
+                "options": {
+                    "progression": "攻略進行",
+                    "clears": "クリア",
+                    "reclears": "再クリア",
+                    "farming": "周回",
+                    "mount_farming": "マウント周回",
+                    "maps": "地図",
+                    "casual_roulettes": "カジュアルルーレット"
+                }
+            },
+            "experience_expectation": {
+                "label": "想定する経験値",
+                "placeholder": "想定する経験レベルを選択",
+                "help": "参加者にどれくらいの事前知識や経験を期待するかを設定します。",
+                "options": {
+                    "beginner_friendly": "初心者歓迎",
+                    "casual": "カジュアル",
+                    "midcore": "ミッドコア",
+                    "semi_hardcore": "セミハードコア",
+                    "hardcore": "ハードコア",
+                    "mixed": "混合"
+                }
+            },
+            "voice_expectation": {
+                "label": "VC / Discord の期待値",
+                "placeholder": "VC の期待値を選択",
+                "help": "ボイスチャットが必須か、推奨か、任意かを伝えます。"
+            },
+            "preferred_languages": {
+                "label": "主な使用言語",
+                "placeholder": "1つ以上の言語を選択",
+                "help": "グループで主に使われる言語を示します。"
+            },
+            "tags": {
+                "label": "追加タグ",
+                "placeholder": "Late Night や Blind Prog のようなタグを追加または作成",
+                "help": "任意。最大 {max} 個まで、雰囲気やニッチな特徴を表す自由タグを使えます。",
+                "suggestions": {
+                    "late_night": "Late Night",
+                    "lgbtq_friendly": "LGBTQ+ Friendly",
+                    "blind_prog": "Blind Prog",
+                    "alt_friendly": "Alt Friendly",
+                    "achievement_hunting": "Achievement Hunting",
+                    "weekend_raids": "Weekend Raids"
+                }
+            },
+            "region": {
+                "label": "主な活動リージョン",
+                "inferred": "{datacenter} をもとに、このグループは {region} で活動するものとして表示されます。",
+                "pending": "まずデータセンターを選択すると、このグループの主な活動リージョンを推測できます。"
+            },
+            "active_timezone": {
+                "label": "活動タイムゾーン",
+                "placeholder": "タイムゾーンを選択",
+                "help": "任意。下で曜日や時間帯を設定する場合、それらをどのタイムゾーンで解釈するかを選びます。"
+            },
+            "active_days": {
+                "label": "主な活動曜日",
+                "placeholder": "1つ以上の活動曜日を選択",
+                "help": "任意。普段よく活動したり募集したりする曜日を選びます。"
+            },
+            "active_start_time": {
+                "label": "活動開始時間",
+                "help": "任意。普段の活動時間帯の開始時刻です。"
+            },
+            "active_end_time": {
+                "label": "活動終了時間",
+                "help": "任意。普段の活動時間帯の終了時刻です。"
+            },
+            "join_mode": {
+                "label": "Join Mode",
+                "placeholder": "Select a join mode",
+                "help": "Open is community-only. Invite-only and application-based groups can still use generated invite links."
+            },
+            "is_visible": {
+                "label": "検索に表示する",
+                "help": "Visible groups can appear in discovery and search."
+            }
+        },
+        "visibility_summary": {
+            "label": "この設定の意味",
+            "default_name": "このグループ",
+            "open_visible": "{name} can be joined by anyone and can appear in discovery.",
+            "open_hidden": "{name} can be joined by anyone with the permanent slug invite, but will stay out of discovery.",
+            "invite_only_visible": "{name} requires a generated invite link and can appear in discovery.",
+            "invite_only_hidden": "{name} requires a generated invite link and will stay out of discovery.",
+            "application_visible": "{name} will use applications for new members and can appear in discovery. Invite links can still add members directly.",
+            "application_hidden": "{name} will use applications for new members and stay out of discovery. Invite links can still add members directly."
+        },
+        "toasts": {
+            "created": "グループを作成しました。"
+        }
     }
-  }
 }

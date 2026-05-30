@@ -1,104 +1,104 @@
 {
-  "nav": {
-    "home": "FullParty Startseite",
-    "features": "Features",
-    "this_week": "Diese Woche",
-    "players": "Für Spieler",
-    "leaders": "Für Leiter",
-    "discord": "Discord",
-    "menu": "Menü"
-  },
-  "hero": {
-    "badge": "Von Raidern gebaut. Für die ganze Community.",
-    "title_prefix": "Das wahre Endgame ist ",
-    "title_accent": "Organisation",
-    "subtitle": "Der All-in-One-Hub für Raidplanung, Static-Recruitment und Community.",
-    "primary_action": "Starte deinen ersten Run",
-    "secondary_action": "Features ansehen",
-    "trust_badges": {
-      "ffxiv": "Für FFXIV gebaut",
-      "raiders": "Von Raidern vertraut",
-      "communities": "Stark für große Communities"
+    "nav": {
+        "home": "FullParty Startseite",
+        "features": "Features",
+        "this_week": "Diese Woche",
+        "players": "Für Spieler",
+        "leaders": "Für Leiter",
+        "discord": "Discord",
+        "menu": "Menü"
     },
-    "separator": "Alles, was du für High-End-Content brauchst"
-  },
-  "features": {
-    "items": {
-      "applications": {
-        "title": "Bewerbungen & Review",
-        "description": "Sammle strukturierte Anmeldungen, vergleiche Bewerber und triff Roster-Entscheidungen ohne Kontextverlust."
-      },
-      "rosters": {
-        "title": "Roster Building",
-        "description": "Weise bestätigte Spieler klaren Slots, Backups, Hosts und Raid Leads für jeden Run zu."
-      },
-      "groups": {
-        "title": "Gruppenverwaltung",
-        "description": "Verwalte Mitglieder, Moderatoren, Einladungen, Discovery-Einstellungen, Notizen und Rechte an einem Ort."
-      },
-      "scheduling": {
-        "title": "Run-Planung",
-        "description": "Plane High-End-Content mit Zeiten, Anforderungen, Sichtbarkeit, Bewerbungen und Gastoptionen."
-      }
+    "hero": {
+        "badge": "Von Raidern gebaut. Für die ganze Community.",
+        "title_prefix": "Das wahre Endgame ist ",
+        "title_accent": "Organisation",
+        "subtitle": "Der All-in-One-Hub für Raidplanung, Static-Recruitment und Community.",
+        "primary_action": "Starte deinen ersten Run",
+        "secondary_action": "Features ansehen",
+        "trust_badges": {
+            "ffxiv": "Für FFXIV gebaut",
+            "raiders": "Von Raidern vertraut",
+            "communities": "Stark für große Communities"
+        },
+        "separator": "Alles, was du für High-End-Content brauchst"
+    },
+    "features": {
+        "items": {
+            "applications": {
+                "title": "Bewerbungen & Review",
+                "description": "Sammle strukturierte Anmeldungen, vergleiche Bewerber und triff Roster-Entscheidungen ohne Kontextverlust."
+            },
+            "rosters": {
+                "title": "Roster Building",
+                "description": "Weise bestätigte Spieler klaren Slots, Backups, Hosts und Raid Leads für jeden Run zu."
+            },
+            "groups": {
+                "title": "Gruppenverwaltung",
+                "description": "Verwalte Mitglieder, Moderatoren, Einladungen, Discovery-Einstellungen, Notizen und Rechte an einem Ort."
+            },
+            "scheduling": {
+                "title": "Run-Planung",
+                "description": "Plane High-End-Content mit Zeiten, Anforderungen, Sichtbarkeit, Bewerbungen und Gastoptionen."
+            }
+        }
+    },
+    "audience": {
+        "title": "Besser für Spieler. Besser für Leiter.",
+        "players": {
+            "title": "Für Spieler",
+            "points": {
+                "verify": "Zeige deine Charaktere mit vertrauenswürdigen Profildaten",
+                "apply": "Finde Runs, die zu deinen Zielen passen",
+                "progress": "Bewirb dich mit klaren Charakterdetails",
+                "groups": "Verfolge Bewerbungen und zugewiesene Runs",
+                "updates": "Folge Gruppen und bleib auf dem Laufenden"
+            }
+        },
+        "leaders": {
+            "title": "Für Gruppenleiter",
+            "points": {
+                "recruit": "Prüfe Bewerber mit Charakterkontext",
+                "manage": "Baue Roster, Bench, Hosts und Raid Leads",
+                "schedule": "Plane öffentliche, private und gastfreundliche Runs",
+                "communicate": "Verwalte Mitglieder, Rollen und Anfragen",
+                "ready": "Verbinde Run-Historie und Benachrichtigungen"
+            }
+        },
+        "cta_text": "Vom ersten Pull bis zum finalen Clear. Deine Party ist bereit.",
+        "cta_action": "Heute starten"
+    },
+    "footer": {
+        "copyright": "FullParty. Alle Rechte vorbehalten.",
+        "privacy": "Datenschutzerklärung",
+        "cookies": "Cookie-Richtlinie",
+        "discord": "Discord"
+    },
+    "this_week": {
+        "title": "Diese Woche",
+        "date_range": "19. Mai - 25. Mai 2026",
+        "previous": "Vorherige Woche",
+        "next": "Nächste Woche",
+        "today": "Heute",
+        "more_runs_action": "Mehr Runs",
+        "empty_day": "Keine öffentlichen Runs.",
+        "more_runs": "+{count} weitere Runs",
+        "days": {
+            "mon": "Mo",
+            "tue": "Di",
+            "wed": "Mi",
+            "thu": "Do",
+            "fri": "Fr",
+            "sat": "Sa",
+            "sun": "So"
+        },
+        "styles": {
+            "savage": "Savage",
+            "ultimate": "Ultimate",
+            "unknown": "Run"
+        },
+        "applications": {
+            "open": "Bewerbungen offen",
+            "closed": "Bewerbungen geschlossen"
+        }
     }
-  },
-  "audience": {
-    "title": "Besser für Spieler. Besser für Leiter.",
-    "players": {
-      "title": "Für Spieler",
-      "points": {
-        "verify": "Zeige deine Charaktere mit vertrauenswürdigen Profildaten",
-        "apply": "Finde Runs, die zu deinen Zielen passen",
-        "progress": "Bewirb dich mit klaren Charakterdetails",
-        "groups": "Verfolge Bewerbungen und zugewiesene Runs",
-        "updates": "Folge Gruppen und bleib auf dem Laufenden"
-      }
-    },
-    "leaders": {
-      "title": "Für Gruppenleiter",
-      "points": {
-        "recruit": "Prüfe Bewerber mit Charakterkontext",
-        "manage": "Baue Roster, Bench, Hosts und Raid Leads",
-        "schedule": "Plane öffentliche, private und gastfreundliche Runs",
-        "communicate": "Verwalte Mitglieder, Rollen und Anfragen",
-        "ready": "Verbinde Run-Historie und Benachrichtigungen"
-      }
-    },
-    "cta_text": "Vom ersten Pull bis zum finalen Clear. Deine Party ist bereit.",
-    "cta_action": "Heute starten"
-  },
-  "footer": {
-    "copyright": "FullParty. Alle Rechte vorbehalten.",
-    "privacy": "Datenschutzerklärung",
-    "cookies": "Cookie-Richtlinie",
-    "discord": "Discord"
-  },
-  "this_week": {
-    "title": "Diese Woche",
-    "date_range": "19. Mai - 25. Mai 2026",
-    "previous": "Vorherige Woche",
-    "next": "Nächste Woche",
-    "today": "Heute",
-    "more_runs_action": "Mehr Runs",
-    "empty_day": "Keine öffentlichen Runs.",
-    "more_runs": "+{count} weitere Runs",
-    "days": {
-      "mon": "Mo",
-      "tue": "Di",
-      "wed": "Mi",
-      "thu": "Do",
-      "fri": "Fr",
-      "sat": "Sa",
-      "sun": "So"
-    },
-    "styles": {
-      "savage": "Savage",
-      "ultimate": "Ultimate",
-      "unknown": "Run"
-    },
-    "applications": {
-      "open": "Bewerbungen offen",
-      "closed": "Bewerbungen geschlossen"
-    }
-  }
 }

@@ -1,80 +1,80 @@
 {
-  "title": "統計",
-  "subtitle": "{group} の活動、参加、応募、ロードアウト傾向。",
-  "common": {
-    "other": "その他"
-  },
-  "cache": {
-    "refresh": "統計を更新",
-    "refreshing": "更新中...",
-    "cooldown": "{time} 後に更新",
-    "tooltip": "キャッシュ日時: {cached}。期限: {expires}。",
-    "unknown": "不明"
-  },
-  "metrics": {
-    "total_runs": {
-      "label": "総Run数",
-      "description": "参加者あり {count}"
+    "title": "統計",
+    "subtitle": "{group} の活動、参加、応募、ロードアウト傾向。",
+    "common": {
+        "other": "その他"
     },
-    "total_participants": {
-      "label": "総参加数",
-      "description": "メインスロットのロスター参加"
+    "cache": {
+        "refresh": "統計を更新",
+        "refreshing": "更新中...",
+        "cooldown": "{time} 後に更新",
+        "tooltip": "キャッシュ日時: {cached}。期限: {expires}。",
+        "unknown": "不明"
     },
-    "unique_participants": {
-      "label": "ユニーク参加者",
-      "description": "ロスターされた個別キャラクター"
+    "metrics": {
+        "total_runs": {
+            "label": "総Run数",
+            "description": "参加者あり {count}"
+        },
+        "total_participants": {
+            "label": "総参加数",
+            "description": "メインスロットのロスター参加"
+        },
+        "unique_participants": {
+            "label": "ユニーク参加者",
+            "description": "ロスターされた個別キャラクター"
+        },
+        "average_participants": {
+            "label": "平均参加者 / Raid",
+            "description": "全Runで計算"
+        },
+        "active_players": {
+            "label": "アクティブプレイヤー",
+            "description": "過去1か月以内に参加"
+        }
     },
-    "average_participants": {
-      "label": "平均参加者 / Raid",
-      "description": "全Runで計算"
+    "participation": {
+        "title": "参加トレンド",
+        "subtitle": "過去1か月でRunがあった日の人数。",
+        "badge": "過去30日",
+        "tooltip": "{date}: {runs} Runで {participants} 人",
+        "empty_title": "最近の参加はありません",
+        "empty_description": "参加者がロスターされたRunが行われるとここに表示されます。"
     },
-    "active_players": {
-      "label": "アクティブプレイヤー",
-      "description": "過去1か月以内に参加"
+    "applications": {
+        "distribution_title": "応募分布",
+        "distribution_subtitle": "グループのRun全体の現在の応募結果。",
+        "volume_title": "応募数",
+        "volume_subtitle": "過去12か月の月別応募数。",
+        "total_label": "応募",
+        "empty_title": "応募はまだありません",
+        "empty_description": "プレイヤーがRunに応募すると応募状況がここに表示されます。",
+        "statuses": {
+            "pending": "保留中",
+            "approved": "承認",
+            "declined": "却下",
+            "cancelled": "キャンセル",
+            "withdrawn": "取り下げ"
+        }
+    },
+    "loadouts": {
+        "total_label": "割り当て",
+        "assignment_count": "{count} 回"
+    },
+    "classes": {
+        "title": "クラス分布",
+        "subtitle": "ロスター割り当てで最も使われたバトルクラス。",
+        "trend_title": "クラス詳細トレンド",
+        "trend_subtitle": "上位クラスの月別トレンド。",
+        "empty_title": "クラスデータはまだありません",
+        "empty_description": "割り当てにクラス選択が含まれると使用状況が表示されます。"
+    },
+    "phantom_jobs": {
+        "title": "ファントムジョブ分布",
+        "subtitle": "ロスター割り当てで最も使われたファントムジョブ。",
+        "trend_title": "ファントムジョブ詳細トレンド",
+        "trend_subtitle": "上位ファントムジョブの月別トレンド。",
+        "empty_title": "ファントムジョブデータはまだありません",
+        "empty_description": "割り当てにファントムジョブ選択が含まれると使用状況が表示されます。"
     }
-  },
-  "participation": {
-    "title": "参加トレンド",
-    "subtitle": "過去1か月でRunがあった日の人数。",
-    "badge": "過去30日",
-    "tooltip": "{date}: {runs} Runで {participants} 人",
-    "empty_title": "最近の参加はありません",
-    "empty_description": "参加者がロスターされたRunが行われるとここに表示されます。"
-  },
-  "applications": {
-    "distribution_title": "応募分布",
-    "distribution_subtitle": "グループのRun全体の現在の応募結果。",
-    "volume_title": "応募数",
-    "volume_subtitle": "過去12か月の月別応募数。",
-    "total_label": "応募",
-    "empty_title": "応募はまだありません",
-    "empty_description": "プレイヤーがRunに応募すると応募状況がここに表示されます。",
-    "statuses": {
-      "pending": "保留中",
-      "approved": "承認",
-      "declined": "却下",
-      "cancelled": "キャンセル",
-      "withdrawn": "取り下げ"
-    }
-  },
-  "loadouts": {
-    "total_label": "割り当て",
-    "assignment_count": "{count} 回"
-  },
-  "classes": {
-    "title": "クラス分布",
-    "subtitle": "ロスター割り当てで最も使われたバトルクラス。",
-    "trend_title": "クラス詳細トレンド",
-    "trend_subtitle": "上位クラスの月別トレンド。",
-    "empty_title": "クラスデータはまだありません",
-    "empty_description": "割り当てにクラス選択が含まれると使用状況が表示されます。"
-  },
-  "phantom_jobs": {
-    "title": "ファントムジョブ分布",
-    "subtitle": "ロスター割り当てで最も使われたファントムジョブ。",
-    "trend_title": "ファントムジョブ詳細トレンド",
-    "trend_subtitle": "上位ファントムジョブの月別トレンド。",
-    "empty_title": "ファントムジョブデータはまだありません",
-    "empty_description": "割り当てにファントムジョブ選択が含まれると使用状況が表示されます。"
-  }
 }

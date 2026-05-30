@@ -1,130 +1,158 @@
 {
-  "title": "Gruppeneinstellungen",
-  "subtitle": "Verwalte die allgemeine Konfiguration deiner Gruppe und zugriffssensible Details.",
-  "general": {
-    "title": "Allgemeine Einstellungen",
-    "subtitle": "Aktualisiere die veränderbaren Details, die definieren, wie deine Gruppe erscheint und wie Mitglieder beitreten.",
-    "owner_only_notice": "Nur Gruppenbesitzer können diese Einstellungen aktualisieren. Moderatoren können sie hier einsehen.",
-    "visibility_summary_label": "Sichtbarkeitsübersicht",
-    "visibility_summary": {
-      "default_name": "Diese Gruppe",
-      "open_visible": "{name} can be joined by anyone and can appear in discovery.",
-      "open_hidden": "{name} can be joined by anyone with the permanent slug invite, but will stay out of discovery.",
-      "invite_only_visible": "{name} requires a generated invite link and can appear in discovery.",
-      "invite_only_hidden": "{name} requires a generated invite link and will stay out of discovery.",
-      "application_visible": "{name} will use applications for new members and can appear in discovery. Invite links can still add members directly.",
-      "application_hidden": "{name} will use applications for new members and stay out of discovery. Invite links can still add members directly."
-    },
-    "fields": {
-      "name": { "placeholder": "Forked Tower Enjoyers" },
-      "description": { "placeholder": "Beschreibe, worauf sich deine Gruppe konzentriert und für wen sie gedacht ist." },
-      "profile_picture": {
-        "placeholder": "Bild auswählen",
-        "help": "Optional. Lade ein neues Bild hoch, um das aktuelle Gruppenbild zu ersetzen.",
-        "preview_alt": "Vorschau des Gruppenprofilbilds",
-        "preview_label": "Sichtbare Beschnittvorschau",
-        "preview_help": "Diese Vorschau zeigt den zentrierten quadratischen Zuschnitt, der skaliert und als Profilbild deiner Gruppe verwendet wird."
-      },
-      "banner_image": {
-        "label": "Bannerbild",
-        "placeholder": "Breites Bannerbild auswählen",
-        "help": "Optional. Lade ein neues breites Banner für Discovery-Karten und das Gruppen-Dashboard hoch.",
-        "preview_alt": "Vorschau des Gruppenbanners",
-        "preview_label": "Bannervorschau",
-        "preview_help": "Diese Vorschau zeigt den breiten Beschnitt, der für den Gruppenheader und Discovery-Karten verwendet wird."
-      },
-      "discord_invite_url": {
-        "placeholder": "https://discord.gg/yourserver",
-        "help": "Optional. Füge eine Discord-Einladung hinzu, damit Mitglieder deinem Server leicht beitreten können."
-      },
-      "datacenter": { "placeholder": "Wähle ein Datenzentrum" },
-      "join_mode": {
-        "label": "Join Mode",
-        "placeholder": "Select a join mode",
-        "help": "Open is community-only. Invite-only and application-based groups can still use generated invite links."
-      },
-      "is_visible": {
-        "label": "In der Entdeckung sichtbar",
-        "help": "Visible groups can appear in discovery and search."
-      }
-    },
-    "validation": {
-      "image_invalid_format": "Bilder müssen JPG-, JPEG-, PNG- oder WEBP-Dateien sein.",
-      "image_too_large": "Bilder dürfen höchstens 5 MB groß sein."
-    },
-    "toasts": { "updated": "Gruppeneinstellungen wurden aktualisiert." }
-  },
-  "discovery": {
-    "title": "Discovery-Einstellungen",
-    "subtitle": "Aktualisiere, wie deine Gruppe in der Discovery erscheint und wann sie normalerweise aktiv ist.",
-    "active_window_title": "Aktivitätsfenster",
-    "active_window_subtitle": "Halte Zeitzone, aktive Tage und typische Spielzeiten aktuell, damit andere wissen, wann deine Gruppe meistens online ist.",
-    "toasts": { "updated": "Discovery-Einstellungen wurden aktualisiert." }
-  },
-  "invites": {
-    "title": "Einladungslinks",
-    "subtitle": "Verwalte Einladungslinks für neue Mitglieder.",
-    "create_button": "Link erstellen",
-    "empty": "Es wurden noch keine Einladungslinks erstellt.",
-    "system_creator": "System",
-    "created_by": "Erstellt von {name} am {date}",
-    "uses": "Nutzungen",
-    "expires": "Läuft ab",
-    "never": "Nie",
-    "unlimited": "Unbegrenzt",
-    "statuses": { "active": "Aktiv", "expired": "Abgelaufen", "system": "System" },
-    "create_modal": {
-      "title": "Einladungslink erstellen",
-      "subtitle": "Lege optionale Limits für Nutzungen und Ablauf fest. Lasse Felder leer, um die Einladung unbegrenzt offen zu lassen.",
-      "max_uses": { "label": "Maximale Nutzungen", "placeholder": "Leer lassen für unbegrenzt" },
-      "expires_in": {
-        "label": "Läuft ab in",
-        "placeholder": "Zeitfenster auswählen",
-        "options": {
-          "12_hours": "12 Stunden",
-          "24_hours": "24 Stunden",
-          "1_day": "1 Tag",
-          "2_days": "2 Tage",
-          "3_days": "3 Tage",
-          "4_days": "4 Tage",
-          "1_week": "1 Woche",
-          "unlimited": "Nie"
+    "title": "Gruppeneinstellungen",
+    "subtitle": "Verwalte die allgemeine Konfiguration deiner Gruppe und zugriffssensible Details.",
+    "general": {
+        "title": "Allgemeine Einstellungen",
+        "subtitle": "Aktualisiere die veränderbaren Details, die definieren, wie deine Gruppe erscheint und wie Mitglieder beitreten.",
+        "owner_only_notice": "Nur Gruppenbesitzer können diese Einstellungen aktualisieren. Moderatoren können sie hier einsehen.",
+        "visibility_summary_label": "Sichtbarkeitsübersicht",
+        "visibility_summary": {
+            "default_name": "Diese Gruppe",
+            "open_visible": "{name} can be joined by anyone and can appear in discovery.",
+            "open_hidden": "{name} can be joined by anyone with the permanent slug invite, but will stay out of discovery.",
+            "invite_only_visible": "{name} requires a generated invite link and can appear in discovery.",
+            "invite_only_hidden": "{name} requires a generated invite link and will stay out of discovery.",
+            "application_visible": "{name} will use applications for new members and can appear in discovery. Invite links can still add members directly.",
+            "application_hidden": "{name} will use applications for new members and stay out of discovery. Invite links can still add members directly."
+        },
+        "fields": {
+            "name": {
+                "placeholder": "Forked Tower Enjoyers"
+            },
+            "description": {
+                "placeholder": "Beschreibe, worauf sich deine Gruppe konzentriert und für wen sie gedacht ist."
+            },
+            "profile_picture": {
+                "placeholder": "Bild auswählen",
+                "help": "Optional. Lade ein neues Bild hoch, um das aktuelle Gruppenbild zu ersetzen.",
+                "preview_alt": "Vorschau des Gruppenprofilbilds",
+                "preview_label": "Sichtbare Beschnittvorschau",
+                "preview_help": "Diese Vorschau zeigt den zentrierten quadratischen Zuschnitt, der skaliert und als Profilbild deiner Gruppe verwendet wird."
+            },
+            "banner_image": {
+                "label": "Bannerbild",
+                "placeholder": "Breites Bannerbild auswählen",
+                "help": "Optional. Lade ein neues breites Banner für Discovery-Karten und das Gruppen-Dashboard hoch.",
+                "preview_alt": "Vorschau des Gruppenbanners",
+                "preview_label": "Bannervorschau",
+                "preview_help": "Diese Vorschau zeigt den breiten Beschnitt, der für den Gruppenheader und Discovery-Karten verwendet wird."
+            },
+            "discord_invite_url": {
+                "placeholder": "https://discord.gg/yourserver",
+                "help": "Optional. Füge eine Discord-Einladung hinzu, damit Mitglieder deinem Server leicht beitreten können."
+            },
+            "datacenter": {
+                "placeholder": "Wähle ein Datenzentrum"
+            },
+            "join_mode": {
+                "label": "Join Mode",
+                "placeholder": "Select a join mode",
+                "help": "Open is community-only. Invite-only and application-based groups can still use generated invite links."
+            },
+            "is_visible": {
+                "label": "In der Entdeckung sichtbar",
+                "help": "Visible groups can appear in discovery and search."
+            }
+        },
+        "validation": {
+            "image_invalid_format": "Bilder müssen JPG-, JPEG-, PNG- oder WEBP-Dateien sein.",
+            "image_too_large": "Bilder dürfen höchstens 5 MB groß sein."
+        },
+        "toasts": {
+            "updated": "Gruppeneinstellungen wurden aktualisiert."
         }
-      }
     },
-    "toasts": { "created": "Einladungslink erstellt.", "copied": "Einladungslink kopiert.", "revoked": "Einladungslink widerrufen." }
-  },
-  "ownership": {
-    "title": "Besitz",
-    "subtitle": "Übertrage den Besitz an ein anderes bestehendes Mitglied, wenn du die Gruppe übergeben musst.",
-    "owner_only_notice": "Nur der aktuelle Besitzer kann den Besitz übertragen.",
-    "warning_title": "Das Übertragen des Besitzes ist eine weitreichende Aktion.",
-    "warning_description": "Nach der Übertragung verlierst du deine Besitzerrechte und wirst Moderator der Gruppe.",
-    "selected_member": "Neuer Besitzer",
-    "empty": "Du brauchst mindestens ein weiteres Mitglied in der Gruppe, bevor der Besitz übertragen werden kann.",
-    "transfer_button": "Besitz übertragen",
-    "confirm_modal": {
-      "title": "Besitz übertragen",
-      "subtitle": "Wähle das Mitglied aus, das neuer Besitzer werden soll, und bestätige dann die Übertragung.",
-      "member": { "label": "Mitglied auswählen", "placeholder": "Wähle ein Mitglied" },
-      "warning": "Diese Aktion kann in diesem Ablauf nicht rückgängig gemacht werden. Du wirst sofort Moderator.",
-      "confirm_button": "Übertragung bestätigen"
+    "discovery": {
+        "title": "Discovery-Einstellungen",
+        "subtitle": "Aktualisiere, wie deine Gruppe in der Discovery erscheint und wann sie normalerweise aktiv ist.",
+        "active_window_title": "Aktivitätsfenster",
+        "active_window_subtitle": "Halte Zeitzone, aktive Tage und typische Spielzeiten aktuell, damit andere wissen, wann deine Gruppe meistens online ist.",
+        "toasts": {
+            "updated": "Discovery-Einstellungen wurden aktualisiert."
+        }
     },
-    "toasts": { "transferred": "Besitz erfolgreich übertragen." }
-  },
-  "danger_zone": {
-    "title": "Gefahrenbereich",
-    "subtitle": "Lösche die Gruppe dauerhaft, wenn du absolut sicher bist, dass sie entfernt werden soll.",
-    "owner_only_notice": "Nur der aktuelle Besitzer kann diese Gruppe löschen.",
-    "warning_title": "Diese Aktion kann nicht rückgängig gemacht werden.",
-    "warning_description": "Durch das Löschen der Gruppe werden ihre Einstellungen, Einladungen, Mitgliedschaften und geplanten Runs dauerhaft entfernt.",
-    "delete_button": "Gruppe löschen",
-    "confirm_modal": {
-      "title": "Gruppe löschen",
-      "subtitle": "Dadurch wird {name} dauerhaft gelöscht. Bitte bestätige, dass du fortfahren möchtest.",
-      "warning": "Nach dem Löschen sind diese Gruppe und alle zugehörigen Daten für immer verloren.",
-      "confirm_button": "Ja, Gruppe löschen"
+    "invites": {
+        "title": "Einladungslinks",
+        "subtitle": "Verwalte Einladungslinks für neue Mitglieder.",
+        "create_button": "Link erstellen",
+        "empty": "Es wurden noch keine Einladungslinks erstellt.",
+        "system_creator": "System",
+        "created_by": "Erstellt von {name} am {date}",
+        "uses": "Nutzungen",
+        "expires": "Läuft ab",
+        "never": "Nie",
+        "unlimited": "Unbegrenzt",
+        "statuses": {
+            "active": "Aktiv",
+            "expired": "Abgelaufen",
+            "system": "System"
+        },
+        "create_modal": {
+            "title": "Einladungslink erstellen",
+            "subtitle": "Lege optionale Limits für Nutzungen und Ablauf fest. Lasse Felder leer, um die Einladung unbegrenzt offen zu lassen.",
+            "max_uses": {
+                "label": "Maximale Nutzungen",
+                "placeholder": "Leer lassen für unbegrenzt"
+            },
+            "expires_in": {
+                "label": "Läuft ab in",
+                "placeholder": "Zeitfenster auswählen",
+                "options": {
+                    "12_hours": "12 Stunden",
+                    "24_hours": "24 Stunden",
+                    "1_day": "1 Tag",
+                    "2_days": "2 Tage",
+                    "3_days": "3 Tage",
+                    "4_days": "4 Tage",
+                    "1_week": "1 Woche",
+                    "unlimited": "Nie"
+                }
+            }
+        },
+        "toasts": {
+            "created": "Einladungslink erstellt.",
+            "copied": "Einladungslink kopiert.",
+            "revoked": "Einladungslink widerrufen."
+        }
     },
-    "toasts": { "deleted": "Gruppe erfolgreich gelöscht." }
-  }
+    "ownership": {
+        "title": "Besitz",
+        "subtitle": "Übertrage den Besitz an ein anderes bestehendes Mitglied, wenn du die Gruppe übergeben musst.",
+        "owner_only_notice": "Nur der aktuelle Besitzer kann den Besitz übertragen.",
+        "warning_title": "Das Übertragen des Besitzes ist eine weitreichende Aktion.",
+        "warning_description": "Nach der Übertragung verlierst du deine Besitzerrechte und wirst Moderator der Gruppe.",
+        "selected_member": "Neuer Besitzer",
+        "empty": "Du brauchst mindestens ein weiteres Mitglied in der Gruppe, bevor der Besitz übertragen werden kann.",
+        "transfer_button": "Besitz übertragen",
+        "confirm_modal": {
+            "title": "Besitz übertragen",
+            "subtitle": "Wähle das Mitglied aus, das neuer Besitzer werden soll, und bestätige dann die Übertragung.",
+            "member": {
+                "label": "Mitglied auswählen",
+                "placeholder": "Wähle ein Mitglied"
+            },
+            "warning": "Diese Aktion kann in diesem Ablauf nicht rückgängig gemacht werden. Du wirst sofort Moderator.",
+            "confirm_button": "Übertragung bestätigen"
+        },
+        "toasts": {
+            "transferred": "Besitz erfolgreich übertragen."
+        }
+    },
+    "danger_zone": {
+        "title": "Gefahrenbereich",
+        "subtitle": "Lösche die Gruppe dauerhaft, wenn du absolut sicher bist, dass sie entfernt werden soll.",
+        "owner_only_notice": "Nur der aktuelle Besitzer kann diese Gruppe löschen.",
+        "warning_title": "Diese Aktion kann nicht rückgängig gemacht werden.",
+        "warning_description": "Durch das Löschen der Gruppe werden ihre Einstellungen, Einladungen, Mitgliedschaften und geplanten Runs dauerhaft entfernt.",
+        "delete_button": "Gruppe löschen",
+        "confirm_modal": {
+            "title": "Gruppe löschen",
+            "subtitle": "Dadurch wird {name} dauerhaft gelöscht. Bitte bestätige, dass du fortfahren möchtest.",
+            "warning": "Nach dem Löschen sind diese Gruppe und alle zugehörigen Daten für immer verloren.",
+            "confirm_button": "Ja, Gruppe löschen"
+        },
+        "toasts": {
+            "deleted": "Gruppe erfolgreich gelöscht."
+        }
+    }
 }
