@@ -1,0 +1,51 @@
+{
+  "title": "Featured Groups",
+  "subtitle": "Curate the groups shown first in discovery, with active groups filling any empty slots.",
+  "admin_only": "Admin only",
+  "saved": "Featured group settings saved.",
+  "empty": "No groups are curated yet. Discovery will use active groups as fallback.",
+  "eligibility_hint": "Only visible groups with a description, banner, and recent activity can be featured.",
+  "form": {
+    "create_title": "Feature a Group",
+    "edit_title": "Edit Featured Group",
+    "create": "Feature Group"
+  },
+  "fields": {
+    "group": "Group",
+    "priority": "Priority",
+    "starts_at": "Starts At",
+    "ends_at": "Ends At",
+    "internal_note": "Internal Note"
+  },
+  "placeholders": {
+    "group": "Choose a group",
+    "internal_note": "Why this group is featured, campaign notes, or launch context."
+  },
+  "status": {
+    "active": "Active",
+    "scheduled": "Scheduled",
+    "ended": "Ended",
+    "hidden_group": "Hidden group"
+  },
+  "table": {
+    "group": "Group",
+    "window": "Window",
+    "priority": "Priority",
+    "note": "Note"
+  },
+  "actions": {
+    "save": "Save Featured Group",
+    "edit": "Edit",
+    "delete": "Remove"
+  },
+  "delete_modal": {
+    "title": "Remove featured group",
+    "description": "This removes the curated placement. The group itself will not be deleted.",
+    "confirm": "Remove"
+  },
+  "toasts": {
+    "created": "Group added to featured discovery.",
+    "updated": "Featured group updated.",
+    "deleted": "Featured group removed."
+  }
+}

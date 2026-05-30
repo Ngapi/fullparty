@@ -37,6 +37,12 @@ class IntegrationClientFactory extends Factory
                 IntegrationClient::EVENT_DISCORD_USER_APP_INSTALLED,
                 IntegrationClient::EVENT_DISCORD_USER_APP_DISCONNECTED,
                 IntegrationClient::EVENT_DISCORD_NOTIFICATION_DELIVERY,
+                IntegrationClient::EVENT_DISCORD_GUILD_RUN_REMINDER,
+                IntegrationClient::EVENT_DISCORD_GUILD_RUN_COMPLETED,
+                IntegrationClient::EVENT_DISCORD_GUILD_RUN_CANCELLED,
+                IntegrationClient::EVENT_DISCORD_GUILD_SNAPSHOT_REQUESTED,
+                IntegrationClient::EVENT_DISCORD_GUILD_MEMBERSHIP_SNAPSHOT_REQUESTED,
+                IntegrationClient::EVENT_DISCORD_GUILD_SETTINGS_UPDATED,
             ],
         ];
     }

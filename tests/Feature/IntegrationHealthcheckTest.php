@@ -25,7 +25,7 @@ it('records successful integration healthchecks with signed headers', function (
     $check = IntegrationClientHealthCheck::query()->sole();
 
     expect($check->integration_client_id)->toBe($client->id)
-        ->and($check->status)->toBe(IntegrationClientHealthCheck::STATUS_OK)
+        ->and($check->status)->toBe(IntegrationClientHealthCheck::STATUS_HEALTHY)
         ->and($check->response_status)->toBe(204)
         ->and($check->duration_ms)->toBeGreaterThanOrEqual(0)
         ->and($client->fresh()->last_healthcheck_ok_at)->not->toBeNull()
@@ -42,13 +42,31 @@ it('records successful integration healthchecks with signed headers', function (
     });
 });
 
-it('records failed integration healthchecks in history and latest fields', function () {
+it('records degraded integration healthchecks without marking the client failed', function () {
     $client = IntegrationClient::factory()->create([
         'healthcheck_url' => 'https://discord-bot.fullparty.test/health',
     ]);
 
     Http::fake([
-        'https://discord-bot.fullparty.test/health' => Http::response(['message' => 'down'], 503),
+        'https://discord-bot.fullparty.test/health' => Http::response([
+            'ok' => true,
+            'status' => 'degraded',
+            'checks' => [
+                'discord' => [
+                    'ok' => true,
+                    'status' => 'healthy',
+                    'ready' => true,
+                ],
+                'recent_failures' => [
+                    'ok' => false,
+                    'status' => 'degraded',
+                    'warnCount' => 1,
+                    'errorCount' => 0,
+                    'ignoredCount' => 3,
+                    'lastFailureAt' => '2026-05-30T14:52:00.000Z',
+                ],
+            ],
+        ], 200),
     ]);
 
     app(CheckIntegrationClientHealthJob::class)->handle(app(IntegrationHealthcheckService::class));
@@ -56,9 +74,43 @@ it('records failed integration healthchecks in history and latest fields', funct
     $check = IntegrationClientHealthCheck::query()->sole();
     $client->refresh();
 
-    expect($check->status)->toBe(IntegrationClientHealthCheck::STATUS_FAILED)
-        ->and($check->response_status)->toBe(503)
-        ->and($check->error)->not->toBeNull()
+    expect($check->status)->toBe(IntegrationClientHealthCheck::STATUS_DEGRADED)
+        ->and($check->response_status)->toBe(200)
+        ->and($check->error)->toContain('Recent Failures')
+        ->and($check->error)->toContain('ignored: 3')
+        ->and($client->last_healthcheck_at)->not->toBeNull()
+        ->and($client->last_healthcheck_failed_at)->toBeNull()
+        ->and($client->last_healthcheck_error)->toContain('Recent Failures');
+});
+
+it('records unhealthy integration healthchecks in history and latest fields', function () {
+    $client = IntegrationClient::factory()->create([
+        'healthcheck_url' => 'https://discord-bot.fullparty.test/health',
+    ]);
+
+    Http::fake([
+        'https://discord-bot.fullparty.test/health' => Http::response([
+            'ok' => false,
+            'status' => 'unhealthy',
+            'checks' => [
+                'discord' => [
+                    'ok' => false,
+                    'status' => 'unhealthy',
+                    'ready' => false,
+                ],
+            ],
+        ], 200),
+    ]);
+
+    app(CheckIntegrationClientHealthJob::class)->handle(app(IntegrationHealthcheckService::class));
+
+    $check = IntegrationClientHealthCheck::query()->sole();
+    $client->refresh();
+
+    expect($check->status)->toBe(IntegrationClientHealthCheck::STATUS_UNHEALTHY)
+        ->and($check->response_status)->toBe(200)
+        ->and($check->error)->toContain('Discord')
+        ->and($check->error)->toContain('not ready')
         ->and($client->last_healthcheck_at)->not->toBeNull()
         ->and($client->last_healthcheck_failed_at)->not->toBeNull()
         ->and($client->last_healthcheck_error)->not->toBeNull();

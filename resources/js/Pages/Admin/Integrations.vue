@@ -8,9 +8,10 @@ import { computed, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 
 type HealthcheckBucket = {
-	status: 'ok' | 'failed' | 'unknown'
+	status: 'healthy' | 'degraded' | 'unhealthy' | 'unknown'
 	checked: number
 	failed: number
+	degraded: number
 	started_at: string
 	ended_at: string
 }
@@ -18,12 +19,13 @@ type HealthcheckBucket = {
 type HealthcheckStats = {
 	total: number
 	failed: number
+	degraded: number
 	uptime: number | null
 	buckets: HealthcheckBucket[]
 }
 
 type LatestHealthcheck = {
-	status: 'ok' | 'failed'
+	status: 'healthy' | 'degraded' | 'unhealthy'
 	checked_at: string | null
 	response_status: number | null
 	duration_ms: number | null
@@ -89,7 +91,7 @@ const form = useForm({
 	outbound_events_url: '',
 	healthcheck_url: '',
 	scopes: ['runs:read', 'users:read', 'users:write', 'guilds:write'],
-	allowed_events: ['discord.user_app.installed', 'discord.user_app.disconnected', 'discord.notification.delivery'],
+	allowed_events: ['discord.user_app.installed', 'discord.user_app.disconnected', 'discord.notification.delivery', 'discord.guild.run_reminder', 'discord.guild.run_completed', 'discord.guild.run_cancelled', 'discord.guild.snapshot_requested', 'discord.guild.membership_snapshot_requested', 'discord.guild.settings_updated'],
 });
 
 const typeOptions = computed(() => props.options.types.map((type) => ({
@@ -115,11 +117,15 @@ const eventOptions = computed(() => props.options.events.map((event) => ({
 const labelForScope = (scope: string) => t(`admin.integrations.scopes.${scope.replace(':', '_')}`);
 const labelForEvent = (event: string) => t(`admin.integrations.events.${event.replaceAll('.', '_')}`);
 const healthcheckBucketClass = (status: HealthcheckBucket['status']) => {
-	if (status === 'ok') {
+	if (status === 'healthy') {
 		return 'bg-success-500';
 	}
 
-	if (status === 'failed') {
+	if (status === 'degraded') {
+		return 'bg-warning-500';
+	}
+
+	if (status === 'unhealthy') {
 		return 'bg-error-500';
 	}
 
@@ -129,6 +135,7 @@ const formatHealthcheckTime = (value: string) => new Date(value).toLocaleString(
 const healthcheckBucketTitle = (bucket: HealthcheckBucket) => t('admin.integrations.health_status.bucket_title', {
 	status: t(`admin.integrations.health_status.statuses.${bucket.status}`),
 	checked: bucket.checked,
+	degraded: bucket.degraded,
 	failed: bucket.failed,
 	start: formatHealthcheckTime(bucket.started_at),
 	end: formatHealthcheckTime(bucket.ended_at),
@@ -141,7 +148,15 @@ const latestHealthcheckColor = (healthcheck: LatestHealthcheck | null) => {
 		return 'neutral';
 	}
 
-	return healthcheck.status === 'ok' ? 'success' : 'error';
+	if (healthcheck.status === 'healthy') {
+		return 'success';
+	}
+
+	if (healthcheck.status === 'degraded') {
+		return 'warning';
+	}
+
+	return 'error';
 };
 const latestHealthcheckStatusLabel = (healthcheck: LatestHealthcheck | null) => {
 	if (!healthcheck) {
@@ -173,7 +188,7 @@ const resetForm = () => {
 		outbound_events_url: '',
 		healthcheck_url: '',
 		scopes: ['runs:read', 'users:read', 'users:write', 'guilds:write'],
-		allowed_events: ['discord.user_app.installed', 'discord.user_app.disconnected', 'discord.notification.delivery'],
+		allowed_events: ['discord.user_app.installed', 'discord.user_app.disconnected', 'discord.notification.delivery', 'discord.guild.run_reminder', 'discord.guild.run_completed', 'discord.guild.run_cancelled', 'discord.guild.snapshot_requested', 'discord.guild.membership_snapshot_requested', 'discord.guild.settings_updated'],
 	});
 	form.reset();
 	form.clearErrors();
@@ -486,11 +501,15 @@ watch(
 									<div class="flex items-center gap-3 text-[11px] text-muted">
 										<span class="inline-flex items-center gap-1">
 											<span class="h-2 w-2 bg-success-500" />
-											{{ t('admin.integrations.health_status.statuses.ok') }}
+											{{ t('admin.integrations.health_status.statuses.healthy') }}
+										</span>
+										<span class="inline-flex items-center gap-1">
+											<span class="h-2 w-2 bg-warning-500" />
+											{{ t('admin.integrations.health_status.statuses.degraded') }}
 										</span>
 										<span class="inline-flex items-center gap-1">
 											<span class="h-2 w-2 bg-error-500" />
-											{{ t('admin.integrations.health_status.statuses.failed') }}
+											{{ t('admin.integrations.health_status.statuses.unhealthy') }}
 										</span>
 										<span class="inline-flex items-center gap-1">
 											<span class="h-2 w-2 bg-muted" />

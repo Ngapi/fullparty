@@ -148,6 +148,11 @@ class Group extends Model
         return $this->hasOne(DiscordGuildIntegration::class)->whereNull('removed_at');
     }
 
+    public function featuredGroup(): HasOne
+    {
+        return $this->hasOne(FeaturedGroup::class);
+    }
+
     public function scopeVisible($query)
     {
         return $query->where('is_visible', true);

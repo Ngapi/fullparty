@@ -44,6 +44,12 @@ class IntegrationClientController extends Controller
                     IntegrationClient::EVENT_DISCORD_USER_APP_INSTALLED,
                     IntegrationClient::EVENT_DISCORD_USER_APP_DISCONNECTED,
                     IntegrationClient::EVENT_DISCORD_NOTIFICATION_DELIVERY,
+                    IntegrationClient::EVENT_DISCORD_GUILD_RUN_REMINDER,
+                    IntegrationClient::EVENT_DISCORD_GUILD_RUN_COMPLETED,
+                    IntegrationClient::EVENT_DISCORD_GUILD_RUN_CANCELLED,
+                    IntegrationClient::EVENT_DISCORD_GUILD_SNAPSHOT_REQUESTED,
+                    IntegrationClient::EVENT_DISCORD_GUILD_MEMBERSHIP_SNAPSHOT_REQUESTED,
+                    IntegrationClient::EVENT_DISCORD_GUILD_SETTINGS_UPDATED,
                 ],
             ],
         ]);
@@ -173,6 +179,12 @@ class IntegrationClientController extends Controller
                 IntegrationClient::EVENT_DISCORD_USER_APP_INSTALLED,
                 IntegrationClient::EVENT_DISCORD_USER_APP_DISCONNECTED,
                 IntegrationClient::EVENT_DISCORD_NOTIFICATION_DELIVERY,
+                IntegrationClient::EVENT_DISCORD_GUILD_RUN_REMINDER,
+                IntegrationClient::EVENT_DISCORD_GUILD_RUN_COMPLETED,
+                IntegrationClient::EVENT_DISCORD_GUILD_RUN_CANCELLED,
+                IntegrationClient::EVENT_DISCORD_GUILD_SNAPSHOT_REQUESTED,
+                IntegrationClient::EVENT_DISCORD_GUILD_MEMBERSHIP_SNAPSHOT_REQUESTED,
+                IntegrationClient::EVENT_DISCORD_GUILD_SETTINGS_UPDATED,
             ])],
         ]);
     }
@@ -205,7 +217,7 @@ class IntegrationClientController extends Controller
             'last_healthcheck_failed_at' => $client->last_healthcheck_failed_at?->toIso8601String(),
             'last_healthcheck_error' => $client->last_healthcheck_error,
             'latest_healthcheck' => $latestHealthcheck ? [
-                'status' => $latestHealthcheck->status,
+                'status' => $this->normalizeHealthStatus($latestHealthcheck->status),
                 'checked_at' => $latestHealthcheck->checked_at?->toIso8601String(),
                 'response_status' => $latestHealthcheck->response_status,
                 'duration_ms' => $latestHealthcheck->duration_ms,
@@ -231,7 +243,7 @@ class IntegrationClientController extends Controller
     }
 
     /**
-     * @return array{total: int, failed: int, uptime: int|null, buckets: array<int, array{status: string, checked: int, failed: int, started_at: string, ended_at: string}>}
+     * @return array{total: int, failed: int, degraded: int, uptime: int|null, buckets: array<int, array{status: string, checked: int, failed: int, degraded: int, started_at: string, ended_at: string}>}
      */
     private function serializeHealthcheckPeriod(IntegrationClient $client, CarbonInterface $since, CarbonInterface $until, int $bucketMinutes): array
     {
@@ -247,24 +259,26 @@ class IntegrationClientController extends Controller
             return [
                 'total' => 0,
                 'failed' => 0,
+                'degraded' => 0,
                 'uptime' => null,
                 'buckets' => $this->emptyHealthcheckBuckets($since, $until, $bucketMinutes),
             ];
         }
 
-        $failed = $checks->where('status', IntegrationClientHealthCheck::STATUS_FAILED)->count();
+        $unhealthy = $checks->filter(fn (IntegrationClientHealthCheck $check): bool => $this->isUnhealthyStatus($check->status))->count();
 
         return [
             'total' => $total,
-            'failed' => $failed,
-            'uptime' => (int) round((($total - $failed) / $total) * 100),
+            'failed' => $unhealthy,
+            'degraded' => $checks->filter(fn (IntegrationClientHealthCheck $check): bool => $this->normalizeHealthStatus($check->status) === IntegrationClientHealthCheck::STATUS_DEGRADED)->count(),
+            'uptime' => (int) round((($total - $unhealthy) / $total) * 100),
             'buckets' => $this->healthcheckBuckets($checks, $since, $until, $bucketMinutes),
         ];
     }
 
     /**
      * @param  Collection<int, IntegrationClientHealthCheck>  $checks
-     * @return array<int, array{status: string, checked: int, failed: int, started_at: string, ended_at: string}>
+     * @return array<int, array{status: string, checked: int, failed: int, degraded: int, started_at: string, ended_at: string}>
      */
     private function healthcheckBuckets($checks, CarbonInterface $since, CarbonInterface $until, int $bucketMinutes): array
     {
@@ -278,14 +292,18 @@ class IntegrationClientController extends Controller
                 fn (IntegrationClientHealthCheck $check): bool => $check->checked_at->greaterThanOrEqualTo($bucketStart)
                     && $check->checked_at->lessThan($bucketEnd)
             );
-            $failed = $bucketChecks->where('status', IntegrationClientHealthCheck::STATUS_FAILED)->count();
+            $unhealthy = $bucketChecks->filter(fn (IntegrationClientHealthCheck $check): bool => $this->isUnhealthyStatus($check->status))->count();
+            $degraded = $bucketChecks->filter(fn (IntegrationClientHealthCheck $check): bool => $this->normalizeHealthStatus($check->status) === IntegrationClientHealthCheck::STATUS_DEGRADED)->count();
 
             $buckets[] = [
                 'status' => $bucketChecks->isEmpty()
                     ? 'unknown'
-                    : ($failed > 0 ? IntegrationClientHealthCheck::STATUS_FAILED : IntegrationClientHealthCheck::STATUS_OK),
+                    : ($unhealthy > 0
+                        ? IntegrationClientHealthCheck::STATUS_UNHEALTHY
+                        : ($degraded > 0 ? IntegrationClientHealthCheck::STATUS_DEGRADED : IntegrationClientHealthCheck::STATUS_HEALTHY)),
                 'checked' => $bucketChecks->count(),
-                'failed' => $failed,
+                'failed' => $unhealthy,
+                'degraded' => $degraded,
                 'started_at' => $bucketStart->toIso8601String(),
                 'ended_at' => $bucketEnd->toIso8601String(),
             ];
@@ -297,11 +315,26 @@ class IntegrationClientController extends Controller
     }
 
     /**
-     * @return array<int, array{status: string, checked: int, failed: int, started_at: string, ended_at: string}>
+     * @return array<int, array{status: string, checked: int, failed: int, degraded: int, started_at: string, ended_at: string}>
      */
     private function emptyHealthcheckBuckets(CarbonInterface $since, CarbonInterface $until, int $bucketMinutes): array
     {
         return $this->healthcheckBuckets(collect(), $since, $until, $bucketMinutes);
+    }
+
+    private function normalizeHealthStatus(string $status): string
+    {
+        return match ($status) {
+            IntegrationClientHealthCheck::STATUS_OK, IntegrationClientHealthCheck::STATUS_HEALTHY => IntegrationClientHealthCheck::STATUS_HEALTHY,
+            IntegrationClientHealthCheck::STATUS_DEGRADED => IntegrationClientHealthCheck::STATUS_DEGRADED,
+            IntegrationClientHealthCheck::STATUS_FAILED, IntegrationClientHealthCheck::STATUS_UNHEALTHY => IntegrationClientHealthCheck::STATUS_UNHEALTHY,
+            default => $status,
+        };
+    }
+
+    private function isUnhealthyStatus(string $status): bool
+    {
+        return $this->normalizeHealthStatus($status) === IntegrationClientHealthCheck::STATUS_UNHEALTHY;
     }
 
     private function authorizeAdminAccess(): void

@@ -1,0 +1,51 @@
+{
+  "title": "Groupes en vedette",
+  "subtitle": "Choisissez les groupes affichés en premier dans la découverte. Les places libres sont complétées par des groupes actifs.",
+  "admin_only": "Admin uniquement",
+  "saved": "Paramètres des groupes en vedette enregistrés.",
+  "empty": "Aucun groupe n'est encore sélectionné. La découverte utilisera des groupes actifs en remplacement.",
+  "eligibility_hint": "Seuls les groupes visibles avec une description, une bannière et une activité récente peuvent être mis en vedette.",
+  "form": {
+    "create_title": "Mettre un groupe en vedette",
+    "edit_title": "Modifier le groupe en vedette",
+    "create": "Mettre en vedette"
+  },
+  "fields": {
+    "group": "Groupe",
+    "priority": "Priorité",
+    "starts_at": "Début",
+    "ends_at": "Fin",
+    "internal_note": "Note interne"
+  },
+  "placeholders": {
+    "group": "Choisir un groupe",
+    "internal_note": "Pourquoi ce groupe est mis en avant, notes de campagne ou contexte de lancement."
+  },
+  "status": {
+    "active": "Actif",
+    "scheduled": "Planifié",
+    "ended": "Terminé",
+    "hidden_group": "Groupe masqué"
+  },
+  "table": {
+    "group": "Groupe",
+    "window": "Période",
+    "priority": "Priorité",
+    "note": "Note"
+  },
+  "actions": {
+    "save": "Enregistrer",
+    "edit": "Modifier",
+    "delete": "Retirer"
+  },
+  "delete_modal": {
+    "title": "Retirer le groupe en vedette",
+    "description": "Cela retire seulement la mise en avant. Le groupe ne sera pas supprimé.",
+    "confirm": "Retirer"
+  },
+  "toasts": {
+    "created": "Groupe ajouté à la découverte en vedette.",
+    "updated": "Groupe en vedette mis à jour.",
+    "deleted": "Groupe en vedette retiré."
+  }
+}

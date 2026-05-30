@@ -5,7 +5,7 @@ namespace App\Services\Integrations;
 use App\Models\IntegrationClient;
 use App\Models\IntegrationClientHealthCheck;
 use Carbon\CarbonInterface;
-use Illuminate\Http\Client\RequestException;
+use Illuminate\Http\Client\Response;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
 use Throwable;
@@ -50,22 +50,25 @@ class IntegrationHealthcheckService
             $response = Http::timeout(5)
                 ->retry(1, 250)
                 ->withHeaders($headers)
-                ->get((string) $client->healthcheck_url)
-                ->throw();
+                ->get((string) $client->healthcheck_url);
+
+            $payload = $this->healthPayload($response);
+            $status = $this->resolveStatus($response, $payload);
 
             $this->recordResult(
                 client: $client,
                 checkedAt: $checkedAt,
-                status: IntegrationClientHealthCheck::STATUS_OK,
+                status: $status,
                 responseStatus: $response->status(),
                 durationMs: $this->durationMs($startedAt),
+                error: $this->resultSummary($status, $response, $payload),
             );
         } catch (Throwable $exception) {
             $this->recordResult(
                 client: $client,
                 checkedAt: $checkedAt,
-                status: IntegrationClientHealthCheck::STATUS_FAILED,
-                responseStatus: $exception instanceof RequestException ? $exception->response->status() : null,
+                status: IntegrationClientHealthCheck::STATUS_UNHEALTHY,
+                responseStatus: null,
                 durationMs: $this->durationMs($startedAt),
                 error: $exception->getMessage(),
             );
@@ -92,10 +95,155 @@ class IntegrationHealthcheckService
 
         $client->forceFill([
             'last_healthcheck_at' => $checkedAt,
-            'last_healthcheck_ok_at' => $status === IntegrationClientHealthCheck::STATUS_OK ? $checkedAt : $client->last_healthcheck_ok_at,
-            'last_healthcheck_failed_at' => $status === IntegrationClientHealthCheck::STATUS_FAILED ? $checkedAt : null,
-            'last_healthcheck_error' => $status === IntegrationClientHealthCheck::STATUS_FAILED ? $trimmedError : null,
+            'last_healthcheck_ok_at' => $this->isHealthy($status) ? $checkedAt : $client->last_healthcheck_ok_at,
+            'last_healthcheck_failed_at' => $this->isFailed($status) ? $checkedAt : null,
+            'last_healthcheck_error' => $this->isHealthy($status) ? null : $trimmedError,
         ])->save();
+    }
+
+    /**
+     * @return array<string, mixed>|null
+     */
+    private function healthPayload(Response $response): ?array
+    {
+        $payload = $response->json();
+
+        return is_array($payload) ? $payload : null;
+    }
+
+    /**
+     * @param  array<string, mixed>|null  $payload
+     */
+    private function resolveStatus(Response $response, ?array $payload): string
+    {
+        $payloadStatus = Str::lower((string) data_get($payload, 'status', ''));
+
+        return match ($payloadStatus) {
+            IntegrationClientHealthCheck::STATUS_HEALTHY, 'ok' => IntegrationClientHealthCheck::STATUS_HEALTHY,
+            IntegrationClientHealthCheck::STATUS_DEGRADED => IntegrationClientHealthCheck::STATUS_DEGRADED,
+            IntegrationClientHealthCheck::STATUS_UNHEALTHY, 'failed', 'error' => IntegrationClientHealthCheck::STATUS_UNHEALTHY,
+            default => $this->fallbackStatus($response, $payload),
+        };
+    }
+
+    /**
+     * @param  array<string, mixed>|null  $payload
+     */
+    private function fallbackStatus(Response $response, ?array $payload): string
+    {
+        if (! $response->successful()) {
+            return IntegrationClientHealthCheck::STATUS_UNHEALTHY;
+        }
+
+        return data_get($payload, 'ok') === false
+            ? IntegrationClientHealthCheck::STATUS_UNHEALTHY
+            : IntegrationClientHealthCheck::STATUS_HEALTHY;
+    }
+
+    /**
+     * @param  array<string, mixed>|null  $payload
+     */
+    private function resultSummary(string $status, Response $response, ?array $payload): ?string
+    {
+        if ($this->isHealthy($status)) {
+            return null;
+        }
+
+        $summary = $this->checkSummaries($payload);
+
+        if ($summary !== []) {
+            return implode('; ', $summary);
+        }
+
+        if (! $response->successful()) {
+            return 'HTTP '.$response->status();
+        }
+
+        return 'Health reported '.$status.'.';
+    }
+
+    /**
+     * @param  array<string, mixed>|null  $payload
+     * @return array<int, string>
+     */
+    private function checkSummaries(?array $payload): array
+    {
+        $checks = data_get($payload, 'checks');
+
+        if (! is_array($checks)) {
+            return [];
+        }
+
+        return collect($checks)
+            ->map(function ($check, string $name): ?string {
+                if (! is_array($check)) {
+                    return null;
+                }
+
+                $status = Str::lower((string) ($check['status'] ?? ''));
+                $ok = $check['ok'] ?? null;
+
+                if (($status === '' || $status === IntegrationClientHealthCheck::STATUS_HEALTHY) && $ok !== false) {
+                    return null;
+                }
+
+                $label = Str::headline($name);
+                $details = $this->checkDetailSummary($check);
+
+                return trim($label.': '.($status ?: 'unhealthy').($details !== null ? ' ('.$details.')' : ''));
+            })
+            ->filter()
+            ->values()
+            ->all();
+    }
+
+    /**
+     * @param  array<string, mixed>  $check
+     */
+    private function checkDetailSummary(array $check): ?string
+    {
+        $details = [];
+
+        foreach ([
+            'warnCount' => 'warn',
+            'errorCount' => 'error',
+            'ignoredCount' => 'ignored',
+            'queued' => 'queued',
+            'processing' => 'processing',
+            'failedLastWindow' => 'failed',
+            'stuckProcessing' => 'stuck',
+            'ping_ms' => 'ping ms',
+        ] as $key => $label) {
+            if (array_key_exists($key, $check) && $check[$key] !== null) {
+                $details[] = $label.': '.$check[$key];
+            }
+        }
+
+        if (($check['ready'] ?? null) === false) {
+            $details[] = 'not ready';
+        }
+
+        if (isset($check['lastFailureAt'])) {
+            $details[] = 'last failure: '.$check['lastFailureAt'];
+        }
+
+        return $details === [] ? null : implode(', ', $details);
+    }
+
+    private function isHealthy(string $status): bool
+    {
+        return in_array($status, [
+            IntegrationClientHealthCheck::STATUS_HEALTHY,
+            IntegrationClientHealthCheck::STATUS_OK,
+        ], true);
+    }
+
+    private function isFailed(string $status): bool
+    {
+        return in_array($status, [
+            IntegrationClientHealthCheck::STATUS_UNHEALTHY,
+            IntegrationClientHealthCheck::STATUS_FAILED,
+        ], true);
     }
 
     private function durationMs(float $startedAt): int

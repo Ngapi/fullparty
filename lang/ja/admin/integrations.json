@@ -19,10 +19,13 @@
     "duration": "{duration} ms",
     "day": "過去24時間",
     "week": "過去7日間",
-    "bucket_title": "{start} から {end}: {status}。チェック: {checked}。失敗: {failed}。",
+    "bucket_title": "{start} から {end}: {status}。チェック: {checked}。低下: {degraded}。異常: {failed}。",
     "statuses": {
+      "healthy": "正常",
+      "degraded": "低下",
+      "unhealthy": "異常",
       "ok": "正常",
-      "failed": "失敗",
+      "failed": "異常",
       "unknown": "データなし"
     }
   },
@@ -61,7 +64,13 @@
   "events": {
     "discord_user_app_installed": "Discordアプリがインストールされた",
     "discord_user_app_disconnected": "Discordアプリの連携が解除された",
-    "discord_notification_delivery": "Discord通知の配信"
+    "discord_notification_delivery": "Discord通知の配信",
+    "discord_guild_run_reminder": "Discordサーバーのラン通知",
+    "discord_guild_run_completed": "Discordサーバーのラン完了",
+    "discord_guild_run_cancelled": "Discordサーバーのラン中止",
+    "discord_guild_snapshot_requested": "Discordサーバースナップショット要求",
+    "discord_guild_membership_snapshot_requested": "Discordサーバーメンバースナップショット要求",
+    "discord_guild_settings_updated": "Discordサーバー設定更新"
   },
   "credentials": {
     "title": "{name} の認証情報",

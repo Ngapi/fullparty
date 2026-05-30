@@ -37,6 +37,13 @@ class ActivityCancellationService
             'applications.user',
         ]);
 
+        $placedApplications = $activity->applications
+            ->filter(fn (ActivityApplication $application) => in_array($application->status, [
+                ActivityApplication::STATUS_APPROVED,
+                ActivityApplication::STATUS_ON_BENCH,
+            ], true))
+            ->values();
+
         /** @var Collection<int, ActivityApplication> $cancelledApplications */
         $cancelledApplications = DB::transaction(function () use ($activity, $cancelledByUserId, $reviewReason, $cancellationReason) {
             $cancelledAt = now();
@@ -88,6 +95,7 @@ class ActivityCancellationService
             $actor,
             $cancelledApplications,
             $cancellationReason,
+            $placedApplications,
         );
 
         return $cancelledApplications;

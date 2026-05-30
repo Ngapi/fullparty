@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import AccessBadge from "@/components/Groups/AccessBadge.vue";
 import PageHeader from "@/components/PageHeader.vue";
-import { router, usePage } from "@inertiajs/vue3";
+import { router, useForm, usePage } from "@inertiajs/vue3";
 import { useToast } from "@nuxt/ui/composables";
 import { computed, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
@@ -32,10 +32,87 @@ type LinkToken = {
 	expires_at: string
 }
 
+type SnapshotOption = {
+	id: string
+	label?: string | null
+	name?: string | null
+	usable?: boolean | null
+	disabled_reason?: string | null
+	type?: string | null
+	type_name?: string | null
+	viewable_by_bot?: boolean | null
+	sendable_by_bot?: boolean | null
+	position?: number | null
+	managed?: boolean | null
+}
+
+type SnapshotAvailableOptions = {
+	bot_log_channels?: SnapshotOption[]
+	run_announcement_channels?: SnapshotOption[]
+	run_role_template_roles?: SnapshotOption[]
+	bot_moderator_roles?: SnapshotOption[]
+	roles?: SnapshotOption[]
+	channels?: SnapshotOption[]
+}
+
+type SelectOption = {
+	label: string
+	value: string
+	disabled?: boolean
+	description?: string
+}
+
+type DiscordSettingId = string | number | null
+
+type DiscordGuildSettings = {
+	bot_log_channel_id: DiscordSettingId
+	member_facing_channel_id: DiscordSettingId
+	run_announcement_channel_id: DiscordSettingId
+	template_role_id: DiscordSettingId
+	run_role_template_id: DiscordSettingId
+	run_role_template_role_id: DiscordSettingId
+	moderation_role_id: DiscordSettingId
+	bot_moderator_role_id: DiscordSettingId
+	name_sync_enabled: boolean | string | number | null
+	enable_name_sync: boolean | string | number | null
+	nickname_sync_enabled: boolean | string | number | null
+	sync_discord_names_to_ff14: boolean | string | number | null
+}
+
+type DiscordGuildSnapshot = {
+	name?: string | null
+	guild_name?: string | null
+	icon_url?: string | null
+	member_count?: number | null
+	bot_permissions?: string | string[] | null
+	roles?: SnapshotOption[]
+	channels?: SnapshotOption[]
+	available_options?: SnapshotAvailableOptions | null
+	settings?: Partial<DiscordGuildSettings> | null
+}
+
+type MembershipCoverage = {
+	app_linked_member_count: number
+	unlinked_member_count: number
+	member_count: number
+	stats_available: boolean
+	membership_cache?: {
+		refresh_status?: string | null
+		stale?: boolean | null
+		last_full_refresh_at?: string | null
+		next_refresh_after?: string | null
+		cache_age_seconds?: number | null
+		last_error?: string | null
+		refresh_queued?: boolean | null
+	} | null
+}
+
 const props = defineProps<{
 	group: GroupPayload
 	integration: DiscordGuildIntegration | null
 	inviteUrl: string
+	snapshot: DiscordGuildSnapshot | null
+	membershipCoverage?: MembershipCoverage | null
 }>();
 
 const { t } = useI18n();
@@ -43,6 +120,8 @@ const page = usePage();
 const toast = useToast();
 const linkToken = ref<LinkToken | null>(null);
 const generatingToken = ref(false);
+const refreshingSnapshot = ref(false);
+const NONE_VALUE = "__none";
 
 const hasActiveToken = computed(() => {
 	if (linkToken.value) {
@@ -57,6 +136,188 @@ const hasActiveToken = computed(() => {
 });
 
 const tokenExpiresAt = computed(() => linkToken.value?.expires_at ?? props.group.discord_link_token_expires_at);
+const snapshotSettings = computed(() => props.snapshot?.settings ?? null);
+const channels = computed(() => props.snapshot?.channels ?? []);
+const roles = computed(() => props.snapshot?.roles ?? []);
+const availableOptions = computed(() => props.snapshot?.available_options ?? null);
+const noSelectionOption = computed(() => ({
+	label: t("groups.discord.settings.none"),
+	value: NONE_VALUE,
+}));
+const optionLabel = (option: SnapshotOption, prefix = "") => {
+	const label = option.label ?? option.name ?? option.id;
+
+	return `${prefix}${label}`;
+};
+const selectOption = (option: SnapshotOption, prefix = ""): SelectOption => {
+	const disabledReason = option.usable === false
+		? option.disabled_reason ?? t("groups.discord.settings.option_unavailable")
+		: null;
+	const label = optionLabel(option, prefix);
+
+	return {
+		label: disabledReason ? `${label} (${disabledReason})` : label,
+		value: option.id,
+		disabled: option.usable === false,
+		description: disabledReason ?? undefined,
+	};
+};
+const optionBucket = (
+	bucket: SnapshotOption[] | undefined,
+	fallback: SnapshotOption[],
+	prefix = "",
+) => [
+	noSelectionOption.value,
+	...(bucket ?? fallback).map((option) => selectOption(option, prefix)),
+];
+const botLogChannelOptions = computed(() => optionBucket(
+	availableOptions.value?.bot_log_channels,
+	availableOptions.value?.channels ?? channels.value,
+	"# ",
+));
+const memberFacingChannelOptions = computed(() => optionBucket(
+	availableOptions.value?.run_announcement_channels,
+	availableOptions.value?.channels ?? channels.value,
+	"# ",
+));
+const templateRoleOptions = computed(() => optionBucket(
+	availableOptions.value?.run_role_template_roles,
+	availableOptions.value?.roles ?? roles.value,
+));
+const moderationRoleOptions = computed(() => optionBucket(
+	availableOptions.value?.bot_moderator_roles,
+	availableOptions.value?.roles ?? roles.value,
+));
+const botPermissionsLabel = computed(() => {
+	const permissions = props.snapshot?.bot_permissions;
+
+	if (Array.isArray(permissions)) {
+		return permissions.length > 0 ? permissions.join(", ") : t("groups.discord.stats.none");
+	}
+
+	return permissions || t("groups.discord.stats.unknown");
+});
+const snapshotGuildName = computed(() => props.snapshot?.guild_name ?? props.snapshot?.name ?? props.integration?.name ?? t("groups.discord.status.unknown_guild"));
+const snapshotIconUrl = computed(() => props.snapshot?.icon_url ?? props.integration?.icon_url ?? null);
+const canEditSettings = computed(() => Boolean(props.integration && props.snapshot));
+const coverageLoaded = computed(() => props.membershipCoverage !== undefined);
+const coverageSource = computed(() => props.membershipCoverage ?? null);
+const sanitizeCount = (value: number | null | undefined) => {
+	if (typeof value !== "number" || !Number.isFinite(value)) {
+		return null;
+	}
+
+	return Math.max(Math.floor(value), 0);
+};
+const formatCount = (value: number | null) => value === null ? "—" : new Intl.NumberFormat().format(value);
+const linkedMemberCount = computed(() => sanitizeCount(coverageSource.value?.app_linked_member_count ?? null));
+const explicitUnlinkedMemberCount = computed(() => sanitizeCount(coverageSource.value?.unlinked_member_count ?? null));
+const totalMemberCount = computed(() => sanitizeCount(coverageSource.value?.member_count ?? null));
+const coverageTotal = computed(() => {
+	if (totalMemberCount.value !== null) {
+		return totalMemberCount.value;
+	}
+
+	if (linkedMemberCount.value !== null && explicitUnlinkedMemberCount.value !== null) {
+		return linkedMemberCount.value + explicitUnlinkedMemberCount.value;
+	}
+
+	return null;
+});
+const unlinkedMemberCount = computed(() => {
+	if (explicitUnlinkedMemberCount.value !== null) {
+		return explicitUnlinkedMemberCount.value;
+	}
+
+	if (coverageTotal.value !== null && linkedMemberCount.value !== null) {
+		return Math.max(coverageTotal.value - linkedMemberCount.value, 0);
+	}
+
+	return null;
+});
+const linkedCoveragePercent = computed(() => {
+	if (coverageTotal.value === null || coverageTotal.value <= 0 || linkedMemberCount.value === null) {
+		return null;
+	}
+
+	return Math.round((linkedMemberCount.value / coverageTotal.value) * 100);
+});
+const coverageStatsAvailable = computed(() => Boolean(coverageSource.value?.stats_available));
+const linkedCoverageLabel = computed(() => linkedCoveragePercent.value === null ? "—" : `${linkedCoveragePercent.value}%`);
+const coveragePieStyle = computed(() => {
+	const percent = linkedCoveragePercent.value ?? 0;
+
+	return {
+		background: `conic-gradient(rgb(168 85 247) 0 ${percent}%, rgba(255, 255, 255, 0.12) ${percent}% 100%)`,
+	};
+});
+
+const normalizeSelection = (value: string | null | undefined) => value ?? NONE_VALUE;
+const nullableSelection = (value: string) => value === NONE_VALUE ? null : value;
+const settingStringValue = (
+	settings: Partial<DiscordGuildSettings> | null | undefined,
+	keys: Array<keyof DiscordGuildSettings>,
+) => {
+	if (!settings) {
+		return null;
+	}
+
+	for (const key of keys) {
+		if (!Object.prototype.hasOwnProperty.call(settings, key)) {
+			continue;
+		}
+
+		const value = settings[key];
+
+		if (typeof value === "string" && value !== "") {
+			return value;
+		}
+
+		if (typeof value === "number" && Number.isFinite(value)) {
+			return String(value);
+		}
+
+		return null;
+	}
+
+	return null;
+};
+const settingBooleanValue = (
+	settings: Partial<DiscordGuildSettings> | null | undefined,
+	keys: Array<keyof DiscordGuildSettings>,
+) => {
+	if (!settings) {
+		return false;
+	}
+
+	for (const key of keys) {
+		if (!Object.prototype.hasOwnProperty.call(settings, key)) {
+			continue;
+		}
+
+		const value = settings[key];
+
+		if (typeof value === "boolean") {
+			return value;
+		}
+
+		if (value === "true" || value === "1" || value === 1) {
+			return true;
+		}
+
+		return false;
+	}
+
+	return false;
+};
+
+const settingsForm = useForm({
+	bot_log_channel_id: normalizeSelection(settingStringValue(snapshotSettings.value, ["bot_log_channel_id"])),
+	member_facing_channel_id: normalizeSelection(settingStringValue(snapshotSettings.value, ["run_announcement_channel_id", "member_facing_channel_id"])),
+	template_role_id: normalizeSelection(settingStringValue(snapshotSettings.value, ["run_role_template_id", "run_role_template_role_id", "template_role_id"])),
+	moderation_role_id: normalizeSelection(settingStringValue(snapshotSettings.value, ["bot_moderator_role_id", "moderation_role_id"])),
+	name_sync_enabled: settingBooleanValue(snapshotSettings.value, ["sync_discord_names_to_ff14", "name_sync_enabled", "enable_name_sync", "nickname_sync_enabled"]),
+});
 
 const generateToken = () => {
 	generatingToken.value = true;
@@ -83,10 +344,78 @@ const copyToken = async () => {
 	});
 };
 
+const refreshSnapshot = () => {
+	refreshingSnapshot.value = true;
+
+	router.reload({
+		only: ["snapshot"],
+		preserveScroll: true,
+		onFinish: () => {
+			refreshingSnapshot.value = false;
+		},
+	});
+};
+
+const saveSettings = () => {
+	settingsForm
+		.transform((data) => ({
+			bot_log_channel_id: nullableSelection(data.bot_log_channel_id),
+			member_facing_channel_id: nullableSelection(data.member_facing_channel_id),
+			run_announcement_channel_id: nullableSelection(data.member_facing_channel_id),
+			template_role_id: nullableSelection(data.template_role_id),
+			run_role_template_id: nullableSelection(data.template_role_id),
+			run_role_template_role_id: nullableSelection(data.template_role_id),
+			moderation_role_id: nullableSelection(data.moderation_role_id),
+			bot_moderator_role_id: nullableSelection(data.moderation_role_id),
+			name_sync_enabled: data.name_sync_enabled,
+			enable_name_sync: data.name_sync_enabled,
+			nickname_sync_enabled: data.name_sync_enabled,
+			sync_discord_names_to_ff14: data.name_sync_enabled,
+		}))
+		.put(route("groups.dashboard.discord-integration.settings.update", props.group.slug), {
+			preserveScroll: true,
+		});
+};
+
 watch(
 	() => page.props.flash?.data?.discord_guild_link_token,
 	(value) => {
 		linkToken.value = (value as LinkToken | null) ?? null;
+	},
+	{ immediate: true },
+);
+
+watch(
+	() => page.props.flash?.success,
+	(success) => {
+		if (!success) {
+			return;
+		}
+
+		const successKeys = Array.isArray(success) ? success : [success];
+
+		if (successKeys.includes("discord_guild_settings_updated")) {
+			toast.add({
+				title: t("groups.discord.toasts.settings_saved"),
+				color: "success",
+				icon: "i-lucide-check",
+			});
+		}
+	},
+	{ immediate: true },
+);
+
+watch(
+	snapshotSettings,
+	(settings) => {
+		settingsForm.defaults({
+			bot_log_channel_id: normalizeSelection(settingStringValue(settings, ["bot_log_channel_id"])),
+			member_facing_channel_id: normalizeSelection(settingStringValue(settings, ["run_announcement_channel_id", "member_facing_channel_id"])),
+			template_role_id: normalizeSelection(settingStringValue(settings, ["run_role_template_id", "run_role_template_role_id", "template_role_id"])),
+			moderation_role_id: normalizeSelection(settingStringValue(settings, ["bot_moderator_role_id", "moderation_role_id"])),
+			name_sync_enabled: settingBooleanValue(settings, ["sync_discord_names_to_ff14", "name_sync_enabled", "enable_name_sync", "nickname_sync_enabled"]),
+		});
+		settingsForm.reset();
 	},
 	{ immediate: true },
 );
@@ -140,6 +469,34 @@ watch(
 							{{ t("groups.discord.actions.generate_token") }}
 						</UButton>
 					</div>
+
+					<div
+						v-if="linkToken"
+						class="flex flex-col gap-3 border border-brand-400/25 bg-brand-500/10 p-4 md:flex-row md:items-center md:justify-between"
+					>
+						<div class="min-w-0">
+							<p class="text-xs font-semibold uppercase tracking-wide text-brand">{{ t("groups.discord.link.generated_token") }}</p>
+							<p class="mt-1 break-all font-mono text-lg font-semibold text-highlighted">{{ linkToken.token }}</p>
+							<p class="mt-1 text-xs text-muted">{{ t("groups.discord.link.expires_at", { date: new Date(linkToken.expires_at).toLocaleString() }) }}</p>
+						</div>
+						<UButton
+							icon="i-lucide-copy"
+							color="neutral"
+							variant="soft"
+							@click="copyToken"
+						>
+							{{ t("groups.discord.actions.copy_token") }}
+						</UButton>
+					</div>
+
+					<UAlert
+						v-else-if="hasActiveToken"
+						color="info"
+						variant="soft"
+						icon="i-lucide-clock"
+						:title="t('groups.discord.link.active_token_title')"
+						:description="t('groups.discord.link.active_token_description', { date: tokenExpiresAt ? new Date(tokenExpiresAt).toLocaleString() : '' })"
+					/>
 				</div>
 			</UCard>
 
@@ -181,71 +538,201 @@ watch(
 					{{ t("groups.discord.status.empty") }}
 				</div>
 			</UCard>
+		</div>
 
-			<UCard class="lg:col-span-2">
+		<div class="mt-4 grid grid-cols-1 gap-4 xl:grid-cols-[minmax(0,1fr)_minmax(340px,420px)]">
+			<UCard>
 				<template #header>
-					<div class="flex items-center gap-3">
-						<div class="flex size-10 items-center justify-center border border-white/10 bg-muted text-muted">
-							<UIcon name="i-lucide-link" class="size-5" />
+					<div class="flex items-center justify-between gap-3">
+						<div class="flex min-w-0 items-center gap-3">
+							<div class="flex size-10 items-center justify-center border border-brand-400/25 bg-brand-500/10 text-brand">
+								<UIcon name="i-lucide-sliders-horizontal" class="size-5" />
+							</div>
+							<div class="min-w-0">
+								<h2 class="truncate text-base font-semibold text-highlighted">{{ t("groups.discord.settings.title") }}</h2>
+								<p class="truncate text-sm text-muted">{{ t("groups.discord.settings.subtitle") }}</p>
+							</div>
 						</div>
+						<UButton
+							color="neutral"
+							variant="soft"
+							icon="i-lucide-refresh-cw"
+							:loading="refreshingSnapshot"
+							:disabled="!integration"
+							@click="refreshSnapshot"
+						>
+							{{ t("groups.discord.actions.refresh_snapshot") }}
+						</UButton>
+					</div>
+				</template>
+
+				<form class="space-y-4" @submit.prevent="saveSettings">
+					<UAlert
+						v-if="!integration"
+						color="neutral"
+						variant="soft"
+						icon="i-lucide-link"
+						:title="t('groups.discord.settings.not_linked_title')"
+						:description="t('groups.discord.settings.not_linked_description')"
+					/>
+
+					<UAlert
+						v-else-if="!snapshot"
+						color="warning"
+						variant="soft"
+						icon="i-lucide-rotate-cw"
+						:title="t('groups.discord.settings.snapshot_unavailable_title')"
+						:description="t('groups.discord.settings.snapshot_unavailable_description')"
+					/>
+
+					<div class="grid gap-4 md:grid-cols-2">
+						<UFormField :label="t('groups.discord.settings.bot_log_channel')" :error="settingsForm.errors.bot_log_channel_id">
+							<USelect
+								v-model="settingsForm.bot_log_channel_id"
+								class="w-full"
+								:items="botLogChannelOptions"
+								:disabled="!canEditSettings"
+							/>
+						</UFormField>
+
+						<UFormField :label="t('groups.discord.settings.member_facing_channel')" :error="settingsForm.errors.member_facing_channel_id">
+							<USelect
+								v-model="settingsForm.member_facing_channel_id"
+								class="w-full"
+								:items="memberFacingChannelOptions"
+								:disabled="!canEditSettings"
+							/>
+						</UFormField>
+
+						<UFormField :label="t('groups.discord.settings.template_role')" :error="settingsForm.errors.template_role_id">
+							<USelect
+								v-model="settingsForm.template_role_id"
+								class="w-full"
+								:items="templateRoleOptions"
+								:disabled="!canEditSettings"
+							/>
+						</UFormField>
+
+						<UFormField :label="t('groups.discord.settings.moderation_role')" :error="settingsForm.errors.moderation_role_id">
+							<USelect
+								v-model="settingsForm.moderation_role_id"
+								class="w-full"
+								:items="moderationRoleOptions"
+								:disabled="!canEditSettings"
+							/>
+						</UFormField>
+					</div>
+
+					<div class="flex flex-col gap-3 border border-default/60 bg-default/30 p-4 sm:flex-row sm:items-center sm:justify-between">
 						<div>
-							<h2 class="text-base font-semibold text-highlighted">{{ t("groups.discord.link.title") }}</h2>
-							<p class="text-sm text-muted">{{ t("groups.discord.link.subtitle") }}</p>
+							<p class="text-sm font-semibold text-highlighted">{{ t("groups.discord.settings.name_sync") }}</p>
+							<p class="text-sm text-muted">{{ t("groups.discord.settings.name_sync_hint") }}</p>
+						</div>
+						<USwitch
+							v-model="settingsForm.name_sync_enabled"
+							:disabled="!canEditSettings"
+						/>
+					</div>
+
+					<div class="flex justify-end">
+						<UButton
+							type="submit"
+							color="primary"
+							icon="i-lucide-save"
+							:loading="settingsForm.processing"
+							:disabled="!canEditSettings"
+						>
+							{{ t("groups.discord.actions.save_settings") }}
+						</UButton>
+					</div>
+				</form>
+			</UCard>
+
+			<UCard>
+				<template #header>
+					<div class="flex items-center justify-between gap-3">
+						<div class="flex min-w-0 items-center gap-3">
+							<img
+								v-if="snapshotIconUrl"
+								:src="snapshotIconUrl"
+								class="size-10 border border-white/10 object-cover"
+								alt=""
+							>
+							<div v-else class="flex size-10 items-center justify-center border border-white/10 bg-muted text-muted">
+								<UIcon name="i-lucide-server" class="size-5" />
+							</div>
+							<div class="min-w-0">
+								<h2 class="truncate text-base font-semibold text-highlighted">{{ t("groups.discord.stats.title") }}</h2>
+								<p class="truncate text-sm text-muted">{{ snapshotGuildName }}</p>
+							</div>
 						</div>
 					</div>
 				</template>
 
-				<div class="grid gap-4 md:grid-cols-[minmax(0,1fr)_auto] md:items-start">
-					<div class="space-y-3">
-						<p class="text-sm text-muted">{{ t("groups.discord.link.description") }}</p>
+				<div
+					v-if="!coverageLoaded"
+					class="flex flex-col items-center gap-5 py-2"
+				>
+					<USkeleton class="size-40 rounded-full" />
+					<div class="w-full space-y-3">
+						<USkeleton class="h-12 w-full" />
+						<USkeleton class="h-12 w-full" />
+						<USkeleton class="h-5 w-full" />
+					</div>
+				</div>
 
-						<div
-							v-if="linkToken"
-							class="flex flex-col gap-3 border border-brand-400/25 bg-brand-500/10 p-4 md:flex-row md:items-center md:justify-between"
-						>
-							<div class="min-w-0">
-								<p class="text-xs font-semibold uppercase tracking-wide text-brand">{{ t("groups.discord.link.generated_token") }}</p>
-								<p class="mt-1 break-all font-mono text-lg font-semibold text-highlighted">{{ linkToken.token }}</p>
-								<p class="mt-1 text-xs text-muted">{{ t("groups.discord.link.expires_at", { date: new Date(linkToken.expires_at).toLocaleString() }) }}</p>
-							</div>
-							<UButton
-								icon="i-lucide-copy"
-								color="neutral"
-								variant="soft"
-								@click="copyToken"
-							>
-								{{ t("groups.discord.actions.copy_token") }}
-							</UButton>
+				<div
+					v-else
+					class="flex flex-col items-center gap-5 py-2"
+				>
+					<div
+						class="relative size-40 rounded-full border border-brand-400/20 shadow-[0_0_30px_rgba(168,85,247,0.18)]"
+						:style="coveragePieStyle"
+					>
+						<div class="absolute inset-5 flex flex-col items-center justify-center rounded-full border border-default/70 bg-background text-center">
+							<p class="text-3xl font-semibold text-highlighted">{{ linkedCoverageLabel }}</p>
+							<p class="mt-1 px-3 text-xs text-muted">{{ t("groups.discord.stats.available_percent") }}</p>
 						</div>
-
-						<UAlert
-							v-else-if="hasActiveToken"
-							color="info"
-							variant="soft"
-							icon="i-lucide-clock"
-							:title="t('groups.discord.link.active_token_title')"
-							:description="t('groups.discord.link.active_token_description', { date: tokenExpiresAt ? new Date(tokenExpiresAt).toLocaleString() : '' })"
-						/>
-
-						<UAlert
-							v-else
-							color="neutral"
-							variant="soft"
-							icon="i-lucide-info"
-							:title="t('groups.discord.link.no_token_title')"
-							:description="t('groups.discord.link.no_token_description')"
-						/>
 					</div>
 
-					<UButton
-						icon="i-lucide-key-round"
-						color="primary"
-						variant="solid"
-						:loading="generatingToken"
-						@click="generateToken"
-					>
-						{{ t("groups.discord.actions.generate_token") }}
-					</UButton>
+					<div class="w-full space-y-3">
+						<div class="flex items-center justify-between gap-3 border border-default/60 bg-default/30 p-3">
+							<div class="flex items-center gap-2">
+								<span class="size-2.5 bg-brand-500" />
+								<span class="text-sm text-toned">{{ t("groups.discord.stats.app_linked") }}</span>
+							</div>
+							<span class="font-semibold text-highlighted">{{ formatCount(linkedMemberCount) }}</span>
+						</div>
+						<div class="flex items-center justify-between gap-3 border border-default/60 bg-default/30 p-3">
+							<div class="flex items-center gap-2">
+								<span class="size-2.5 bg-white/20" />
+								<span class="text-sm text-toned">{{ t("groups.discord.stats.not_linked") }}</span>
+							</div>
+							<span class="font-semibold text-highlighted">{{ formatCount(unlinkedMemberCount) }}</span>
+						</div>
+						<div class="flex items-center justify-between gap-3 px-1 text-sm text-muted">
+							<span>{{ t("groups.discord.stats.members") }}</span>
+							<span>{{ formatCount(coverageTotal) }}</span>
+						</div>
+					</div>
+				</div>
+
+				<UAlert
+					v-if="coverageLoaded && !coverageStatsAvailable"
+					class="mt-4"
+					color="neutral"
+					variant="soft"
+					icon="i-lucide-info"
+					:description="t('groups.discord.stats.coverage_unavailable')"
+				/>
+
+				<p class="mt-4 text-sm text-muted">
+					{{ t("groups.discord.stats.coverage_hint") }}
+				</p>
+
+				<div class="mt-4 border border-default/60 bg-default/30 p-3">
+					<p class="text-xs uppercase tracking-wide text-muted">{{ t("groups.discord.stats.bot_permissions") }}</p>
+					<p class="mt-2 break-words text-sm text-toned">{{ botPermissionsLabel }}</p>
 				</div>
 			</UCard>
 		</div>

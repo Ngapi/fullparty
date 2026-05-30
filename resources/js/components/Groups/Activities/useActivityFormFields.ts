@@ -13,6 +13,7 @@ export const useActivityFormFields = (
 	const { t, locale } = useI18n();
 	const page = usePage();
 	const fallbackLocale = computed(() => String(page.props.locale?.fallback ?? 'en'));
+	const activityDifficultyFilter = ref('all');
 	const normalizeDurationHours = (value: string | number | null | undefined) => {
 		const parsed = Number(value);
 
@@ -25,10 +26,32 @@ export const useActivityFormFields = (
 		return Math.min(24, Math.max(1, roundedToHalfHour));
 	};
 
-	const activityTypeItems = computed(() => activityTypes.value.map((activityType) => ({
+	const activityDifficultyItems = computed(() => [
+		{
+			label: t('groups.activities.create.fields.activity_type_filter.all'),
+			value: 'all',
+		},
+		...Array.from(new Set(activityTypes.value
+			.map((activityType) => activityType.difficulty)
+			.filter((difficulty): difficulty is string => typeof difficulty === 'string' && difficulty.length > 0)))
+			.sort((first, second) => first.localeCompare(second))
+			.map((difficulty) => ({
+				label: t(`groups.activities.difficulties.${difficulty}`),
+				value: difficulty,
+			})),
+	]);
+
+	const filteredActivityTypes = computed(() => activityDifficultyFilter.value === 'all'
+		? activityTypes.value
+		: activityTypes.value.filter((activityType) => activityType.difficulty === activityDifficultyFilter.value));
+
+	const activityTypeItems = computed(() => filteredActivityTypes.value.map((activityType) => ({
 		label: localizedValue(activityType.draft_name, locale.value, fallbackLocale.value) || activityType.slug,
 		value: activityType.id,
 		slot_count: activityType.slot_count,
+		description: activityType.difficulty
+			? t(`groups.activities.difficulties.${activityType.difficulty}`)
+			: undefined,
 	})));
 
 	const organizerCharacterItems = computed(() => organizerCharacters.value.map((character) => ({
@@ -64,6 +87,14 @@ export const useActivityFormFields = (
 			{ label: t('groups.activities.statuses.scheduled'), value: 'scheduled' },
 		]
 		: []);
+
+	watch([activityDifficultyFilter, filteredActivityTypes], ([, availableActivityTypes]) => {
+		if (availableActivityTypes.some((activityType) => activityType.id === form.activity_type_id)) {
+			return;
+		}
+
+		form.activity_type_id = availableActivityTypes[0]?.id ?? null;
+	}, { immediate: true });
 
 	watch(selectedActivityType, (activityType) => {
 		const validProgPointKeys = (activityType?.prog_points ?? []).map((progPoint) => progPoint.key);
@@ -167,6 +198,8 @@ export const useActivityFormFields = (
 	const isCustomDuration = computed(() => selectedDurationOption.value === 'custom');
 
 	return {
+		activityDifficultyFilter,
+		activityDifficultyItems,
 		activityTypeItems,
 		organizerCharacterItems,
 		selectedOrganizerCharacter,

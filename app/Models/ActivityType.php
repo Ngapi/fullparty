@@ -18,6 +18,8 @@ class ActivityType extends Model
 
     public const DIFFICULTY_UNREAL = 'unreal';
 
+    public const DIFFICULTY_EXPLORATION = 'exploration';
+
     public const DIFFICULTY_SAVAGE = 'savage';
 
     public const DIFFICULTY_ULTIMATE = 'ultimate';
@@ -30,6 +32,7 @@ class ActivityType extends Model
         self::DIFFICULTY_NORMAL,
         self::DIFFICULTY_EXTREME,
         self::DIFFICULTY_UNREAL,
+        self::DIFFICULTY_EXPLORATION,
         self::DIFFICULTY_SAVAGE,
         self::DIFFICULTY_ULTIMATE,
         self::DIFFICULTY_CHAOTIC,

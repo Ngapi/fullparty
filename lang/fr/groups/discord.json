@@ -25,12 +25,43 @@
     "no_token_title": "Aucun jeton actif",
     "no_token_description": "Générez un jeton quand vous êtes prêt à lier depuis Discord."
   },
+  "settings": {
+    "title": "Paramètres du bot",
+    "subtitle": "Choisissez où le bot doit publier et quels rôles il peut utiliser.",
+    "none": "Aucun",
+    "bot_log_channel": "Canal de logs du bot",
+    "member_facing_channel": "Canal des membres",
+    "template_role": "Rôle modèle",
+    "moderation_role": "Rôle de modération",
+    "name_sync": "Activer la synchro des noms",
+    "name_sync_hint": "Garde les noms affichés Discord alignés avec les noms des personnages liés.",
+    "option_unavailable": "Indisponible",
+    "not_linked_title": "Liez d'abord un serveur Discord",
+    "not_linked_description": "Installez le bot et liez ce groupe avant de modifier les paramètres du bot.",
+    "snapshot_unavailable_title": "Snapshot du bot indisponible",
+    "snapshot_unavailable_description": "Le bot lié n'a pas renvoyé les salons ou rôles du serveur. Réessayez quand le bot est en ligne."
+  },
+  "stats": {
+    "title": "Couverture du serveur",
+    "members": "Membres au total",
+    "app_linked": "Utilisateurs liés à l'app",
+    "not_linked": "Non liés",
+    "available_percent": "disponibles sur FullParty",
+    "coverage_hint": "Les utilisateurs liés sont les membres qui ont installé l'application Discord FullParty, pas seulement ceux qui ont utilisé la connexion Discord.",
+    "coverage_unavailable": "Les données de couverture sont indisponibles tant que le bot n'a pas de liste de membres en cache.",
+    "bot_permissions": "Permissions du bot",
+    "unknown": "Inconnu",
+    "none": "Aucun"
+  },
   "actions": {
     "invite": "Inviter le bot",
     "generate_token": "Générer un jeton",
-    "copy_token": "Copier le jeton"
+    "copy_token": "Copier le jeton",
+    "save_settings": "Enregistrer les paramètres",
+    "refresh_snapshot": "Actualiser"
   },
   "toasts": {
-    "token_copied": "Jeton de liaison copié."
+    "token_copied": "Jeton de liaison copié.",
+    "settings_saved": "Paramètres du bot Discord enregistrés."
   }
 }

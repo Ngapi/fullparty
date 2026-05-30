@@ -3,6 +3,8 @@
 namespace App\Services\Integrations;
 
 use App\Models\IntegrationClient;
+use Illuminate\Http\Client\Response;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
 use Throwable;
@@ -15,13 +17,7 @@ class IntegrationWebhookDispatcher
      */
     public function dispatchDiscordBotEvent(string $event, array $data): array
     {
-        $deliveries = IntegrationClient::query()
-            ->where('type', IntegrationClient::TYPE_DISCORD_BOT)
-            ->where('status', IntegrationClient::STATUS_ACTIVE)
-            ->get()
-            ->filter(fn (IntegrationClient $client): bool => filled($client->outbound_events_url)
-                && filled($client->webhook_signing_secret)
-                && $client->allowsEvent($event))
+        $deliveries = $this->discordBotClientsForEvent($event)
             ->map(fn (IntegrationClient $client): array => $this->dispatch($client, $event, $data))
             ->values()
             ->all();
@@ -36,9 +32,40 @@ class IntegrationWebhookDispatcher
 
     /**
      * @param  array<string, mixed>  $data
+     * @return array<string, mixed>|null
+     */
+    public function requestDiscordBotEvent(string $event, array $data): ?array
+    {
+        foreach ($this->discordBotClientsForEvent($event) as $client) {
+            $delivery = $this->dispatch($client, $event, $data, captureResponse: true);
+
+            if ($delivery['status'] === 'sent') {
+                return is_array($delivery['response'] ?? null) ? $delivery['response'] : [];
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * @return Collection<int, IntegrationClient>
+     */
+    private function discordBotClientsForEvent(string $event): Collection
+    {
+        return IntegrationClient::query()
+            ->where('type', IntegrationClient::TYPE_DISCORD_BOT)
+            ->where('status', IntegrationClient::STATUS_ACTIVE)
+            ->get()
+            ->filter(fn (IntegrationClient $client): bool => filled($client->outbound_events_url)
+                && filled($client->webhook_signing_secret)
+                && $client->allowsEvent($event));
+    }
+
+    /**
+     * @param  array<string, mixed>  $data
      * @return array<string, mixed>
      */
-    private function dispatch(IntegrationClient $client, string $event, array $data): array
+    private function dispatch(IntegrationClient $client, string $event, array $data, bool $captureResponse = false): array
     {
         $deliveryId = (string) Str::uuid();
         $timestamp = (string) now()->unix();
@@ -52,7 +79,7 @@ class IntegrationWebhookDispatcher
         $body = json_encode($payload, JSON_THROW_ON_ERROR);
 
         try {
-            Http::timeout(5)->retry(2, 250)->withHeaders([
+            $response = Http::timeout(5)->retry(2, 250)->withHeaders([
                 'User-Agent' => 'FullParty-Integrations/1.0',
                 'X-FullParty-Event' => $event,
                 'X-FullParty-Delivery' => $deliveryId,
@@ -73,6 +100,7 @@ class IntegrationWebhookDispatcher
                 'delivery_id' => $deliveryId,
                 'status' => 'sent',
                 'error' => null,
+                'response' => $captureResponse ? $this->decodeResponse($response) : null,
             ];
         } catch (Throwable $exception) {
             $client->forceFill([
@@ -87,7 +115,18 @@ class IntegrationWebhookDispatcher
                 'delivery_id' => $deliveryId,
                 'status' => 'failed',
                 'error' => $exception->getMessage(),
+                'response' => null,
             ];
         }
+    }
+
+    /**
+     * @return array<string, mixed>|null
+     */
+    private function decodeResponse(Response $response): ?array
+    {
+        $decoded = $response->json();
+
+        return is_array($decoded) ? $decoded : null;
     }
 }

@@ -25,12 +25,43 @@
     "no_token_title": "有効なリンクトークンはありません",
     "no_token_description": "Discordから連携する準備ができたらトークンを生成してください。"
   },
+  "settings": {
+    "title": "Bot設定",
+    "subtitle": "Botが投稿する場所と使用できるロールを選択します。",
+    "none": "なし",
+    "bot_log_channel": "Botログチャンネル",
+    "member_facing_channel": "メンバー向けチャンネル",
+    "template_role": "テンプレートロール",
+    "moderation_role": "モデレーションロール",
+    "name_sync": "名前同期を有効化",
+    "name_sync_hint": "Discordの表示名を連携キャラクター名に合わせます。",
+    "option_unavailable": "利用不可",
+    "not_linked_title": "先にDiscordサーバーを連携してください",
+    "not_linked_description": "Botをインストールしてこのグループを連携してから、Bot設定を変更できます。",
+    "snapshot_unavailable_title": "Botスナップショットを取得できません",
+    "snapshot_unavailable_description": "連携済みBotからサーバーのチャンネルやロールが返りませんでした。Botがオンラインになってからもう一度お試しください。"
+  },
+  "stats": {
+    "title": "サーバーカバー率",
+    "members": "総メンバー数",
+    "app_linked": "アプリ連携済みユーザー",
+    "not_linked": "未連携",
+    "available_percent": "FullPartyで利用可能",
+    "coverage_hint": "連携済みユーザーは、DiscordログインだけでなくFullParty Discordアプリをインストールしたメンバーです。",
+    "coverage_unavailable": "Botにキャッシュ済みメンバーリストができるまで、カバー率データは利用できません。",
+    "bot_permissions": "Bot権限",
+    "unknown": "不明",
+    "none": "なし"
+  },
   "actions": {
     "invite": "Botを招待",
     "generate_token": "リンクトークンを生成",
-    "copy_token": "トークンをコピー"
+    "copy_token": "トークンをコピー",
+    "save_settings": "設定を保存",
+    "refresh_snapshot": "更新"
   },
   "toasts": {
-    "token_copied": "リンクトークンをコピーしました。"
+    "token_copied": "リンクトークンをコピーしました。",
+    "settings_saved": "Discord Bot設定を保存しました。"
   }
 }

@@ -15,6 +15,8 @@ import { isArchivedActivityStatus } from "@/utils/activityLifecycle";
 import { buildActivityCompletionSummary } from "@/utils/buildActivityCompletionSummary";
 import type { ActivityOverviewPermissions, AttendeeActivity, PublicGroupSummary } from "@/Types/ActivityAttendee";
 import { createDateTimeFormatter } from "@/utils/dateTimeFormat";
+import { formatRelativeTime } from "@/utils/formatRelativeTime";
+import { useMinuteTicker } from "@/composables/useMinuteTicker";
 
 const props = defineProps<{
 	group: PublicGroupSummary
@@ -27,6 +29,7 @@ const { t, locale } = useI18n();
 const page = usePage();
 const fallbackLocale = computed(() => String(page.props.locale?.fallback ?? "en"));
 const localTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+const relativeTimeTick = useMinuteTicker();
 
 const activityTypeName = computed(() => {
 	return localizedValue(props.activity.activity_type?.draft_name, locale.value, fallbackLocale.value)
@@ -102,6 +105,16 @@ const localStartsAtLabel = computed(() => {
 		minute: "2-digit",
 		timeZoneName: "short",
 	}).format(new Date(props.activity.starts_at));
+});
+
+const relativeStartsAtLabel = computed(() => {
+	return formatRelativeTime(
+		props.activity.starts_at,
+		locale.value,
+		t("notifications.just_now"),
+		t("groups.activities.cards.no_relative_time"),
+		relativeTimeTick.value,
+	);
 });
 
 const durationLabel = computed(() => {
@@ -253,6 +266,7 @@ const goToManagementPage = () => {
 				:activity-type-name="activityTypeName"
 				:server-starts-at-label="serverStartsAtLabel"
 				:local-starts-at-label="localStartsAtLabel"
+				:relative-starts-at-label="relativeStartsAtLabel"
 				:local-time-zone="localTimeZone"
 				:duration-label="durationLabel"
 				:datacenter="activity.datacenter"

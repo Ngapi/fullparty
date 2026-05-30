@@ -19,10 +19,13 @@
     "duration": "{duration} ms",
     "day": "Letzte 24 Stunden",
     "week": "Letzte 7 Tage",
-    "bucket_title": "{status} von {start} bis {end}. Checks: {checked}. Fehlgeschlagen: {failed}.",
+    "bucket_title": "{status} von {start} bis {end}. Checks: {checked}. Eingeschränkt: {degraded}. Nicht verfügbar: {failed}.",
     "statuses": {
+      "healthy": "Betriebsbereit",
+      "degraded": "Eingeschränkt",
+      "unhealthy": "Nicht verfügbar",
       "ok": "Betriebsbereit",
-      "failed": "Fehlgeschlagen",
+      "failed": "Nicht verfügbar",
       "unknown": "Keine Daten"
     }
   },
@@ -61,7 +64,13 @@
   "events": {
     "discord_user_app_installed": "Discord-App installiert",
     "discord_user_app_disconnected": "Discord-App getrennt",
-    "discord_notification_delivery": "Discord-Benachrichtigung zustellen"
+    "discord_notification_delivery": "Discord-Benachrichtigung zustellen",
+    "discord_guild_run_reminder": "Discord-Server-Run-Erinnerung",
+    "discord_guild_run_completed": "Discord-Server-Run abgeschlossen",
+    "discord_guild_run_cancelled": "Discord-Server-Run abgesagt",
+    "discord_guild_snapshot_requested": "Discord-Server-Snapshot angefordert",
+    "discord_guild_membership_snapshot_requested": "Discord-Server-Mitglieder-Snapshot angefordert",
+    "discord_guild_settings_updated": "Discord-Server-Einstellungen aktualisiert"
   },
   "credentials": {
     "title": "Zugangsdaten für {name}",

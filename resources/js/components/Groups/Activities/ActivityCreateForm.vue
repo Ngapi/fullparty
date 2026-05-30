@@ -49,6 +49,8 @@ const activeStep = computed({
 	set: (value: number) => emit('update:step', Math.min(3, Math.max(0, value))),
 });
 const {
+	activityDifficultyFilter,
+	activityDifficultyItems,
 	activityTypeItems,
 	organizerCharacterItems,
 	selectedOrganizerCharacter,
@@ -325,7 +327,20 @@ const goNext = () => {
 					<p class="text-sm text-muted">{{ t('groups.activities.create.sections.basics.subtitle') }}</p>
 				</div>
 
-				<div class="grid grid-cols-1 gap-5 xl:grid-cols-2">
+				<div class="grid grid-cols-1 gap-5 xl:grid-cols-[220px_minmax(0,1fr)_minmax(0,1fr)]">
+					<UFormField
+						:label="t('groups.activities.create.fields.activity_type_filter.label')"
+					>
+						<USelect
+							v-model="activityDifficultyFilter"
+							size="lg"
+							class="w-full"
+							:items="activityDifficultyItems"
+							value-key="value"
+							:disabled="lockActivityType"
+						/>
+					</UFormField>
+
 					<UFormField
 						:label="t('groups.activities.create.fields.activity_type.label')"
 						:error="form.errors.activity_type_id"

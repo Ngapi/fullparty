@@ -7,6 +7,8 @@ import { getActivityStatusMeta } from "@/utils/activityStatusMeta";
 import type { ActivitySlot } from "@/Types/ActivityRoster";
 import type { ActivityCompletionSummary } from "@/Types/ActivityProgression";
 import { createDateTimeFormatter } from "@/utils/dateTimeFormat";
+import { formatRelativeTime } from "@/utils/formatRelativeTime";
+import { useMinuteTicker } from "@/composables/useMinuteTicker";
 
 const props = defineProps<{
 	title: string
@@ -83,6 +85,7 @@ const emit = defineEmits<{
 
 const { t, locale } = useI18n();
 const statusMeta = computed(() => getActivityStatusMeta(props.status));
+const relativeTimeTick = useMinuteTicker();
 
 const dateLabel = computed(() => {
 	if (!props.startsAt) {
@@ -115,6 +118,16 @@ const durationLabel = computed(() => {
 	}
 
 	return t('groups.activities.management.overview.duration', { count: props.durationHours });
+});
+
+const relativeStartsAtLabel = computed(() => {
+	return formatRelativeTime(
+		props.startsAt,
+		locale.value,
+		t("notifications.just_now"),
+		t("groups.activities.cards.no_relative_time"),
+		relativeTimeTick.value,
+	);
 });
 
 const assignedLabel = computed(() => t('groups.activities.management.overview.assigned', {
@@ -193,7 +206,12 @@ const rosterViewOptions = computed(() => ([
 
 						<div class="inline-flex items-center gap-2">
 							<UIcon name="i-lucide-clock-3" class="size-4" />
-							<span>{{ timeLabel }} ({{ durationLabel }})</span>
+							<span>{{ timeLabel }} ({{ relativeStartsAtLabel }})</span>
+						</div>
+
+						<div class="inline-flex items-center gap-2">
+							<UIcon name="i-lucide-hourglass" class="size-4" />
+							<span>{{ durationLabel }}</span>
 						</div>
 
 						<div class="inline-flex items-center gap-2">

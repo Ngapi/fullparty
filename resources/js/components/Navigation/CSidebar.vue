@@ -48,6 +48,7 @@ const admin = computed(() => [
 	{ label: t('navigation.sidebar.character_definitions'), href: localizedRoute('admin.character-data'), icon: 'i-lucide-user-pen', activePatterns: ['admin.character-data'] },
 	{ label: t('navigation.sidebar.admin_audit_log'), href: localizedRoute('admin.audit-log'), icon: 'i-lucide-scroll-text', activePatterns: ['admin.audit-log'] },
 	{ label: t('navigation.sidebar.system_notifications'), href: localizedRoute('admin.system-notifications.index'), icon: 'i-lucide-megaphone', activePatterns: ['admin.system-notifications.*'] },
+	{ label: t('navigation.sidebar.featured_groups'), href: localizedRoute('admin.featured-groups.index'), icon: 'i-lucide-sparkles', activePatterns: ['admin.featured-groups.*'] },
 	{ label: t('navigation.sidebar.integrations'), href: localizedRoute('admin.integrations.index'), icon: 'i-lucide-plug-zap', activePatterns: ['admin.integrations.*'] },
 	{ label: t('navigation.sidebar.activity_types'), href: localizedRoute('admin.activity-types.index'), icon: 'i-lucide-file-pen', activePatterns: ['admin.activity-types.*'] },
 	{ label: t('navigation.sidebar.pulse'), href: '/pulse', icon: 'i-lucide-activity', external: true },

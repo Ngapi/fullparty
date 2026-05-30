@@ -9,6 +9,8 @@ import SeoHead from "@/components/Shared/SeoHead.vue";
 import { localizedValue } from "@/utils/localizedValue";
 import { getActivityStatusMeta } from "@/utils/activityStatusMeta";
 import { createDateTimeFormatter } from "@/utils/dateTimeFormat";
+import { formatRelativeTime } from "@/utils/formatRelativeTime";
+import { useMinuteTicker } from "@/composables/useMinuteTicker";
 
 const props = defineProps<{
 	group: {
@@ -60,6 +62,7 @@ const toast = useToast();
 const fallbackLocale = computed(() => String(page.props.locale?.fallback ?? "en"));
 const withdrawalModalOpen = ref(false);
 const isWithdrawing = ref(false);
+const relativeTimeTick = useMinuteTicker();
 
 const activityTypeName = computed(() => {
 	return localizedValue(props.activity.activity_type?.draft_name, locale.value, fallbackLocale.value)
@@ -104,11 +107,18 @@ const timeDurationLabel = computed(() => {
 		return t("groups.activities.cards.no_time");
 	}
 
+	const relativeStartsAtLabel = formatRelativeTime(
+		props.activity.starts_at,
+		locale.value,
+		t("notifications.just_now"),
+		t("groups.activities.cards.no_relative_time"),
+		relativeTimeTick.value,
+	);
 	const duration = props.activity.duration_hours
-		? ` (${t("groups.activities.management.overview.duration", { count: props.activity.duration_hours })})`
+		? ` - ${t("groups.activities.management.overview.duration", { count: props.activity.duration_hours })}`
 		: "";
 
-	return `${startsAtLabel.value}${duration}`;
+	return `${startsAtLabel.value} (${relativeStartsAtLabel})${duration}`;
 });
 
 const organizerLabel = computed(() => {

@@ -1,0 +1,51 @@
+{
+  "title": "注目グループ",
+  "subtitle": "ディスカバリーで先に表示するグループを選びます。空き枠はアクティブなグループで補完されます。",
+  "admin_only": "管理者のみ",
+  "saved": "注目グループ設定を保存しました。",
+  "empty": "まだ注目グループはありません。ディスカバリーはアクティブなグループを代わりに使います。",
+  "eligibility_hint": "表示中で、説明、バナー、最近の活動があるグループのみ注目表示できます。",
+  "form": {
+    "create_title": "グループを注目表示",
+    "edit_title": "注目グループを編集",
+    "create": "注目表示する"
+  },
+  "fields": {
+    "group": "グループ",
+    "priority": "優先度",
+    "starts_at": "開始日時",
+    "ends_at": "終了日時",
+    "internal_note": "内部メモ"
+  },
+  "placeholders": {
+    "group": "グループを選択",
+    "internal_note": "注目表示する理由、キャンペーンメモ、ローンチ用メモなど。"
+  },
+  "status": {
+    "active": "有効",
+    "scheduled": "予定",
+    "ended": "終了",
+    "hidden_group": "非表示グループ"
+  },
+  "table": {
+    "group": "グループ",
+    "window": "期間",
+    "priority": "優先度",
+    "note": "メモ"
+  },
+  "actions": {
+    "save": "保存",
+    "edit": "編集",
+    "delete": "削除"
+  },
+  "delete_modal": {
+    "title": "注目グループを削除",
+    "description": "注目表示だけを削除します。グループ自体は削除されません。",
+    "confirm": "削除"
+  },
+  "toasts": {
+    "created": "グループを注目ディスカバリーに追加しました。",
+    "updated": "注目グループを更新しました。",
+    "deleted": "注目グループを削除しました。"
+  }
+}

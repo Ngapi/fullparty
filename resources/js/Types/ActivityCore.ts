@@ -6,7 +6,7 @@ export type ActivityIntensity = "casual" | "midcore" | "hardcore"
 
 export type ActivityRunStyle = "progression" | "clear" | "reclear" | "farm" | "marathon" | "speedrun" | "practice" | "blind"
 
-export type ActivityDifficulty = "normal" | "extreme" | "unreal" | "savage" | "ultimate" | "chaotic" | "criterion"
+export type ActivityDifficulty = "normal" | "extreme" | "unreal" | "exploration" | "savage" | "ultimate" | "chaotic" | "criterion"
 
 export type ActivityStatusMeta = {
 	color: string

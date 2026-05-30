@@ -6,6 +6,7 @@ defineProps<{
 	activityTypeName: string
 	serverStartsAtLabel: string
 	localStartsAtLabel: string
+	relativeStartsAtLabel: string
 	localTimeZone: string
 	durationLabel: string
 	datacenter: string | null
@@ -78,7 +79,7 @@ const detailsOpen = ref(false);
 						{{ localStartsAtLabel }}
 					</p>
 					<p class="mt-1 text-sm text-muted">
-						{{ durationLabel }}
+						{{ relativeStartsAtLabel }}
 					</p>
 				</div>
 			</div>

@@ -34,6 +34,18 @@ class IntegrationClient extends Model
 
     public const EVENT_DISCORD_NOTIFICATION_DELIVERY = 'discord.notification.delivery';
 
+    public const EVENT_DISCORD_GUILD_RUN_REMINDER = 'discord.guild.run_reminder';
+
+    public const EVENT_DISCORD_GUILD_RUN_COMPLETED = 'discord.guild.run_completed';
+
+    public const EVENT_DISCORD_GUILD_RUN_CANCELLED = 'discord.guild.run_cancelled';
+
+    public const EVENT_DISCORD_GUILD_SNAPSHOT_REQUESTED = 'discord.guild.snapshot_requested';
+
+    public const EVENT_DISCORD_GUILD_MEMBERSHIP_SNAPSHOT_REQUESTED = 'discord.guild.membership_snapshot_requested';
+
+    public const EVENT_DISCORD_GUILD_SETTINGS_UPDATED = 'discord.guild.settings_updated';
+
     protected $fillable = [
         'created_by_user_id',
         'name',

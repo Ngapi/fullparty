@@ -12,6 +12,7 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DashboardProfileCustomizationController;
 use App\Http\Controllers\DiscordAppInstallController;
 use App\Http\Controllers\DiscordAuthController;
+use App\Http\Controllers\FeaturedGroupController;
 use App\Http\Controllers\GlobalSearchController;
 use App\Http\Controllers\GoogleAuthController;
 use App\Http\Controllers\GroupActivityApplicantQueueController;
@@ -413,6 +414,7 @@ Route::prefix('{locale?}')
                 Route::put('/settings', [GroupSettingsController::class, 'update'])->name('groups.dashboard.settings.update');
                 Route::get('/discord-integration', [GroupDiscordIntegrationController::class, 'show'])->name('groups.dashboard.discord-integration');
                 Route::post('/discord-integration/link-token', [GroupDiscordIntegrationController::class, 'generateToken'])->name('groups.dashboard.discord-integration.link-token');
+                Route::put('/discord-integration/settings', [GroupDiscordIntegrationController::class, 'updateSettings'])->name('groups.dashboard.discord-integration.settings.update');
 
                 /*
                 |--------------------------------------------------------------------------
@@ -585,6 +587,12 @@ Route::prefix('{locale?}')
                 Route::post('/system-notifications/announcements', [SystemNotificationController::class, 'storeAnnouncement'])->name('admin.system-notifications.announcements.store');
                 Route::put('/system-notifications/banner', [SystemNotificationController::class, 'storeBanner'])->name('admin.system-notifications.banner.store');
                 Route::delete('/system-notifications/banner', [SystemNotificationController::class, 'clearBanner'])->name('admin.system-notifications.banner.clear');
+
+                // Group discovery curation.
+                Route::get('/featured-groups', [FeaturedGroupController::class, 'index'])->name('admin.featured-groups.index');
+                Route::post('/featured-groups', [FeaturedGroupController::class, 'store'])->name('admin.featured-groups.store');
+                Route::put('/featured-groups/{featuredGroup}', [FeaturedGroupController::class, 'update'])->name('admin.featured-groups.update');
+                Route::delete('/featured-groups/{featuredGroup}', [FeaturedGroupController::class, 'destroy'])->name('admin.featured-groups.destroy');
 
                 // Authorized integration clients.
                 Route::get('/integrations', [IntegrationClientController::class, 'index'])->name('admin.integrations.index');

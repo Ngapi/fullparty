@@ -5,8 +5,10 @@ namespace App\Services\Notifications;
 use App\Models\Activity;
 use App\Models\ActivityApplication;
 use App\Models\ActivitySlot;
+use App\Models\IntegrationClient;
 use App\Models\NotificationEvent;
 use App\Models\User;
+use App\Services\Integrations\IntegrationWebhookDispatcher;
 use App\Support\Activities\ActivityDisplayName;
 use App\Support\Notifications\NotificationCategory;
 use App\Support\Notifications\NotificationChannel;
@@ -25,16 +27,19 @@ class RunNotificationService
 
     public function __construct(
         private readonly NotificationService $notificationService,
+        private readonly IntegrationWebhookDispatcher $webhookDispatcher,
     ) {}
 
     /**
      * @param  Collection<int, ActivityApplication>|null  $applications
+     * @param  Collection<int, ActivityApplication>|null  $placedApplications
      */
     public function notifyCancelled(
         Activity $activity,
         mixed $actor,
         ?Collection $applications = null,
         ?string $reason = null,
+        ?Collection $placedApplications = null,
     ): void {
         $recipients = $applications instanceof Collection
             ? $this->mergeRecipients(
@@ -55,6 +60,8 @@ class RunNotificationService
             messageParams: filled($reason) ? ['reason' => $reason] : [],
             payload: filled($reason) ? ['reason' => $reason] : [],
         );
+
+        $this->sendDiscordGuildRunCancelled($activity, $placedApplications, $reason);
     }
 
     public function notifyCompleted(Activity $activity, mixed $actor): void
@@ -70,6 +77,8 @@ class RunNotificationService
                 'completion' => $this->completionPayload($activity),
             ],
         );
+
+        $this->sendDiscordGuildRunCompleted($activity);
     }
 
     /**
@@ -83,7 +92,7 @@ class RunNotificationService
         $startingSoonCount = 0;
 
         Activity::query()
-            ->with(['group', 'applications.user', 'applications.selectedCharacter'])
+            ->with(['group.activeDiscordGuildIntegration', 'applications.user', 'applications.selectedCharacter'])
             ->whereIn('status', [
                 Activity::STATUS_ASSIGNED,
                 Activity::STATUS_UPCOMING,
@@ -106,7 +115,7 @@ class RunNotificationService
         $startingNowCount = 0;
 
         Activity::query()
-            ->with(['group', 'applications.user', 'applications.selectedCharacter'])
+            ->with(['group.activeDiscordGuildIntegration', 'applications.user', 'applications.selectedCharacter'])
             ->whereIn('status', [
                 Activity::STATUS_ASSIGNED,
                 Activity::STATUS_UPCOMING,
@@ -133,24 +142,32 @@ class RunNotificationService
 
     private function notifyStartingSoon(Activity $activity): void
     {
+        $recipients = $this->placedRunRecipients($activity);
+
         $this->sendRunNotification(
             activity: $activity,
-            recipients: $this->placedRunRecipients($activity),
+            recipients: $recipients,
             type: 'runs.starting_soon',
             titleKey: 'notifications.runs.starting_soon.title',
             bodyKey: 'notifications.runs.starting_soon.body',
         );
+
+        $this->sendDiscordGuildRunReminder($activity, 'runs.starting_soon');
     }
 
     private function notifyStartingNow(Activity $activity): void
     {
+        $recipients = $this->placedRunRecipients($activity);
+
         $this->sendRunNotification(
             activity: $activity,
-            recipients: $this->placedRunRecipients($activity),
+            recipients: $recipients,
             type: 'runs.starting_now',
             titleKey: 'notifications.runs.starting_now.title',
             bodyKey: 'notifications.runs.starting_now.body',
         );
+
+        $this->sendDiscordGuildRunReminder($activity, 'runs.starting_now');
     }
 
     private function createEvent(
@@ -221,6 +238,240 @@ class RunNotificationService
         ]);
     }
 
+    private function sendDiscordGuildRunReminder(
+        Activity $activity,
+        string $notificationType,
+    ): void {
+        $activity->loadMissing([
+            'activityTypeVersion',
+            'group.activeDiscordGuildIntegration',
+        ]);
+
+        $group = $activity->group;
+        $guildIntegration = $group?->activeDiscordGuildIntegration;
+
+        if (! $group || ! $guildIntegration) {
+            return;
+        }
+
+        $recipients = $this->placedRunUsers($activity);
+        $recipients->loadMissing(['discordUserIntegration', 'primaryCharacter']);
+
+        $participants = $recipients
+            ->filter(fn (User $user): bool => filled($user->discordUserIntegration?->discord_user_id))
+            ->map(fn (User $user): array => [
+                'user_id' => $user->id,
+                'discord_user_id' => $user->discordUserIntegration?->discord_user_id,
+                'primary_character' => [
+                    'name' => $user->primaryCharacter?->name,
+                    'world' => $user->primaryCharacter?->world,
+                ],
+            ])
+            ->unique('discord_user_id')
+            ->values();
+
+        if ($participants->isEmpty()) {
+            return;
+        }
+
+        $this->webhookDispatcher->dispatchDiscordBotEvent(
+            IntegrationClient::EVENT_DISCORD_GUILD_RUN_REMINDER,
+            [
+                'type' => $notificationType,
+                'reminder_type' => str_replace('runs.', '', $notificationType),
+                'run_id' => $activity->id,
+                'activity_id' => $activity->id,
+                'group_id' => $group->id,
+                'group_slug' => $group->slug,
+                'discord_guild_id' => $guildIntegration->discord_guild_id,
+                'discord_user_ids' => $participants
+                    ->pluck('discord_user_id')
+                    ->filter()
+                    ->values()
+                    ->all(),
+                'participants' => $participants->all(),
+                'run' => [
+                    'id' => $activity->id,
+                    'display_name' => $this->activityTitle($activity),
+                    'status' => $activity->status,
+                    'starts_at' => $activity->starts_at?->toIso8601String(),
+                    'url' => $this->activityOverviewUrl($activity),
+                    'activity_type' => [
+                        'id' => $activity->activityTypeVersion?->id,
+                        'name' => $activity->activityTypeVersion?->name,
+                        'difficulty' => $activity->activityTypeVersion?->difficulty,
+                    ],
+                ],
+                'group' => [
+                    'id' => $group->id,
+                    'slug' => $group->slug,
+                    'name' => $group->name,
+                ],
+                'discord_guild' => [
+                    'id' => $guildIntegration->discord_guild_id,
+                    'name' => $guildIntegration->name,
+                ],
+            ],
+        );
+    }
+
+    private function sendDiscordGuildRunCompleted(Activity $activity): void
+    {
+        $activity->loadMissing([
+            'activityTypeVersion',
+            'group.activeDiscordGuildIntegration',
+        ]);
+
+        $group = $activity->group;
+        $guildIntegration = $group?->activeDiscordGuildIntegration;
+
+        if (! $group || ! $guildIntegration) {
+            return;
+        }
+
+        $recipients = $this->placedRunUsers($activity);
+        $recipients->loadMissing(['discordUserIntegration', 'primaryCharacter']);
+
+        $participants = $recipients
+            ->filter(fn (User $user): bool => filled($user->discordUserIntegration?->discord_user_id))
+            ->map(fn (User $user): array => [
+                'user_id' => $user->id,
+                'discord_user_id' => $user->discordUserIntegration?->discord_user_id,
+                'primary_character' => [
+                    'name' => $user->primaryCharacter?->name,
+                    'world' => $user->primaryCharacter?->world,
+                ],
+            ])
+            ->unique('discord_user_id')
+            ->values();
+
+        if ($participants->isEmpty()) {
+            return;
+        }
+
+        $this->webhookDispatcher->dispatchDiscordBotEvent(
+            IntegrationClient::EVENT_DISCORD_GUILD_RUN_COMPLETED,
+            [
+                'type' => 'runs.completed',
+                'run_id' => $activity->id,
+                'activity_id' => $activity->id,
+                'group_id' => $group->id,
+                'group_slug' => $group->slug,
+                'discord_guild_id' => $guildIntegration->discord_guild_id,
+                'discord_user_ids' => $participants
+                    ->pluck('discord_user_id')
+                    ->filter()
+                    ->values()
+                    ->all(),
+                'participants' => $participants->all(),
+                'run' => [
+                    'id' => $activity->id,
+                    'display_name' => $this->activityTitle($activity),
+                    'status' => $activity->status,
+                    'starts_at' => $activity->starts_at?->toIso8601String(),
+                    'completed_at' => $activity->completed_at?->toIso8601String(),
+                    'url' => $this->activityOverviewUrl($activity),
+                    'activity_type' => [
+                        'id' => $activity->activityTypeVersion?->id,
+                        'name' => $activity->activityTypeVersion?->name,
+                        'difficulty' => $activity->activityTypeVersion?->difficulty,
+                    ],
+                ],
+                'group' => [
+                    'id' => $group->id,
+                    'slug' => $group->slug,
+                    'name' => $group->name,
+                ],
+                'discord_guild' => [
+                    'id' => $guildIntegration->discord_guild_id,
+                    'name' => $guildIntegration->name,
+                ],
+            ],
+        );
+    }
+
+    /**
+     * @param  Collection<int, ActivityApplication>|null  $placedApplications
+     */
+    private function sendDiscordGuildRunCancelled(
+        Activity $activity,
+        ?Collection $placedApplications = null,
+        ?string $reason = null,
+    ): void {
+        $activity->loadMissing([
+            'activityTypeVersion',
+            'group.activeDiscordGuildIntegration',
+        ]);
+
+        $group = $activity->group;
+        $guildIntegration = $group?->activeDiscordGuildIntegration;
+
+        if (! $group || ! $guildIntegration) {
+            return;
+        }
+
+        $recipients = $this->placedRunUsersForCancelledActivity($activity, $placedApplications);
+        $recipients->loadMissing(['discordUserIntegration', 'primaryCharacter']);
+
+        $participants = $recipients
+            ->filter(fn (User $user): bool => filled($user->discordUserIntegration?->discord_user_id))
+            ->map(fn (User $user): array => [
+                'user_id' => $user->id,
+                'discord_user_id' => $user->discordUserIntegration?->discord_user_id,
+                'primary_character' => [
+                    'name' => $user->primaryCharacter?->name,
+                    'world' => $user->primaryCharacter?->world,
+                ],
+            ])
+            ->unique('discord_user_id')
+            ->values();
+
+        if ($participants->isEmpty()) {
+            return;
+        }
+
+        $this->webhookDispatcher->dispatchDiscordBotEvent(
+            IntegrationClient::EVENT_DISCORD_GUILD_RUN_CANCELLED,
+            [
+                'type' => 'runs.cancelled',
+                'run_id' => $activity->id,
+                'activity_id' => $activity->id,
+                'group_id' => $group->id,
+                'group_slug' => $group->slug,
+                'discord_guild_id' => $guildIntegration->discord_guild_id,
+                'cancellation_reason' => $reason,
+                'discord_user_ids' => $participants
+                    ->pluck('discord_user_id')
+                    ->filter()
+                    ->values()
+                    ->all(),
+                'participants' => $participants->all(),
+                'run' => [
+                    'id' => $activity->id,
+                    'display_name' => $this->activityTitle($activity),
+                    'status' => $activity->status,
+                    'starts_at' => $activity->starts_at?->toIso8601String(),
+                    'cancelled_at' => $activity->updated_at?->toIso8601String(),
+                    'url' => $this->activityOverviewUrl($activity),
+                    'activity_type' => [
+                        'id' => $activity->activityTypeVersion?->id,
+                        'name' => $activity->activityTypeVersion?->name,
+                        'difficulty' => $activity->activityTypeVersion?->difficulty,
+                    ],
+                ],
+                'group' => [
+                    'id' => $group->id,
+                    'slug' => $group->slug,
+                    'name' => $group->name,
+                ],
+                'discord_guild' => [
+                    'id' => $guildIntegration->discord_guild_id,
+                    'name' => $guildIntegration->name,
+                ],
+            ],
+        );
+    }
+
     /**
      * @return EloquentCollection<int, User>
      */
@@ -267,6 +518,36 @@ class RunNotificationService
     }
 
     /**
+     * @return EloquentCollection<int, User>
+     */
+    private function placedRunUsers(Activity $activity): EloquentCollection
+    {
+        return $this->mergeUsers(
+            $this->applicantUsersForStatuses($activity, [
+                ActivityApplication::STATUS_APPROVED,
+                ActivityApplication::STATUS_ON_BENCH,
+            ]),
+            $this->assignedSlotUsers($activity),
+        );
+    }
+
+    /**
+     * @param  Collection<int, ActivityApplication>|null  $placedApplications
+     * @return EloquentCollection<int, User>
+     */
+    private function placedRunUsersForCancelledActivity(Activity $activity, ?Collection $placedApplications = null): EloquentCollection
+    {
+        if ($placedApplications instanceof Collection) {
+            return $this->mergeUsers(
+                $this->usersFromApplications($placedApplications),
+                $this->assignedSlotUsers($activity),
+            );
+        }
+
+        return $this->placedRunUsers($activity);
+    }
+
+    /**
      * @param  Collection<int, ActivityApplication>  $applications
      * @return EloquentCollection<int, User>
      */
@@ -280,6 +561,26 @@ class RunNotificationService
                     return $application->user;
                 })
                 ->filter(fn ($user) => $user instanceof User && $user->run_and_reminder_notifications)
+                ->unique('id')
+                ->values()
+                ->all()
+        );
+    }
+
+    /**
+     * @param  Collection<int, ActivityApplication>  $applications
+     * @return EloquentCollection<int, User>
+     */
+    private function usersFromApplications(Collection $applications): EloquentCollection
+    {
+        return new EloquentCollection(
+            $applications
+                ->map(function (ActivityApplication $application) {
+                    $application->loadMissing('user');
+
+                    return $application->user;
+                })
+                ->filter(fn ($user) => $user instanceof User)
                 ->unique('id')
                 ->values()
                 ->all()
@@ -323,6 +624,42 @@ class RunNotificationService
     }
 
     /**
+     * @param  array<int, string>  $statuses
+     * @return EloquentCollection<int, User>
+     */
+    private function applicantUsersForStatuses(Activity $activity, array $statuses): EloquentCollection
+    {
+        $activity->loadMissing('applications.user');
+
+        return new EloquentCollection(
+            $activity->applications
+                ->filter(fn (ActivityApplication $application) => in_array($application->status, $statuses, true))
+                ->map(fn (ActivityApplication $application) => $application->user)
+                ->filter(fn ($user) => $user instanceof User)
+                ->unique('id')
+                ->values()
+                ->all()
+        );
+    }
+
+    /**
+     * @return EloquentCollection<int, User>
+     */
+    private function assignedSlotUsers(Activity $activity): EloquentCollection
+    {
+        $activity->loadMissing('slots.assignedCharacter.user');
+
+        return new EloquentCollection(
+            $activity->slots
+                ->map(fn (ActivitySlot $slot) => $slot->assignedCharacter?->user)
+                ->filter(fn ($user) => $user instanceof User)
+                ->unique('id')
+                ->values()
+                ->all()
+        );
+    }
+
+    /**
      * @param  EloquentCollection<int, User>  ...$collections
      * @return EloquentCollection<int, User>
      */
@@ -332,6 +669,22 @@ class RunNotificationService
             collect($collections)
                 ->flatMap(fn (EloquentCollection $collection) => $collection->all())
                 ->filter(fn ($user) => $user instanceof User && $user->run_and_reminder_notifications)
+                ->unique('id')
+                ->values()
+                ->all()
+        );
+    }
+
+    /**
+     * @param  EloquentCollection<int, User>  ...$collections
+     * @return EloquentCollection<int, User>
+     */
+    private function mergeUsers(EloquentCollection ...$collections): EloquentCollection
+    {
+        return new EloquentCollection(
+            collect($collections)
+                ->flatMap(fn (EloquentCollection $collection) => $collection->all())
+                ->filter(fn ($user) => $user instanceof User)
                 ->unique('id')
                 ->values()
                 ->all()

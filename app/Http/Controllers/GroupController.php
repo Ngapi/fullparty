@@ -11,6 +11,7 @@ use App\Models\GroupMembershipApplication;
 use App\Models\ScheduledRun;
 use App\Models\User;
 use App\Services\AuditLogger;
+use App\Services\Groups\FeaturedGroupService;
 use App\Services\Groups\GeneratedGroupImageService;
 use App\Services\Groups\MembershipApplicationFormSchemaService;
 use App\Services\ManagedImageStorage;
@@ -42,6 +43,7 @@ class GroupController extends Controller
         private readonly GroupDiscoveryBadgePalette $groupDiscoveryBadgePalette,
         private readonly GeneratedGroupImageService $generatedGroupImageService,
         private readonly MembershipApplicationFormSchemaService $membershipApplicationFormSchemaService,
+        private readonly FeaturedGroupService $featuredGroupService,
     ) {}
 
     public function index(Request $request): Response
@@ -142,13 +144,7 @@ class GroupController extends Controller
 
     public function featured(Request $request): JsonResponse
     {
-        // TODO: Replace this placeholder latest-visible-groups query with a real featured-group selection algorithm.
-        $groups = Group::query()
-            ->visible()
-            ->withCount('memberships')
-            ->latest('created_at')
-            ->limit(8)
-            ->get();
+        $groups = $this->featuredGroupService->groups();
 
         return response()->json([
             'data' => $groups

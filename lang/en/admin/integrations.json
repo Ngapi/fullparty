@@ -19,10 +19,13 @@
     "duration": "{duration} ms",
     "day": "Last 24 hours",
     "week": "Last 7 days",
-    "bucket_title": "{status} from {start} to {end}. Checks: {checked}. Failed: {failed}.",
+    "bucket_title": "{status} from {start} to {end}. Checks: {checked}. Degraded: {degraded}. Unhealthy: {failed}.",
     "statuses": {
+      "healthy": "Operational",
+      "degraded": "Degraded",
+      "unhealthy": "Unhealthy",
       "ok": "Operational",
-      "failed": "Failed",
+      "failed": "Unhealthy",
       "unknown": "No data"
     }
   },
@@ -61,7 +64,13 @@
   "events": {
     "discord_user_app_installed": "Discord app installed",
     "discord_user_app_disconnected": "Discord app disconnected",
-    "discord_notification_delivery": "Discord notification delivery"
+    "discord_notification_delivery": "Discord notification delivery",
+    "discord_guild_run_reminder": "Discord guild run reminder",
+    "discord_guild_run_completed": "Discord guild run completed",
+    "discord_guild_run_cancelled": "Discord guild run cancelled",
+    "discord_guild_snapshot_requested": "Discord guild snapshot requested",
+    "discord_guild_membership_snapshot_requested": "Discord guild membership snapshot requested",
+    "discord_guild_settings_updated": "Discord guild settings updated"
   },
   "credentials": {
     "title": "Credentials for {name}",

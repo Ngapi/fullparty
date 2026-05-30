@@ -7,6 +7,12 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class IntegrationClientHealthCheck extends Model
 {
+    public const STATUS_HEALTHY = 'healthy';
+
+    public const STATUS_DEGRADED = 'degraded';
+
+    public const STATUS_UNHEALTHY = 'unhealthy';
+
     public const STATUS_OK = 'ok';
 
     public const STATUS_FAILED = 'failed';

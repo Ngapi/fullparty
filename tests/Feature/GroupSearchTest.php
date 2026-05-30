@@ -1,11 +1,13 @@
 <?php
 
 use App\Models\Character;
+use App\Models\FeaturedGroup;
 use App\Models\Group;
 use App\Models\GroupMembership;
 use App\Models\User;
 use App\Support\Groups\GroupDiscoveryBadgePalette;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Cache;
 use Inertia\Testing\AssertableInertia as Assert;
 
 uses(RefreshDatabase::class);
@@ -165,6 +167,139 @@ it('includes groups the current user already belongs to in discovery results', f
             'name' => 'Joined Group',
             'slug' => 'joingrp',
         ]);
+});
+
+it('returns curated featured groups before active fallback groups', function () {
+    Cache::flush();
+
+    $user = User::factory()->create();
+    $curated = Group::factory()->open()->create([
+        'name' => 'Curated Group',
+        'slug' => 'curated1',
+        'description' => 'Ready for launch featuring.',
+        'banner_image_url' => '/groups/curated.jpg',
+        'primary_focuses' => ['progression'],
+        'preferred_languages' => ['en'],
+    ]);
+    $fallback = Group::factory()->open()->create([
+        'name' => 'Fallback Group',
+        'slug' => 'fallback',
+        'description' => 'Active fallback option.',
+        'banner_image_url' => '/groups/fallback.jpg',
+        'primary_focuses' => ['farming'],
+        'preferred_languages' => ['de'],
+    ]);
+    $hiddenCurated = Group::factory()->hidden()->create([
+        'name' => 'Hidden Curated Group',
+        'slug' => 'hiddenfg',
+        'description' => 'Should not show.',
+        'banner_image_url' => '/groups/hidden.jpg',
+    ]);
+    $incomplete = Group::factory()->open()->create([
+        'name' => 'No Banner Group',
+        'slug' => 'nobanner',
+        'description' => 'Should not show in featured.',
+        'banner_image_url' => null,
+    ]);
+
+    FeaturedGroup::factory()->create([
+        'group_id' => $curated->id,
+        'priority' => 25,
+    ]);
+    FeaturedGroup::factory()->create([
+        'group_id' => $hiddenCurated->id,
+        'priority' => 100,
+    ]);
+
+    $this->actingAs($user)
+        ->getJson(route('groups.featured'))
+        ->assertOk()
+        ->assertJsonPath('data.0.slug', 'curated1')
+        ->assertJsonFragment(['slug' => 'fallback'])
+        ->assertJsonMissing(['slug' => 'hiddenfg'])
+        ->assertJsonMissing(['slug' => 'nobanner']);
+
+    expect($incomplete->exists)->toBeTrue();
+});
+
+it('lets admins curate featured groups', function () {
+    Cache::flush();
+
+    $admin = User::factory()->create(['is_admin' => true]);
+    $group = Group::factory()->open()->create([
+        'name' => 'Admin Featured Group',
+        'slug' => 'adminftr',
+        'description' => 'Eligible admin curated group.',
+        'banner_image_url' => '/groups/admin-featured.jpg',
+    ]);
+
+    $this->actingAs(User::factory()->create())
+        ->get(route('admin.featured-groups.index'))
+        ->assertForbidden();
+
+    $this->actingAs($admin)
+        ->get(route('admin.featured-groups.index'))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->component('Admin/FeaturedGroups')
+            ->has('groupOptions', 1)
+            ->where('groupOptions.0.value', $group->id)
+        );
+
+    $this->actingAs($admin)
+        ->post(route('admin.featured-groups.store'), [
+            'group_id' => $group->id,
+            'priority' => 42,
+            'starts_at' => null,
+            'ends_at' => null,
+            'internal_note' => 'Launch partner.',
+        ])
+        ->assertRedirect()
+        ->assertSessionHas('success', 'featured_group_created');
+
+    $featuredGroup = FeaturedGroup::query()->sole();
+
+    expect($featuredGroup->group_id)->toBe($group->id)
+        ->and($featuredGroup->priority)->toBe(42)
+        ->and($featuredGroup->internal_note)->toBe('Launch partner.');
+
+    $this->actingAs($admin)
+        ->put(route('admin.featured-groups.update', $featuredGroup), [
+            'group_id' => $group->id,
+            'priority' => 7,
+            'starts_at' => null,
+            'ends_at' => null,
+            'internal_note' => null,
+        ])
+        ->assertRedirect()
+        ->assertSessionHas('success', 'featured_group_updated');
+
+    expect($featuredGroup->fresh()->priority)->toBe(7);
+
+    $this->actingAs($admin)
+        ->delete(route('admin.featured-groups.destroy', $featuredGroup))
+        ->assertRedirect()
+        ->assertSessionHas('success', 'featured_group_deleted');
+
+    expect(FeaturedGroup::query()->count())->toBe(0);
+});
+
+it('rejects hidden groups from featured curation', function () {
+    $admin = User::factory()->create(['is_admin' => true]);
+    $group = Group::factory()->hidden()->create([
+        'description' => 'Hidden groups are not eligible.',
+        'banner_image_url' => '/groups/hidden.jpg',
+    ]);
+
+    $this->actingAs($admin)
+        ->post(route('admin.featured-groups.store'), [
+            'group_id' => $group->id,
+            'priority' => 1,
+            'starts_at' => null,
+            'ends_at' => null,
+            'internal_note' => null,
+        ])
+        ->assertSessionHasErrors('group_id');
 });
 
 it('applies discovery filters to the group search results', function () {

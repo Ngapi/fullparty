@@ -7,8 +7,10 @@ use App\Models\ActivitySlotAssignment;
 use App\Models\ActivityType;
 use App\Models\ActivityTypeVersion;
 use App\Models\Character;
+use App\Models\DiscordGuildIntegration;
 use App\Models\DiscordUserIntegration;
 use App\Models\Group;
+use App\Models\IntegrationClient;
 use App\Models\NotificationDelivery;
 use App\Models\NotificationEvent;
 use App\Models\User;
@@ -16,6 +18,8 @@ use App\Models\UserNotification;
 use App\Support\Input\TextInputSanitizer;
 use App\Support\Notifications\NotificationCategory;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\Client\Request as HttpRequest;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Queue;
 
 uses(RefreshDatabase::class);
@@ -322,6 +326,306 @@ it('notifies placed applicants when a run is completed', function () {
     Queue::assertPushed(SendNotificationEmailDeliveryJob::class, 3);
 });
 
+it('dispatches a guild discord run completed event for placed participants', function () {
+    Queue::fake();
+    Http::fake([
+        'https://discord-bot.fullparty.test/events' => Http::response([], 204),
+    ]);
+
+    IntegrationClient::factory()->create([
+        'outbound_events_url' => 'https://discord-bot.fullparty.test/events',
+        'webhook_signing_secret' => 'guild-completed-secret',
+        'allowed_events' => [
+            IntegrationClient::EVENT_DISCORD_GUILD_RUN_COMPLETED,
+        ],
+    ]);
+
+    $owner = User::factory()->create();
+    $group = Group::factory()->open()->create([
+        'owner_id' => $owner->id,
+        'name' => 'Completion Linked Group',
+    ]);
+
+    DiscordGuildIntegration::query()->create([
+        'group_id' => $group->id,
+        'discord_guild_id' => '800100200300400500',
+        'name' => 'Completion Guild',
+        'guild_installed_at' => now(),
+    ]);
+
+    $completedActivity = createRunNotificationActivity($owner, $group, [
+        'status' => Activity::STATUS_ASSIGNED,
+        'title' => 'Completed Guild Run',
+    ]);
+
+    $removeRoleUser = User::factory()->create([
+        'run_and_reminder_notifications' => false,
+        'email_notifications' => true,
+        'discord_notifications' => false,
+    ]);
+    $keepRoleUser = User::factory()->create([
+        'run_and_reminder_notifications' => false,
+        'email_notifications' => true,
+        'discord_notifications' => false,
+    ]);
+
+    createRunNotificationDiscordIntegration($removeRoleUser, 'discord-role-remove', 'Remove Role');
+    createRunNotificationDiscordIntegration($keepRoleUser, 'discord-role-keep', 'Keep Role');
+
+    $removeRoleCharacter = Character::factory()->primary()->create([
+        'user_id' => $removeRoleUser->id,
+        'name' => 'Role Remove',
+        'world' => 'Twintania',
+        'lodestone_id' => '61616161',
+    ]);
+    $keepRoleCharacter = Character::factory()->primary()->create([
+        'user_id' => $keepRoleUser->id,
+        'name' => 'Role Keep',
+        'world' => 'Ragnarok',
+        'lodestone_id' => '62626262',
+    ]);
+
+    foreach ([[$removeRoleUser, $removeRoleCharacter], [$keepRoleUser, $keepRoleCharacter]] as [$user, $character]) {
+        ActivityApplication::factory()->approved($owner)->create([
+            'activity_id' => $completedActivity->id,
+            'user_id' => $user->id,
+            'selected_character_id' => $character->id,
+            'applicant_lodestone_id' => $character->lodestone_id,
+            'applicant_character_name' => $character->name,
+        ]);
+    }
+
+    $this->actingAs($owner)
+        ->postJson(route('groups.dashboard.activities.complete', [
+            'group' => $group->slug,
+            'activity' => $completedActivity->id,
+        ]), [])
+        ->assertOk();
+
+    Http::assertSent(function (HttpRequest $request) use ($completedActivity, $group): bool {
+        if ($request->url() !== 'https://discord-bot.fullparty.test/events') {
+            return false;
+        }
+
+        $body = $request->body();
+        $timestamp = $request->header('X-FullParty-Timestamp')[0] ?? null;
+        $payload = json_decode($body, true);
+        $participants = collect($payload['data']['participants'] ?? [])->keyBy('discord_user_id');
+
+        expect($payload['event'])->toBe(IntegrationClient::EVENT_DISCORD_GUILD_RUN_COMPLETED)
+            ->and($payload['data']['type'])->toBe('runs.completed')
+            ->and($payload['data']['run_id'])->toBe($completedActivity->id)
+            ->and($payload['data']['group_id'])->toBe($group->id)
+            ->and($payload['data']['discord_guild_id'])->toBe('800100200300400500')
+            ->and($payload['data']['discord_user_ids'])->toBe([
+                'discord-role-remove',
+                'discord-role-keep',
+            ])
+            ->and($participants)->toHaveCount(2)
+            ->and($participants->get('discord-role-remove')['primary_character'])->toBe([
+                'name' => 'Role Remove',
+                'world' => 'Twintania',
+            ])
+            ->and($participants->get('discord-role-keep')['primary_character'])->toBe([
+                'name' => 'Role Keep',
+                'world' => 'Ragnarok',
+            ])
+            ->and($payload['data']['run']['display_name'])->toBe('Completed Guild Run')
+            ->and($payload['data']['run']['completed_at'])->not->toBeNull()
+            ->and($payload['data']['group']['name'])->toBe('Completion Linked Group');
+
+        return is_string($timestamp)
+            && ($request->header('X-FullParty-Event')[0] ?? null) === IntegrationClient::EVENT_DISCORD_GUILD_RUN_COMPLETED
+            && ($request->header('X-FullParty-Signature')[0] ?? null) === 'sha256='.hash_hmac('sha256', $timestamp.'.'.$body, 'guild-completed-secret');
+    });
+
+    Http::assertSentCount(1);
+});
+
+it('dispatches a guild discord run cancelled event for placed participants', function () {
+    Queue::fake();
+    Http::fake([
+        'https://discord-bot.fullparty.test/events' => Http::response([], 204),
+    ]);
+
+    IntegrationClient::factory()->create([
+        'outbound_events_url' => 'https://discord-bot.fullparty.test/events',
+        'webhook_signing_secret' => 'guild-cancelled-secret',
+        'allowed_events' => [
+            IntegrationClient::EVENT_DISCORD_GUILD_RUN_CANCELLED,
+        ],
+    ]);
+
+    $owner = User::factory()->create();
+    $group = Group::factory()->open()->create([
+        'owner_id' => $owner->id,
+        'name' => 'Cancellation Linked Group',
+    ]);
+
+    DiscordGuildIntegration::query()->create([
+        'group_id' => $group->id,
+        'discord_guild_id' => '700100200300400500',
+        'name' => 'Cancellation Guild',
+        'guild_installed_at' => now(),
+    ]);
+
+    $activity = createRunNotificationActivity($owner, $group, [
+        'status' => Activity::STATUS_ASSIGNED,
+        'title' => 'Cancelled Guild Run',
+    ]);
+
+    $pendingUser = User::factory()->create([
+        'run_and_reminder_notifications' => false,
+        'email_notifications' => true,
+        'discord_notifications' => false,
+    ]);
+    $approvedUser = User::factory()->create([
+        'run_and_reminder_notifications' => false,
+        'email_notifications' => true,
+        'discord_notifications' => false,
+    ]);
+    $benchUser = User::factory()->create([
+        'run_and_reminder_notifications' => false,
+        'email_notifications' => true,
+        'discord_notifications' => false,
+    ]);
+    $manualUser = User::factory()->create([
+        'run_and_reminder_notifications' => false,
+        'email_notifications' => true,
+        'discord_notifications' => false,
+    ]);
+
+    createRunNotificationDiscordIntegration($pendingUser, 'discord-cancel-pending', 'Cancel Pending');
+    createRunNotificationDiscordIntegration($approvedUser, 'discord-cancel-approved', 'Cancel Approved');
+    createRunNotificationDiscordIntegration($benchUser, 'discord-cancel-bench', 'Cancel Bench');
+    createRunNotificationDiscordIntegration($manualUser, 'discord-cancel-manual', 'Cancel Manual');
+
+    $pendingCharacter = Character::factory()->primary()->create([
+        'user_id' => $pendingUser->id,
+        'name' => 'Cancel Pending',
+        'world' => 'Omega',
+        'lodestone_id' => '63636363',
+    ]);
+    $approvedCharacter = Character::factory()->primary()->create([
+        'user_id' => $approvedUser->id,
+        'name' => 'Cancel Approved',
+        'world' => 'Twintania',
+        'lodestone_id' => '64646464',
+    ]);
+    $benchCharacter = Character::factory()->primary()->create([
+        'user_id' => $benchUser->id,
+        'name' => 'Cancel Bench',
+        'world' => 'Ragnarok',
+        'lodestone_id' => '65656565',
+    ]);
+    $manualCharacter = Character::factory()->primary()->create([
+        'user_id' => $manualUser->id,
+        'name' => 'Cancel Manual',
+        'world' => 'Phoenix',
+        'lodestone_id' => '66666666',
+    ]);
+
+    ActivityApplication::factory()->create([
+        'activity_id' => $activity->id,
+        'user_id' => $pendingUser->id,
+        'selected_character_id' => $pendingCharacter->id,
+        'status' => ActivityApplication::STATUS_PENDING,
+        'applicant_lodestone_id' => $pendingCharacter->lodestone_id,
+        'applicant_character_name' => $pendingCharacter->name,
+    ]);
+
+    ActivityApplication::factory()->approved($owner)->create([
+        'activity_id' => $activity->id,
+        'user_id' => $approvedUser->id,
+        'selected_character_id' => $approvedCharacter->id,
+        'applicant_lodestone_id' => $approvedCharacter->lodestone_id,
+        'applicant_character_name' => $approvedCharacter->name,
+    ]);
+
+    ActivityApplication::factory()->create([
+        'activity_id' => $activity->id,
+        'user_id' => $benchUser->id,
+        'selected_character_id' => $benchCharacter->id,
+        'status' => ActivityApplication::STATUS_ON_BENCH,
+        'reviewed_by_user_id' => $owner->id,
+        'reviewed_at' => now(),
+        'applicant_lodestone_id' => $benchCharacter->lodestone_id,
+        'applicant_character_name' => $benchCharacter->name,
+    ]);
+
+    $activity->slots()->create([
+        'group_key' => 'party-a',
+        'group_label' => ['en' => 'Party A'],
+        'slot_key' => 'party-a-slot-1',
+        'slot_label' => ['en' => 'Party A 1'],
+        'position_in_group' => 1,
+        'sort_order' => 1,
+        'assigned_character_id' => $manualCharacter->id,
+        'assigned_by_user_id' => $owner->id,
+    ]);
+
+    $this->actingAs($owner)
+        ->post(route('groups.dashboard.activities.cancel', [
+            'group' => $group->slug,
+            'activity' => $activity->id,
+        ]), [
+            'reason' => "  Host\u{200B} emergency\r\nreplacement needed. ",
+        ])
+        ->assertRedirect(route('groups.dashboard.activities.show', [
+            'group' => $group->slug,
+            'activity' => $activity->id,
+        ]));
+
+    $sanitizedReason = app(TextInputSanitizer::class)->sanitizeMultiline("  Host\u{200B} emergency\r\nreplacement needed. ");
+
+    Http::assertSent(function (HttpRequest $request) use ($activity, $group, $sanitizedReason): bool {
+        if ($request->url() !== 'https://discord-bot.fullparty.test/events') {
+            return false;
+        }
+
+        $body = $request->body();
+        $timestamp = $request->header('X-FullParty-Timestamp')[0] ?? null;
+        $payload = json_decode($body, true);
+        $participants = collect($payload['data']['participants'] ?? [])->keyBy('discord_user_id');
+
+        expect($payload['event'])->toBe(IntegrationClient::EVENT_DISCORD_GUILD_RUN_CANCELLED)
+            ->and($payload['data']['type'])->toBe('runs.cancelled')
+            ->and($payload['data']['run_id'])->toBe($activity->id)
+            ->and($payload['data']['group_id'])->toBe($group->id)
+            ->and($payload['data']['discord_guild_id'])->toBe('700100200300400500')
+            ->and($payload['data']['cancellation_reason'])->toBe($sanitizedReason)
+            ->and($payload['data']['discord_user_ids'])->toBe([
+                'discord-cancel-approved',
+                'discord-cancel-bench',
+                'discord-cancel-manual',
+            ])
+            ->and($participants)->toHaveCount(3)
+            ->and($participants->has('discord-cancel-pending'))->toBeFalse()
+            ->and($participants->get('discord-cancel-approved')['primary_character'])->toBe([
+                'name' => 'Cancel Approved',
+                'world' => 'Twintania',
+            ])
+            ->and($participants->get('discord-cancel-bench')['primary_character'])->toBe([
+                'name' => 'Cancel Bench',
+                'world' => 'Ragnarok',
+            ])
+            ->and($participants->get('discord-cancel-manual')['primary_character'])->toBe([
+                'name' => 'Cancel Manual',
+                'world' => 'Phoenix',
+            ])
+            ->and($payload['data']['run']['display_name'])->toBe('Cancelled Guild Run')
+            ->and($payload['data']['run']['status'])->toBe(Activity::STATUS_CANCELLED)
+            ->and($payload['data']['run']['cancelled_at'])->not->toBeNull()
+            ->and($payload['data']['group']['name'])->toBe('Cancellation Linked Group');
+
+        return is_string($timestamp)
+            && ($request->header('X-FullParty-Event')[0] ?? null) === IntegrationClient::EVENT_DISCORD_GUILD_RUN_CANCELLED
+            && ($request->header('X-FullParty-Signature')[0] ?? null) === 'sha256='.hash_hmac('sha256', $timestamp.'.'.$body, 'guild-cancelled-secret');
+    });
+
+    Http::assertSentCount(1);
+});
+
 it('uses the activity type name in run notifications when no custom title is set', function () {
     Queue::fake();
 
@@ -589,4 +893,120 @@ it('dispatches starting soon and starting now reminders only once', function () 
         ->and(NotificationDelivery::query()->count())->toBe(4);
 
     Queue::assertPushed(SendNotificationEmailDeliveryJob::class, 2);
+});
+
+it('dispatches a guild discord run reminder event for linked group runs', function () {
+    Queue::fake();
+    Http::fake([
+        'https://discord-bot.fullparty.test/events' => Http::response([], 204),
+    ]);
+
+    IntegrationClient::factory()->create([
+        'outbound_events_url' => 'https://discord-bot.fullparty.test/events',
+        'webhook_signing_secret' => 'guild-reminder-secret',
+        'allowed_events' => [
+            IntegrationClient::EVENT_DISCORD_GUILD_RUN_REMINDER,
+        ],
+    ]);
+
+    $owner = User::factory()->create();
+    $group = Group::factory()->open()->create([
+        'owner_id' => $owner->id,
+        'name' => 'Guild Linked Group',
+    ]);
+
+    DiscordGuildIntegration::query()->create([
+        'group_id' => $group->id,
+        'discord_guild_id' => '900100200300400500',
+        'name' => 'Raid Guild',
+        'guild_installed_at' => now(),
+    ]);
+
+    $activity = createRunNotificationActivity($owner, $group, [
+        'title' => 'Guild Reminder Run',
+        'starts_at' => now()->addMinutes(30),
+    ]);
+
+    $firstUser = User::factory()->create([
+        'run_and_reminder_notifications' => true,
+        'email_notifications' => true,
+        'discord_notifications' => true,
+    ]);
+    $secondUser = User::factory()->create([
+        'run_and_reminder_notifications' => false,
+        'email_notifications' => true,
+        'discord_notifications' => false,
+    ]);
+
+    createRunNotificationDiscordIntegration($firstUser, 'discord-guild-first', 'First User');
+    createRunNotificationDiscordIntegration($secondUser, 'discord-guild-second', 'Second User');
+
+    foreach ([$firstUser, $secondUser] as $index => $user) {
+        $character = Character::factory()->primary()->create([
+            'user_id' => $user->id,
+            'name' => 'Guild Member '.$index,
+            'world' => $index === 0 ? 'Twintania' : 'Ragnarok',
+            'lodestone_id' => '8080808'.$index,
+        ]);
+
+        ActivityApplication::factory()->approved($owner)->create([
+            'activity_id' => $activity->id,
+            'user_id' => $user->id,
+            'selected_character_id' => $character->id,
+            'applicant_lodestone_id' => $character->lodestone_id,
+            'applicant_character_name' => $character->name,
+        ]);
+    }
+
+    $this->artisan('notifications:dispatch-run-reminders')->assertExitCode(0);
+
+    Http::assertSent(function (HttpRequest $request) use ($activity, $firstUser, $group, $secondUser): bool {
+        if ($request->url() !== 'https://discord-bot.fullparty.test/events') {
+            return false;
+        }
+
+        $body = $request->body();
+        $timestamp = $request->header('X-FullParty-Timestamp')[0] ?? null;
+        $payload = json_decode($body, true);
+
+        expect($payload['event'])->toBe(IntegrationClient::EVENT_DISCORD_GUILD_RUN_REMINDER)
+            ->and($payload['data']['type'])->toBe('runs.starting_soon')
+            ->and($payload['data']['reminder_type'])->toBe('starting_soon')
+            ->and($payload['data']['run_id'])->toBe($activity->id)
+            ->and($payload['data']['activity_id'])->toBe($activity->id)
+            ->and($payload['data']['group_id'])->toBe($group->id)
+            ->and($payload['data']['group_slug'])->toBe($group->slug)
+            ->and($payload['data']['discord_guild_id'])->toBe('900100200300400500')
+            ->and($payload['data']['discord_user_ids'])->toBe([
+                'discord-guild-first',
+                'discord-guild-second',
+            ])
+            ->and($payload['data']['participants'])->toBe([
+                [
+                    'user_id' => $firstUser->id,
+                    'discord_user_id' => 'discord-guild-first',
+                    'primary_character' => [
+                        'name' => 'Guild Member 0',
+                        'world' => 'Twintania',
+                    ],
+                ],
+                [
+                    'user_id' => $secondUser->id,
+                    'discord_user_id' => 'discord-guild-second',
+                    'primary_character' => [
+                        'name' => 'Guild Member 1',
+                        'world' => 'Ragnarok',
+                    ],
+                ],
+            ])
+            ->and($payload['data']['run']['display_name'])->toBe('Guild Reminder Run')
+            ->and($payload['data']['group']['name'])->toBe('Guild Linked Group')
+            ->and($payload['data']['discord_guild']['name'])->toBe('Raid Guild');
+
+        return is_string($timestamp)
+            && ($request->header('X-FullParty-Event')[0] ?? null) === IntegrationClient::EVENT_DISCORD_GUILD_RUN_REMINDER
+            && ($request->header('X-FullParty-Signature')[0] ?? null) === 'sha256='.hash_hmac('sha256', $timestamp.'.'.$body, 'guild-reminder-secret');
+    });
+
+    Http::assertSentCount(1);
 });

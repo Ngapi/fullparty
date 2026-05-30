@@ -5,14 +5,14 @@ export function formatRelativeTime(
 	locale: string,
 	justNowLabel: string,
 	fallbackLabel: string,
+	nowMs = Date.now(),
 ) {
 	if (!value) {
 		return fallbackLabel;
 	}
 
 	const target = new Date(value).getTime();
-	const now = Date.now();
-	const diffMs = target - now;
+	const diffMs = target - nowMs;
 	const units: Array<[Intl.RelativeTimeFormatUnit, number]> = [
 		["year", 1000 * 60 * 60 * 24 * 365],
 		["month", 1000 * 60 * 60 * 24 * 30],

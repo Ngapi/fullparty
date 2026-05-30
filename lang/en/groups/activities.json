@@ -31,6 +31,7 @@
         "normal": "Normal",
         "extreme": "Extreme",
         "unreal": "Unreal",
+        "exploration": "Exploration",
         "savage": "Savage",
         "ultimate": "Ultimate",
         "chaotic": "Chaotic",
@@ -696,6 +697,10 @@
             }
         },
         "fields": {
+            "activity_type_filter": {
+                "label": "Content Type",
+                "all": "All Content"
+            },
             "activity_type": {
                 "label": "Activity Type",
                 "placeholder": "Select an activity type"

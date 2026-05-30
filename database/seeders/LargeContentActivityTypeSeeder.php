@@ -99,6 +99,7 @@ class LargeContentActivityTypeSeeder extends Seeder
                 ]),
                 'draft_small_image_url' => $this->prereqImage('forked.jpg'),
                 'draft_banner_image_url' => $this->prereqImage('forked.jpg'),
+                'draft_difficulty' => ActivityType::DIFFICULTY_EXPLORATION,
                 'draft_bench_size' => 8,
                 'draft_fflogs_zone_id' => 69,
                 'draft_layout_schema' => [

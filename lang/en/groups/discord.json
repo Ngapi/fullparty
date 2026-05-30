@@ -25,12 +25,43 @@
     "no_token_title": "No active link token",
     "no_token_description": "Generate a token when you are ready to link from Discord."
   },
+  "settings": {
+    "title": "Bot Settings",
+    "subtitle": "Choose where the bot should post and which roles it can use.",
+    "none": "None",
+    "bot_log_channel": "Bot-log Channel",
+    "member_facing_channel": "Member-Facing Channel",
+    "template_role": "Template Role",
+    "moderation_role": "Moderation Role",
+    "name_sync": "Enable Name Sync",
+    "name_sync_hint": "Keep Discord display names aligned with linked character names.",
+    "option_unavailable": "Unavailable",
+    "not_linked_title": "Link a Discord server first",
+    "not_linked_description": "Install the bot and link this group before changing bot settings.",
+    "snapshot_unavailable_title": "Bot snapshot unavailable",
+    "snapshot_unavailable_description": "The linked bot did not return server channels or roles. You can try again after the bot is online."
+  },
+  "stats": {
+    "title": "Server Coverage",
+    "members": "Total members",
+    "app_linked": "App-linked users",
+    "not_linked": "Not linked",
+    "available_percent": "available on FullParty",
+    "coverage_hint": "Linked users are members who installed the FullParty Discord app, not people who only used Discord login.",
+    "coverage_unavailable": "Coverage data is unavailable until the bot has a cached member list.",
+    "bot_permissions": "Bot Permissions",
+    "unknown": "Unknown",
+    "none": "None"
+  },
   "actions": {
     "invite": "Invite Bot",
     "generate_token": "Generate Link Token",
-    "copy_token": "Copy Token"
+    "copy_token": "Copy Token",
+    "save_settings": "Save Settings",
+    "refresh_snapshot": "Refresh"
   },
   "toasts": {
-    "token_copied": "Link token copied."
+    "token_copied": "Link token copied.",
+    "settings_saved": "Discord bot settings saved."
   }
 }
