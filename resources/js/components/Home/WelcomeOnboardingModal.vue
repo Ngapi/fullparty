@@ -65,7 +65,7 @@ const notificationRequestId = ref(0)
 const onboardingSaveState = ref<"idle" | "saving" | "error">("idle")
 const localOnboardingState = ref<OnboardingState | null>(null)
 let notificationSaveStateTimer: number | null = null
-const forceOpenForTesting = true
+const forceOpenForTesting = false
 
 const user = computed(() => page.props.auth?.user as AuthNotificationUser | null)
 const sharedOnboardingState = computed(() => page.props.onboarding as OnboardingState | null)
