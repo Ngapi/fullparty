@@ -847,6 +847,46 @@ it('marks notification preferences reviewed when the settings page is opened', f
     expect($user->fresh()->notification_preferences_reviewed_at)->not->toBeNull();
 });
 
+it('counts discord account setup only after the discord app is installed', function () {
+    $user = User::factory()->create([
+        'notification_preferences_reviewed_at' => now(),
+    ]);
+
+    Character::factory()->primary()->create([
+        'user_id' => $user->id,
+    ]);
+
+    $user->socialAccounts()->create([
+        'provider' => 'discord',
+        'provider_user_id' => 'discord-login-only',
+        'provider_name' => 'Discord Login User',
+    ]);
+
+    DiscordUserIntegration::query()->create([
+        'user_id' => $user->id,
+        'discord_user_id' => 'discord-app-missing',
+        'username' => 'Discord Login User',
+        'user_app_installed_at' => null,
+    ]);
+
+    Group::factory()->open()->create([
+        'owner_id' => $user->id,
+    ]);
+
+    $this->actingAs($user)
+        ->get(route('dashboard'))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->component('Dashboard/Dashboard')
+            ->loadDeferredProps('home-account-completion', fn (Assert $page) => $page
+                ->where('homeAccountCompletion.completed_count', 5)
+                ->where('homeAccountCompletion.total_count', 6)
+                ->where('homeAccountCompletion.items.4.key', 'connected_discord')
+                ->where('homeAccountCompletion.items.4.is_complete', false)
+            )
+        );
+});
+
 it('marks account completion celebration only once when all steps are complete', function () {
     $user = User::factory()->create([
         'notification_preferences_reviewed_at' => now(),

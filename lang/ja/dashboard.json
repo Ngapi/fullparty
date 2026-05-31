@@ -194,7 +194,7 @@
                 "description": "予定されたランでアクティビティ履歴を作り始めましょう。"
             },
             "connected_discord": {
-                "title": "Discordを設定",
+                "title": "Discordアプリを連携",
                 "description": "Discordでリマインダーやグループ更新を受け取れます。"
             },
             "notification_preferences_reviewed": {

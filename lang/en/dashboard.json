@@ -194,7 +194,7 @@
         "description": "Start building your activity history with a scheduled run."
       },
       "connected_discord": {
-        "title": "Set up Discord",
+        "title": "Connect Discord App",
         "description": "Get reminders and group updates in Discord."
       },
       "notification_preferences_reviewed": {

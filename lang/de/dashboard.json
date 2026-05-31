@@ -194,7 +194,7 @@
                 "description": "Baue deine Aktivitätshistorie mit einem geplanten Run auf."
             },
             "connected_discord": {
-                "title": "Discord einrichten",
+                "title": "Discord-App verbinden",
                 "description": "Erhalte Erinnerungen und Gruppenupdates in Discord."
             },
             "notification_preferences_reviewed": {
