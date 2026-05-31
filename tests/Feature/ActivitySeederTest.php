@@ -20,9 +20,17 @@ use Illuminate\Support\Carbon;
 uses(RefreshDatabase::class);
 
 it('seeds activities with slots, field values, milestones, and applications', function () {
+    $minActivitiesPerGroup = 24;
+    $maxActivitiesPerGroup = 26;
+
     $this->seed(UserSeeder::class);
     $this->seed(ProductionSeeder::class);
     $this->seed(GroupSeeder::class);
+
+    $this->app->bind(ActivitySeeder::class, fn (): ActivitySeeder => new ActivitySeeder(
+        minTotalActivitiesPerGroup: $minActivitiesPerGroup,
+        maxTotalActivitiesPerGroup: $maxActivitiesPerGroup,
+    ));
 
     $applicationGroupCount = Group::query()
         ->where('join_mode', Group::JOIN_MODE_APPLICATION)
@@ -39,6 +47,8 @@ it('seeds activities with slots, field values, milestones, and applications', fu
             ->whereNotNull('membership_application_schema')
             ->count())->toBe($applicationGroupCount)
         ->and(GroupMembershipApplication::query()->count())->toBeGreaterThan(0);
+
+    $seededGroupCount = Group::query()->count();
 
     $this->seed(ActivitySeeder::class);
 
@@ -90,8 +100,11 @@ it('seeds activities with slots, field values, milestones, and applications', fu
         ->with('activityTypeVersion')
         ->firstOrFail();
 
-    expect($activityCount)->toBeBetween(6000, 8000)
-        ->and($completeCount)->toBeBetween(2400, 3200)
+    expect($activityCount)->toBeBetween($minActivitiesPerGroup * $seededGroupCount, $maxActivitiesPerGroup * $seededGroupCount)
+        ->and($completeCount)->toBeBetween(
+            (int) round($minActivitiesPerGroup * 0.4) * $seededGroupCount,
+            (int) round($maxActivitiesPerGroup * 0.4) * $seededGroupCount,
+        )
         ->and(Carbon::parse($minStartsAt)->greaterThanOrEqualTo(now()->subDays(90)->startOfDay()))->toBeTrue()
         ->and(Carbon::parse($maxStartsAt)->lessThanOrEqualTo(now()->addDays(90)->endOfDay()))->toBeTrue()
         ->and($distinctIntensities->count())->toBe(3)

@@ -10,13 +10,19 @@ use App\Models\CharacterClass;
 use App\Models\Group;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Testing\AssertableInertia as Assert;
 
 uses(RefreshDatabase::class);
 
 beforeEach(function () {
+    Carbon::setTestNow(Carbon::parse('2026-05-27 12:00:00'));
     Storage::fake('public');
+});
+
+afterEach(function () {
+    Carbon::setTestNow();
 });
 
 it('renders the run discovery scaffold with lookup data', function () {

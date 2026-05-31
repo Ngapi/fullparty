@@ -188,9 +188,9 @@ const notificationCategoryLabel = (notification: NotificationRecord) => {
 </script>
 
 <template>
-	<section class="mt-6 flex h-[49rem] w-full flex-col gap-8 overflow-hidden xl:flex-row">
-		<div class="flex min-h-0 w-full flex-col gap-8 shadow-xl shadow-neutral-950/25">
-			<div class="flex min-h-0 flex-1 flex-col">
+	<section class="mt-6 flex w-full flex-col gap-8 overflow-visible xl:h-[49rem] xl:flex-row xl:overflow-hidden">
+		<div class="flex min-h-0 w-full flex-col gap-8 shadow-xl shadow-neutral-950/25 xl:h-full">
+			<div class="flex h-[30rem] min-h-0 flex-col sm:h-[34rem] xl:h-auto xl:flex-1">
 				<div class="mb-4 flex items-center justify-between gap-3">
 					<div>
 						<p class="text-sm font-semibold text-white">
@@ -269,7 +269,7 @@ const notificationCategoryLabel = (notification: NotificationRecord) => {
 				</div>
 			</div>
 
-			<div class="flex min-h-0 flex-1 flex-col">
+			<div class="flex h-[30rem] min-h-0 flex-col sm:h-[34rem] xl:h-auto xl:flex-1">
 				<div class="mb-4 flex items-center justify-between gap-3">
 					<div>
 						<p class="text-sm font-semibold text-white">
@@ -357,7 +357,7 @@ const notificationCategoryLabel = (notification: NotificationRecord) => {
 			</div>
 		</div>
 
-		<div class="flex min-h-0 w-full flex-col gap-8">
+		<div class="flex min-h-0 w-full flex-col gap-8 xl:h-full">
 			<div class="shrink-0">
 				<div class="mb-4 flex items-center justify-between gap-3">
 					<div>
@@ -470,7 +470,7 @@ const notificationCategoryLabel = (notification: NotificationRecord) => {
 				</div>
 			</div>
 
-			<div class="flex min-h-0 flex-1 flex-col shadow-xl shadow-neutral-950/25">
+			<div class="flex h-[30rem] min-h-0 flex-col shadow-xl shadow-neutral-950/25 sm:h-[34rem] xl:h-auto xl:flex-1">
 				<div class="mb-4 flex items-center justify-between gap-3">
 					<div>
 						<p class="text-sm font-semibold text-white">

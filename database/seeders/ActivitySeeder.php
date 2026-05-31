@@ -35,6 +35,11 @@ class ActivitySeeder extends Seeder
      */
     private array $generatedSecretKeys = [];
 
+    public function __construct(
+        private readonly ?int $minTotalActivitiesPerGroup = null,
+        private readonly ?int $maxTotalActivitiesPerGroup = null,
+    ) {}
+
     /**
      * Seed the application's activities.
      */
@@ -121,10 +126,7 @@ class ActivitySeeder extends Seeder
                 ->take(min(10, $groupCharacterLoadouts->count()))
                 ->values();
 
-            $totalActivityCount = fake()->numberBetween(
-                self::MIN_TOTAL_ACTIVITIES_PER_GROUP,
-                self::MAX_TOTAL_ACTIVITIES_PER_GROUP,
-            );
+            $totalActivityCount = $this->totalActivityCountForGroup();
             $historicalActivityCount = (int) round($totalActivityCount * self::HISTORICAL_ACTIVITY_RATIO);
             $futureActivityCount = $totalActivityCount - $historicalActivityCount;
 
@@ -259,6 +261,18 @@ class ActivitySeeder extends Seeder
                 );
             }
         }
+    }
+
+    private function totalActivityCountForGroup(): int
+    {
+        $minimum = $this->minTotalActivitiesPerGroup ?? self::MIN_TOTAL_ACTIVITIES_PER_GROUP;
+        $maximum = $this->maxTotalActivitiesPerGroup ?? self::MAX_TOTAL_ACTIVITIES_PER_GROUP;
+
+        if ($minimum < 1 || $maximum < $minimum) {
+            throw new RuntimeException('Activity seeder activity count bounds are invalid.');
+        }
+
+        return fake()->numberBetween($minimum, $maximum);
     }
 
     /**
