@@ -135,6 +135,50 @@
         "character_primary": "Le personnage principal a été mis à jour avec succès",
         "character_unclaimed": "Le personnage a été dissocié avec succès"
     },
+    "jobs": {
+        "classes": {
+            "brd": "Barde",
+            "drg": "Chevalier dragon",
+            "mnk": "Moine",
+            "pld": "Paladin",
+            "war": "Guerrier",
+            "blm": "Mage noir",
+            "whm": "Mage blanc",
+            "sch": "Érudit",
+            "smn": "Invocateur",
+            "nin": "Ninja",
+            "ast": "Astromancien",
+            "drk": "Chevalier noir",
+            "mch": "Machiniste",
+            "rdm": "Mage rouge",
+            "sam": "Samouraï",
+            "blu": "Mage bleu",
+            "gnb": "Pistosabreur",
+            "dnc": "Danseur",
+            "rpr": "Faucheur",
+            "sge": "Sage",
+            "vpr": "Vipère",
+            "pct": "Pictomancien"
+        },
+        "phantom": {
+            "knight": "Chevalier fantôme",
+            "monk": "Moine fantôme",
+            "thief": "Voleur fantôme",
+            "samurai": "Samouraï fantôme",
+            "berserker": "Berserker fantôme",
+            "ranger": "Ranger fantôme",
+            "mystic_knight": "Chevalier mystique fantôme",
+            "time_mage": "Mage du temps fantôme",
+            "chemist": "Chimiste fantôme",
+            "geomancer": "Géomancien fantôme",
+            "bard": "Barde fantôme",
+            "dancer": "Danseur fantôme",
+            "oracle": "Oracle fantôme",
+            "cannoneer": "Canonnier fantôme",
+            "gladiator": "Gladiateur fantôme",
+            "freelancer": "Freelancer fantôme"
+        }
+    },
     "card": {
         "view_lodestone_profile": "Voir le profil Lodestone",
         "refresh_character": "Actualiser le personnage",
@@ -152,19 +196,19 @@
         "sections": {
             "classes": "Classes",
             "occult": "Occulte",
-            "forked_tower_blood": "Forked Tower of Blood",
-            "forked_tower_magic": "Forked Tower of Magic"
+            "forked_tower_blood": "Forked Tower du sang",
+            "forked_tower_magic": "Forked Tower de la magie"
         },
         "forked_tower": {
-            "clear_count": "Nombre de clears",
-            "clears": "{count} clears",
-            "kills": "Kills",
+            "clear_count": "Nombre de victoires",
+            "clears": "{count} victoires",
+            "kills": "Éliminations",
             "bosses": {
-                "demon_tablet": "Demon Tablet",
-                "dead_stars": "Dead Stars",
-                "marble_dragon": "Marble Dragon",
-                "magitaur": "Magitaur",
-                "tba": "TBA"
+                "demon_tablet": "Tablette démoniaque",
+                "dead_stars": "Étoiles mortes",
+                "marble_dragon": "Dragon de marbre",
+                "magitaur": "Magitaure",
+                "tba": "À venir"
             }
         }
     }

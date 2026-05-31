@@ -1,0 +1,50 @@
+{
+  "title": "Panthéon historique FTEL",
+  "subtitle": "Un instantané historique de l'ancien site {group}.",
+  "badge": "Historique",
+  "notice": {
+    "title": "Données de l'ancien site",
+    "description": "Ces classements proviennent de l'ancien site FTEL. Ils sont statiques et ne changeront pas avec les nouveaux runs FullParty."
+  },
+  "summary": {
+    "total_players": "Joueurs dans l'export",
+    "ranked_participants": "Participants classés",
+    "total_participations": "Participations totales",
+    "raid_leader_participations": "Participations raid leader"
+  },
+  "boards": {
+    "entry_count": "{count} entrées",
+    "participations": {
+      "title": "Top participations",
+      "subtitle": "Personnages classés par participations aux runs sur l'ancien site.",
+      "primary_label": "Runs",
+      "secondary_label": "Raid lead",
+      "empty": "Aucun historique de participation n'a été trouvé."
+    },
+    "raid_leaders": {
+      "title": "Top participations raid leader",
+      "subtitle": "Personnages classés par participations raid leader sur l'ancien site.",
+      "primary_label": "Raid lead",
+      "secondary_label": "Runs",
+      "empty": "Aucun historique de raid leader n'a été trouvé."
+    }
+  },
+  "badges": {
+    "leader": {
+      "bronze": "Leader bronze",
+      "silver": "Leader argent",
+      "gold": "Leader or",
+      "platinum": "Leader platine",
+      "diamond": "Leader diamant",
+      "legendary": "Leader légendaire"
+    },
+    "participation": {
+      "active": "Actif",
+      "veteran": "Vétéran",
+      "elite": "Élite"
+    }
+  },
+  "common": {
+    "unknown_world": "Monde non enregistré"
+  }
+}

@@ -1,7 +1,9 @@
 <script setup>
 import { router } from "@inertiajs/vue3";
-import { ref } from "vue";
+import { computed, ref } from "vue";
 import { route } from "ziggy-js";
+import { useI18n } from "vue-i18n";
+import { characterClassTranslationKey, translateJobName } from "@/utils/characterJobTranslations";
 
 const props = defineProps({
 	characterId: {
@@ -16,6 +18,13 @@ const props = defineProps({
 
 const isUpdating = ref(false);
 const lastTapAt = ref(0);
+const { t } = useI18n();
+
+const translatedClassName = computed(() => translateJobName(
+	t,
+	characterClassTranslationKey(props.characterClass),
+	props.characterClass?.name,
+));
 
 const togglePreferred = () => {
 	if (!props.characterClass || isUpdating.value) {
@@ -60,7 +69,7 @@ const handleCompactTap = () => {
 			<img
 				v-if="characterClass.icon_url"
 				:src="characterClass.icon_url"
-				:alt="`${characterClass.name} icon`"
+				:alt="`${translatedClassName} icon`"
 				class="size-10 rounded-sm object-contain"
 			>
 			<div
@@ -87,7 +96,7 @@ const handleCompactTap = () => {
 		<img
 			v-if="characterClass.icon_url"
 			:src="characterClass.icon_url"
-			:alt="`${characterClass.name} icon`"
+			:alt="`${translatedClassName} icon`"
 			class="h-8 w-8 rounded-sm object-contain"
 		>
 		<div
@@ -99,7 +108,7 @@ const handleCompactTap = () => {
 
 		<div class="min-w-0 flex-1">
 			<div class="flex items-center gap-1.5">
-				<p class="truncate text-sm font-semibold">{{ characterClass.name }}</p>
+				<p class="truncate text-sm font-semibold">{{ translatedClassName }}</p>
 			</div>
 			<p class="text-xs text-muted">
 				{{ characterClass.shorthand }} · {{ characterClass.level }}

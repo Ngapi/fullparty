@@ -236,7 +236,7 @@ const contextMenuItems = computed<ContextMenuItem[][]>(() => [
 			onSelect: () => emit('markSlotLate', props.slot.id),
 		},
 				{
-					label: 'Mark as missing / absent',
+					label: t('groups.activities.management.roster.mark_missing_action'),
 					icon: 'i-lucide-user-x',
 					disabled: !props.canMarkMissing || props.isSwapPending,
 					onSelect: () => emit('markSlotMissing', props.slot.id),
@@ -264,13 +264,13 @@ const contextMenuItems = computed<ContextMenuItem[][]>(() => [
 			],
 			[
 		{
-			label: 'Move to bench',
+			label: t('groups.activities.management.roster.move_to_bench_action'),
 			icon: 'i-lucide-arrow-down-to-line',
 			disabled: props.slot.is_bench || !props.canMoveToBench || props.isSwapPending,
 			onSelect: () => emit('moveSlotToBench', props.slot.id),
 		},
 		{
-			label: 'Change assignments',
+			label: t('groups.activities.management.roster.change_assignment_action'),
 			icon: 'i-lucide-pencil',
 			disabled: props.slot.is_bench || props.isSwapPending,
 			onSelect: () => emit('clickSlot', props.slot.id),
@@ -278,7 +278,7 @@ const contextMenuItems = computed<ContextMenuItem[][]>(() => [
 		{
 			label: props.slot.assignment_source === 'manual'
 				? t('groups.activities.management.roster.remove_from_slot_action')
-				: 'Return to queue',
+				: t('groups.activities.management.roster.return_to_queue_action'),
 			icon: props.slot.assignment_source === 'manual' ? 'i-lucide-user-minus' : 'i-lucide-undo-2',
 			color: 'error',
 			disabled: props.slot.assignment_source === 'manual'

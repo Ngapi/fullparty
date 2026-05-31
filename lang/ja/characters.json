@@ -135,6 +135,50 @@
         "character_primary": "メインキャラクターを更新しました",
         "character_unclaimed": "キャラクターの紐付けを解除しました"
     },
+    "jobs": {
+        "classes": {
+            "brd": "吟遊詩人",
+            "drg": "竜騎士",
+            "mnk": "モンク",
+            "pld": "ナイト",
+            "war": "戦士",
+            "blm": "黒魔道士",
+            "whm": "白魔道士",
+            "sch": "学者",
+            "smn": "召喚士",
+            "nin": "忍者",
+            "ast": "占星術師",
+            "drk": "暗黒騎士",
+            "mch": "機工士",
+            "rdm": "赤魔道士",
+            "sam": "侍",
+            "blu": "青魔道士",
+            "gnb": "ガンブレイカー",
+            "dnc": "踊り子",
+            "rpr": "リーパー",
+            "sge": "賢者",
+            "vpr": "ヴァイパー",
+            "pct": "ピクトマンサー"
+        },
+        "phantom": {
+            "knight": "ファントムナイト",
+            "monk": "ファントムモンク",
+            "thief": "ファントムシーフ",
+            "samurai": "ファントムサムライ",
+            "berserker": "ファントムバーサーカー",
+            "ranger": "ファントムレンジャー",
+            "mystic_knight": "ファントム魔法剣士",
+            "time_mage": "ファントム時魔道士",
+            "chemist": "ファントム薬師",
+            "geomancer": "ファントム風水士",
+            "bard": "ファントム吟遊詩人",
+            "dancer": "ファントム踊り子",
+            "oracle": "ファントム予言士",
+            "cannoneer": "ファントム砲撃士",
+            "gladiator": "ファントム剣術士",
+            "freelancer": "ファントムすっぴん"
+        }
+    },
     "card": {
         "view_lodestone_profile": "Lodestone プロフィールを見る",
         "refresh_character": "キャラクターを更新",
@@ -152,19 +196,19 @@
         "sections": {
             "classes": "クラス",
             "occult": "オカルト",
-            "forked_tower_blood": "Forked Tower of Blood",
-            "forked_tower_magic": "Forked Tower of Magic"
+            "forked_tower_blood": "フォークタワー・血",
+            "forked_tower_magic": "フォークタワー・魔法"
         },
         "forked_tower": {
             "clear_count": "クリア回数",
             "clears": "{count} クリア",
             "kills": "討伐数",
             "bosses": {
-                "demon_tablet": "Demon Tablet",
-                "dead_stars": "Dead Stars",
-                "marble_dragon": "Marble Dragon",
-                "magitaur": "Magitaur",
-                "tba": "TBA"
+                "demon_tablet": "デーモンタブレット",
+                "dead_stars": "デッドスターズ",
+                "marble_dragon": "マーブルドラゴン",
+                "magitaur": "マギタウル",
+                "tba": "未定"
             }
         }
     }

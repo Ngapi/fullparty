@@ -1,83 +1,83 @@
 {
     "discovery": {
-        "title": "Run Discovery",
-        "subtitle": "Find public runs from groups across FullParty.",
+        "title": "Découverte des runs",
+        "subtitle": "Trouvez des runs publics proposés par les groupes de FullParty.",
         "filters": {
             "title": "Filtres",
-            "subtitle": "Narrow the field by content, timing, role needs, and group fit.",
-            "search_placeholder": "Search runs, groups, or content",
-            "reset": "Reset Filters",
+            "subtitle": "Affinez la sélection par contenu, horaire, besoins de rôles et compatibilité avec le groupe.",
+            "search_placeholder": "Rechercher des runs, groupes ou contenus",
+            "reset": "Réinitialiser les filtres",
             "all": "Tous",
             "sections": {
                 "saved_runs": "Runs enregistrés",
                 "search": "Rechercher",
                 "activity_type": "Type d'activité",
-                "datacenter_world": "Data Center / Region",
+                "datacenter_world": "Centre de données / région",
                 "group": "Groupe",
-                "day_time": "Day / Time",
-                "run_style": "Run Style",
-                "role_needed": "Role Needed",
-                "language": "Language",
+                "day_time": "Jour / heure",
+                "run_style": "Style de run",
+                "role_needed": "Rôle recherché",
+                "language": "Langue",
                 "group_type": "Type de groupe",
                 "application_status": "Statut de candidature",
-                "intensity": "Intensity",
-                "voice_expectation": "Voice Expectation"
+                "intensity": "Intensité",
+                "voice_expectation": "Attente vocale"
             },
             "labels": {
-                "beginner_friendly": "Beginner Friendly"
+                "beginner_friendly": "Débutants bienvenus"
             },
             "class_picker": {
-                "title": "Choose Jobs",
-                "description": "Narrow the role filter even further with specific jobs.",
-                "empty": "Any Jobs",
-                "selected_count": "{count} jobs selected",
-                "clear": "Clear Jobs",
+                "title": "Choisir des jobs",
+                "description": "Affinez encore le filtre de rôle avec des jobs précis.",
+                "empty": "Tous les jobs",
+                "selected_count": "{count} jobs sélectionnés",
+                "clear": "Effacer les jobs",
                 "categories": {
                     "tank": "Tank",
                     "healer": "Soigneur",
-                    "melee": "Melee",
-                    "phys": "Physical Ranged",
-                    "magic": "Magic Ranged"
+                    "melee": "Corps à corps",
+                    "phys": "Physique à distance",
+                    "magic": "Magique à distance"
                 }
             },
             "placeholders": {
-                "timezone": "Your Timezone"
+                "timezone": "Votre fuseau horaire"
             },
             "options": {
                 "any": {
-                    "activity_type": "Any Activity Type",
-                    "prog_point": "Any Prog Point",
-                    "region": "Any Region",
-                    "data_center": "All Data Centers",
+                    "activity_type": "Tout type d'activité",
+                    "prog_point": "Tout point de progression",
+                    "region": "Toute région",
+                    "data_center": "Tous les centres de données",
                     "group": "Tout groupe",
-                    "language": "Any Language",
-                    "run_style": "Any Run Style"
+                    "language": "Toute langue",
+                    "run_style": "Tout style de run"
                 },
                 "activity_types": {
                     "forked_tower": "Forked Tower",
                     "chaotic_alliance": "Chaotic Alliance",
-                    "savage_raids": "Savage Raids",
-                    "extreme_trials": "Extreme Trials",
-                    "ultimate_raids": "Ultimate Raids",
-                    "criterion": "Criterion",
+                    "savage_raids": "Raids savage",
+                    "extreme_trials": "Défis extrêmes",
+                    "ultimate_raids": "Raids ultimes",
+                    "criterion": "Critérium",
                     "unreal": "Unreal",
                     "other": "Autres"
                 },
                 "prog_points": {
-                    "any": "Any Prog Point"
+                    "any": "Tout point de progression"
                 },
                 "date_ranges": {
                     "today": "Aujourd'hui",
                     "this_week": "Cette semaine",
-                    "next_week": "Next Week",
-                    "this_month": "This Month"
+                    "next_week": "Semaine prochaine",
+                    "this_month": "Ce mois-ci"
                 },
                 "time_of_day": {
-                    "any": "Any Time",
-                    "morning": "Morning",
-                    "afternoon": "Afternoon",
-                    "evening": "Evening",
-                    "night": "Night"
+                    "any": "Toute heure",
+                    "morning": "Matin",
+                    "afternoon": "Après-midi",
+                    "evening": "Soir",
+                    "night": "Nuit"
                 },
                 "run_styles": {
                     "progression": "Progression",
@@ -86,27 +86,27 @@
                     "farm": "Farm",
                     "marathon": "Marathon",
                     "speedrun": "Speedrun",
-                    "practice": "Practice",
+                    "practice": "Entraînement",
                     "blind": "Blind"
                 },
                 "roles": {
-                    "any": "Any",
+                    "any": "Tous",
                     "tank": "Tank",
                     "healer": "Soigneur",
                     "dps": "DPS",
-                    "melee": "Melee",
-                    "ranged": "Ranged",
+                    "melee": "Corps à corps",
+                    "ranged": "Distance",
                     "caster": "Caster"
                 },
                 "group_types": {
                     "community": "Communauté",
-                    "static": "Static"
+                    "static": "Groupe fixe"
                 },
                 "application_statuses": {
                     "open_short": "Ouvert",
                     "applications_open": "Candidatures ouvertes",
-                    "direct_join": "Direct Join",
-                    "invite_only": "Invite Only"
+                    "direct_join": "Rejoindre directement",
+                    "invite_only": "Sur invitation"
                 },
                 "intensity": {
                     "casual": "Casual",
@@ -114,22 +114,22 @@
                     "hardcore": "Hardcore"
                 },
                 "voice_expectations": {
-                    "required": "Voice Required",
-                    "preferred": "Voice Preferred",
-                    "optional": "Voice Optional"
+                    "required": "Vocal requis",
+                    "preferred": "Vocal recommandé",
+                    "optional": "Vocal facultatif"
                 }
             }
         },
         "results": {
             "title": "Runs",
-            "subtitle": "Browse what groups currently have on the calendar.",
+            "subtitle": "Parcourez les runs actuellement au calendrier des groupes.",
             "count": "{count} runs trouvés",
-            "page_status": "Page {current} of {total}",
+            "page_status": "Page {current} sur {total}",
             "sort_by": "Trier par",
-            "sort_label": "Sort By",
-            "preview_badge": "Preview",
-            "placeholder_title": "No runs found",
-            "placeholder_subtitle": "Try adjusting the filters to widen the search.",
+            "sort_label": "Trier par",
+            "preview_badge": "Aperçu",
+            "placeholder_title": "Aucun run trouvé",
+            "placeholder_subtitle": "Essayez d'ajuster les filtres pour élargir la recherche.",
             "placeholder_item": {
                 "open_slots": "Places ouvertes",
                 "description": "Blind prog jusqu'au clear. La régularité avant la vitesse.",
@@ -137,7 +137,7 @@
                 "description_third": "Prog concentrée avec un rythme stable et un petit noyau.",
                 "group_types": {
                     "community": "Communauté",
-                    "static": "Static"
+                    "static": "Groupe fixe"
                 },
                 "schedule": {
                     "today": "Aujourd'hui",
@@ -153,10 +153,10 @@
                 }
             },
             "sort_options": {
-                "starting_soonest": "Starting Soonest",
-                "newest_posted": "Newest Posted",
-                "recently_updated": "Recently Updated",
-                "open_slots": "Most Open Slots"
+                "starting_soonest": "Début le plus proche",
+                "newest_posted": "Plus récents",
+                "recently_updated": "Mis à jour récemment",
+                "open_slots": "Le plus de places libres"
             }
         }
     }

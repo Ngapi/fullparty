@@ -1,0 +1,50 @@
+{
+  "title": "FTEL Legacy Hall of Fame",
+  "subtitle": "A historical snapshot from the old {group} website.",
+  "badge": "Historical",
+  "notice": {
+    "title": "Old-site records",
+    "description": "These rankings are preserved from the previous FTEL website. They are static and will not change with new FullParty runs."
+  },
+  "summary": {
+    "total_players": "Players in export",
+    "ranked_participants": "Ranked participants",
+    "total_participations": "Total participations",
+    "raid_leader_participations": "Raid leader participations"
+  },
+  "boards": {
+    "entry_count": "{count} entries",
+    "participations": {
+      "title": "Top Participations",
+      "subtitle": "Characters ranked by old-site run participations.",
+      "primary_label": "Runs",
+      "secondary_label": "Raid lead",
+      "empty": "No participation history was found."
+    },
+    "raid_leaders": {
+      "title": "Top Raid Leader Participations",
+      "subtitle": "Characters ranked by old-site raid leader participations.",
+      "primary_label": "Raid lead",
+      "secondary_label": "Runs",
+      "empty": "No raid leader history was found."
+    }
+  },
+  "badges": {
+    "leader": {
+      "bronze": "Bronze Leader",
+      "silver": "Silver Leader",
+      "gold": "Gold Leader",
+      "platinum": "Platinum Leader",
+      "diamond": "Diamond Leader",
+      "legendary": "Legendary Leader"
+    },
+    "participation": {
+      "active": "Active",
+      "veteran": "Veteran",
+      "elite": "Elite"
+    }
+  },
+  "common": {
+    "unknown_world": "World not recorded"
+  }
+}

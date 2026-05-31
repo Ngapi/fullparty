@@ -122,6 +122,33 @@ const summaryAnswers = computed(() => props.application.answers
 
 const classAnswer = computed(() => props.application.answers.find((answer) => answer.source === 'character_classes') ?? null);
 const playableRoles = computed(() => classAnswer.value?.role_values ?? []);
+const roleLabelKey = (role: string): string | null => {
+	if (role === 'Tank') {
+		return 'groups.activities.application.class_picker.categories.tank';
+	}
+
+	if (role === 'Healer') {
+		return 'groups.activities.application.class_picker.categories.healer';
+	}
+
+	if (role === 'Melee') {
+		return 'groups.activities.application.class_picker.categories.melee';
+	}
+
+	if (role === 'Phys Ranged') {
+		return 'groups.activities.application.class_picker.categories.phys';
+	}
+
+	if (role === 'Magic Ranged') {
+		return 'groups.activities.application.class_picker.categories.magic';
+	}
+
+	return null;
+};
+const roleLabel = (role: string) => {
+	const key = roleLabelKey(role);
+	return key ? t(key) : role;
+};
 
 const notePreview = computed(() => {
 	if (!props.application.notes) {
@@ -205,7 +232,7 @@ const handleDragStart = (event: DragEvent) => {
 										? 'secondary'
 										: 'neutral'"
 					variant="soft"
-					:label="role"
+					:label="roleLabel(role)"
 				/>
 			</div>
 		</div>

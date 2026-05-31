@@ -1,102 +1,102 @@
 {
     "discovery": {
-        "title": "Run Discovery",
-        "subtitle": "Find public runs from groups across FullParty.",
+        "title": "ランを探す",
+        "subtitle": "FullParty 内のグループが公開しているランを探せます。",
         "filters": {
             "title": "フィルター",
-            "subtitle": "Narrow the field by content, timing, role needs, and group fit.",
-            "search_placeholder": "Search runs, groups, or content",
-            "reset": "Reset Filters",
+            "subtitle": "コンテンツ、時間、募集ロール、グループ条件で絞り込めます。",
+            "search_placeholder": "ラン、グループ、コンテンツを検索",
+            "reset": "フィルターをリセット",
             "all": "すべて",
             "sections": {
                 "saved_runs": "保存した募集",
                 "search": "検索",
                 "activity_type": "アクティビティ種別",
-                "datacenter_world": "Data Center / Region",
+                "datacenter_world": "データセンター / リージョン",
                 "group": "グループ",
-                "day_time": "Day / Time",
-                "run_style": "Run Style",
-                "role_needed": "Role Needed",
-                "language": "Language",
+                "day_time": "日付 / 時間",
+                "run_style": "ランスタイル",
+                "role_needed": "募集ロール",
+                "language": "言語",
                 "group_type": "グループタイプ",
                 "application_status": "応募ステータス",
-                "intensity": "Intensity",
-                "voice_expectation": "Voice Expectation"
+                "intensity": "温度感",
+                "voice_expectation": "VC の期待値"
             },
             "labels": {
-                "beginner_friendly": "Beginner Friendly"
+                "beginner_friendly": "初心者歓迎"
             },
             "class_picker": {
-                "title": "Choose Jobs",
-                "description": "Narrow the role filter even further with specific jobs.",
-                "empty": "Any Jobs",
-                "selected_count": "{count} jobs selected",
-                "clear": "Clear Jobs",
+                "title": "ジョブを選択",
+                "description": "特定のジョブでロールフィルターをさらに絞り込めます。",
+                "empty": "すべてのジョブ",
+                "selected_count": "{count}ジョブ選択中",
+                "clear": "ジョブをクリア",
                 "categories": {
                     "tank": "タンク",
                     "healer": "ヒーラー",
-                    "melee": "Melee",
-                    "phys": "Physical Ranged",
-                    "magic": "Magic Ranged"
+                    "melee": "近接",
+                    "phys": "物理遠隔",
+                    "magic": "魔法遠隔"
                 }
             },
             "placeholders": {
-                "timezone": "Your Timezone"
+                "timezone": "現在のタイムゾーン"
             },
             "options": {
                 "any": {
-                    "activity_type": "Any Activity Type",
-                    "prog_point": "Any Prog Point",
-                    "region": "Any Region",
-                    "data_center": "All Data Centers",
+                    "activity_type": "すべてのアクティビティ種別",
+                    "prog_point": "すべての進行地点",
+                    "region": "すべてのリージョン",
+                    "data_center": "すべてのデータセンター",
                     "group": "すべてのグループ",
-                    "language": "Any Language",
-                    "run_style": "Any Run Style"
+                    "language": "すべての言語",
+                    "run_style": "すべてのランスタイル"
                 },
                 "activity_types": {
-                    "forked_tower": "Forked Tower",
-                    "chaotic_alliance": "Chaotic Alliance",
-                    "savage_raids": "Savage Raids",
-                    "extreme_trials": "Extreme Trials",
-                    "ultimate_raids": "Ultimate Raids",
-                    "criterion": "Criterion",
-                    "unreal": "Unreal",
+                    "forked_tower": "フォークタワー",
+                    "chaotic_alliance": "カオティックアライアンス",
+                    "savage_raids": "零式レイド",
+                    "extreme_trials": "極討滅戦",
+                    "ultimate_raids": "絶レイド",
+                    "criterion": "異聞",
+                    "unreal": "幻",
                     "other": "その他"
                 },
                 "prog_points": {
-                    "any": "Any Prog Point"
+                    "any": "すべての進行地点"
                 },
                 "date_ranges": {
                     "today": "今日",
                     "this_week": "今週",
-                    "next_week": "Next Week",
-                    "this_month": "This Month"
+                    "next_week": "来週",
+                    "this_month": "今月"
                 },
                 "time_of_day": {
-                    "any": "Any Time",
-                    "morning": "Morning",
-                    "afternoon": "Afternoon",
-                    "evening": "Evening",
-                    "night": "Night"
+                    "any": "いつでも",
+                    "morning": "朝",
+                    "afternoon": "昼",
+                    "evening": "夕方",
+                    "night": "夜"
                 },
                 "run_styles": {
                     "progression": "攻略進行",
-                    "clear": "Clear",
-                    "reclear": "Reclear",
-                    "farm": "Farm",
-                    "marathon": "Marathon",
-                    "speedrun": "Speedrun",
-                    "practice": "Practice",
-                    "blind": "Blind"
+                    "clear": "クリア",
+                    "reclear": "消化",
+                    "farm": "周回",
+                    "marathon": "長時間",
+                    "speedrun": "スピードラン",
+                    "practice": "練習",
+                    "blind": "予習なし"
                 },
                 "roles": {
-                    "any": "Any",
+                    "any": "指定なし",
                     "tank": "タンク",
                     "healer": "ヒーラー",
                     "dps": "DPS",
-                    "melee": "Melee",
-                    "ranged": "Ranged",
-                    "caster": "Caster"
+                    "melee": "近接",
+                    "ranged": "遠隔",
+                    "caster": "キャスター"
                 },
                 "group_types": {
                     "community": "コミュニティ",
@@ -105,8 +105,8 @@
                 "application_statuses": {
                     "open_short": "オープン",
                     "applications_open": "応募受付中",
-                    "direct_join": "Direct Join",
-                    "invite_only": "Invite Only"
+                    "direct_join": "直接参加",
+                    "invite_only": "招待限定"
                 },
                 "intensity": {
                     "casual": "カジュアル",
@@ -114,49 +114,49 @@
                     "hardcore": "ハードコア"
                 },
                 "voice_expectations": {
-                    "required": "Voice Required",
-                    "preferred": "Voice Preferred",
-                    "optional": "Voice Optional"
+                    "required": "VC必須",
+                    "preferred": "VC推奨",
+                    "optional": "VC任意"
                 }
             }
         },
         "results": {
             "title": "ラン",
-            "subtitle": "Browse what groups currently have on the calendar.",
-            "count": "{count} runs found",
-            "page_status": "Page {current} of {total}",
-            "sort_by": "Sort by",
-            "sort_label": "Sort By",
-            "preview_badge": "Preview",
-            "placeholder_title": "No runs found",
-            "placeholder_subtitle": "Try adjusting the filters to widen the search.",
+            "subtitle": "現在グループのカレンダーにあるランを確認できます。",
+            "count": "{count}件のランが見つかりました",
+            "page_status": "ページ {current} / {total}",
+            "sort_by": "並び替え",
+            "sort_label": "並び替え",
+            "preview_badge": "プレビュー",
+            "placeholder_title": "ランが見つかりません",
+            "placeholder_subtitle": "フィルターを調整して検索範囲を広げてください。",
             "placeholder_item": {
-                "open_slots": "Open Slots",
-                "description": "Blind prog to clear. Consistency over speed.",
-                "description_alt": "Fresh-friendly and social, but still here to get the clear.",
-                "description_third": "Focused prog with a steady pace and a small core.",
+                "open_slots": "空き枠",
+                "description": "クリアを目指す予習なし攻略。速さより安定重視。",
+                "description_alt": "初参加歓迎で交流しやすく、それでもクリアを目指します。",
+                "description_third": "少人数コアで着実に進める集中攻略。",
                 "group_types": {
                     "community": "コミュニティ",
                     "static": "固定"
                 },
                 "schedule": {
                     "today": "今日",
-                    "tomorrow": "Tomorrow",
+                    "tomorrow": "明日",
                     "this_week": "今週"
                 },
                 "actions": {
-                    "view_details": "View Details",
-                    "apply_now": "Apply Now",
-                    "view_application": "View Application",
-                    "save_run": "Save Run",
-                    "unsave_run": "Unsave Run"
+                    "view_details": "詳細を見る",
+                    "apply_now": "応募する",
+                    "view_application": "応募を見る",
+                    "save_run": "ランを保存",
+                    "unsave_run": "保存を解除"
                 }
             },
             "sort_options": {
-                "starting_soonest": "Starting Soonest",
-                "newest_posted": "Newest Posted",
-                "recently_updated": "Recently Updated",
-                "open_slots": "Most Open Slots"
+                "starting_soonest": "開始が近い順",
+                "newest_posted": "新着順",
+                "recently_updated": "最近更新順",
+                "open_slots": "空き枠が多い順"
             }
         }
     }

@@ -41,6 +41,7 @@ use App\Http\Controllers\GroupDashboardController;
 use App\Http\Controllers\GroupDiscordIntegrationController;
 use App\Http\Controllers\GroupInviteController;
 use App\Http\Controllers\GroupLeaderboardController;
+use App\Http\Controllers\GroupLegacyLeaderboardController;
 use App\Http\Controllers\GroupMemberController;
 use App\Http\Controllers\GroupMemberNoteController;
 use App\Http\Controllers\GroupMembershipApplicationController;
@@ -403,6 +404,7 @@ Route::prefix('{locale?}')
                 Route::post('/statistics/refresh', [GroupStatisticsController::class, 'refresh'])->name('groups.dashboard.statistics.refresh');
                 Route::get('/leaderboard', GroupLeaderboardController::class)->name('groups.dashboard.leaderboard');
                 Route::post('/leaderboard/refresh', [GroupLeaderboardController::class, 'refresh'])->name('groups.dashboard.leaderboard.refresh');
+                Route::get('/legacy-leaderboard', GroupLegacyLeaderboardController::class)->name('groups.dashboard.legacy-leaderboard');
                 Route::get('/membership-applications', [GroupMembershipApplicationReviewController::class, 'index'])->name('groups.dashboard.membership-applications.index');
                 Route::post('/membership-applications/{application}/approve', [GroupMembershipApplicationReviewController::class, 'approve'])->name('groups.dashboard.membership-applications.approve');
                 Route::post('/membership-applications/{application}/decline', [GroupMembershipApplicationReviewController::class, 'decline'])->name('groups.dashboard.membership-applications.decline');

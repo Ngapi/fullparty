@@ -122,7 +122,7 @@ const roleGroups = computed(() => {
 			...rosterGroups,
 			{
 				key: 'bench',
-				label: 'Bench',
+				label: t('groups.activities.management.roster.bench'),
 				icon: 'i-lucide-armchair',
 				slots: benchSlots,
 			},

@@ -113,9 +113,9 @@
         "title": "Status Legend"
     },
     "cards": {
-        "unknown_type": "Unknown run type",
+        "unknown_type": "不明なアクティビティ種別",
         "unscheduled": "TBD",
-        "no_time": "Time not set",
+        "no_time": "時間未設定",
         "no_relative_time": "Schedule pending",
         "no_organizer": "Organizer not set",
         "manage": "Manage run",
@@ -180,6 +180,7 @@
             "check_in_group_failed": "Unable to check in this group.",
             "mark_missing_failed": "Unable to mark this slot as missing.",
             "mark_designation_failed": "このスロット指定を更新できませんでした。",
+            "slot_changed": "編集中にこのスロットが変更されました。ページを更新してもう一度お試しください。",
             "warning_title": "警告",
             "undo_missing_failed": "Unable to undo this missing slot.",
             "assign_failed": "Unable to assign this application to the selected slot.",
@@ -272,8 +273,8 @@
             "applicants": "Applicants",
             "assigned": "{assigned}/{total} Assigned",
             "pending_applicants": "{count} pending",
-            "duration": "{count} hours",
-            "no_duration": "Duration not set",
+            "duration": "{count}時間",
+            "no_duration": "所要時間未設定",
             "check_in": "Start Check-In",
             "go_to_application": "Go To Application",
             "application_link_copied": "Application link copied.",
@@ -313,6 +314,7 @@
             "checked_in": "Checked in",
             "late": "Late",
             "open": "オープン",
+            "bench": "ベンチ",
             "slot_placeholder": "Click to assign",
             "filled_placeholder": "Assigned character details and controls will live here next.",
             "filled_slot": "Filled Slot",
@@ -330,7 +332,11 @@
             "check_in_all": "Check In All",
             "check_in_action": "Check-in",
             "mark_late_action": "Mark late",
+            "mark_missing_action": "欠席 / 不在としてマーク",
             "remove_from_slot_action": "Remove from slot",
+            "return_to_queue_action": "キューに戻す",
+            "move_to_bench_action": "ベンチへ移動",
+            "change_assignment_action": "割り当てを変更",
             "cut_assignment_action": "割り当てを切り取り",
             "cancel_cut_assignment_action": "切り取りをキャンセル",
             "paste_assignment_action": "ここに割り当てを貼り付け",
@@ -377,6 +383,12 @@
             "pending": "保留中",
             "expand": "Expand",
             "assign_to_roster": "Assign to Roster",
+            "edit_slot_fields": "スロット項目を編集",
+            "save_slot_fields": "スロット項目を保存",
+            "assignment_update_keeps_character": "{character} はこのスロットのまま、スロット項目だけ更新されます。",
+            "assignment_replace_character": "{character} はこのスロットで置き換えられます。",
+            "no_selected_character": "この応募には選択済みキャラクターがないため、ロスターに割り当てられません。",
+            "incompatible_slot_answers": "この応募には対象スロット項目と互換性のある回答がありません。",
             "approve": "Approve",
             "decline": "辞退",
             "decline_footer_hint": "Declining removes this application from the pending queue and cannot be undone.",
@@ -534,9 +546,9 @@
             "categories": {
                 "tank": "タンク",
                 "healer": "ヒーラー",
-                "melee": "Melee",
-                "phys": "Physical Ranged",
-                "magic": "Magic Ranged"
+                "melee": "近接",
+                "phys": "遠隔物理",
+                "magic": "遠隔魔法"
             }
         },
         "phantom_picker": {
@@ -606,9 +618,9 @@
             "character": "キャラクター",
             "status": "Submission Status",
             "statuses": {
-                "pending": "Pending review",
+                "pending": "審査待ち",
                 "approved": "承認",
-                "on_bench": "On bench",
+                "on_bench": "ベンチ入り",
                 "declined": "却下",
                 "cancelled": "キャンセル",
                 "withdrawn": "取り下げ"

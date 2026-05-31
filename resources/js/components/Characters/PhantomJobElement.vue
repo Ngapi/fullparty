@@ -1,7 +1,9 @@
 <script setup>
 import { router } from "@inertiajs/vue3";
-import { ref } from "vue";
+import { computed, ref } from "vue";
 import { route } from "ziggy-js";
+import { useI18n } from "vue-i18n";
+import { phantomJobTranslationKey, translateJobName } from "@/utils/characterJobTranslations";
 
 const props = defineProps({
 	characterId: {
@@ -16,6 +18,13 @@ const props = defineProps({
 
 const isUpdating = ref(false);
 const lastTapAt = ref(0);
+const { t } = useI18n();
+
+const translatedPhantomJobName = computed(() => translateJobName(
+	t,
+	phantomJobTranslationKey(props.phantomJob),
+	props.phantomJob?.name,
+));
 
 const togglePreferred = () => {
 	if (!props.phantomJob || isUpdating.value) {
@@ -60,7 +69,7 @@ const handleCompactTap = () => {
 			<img
 				v-if="phantomJob.icon_url"
 				:src="phantomJob.is_maxed ? phantomJob.icon_url : phantomJob.black_icon_url"
-				:alt="`${phantomJob.name} icon`"
+				:alt="`${translatedPhantomJobName} icon`"
 				class="size-10 rounded-sm object-contain"
 			>
 			<div
@@ -87,7 +96,7 @@ const handleCompactTap = () => {
 		<img
 			v-if="phantomJob.icon_url"
 			:src="phantomJob.is_maxed ? phantomJob.icon_url : phantomJob.black_icon_url"
-			:alt="`${phantomJob.name} icon`"
+			:alt="`${translatedPhantomJobName} icon`"
 			class="h-8 w-8 rounded-sm object-contain"
 		>
 		<div
@@ -99,7 +108,7 @@ const handleCompactTap = () => {
 
 		<div class="min-w-0 flex-1">
 			<div class="flex flex-wrap items-center gap-1.5">
-				<p class="truncate text-sm font-semibold">{{ phantomJob.name }}</p>
+				<p class="truncate text-sm font-semibold">{{ translatedPhantomJobName }}</p>
 			</div>
 
 			<div class="flex flex-wrap items-center gap-1.5">

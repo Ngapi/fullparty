@@ -160,7 +160,7 @@ const handleSlotStateConflict = async (error: any) => {
 
 	toast.add({
 		title: t('general.error'),
-		description: error?.response?.data?.message ?? 'This slot changed while you were editing it. Refresh and try again.',
+		description: error?.response?.data?.message ?? t('groups.activities.management.messages.slot_changed'),
 		color: 'warning',
 		icon: 'i-lucide-triangle-alert',
 	});

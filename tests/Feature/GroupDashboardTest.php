@@ -43,6 +43,54 @@ it('renders a single generated group embed image on the dashboard page', functio
     expect(substr_count($response->getContent(), '<meta property="og:image"'))->toBe(1);
 });
 
+it('renders the FTEL legacy leaderboard from the static export', function () {
+    $owner = User::factory()->create();
+    $group = Group::factory()->open()->create([
+        'owner_id' => $owner->id,
+        'name' => 'Forked Tower Enjoyers',
+        'slug' => 'ftel',
+    ]);
+
+    $response = $this->actingAs($owner)
+        ->get(route('groups.dashboard.legacy-leaderboard', $group));
+
+    $response
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->component('Dashboard/Groups/LegacyLeaderboard')
+            ->where('group.slug', 'ftel')
+            ->where('legacy_leaderboard.source.is_static', true)
+            ->where('legacy_leaderboard.summary.total_players', 1447)
+            ->where('legacy_leaderboard.summary.total_participations', 7408)
+            ->where('legacy_leaderboard.summary.total_raid_leader_participations', 992)
+            ->where('legacy_leaderboard.rankings.participations.0.character.name', 'Kai Dazkar')
+            ->where('legacy_leaderboard.rankings.participations.0.character.avatar_url', 'https://img2.finalfantasyxiv.com/f/52272c6ea1e24f626b7a314b62cf7de6_c33f640c0cdd35f7def85b8aa31a0007fc0.jpg?1778864995')
+            ->where('legacy_leaderboard.rankings.participations.0.participation_count', 128)
+            ->where('legacy_leaderboard.rankings.participations.0.badges.0.type', 'participation')
+            ->where('legacy_leaderboard.rankings.participations.0.badges.0.key', 'elite')
+            ->where('legacy_leaderboard.rankings.participations.0.badges.1.type', 'leader')
+            ->where('legacy_leaderboard.rankings.participations.0.badges.1.key', 'legendary')
+            ->where('legacy_leaderboard.rankings.raid_leaders.0.character.name', 'Kai Dazkar')
+            ->where('legacy_leaderboard.rankings.raid_leaders.0.raid_leader_count', 121)
+            ->where('legacy_leaderboard.rankings.raid_leaders.0.badges.0.key', 'elite')
+            ->where('legacy_leaderboard.rankings.raid_leaders.0.badges.1.key', 'legendary')
+        )
+        ->assertDontSee('TRAP MAGNET')
+        ->assertDontSee('zerker tank if possible');
+});
+
+it('only exposes the legacy leaderboard for FTEL', function () {
+    $owner = User::factory()->create();
+    $group = Group::factory()->open()->create([
+        'owner_id' => $owner->id,
+        'slug' => 'not-ftel',
+    ]);
+
+    $this->actingAs($owner)
+        ->get(route('groups.dashboard.legacy-leaderboard', $group))
+        ->assertNotFound();
+});
+
 it('renders the group dashboard with activity-driven overview data', function () {
     Carbon::setTestNow(Carbon::parse('2026-05-27 12:00:00'));
 

@@ -42,6 +42,8 @@ const statisticsHref = computed(() => route('groups.dashboard.statistics', props
 const statisticsPath = computed(() => routePath('groups.dashboard.statistics'))
 const leaderboardHref = computed(() => route('groups.dashboard.leaderboard', props.group.slug))
 const leaderboardPath = computed(() => routePath('groups.dashboard.leaderboard'))
+const legacyLeaderboardHref = computed(() => route('groups.dashboard.legacy-leaderboard', props.group.slug))
+const legacyLeaderboardPath = computed(() => routePath('groups.dashboard.legacy-leaderboard'))
 const membersHref = computed(() => route('groups.dashboard.members', props.group.slug))
 const membersPath = computed(() => routePath('groups.dashboard.members'))
 const membershipApplicationsHref = computed(() => route('groups.dashboard.membership-applications.index', props.group.slug))
@@ -56,6 +58,7 @@ const settingsPath = computed(() => routePath('groups.dashboard.settings'))
 const discordIntegrationHref = computed(() => route('groups.dashboard.discord-integration', props.group.slug))
 const discordIntegrationPath = computed(() => routePath('groups.dashboard.discord-integration'))
 const isPublicActivityRoute = computed(() => page.url.startsWith(publicActivitiesPath.value))
+const showsLegacyLeaderboard = computed(() => props.group.slug === 'ftel')
 
 const isManagementUser = computed(() => Boolean(
 	props.group.permissions?.can_manage_group
@@ -91,6 +94,12 @@ const leftitems = computed(() => [
 		href: leaderboardHref.value,
 		active: isRouteActive(leaderboardPath.value),
 	},
+	...(showsLegacyLeaderboard.value ? [{
+		label: t('groups.index.navigation.legacy_leaderboard'),
+		icon: 'i-lucide-archive',
+		href: legacyLeaderboardHref.value,
+		active: isRouteActive(legacyLeaderboardPath.value),
+	}] : []),
 	...(props.group.permissions?.can_view_members ? [{
 		label: t('groups.index.navigation.members'),
 		icon: 'i-lucide-users',
@@ -159,6 +168,12 @@ const infoMenuItems = computed(() => [
 		href: leaderboardHref.value,
 		active: isRouteActive(leaderboardPath.value),
 	},
+	...(showsLegacyLeaderboard.value ? [{
+		label: t('groups.index.navigation.legacy_leaderboard'),
+		icon: 'i-lucide-archive',
+		href: legacyLeaderboardHref.value,
+		active: isRouteActive(legacyLeaderboardPath.value),
+	}] : []),
 	...(props.group.permissions?.can_manage_members ? [{
 		label: t('groups.index.navigation.audit_log'),
 		icon: 'i-lucide-scroll-text',
@@ -227,7 +242,16 @@ const memberMobileItems = computed(() => [
 		href: dashboardHref.value,
 		active: page.url === dashboardPath.value,
 	},
-	{
+	showsLegacyLeaderboard.value ? {
+		label: t('groups.index.navigation.info'),
+		icon: 'i-lucide-info',
+		href: null,
+		menu: "info" as const,
+		active: activeMobileMenu.value === "info"
+			|| isRouteActive(statisticsPath.value)
+			|| isRouteActive(leaderboardPath.value)
+			|| isRouteActive(legacyLeaderboardPath.value),
+	} : {
 		label: t('groups.index.navigation.leaderboard'),
 		icon: 'i-lucide-trophy',
 		href: leaderboardHref.value,
@@ -269,6 +293,7 @@ const managerMobileItems = computed(() => [
 		active: activeMobileMenu.value === "info"
 			|| isRouteActive(statisticsPath.value)
 			|| isRouteActive(leaderboardPath.value)
+			|| isRouteActive(legacyLeaderboardPath.value)
 			|| isRouteActive(auditLogPath.value),
 	},
 	{

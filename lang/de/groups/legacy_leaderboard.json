@@ -1,0 +1,50 @@
+{
+  "title": "FTEL Legacy-Ruhmeshalle",
+  "subtitle": "Ein historischer Schnappschuss von der alten {group}-Website.",
+  "badge": "Historisch",
+  "notice": {
+    "title": "Einträge der alten Website",
+    "description": "Diese Ranglisten wurden von der früheren FTEL-Website übernommen. Sie sind statisch und ändern sich nicht durch neue FullParty-Runs."
+  },
+  "summary": {
+    "total_players": "Spieler im Export",
+    "ranked_participants": "Gewertete Teilnehmer",
+    "total_participations": "Teilnahmen insgesamt",
+    "raid_leader_participations": "Raid-Leader-Teilnahmen"
+  },
+  "boards": {
+    "entry_count": "{count} Einträge",
+    "participations": {
+      "title": "Top-Teilnahmen",
+      "subtitle": "Charaktere nach Teilnahmen auf der alten Website.",
+      "primary_label": "Runs",
+      "secondary_label": "Raid Lead",
+      "empty": "Es wurde keine Teilnahmehistorie gefunden."
+    },
+    "raid_leaders": {
+      "title": "Top-Raid-Leader-Teilnahmen",
+      "subtitle": "Charaktere nach Raid-Leader-Teilnahmen auf der alten Website.",
+      "primary_label": "Raid Lead",
+      "secondary_label": "Runs",
+      "empty": "Es wurde keine Raid-Leader-Historie gefunden."
+    }
+  },
+  "badges": {
+    "leader": {
+      "bronze": "Bronze-Leader",
+      "silver": "Silber-Leader",
+      "gold": "Gold-Leader",
+      "platinum": "Platin-Leader",
+      "diamond": "Diamant-Leader",
+      "legendary": "Legendärer Leader"
+    },
+    "participation": {
+      "active": "Aktiv",
+      "veteran": "Veteran",
+      "elite": "Elite"
+    }
+  },
+  "common": {
+    "unknown_world": "Welt nicht erfasst"
+  }
+}

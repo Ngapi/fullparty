@@ -31,6 +31,7 @@
         "activities": "Runs",
         "statistics": "Statistiken",
         "leaderboard": "Bestenliste",
+        "legacy_leaderboard": "Archiv",
         "members": "Mitglieder",
         "moderation": "Moderation",
         "membership_applications": "Anfragen",
@@ -52,93 +53,93 @@
     },
     "featured": {
         "title": "Empfohlene Gruppen",
-        "subtitle": "Handpicked groups that are active, welcoming, and ready to raid.",
-        "badge": "Featured",
-        "previous": "Previous featured groups",
-        "next": "Next featured groups",
-        "empty_title": "No featured groups yet",
-        "empty_description": "Featured groups will appear here once discovery data is available."
+        "subtitle": "Handverlesene Gruppen, die aktiv, einladend und raidbereit sind.",
+        "badge": "Empfohlen",
+        "previous": "Vorherige empfohlene Gruppen",
+        "next": "Nächste empfohlene Gruppen",
+        "empty_title": "Noch keine empfohlenen Gruppen",
+        "empty_description": "Empfohlene Gruppen erscheinen hier, sobald Entdeckungsdaten verfügbar sind."
     },
     "discovery": {
-        "title": "Search & Filter",
-        "subtitle": "Narrow the field by group type, experience level, region, size, and the discovery metadata each group chose to share.",
+        "title": "Suchen & Filtern",
+        "subtitle": "Grenze die Auswahl nach Gruppentyp, Erfahrung, Region, Größe und den Entdeckungsdetails ein, die jede Gruppe teilt.",
         "tabs": {
-            "all": "All Groups",
+            "all": "Alle Gruppen",
             "communities": "Communities",
             "statics": "Statics"
         },
         "filters": {
-            "search_placeholder": "Search by group name, vibe, or notable tag",
-            "experience_placeholder": "Experience",
+            "search_placeholder": "Nach Gruppenname, Stimmung oder auffälligem Tag suchen",
+            "experience_placeholder": "Erfahrung",
             "region_placeholder": "Region",
-            "size_placeholder": "Size",
-            "sort_placeholder": "Sort By",
-            "more_filters_open": "More Filters",
-            "more_filters_close": "Hide Extra Filters",
+            "size_placeholder": "Größe",
+            "sort_placeholder": "Sortieren nach",
+            "more_filters_open": "Weitere Filter",
+            "more_filters_close": "Zusatzfilter ausblenden",
             "clear_filters": "Filter zurücksetzen",
             "recruiting_method_label": "Recruiting-Methode",
             "recruiting_method_placeholder": "Recruiting-Methode auswählen",
-            "tags_placeholder": "Search by extra tag",
-            "tags_help": "Use this for optional freeform tags such as Late Night or Blind Prog.",
+            "tags_placeholder": "Nach zusätzlichem Tag suchen",
+            "tags_help": "Nutze dies für optionale freie Tags wie Späte Nacht oder Blind Prog.",
             "recruiting_methods": {
                 "open": "Offen",
                 "invite_only": "Einladung",
                 "application": "Bewerbung"
             },
             "size_options": {
-                "1": "1+ Members",
-                "50": "50+ Members",
-                "100": "100+ Members",
-                "500": "500+ Members"
+                "1": "1+ Mitglieder",
+                "50": "50+ Mitglieder",
+                "100": "100+ Mitglieder",
+                "500": "500+ Mitglieder"
             },
             "sort_options": {
-                "created_at_desc": "Created Recently (Newest First)",
-                "created_at_asc": "Created Recently (Oldest First)",
-                "active_at_desc": "Active Recently (Most Recent First)",
-                "active_at_asc": "Active Recently (Least Recent First)",
-                "member_count_desc": "Member Count (High to Low)",
-                "member_count_asc": "Member Count (Low to High)"
+                "created_at_desc": "Kürzlich erstellt (neueste zuerst)",
+                "created_at_asc": "Kürzlich erstellt (älteste zuerst)",
+                "active_at_desc": "Kürzlich aktiv (neueste zuerst)",
+                "active_at_asc": "Kürzlich aktiv (älteste zuerst)",
+                "member_count_desc": "Mitgliederzahl (hoch zu niedrig)",
+                "member_count_asc": "Mitgliederzahl (niedrig zu hoch)"
             }
         },
         "placeholder": {
-            "owner_label": "Verified Leader",
-            "schedule_label": "Active Schedule",
-            "activity_label": "Recent Activity",
-            "page_status": "Page {current} out of {total}"
+            "owner_label": "Verifizierte Leitung",
+            "schedule_label": "Aktiver Zeitplan",
+            "activity_label": "Letzte Aktivität",
+            "page_status": "Seite {current} von {total}"
         },
         "detail": {
-            "title": "Group Details",
-            "loading": "Loading group details...",
+            "title": "Gruppendetails",
+            "loading": "Gruppendetails werden geladen...",
             "actions": {
                 "join": "Gruppe beitreten",
                 "leave": "Gruppe verlassen",
                 "dashboard": "Dashboard",
-                "apply": "Apply to Join",
-                "mute_notifications": "Mute Notifications",
-                "unmute_notifications": "Unmute Notifications",
-                "invite_required": "Invite Required",
-                "application_required": "Application Based",
-                "application_pending": "Application Pending"
+                "apply": "Beitritt beantragen",
+                "mute_notifications": "Benachrichtigungen stummschalten",
+                "unmute_notifications": "Benachrichtigungen aktivieren",
+                "invite_required": "Einladung erforderlich",
+                "application_required": "Bewerbung erforderlich",
+                "application_pending": "Bewerbung ausstehend"
             },
             "tabs": {
                 "about": "Info",
                 "activity": "Aktivität",
-                "content": "Content",
+                "content": "Inhalte",
                 "team": "Team"
             },
             "content": {
-                "summary": "Content Snapshot",
-                "summary_hint": "A quick breakdown of the public runs this group has put together.",
-                "total_public_runs": "Public Runs",
-                "library": "Content Library",
-                "library_hint": "Grouped by the activity types this group has actually been running.",
+                "summary": "Inhaltsübersicht",
+                "summary_hint": "Ein kurzer Überblick über die öffentlichen Runs, die diese Gruppe organisiert hat.",
+                "total_public_runs": "Öffentliche Runs",
+                "library": "Inhaltsbibliothek",
+                "library_hint": "Gruppiert nach den Aktivitätstypen, die diese Gruppe tatsächlich läuft.",
                 "completed": "Abgeschlossen",
                 "active": "Aktiv",
-                "last_run": "Last Run",
-                "next_run": "Next Run",
+                "last_run": "Letzter Run",
+                "next_run": "Nächster Run",
                 "run_singular": "Run",
                 "run_plural": "Runs",
-                "empty": "No public run history yet.",
+                "empty": "Noch keine öffentliche Run-Historie.",
                 "statuses": {
                     "draft": "Entwurf",
                     "scheduled": "Geplant",
@@ -148,22 +149,22 @@
                 }
             },
             "team": {
-                "core_leadership": "Owner & Admins",
-                "core_leadership_hint": "The people leading the group at the highest level and keeping it moving forward.",
-                "moderation_team": "Moderation Team",
-                "moderation_hint": "The people helping organize, moderate, and keep the group healthy.",
-                "no_moderation": "No moderators are listed for this group yet."
+                "core_leadership": "Besitzer & Admins",
+                "core_leadership_hint": "Die Personen, die die Gruppe auf höchster Ebene leiten und voranbringen.",
+                "moderation_team": "Moderationsteam",
+                "moderation_hint": "Die Personen, die beim Organisieren, Moderieren und Gesundhalten der Gruppe helfen.",
+                "no_moderation": "Für diese Gruppe sind noch keine Moderatoren aufgeführt."
             },
-            "activity_summary": "Activity Summary",
-            "recent_runs": "Recent Runs",
-            "recent_runs_hint": "A quick look at what this group has been running lately.",
-            "no_recent_runs": "No completed or archived runs yet.",
-            "completed_runs": "Completed Runs",
+            "activity_summary": "Aktivitätsübersicht",
+            "recent_runs": "Letzte Runs",
+            "recent_runs_hint": "Ein kurzer Blick darauf, was diese Gruppe zuletzt gelaufen ist.",
+            "no_recent_runs": "Noch keine abgeschlossenen oder archivierten Runs.",
+            "completed_runs": "Abgeschlossene Runs",
             "total_runs": "Runs gesamt",
-            "runs_per_week": "Runs / Week",
-            "average_turnout": "Avg. Turnout",
-            "progress": "Progress",
-            "showed_up": "{count} showed up",
+            "runs_per_week": "Runs / Woche",
+            "average_turnout": "Durchschn. Teilnahme",
+            "progress": "Fortschritt",
+            "showed_up": "{count} teilgenommen",
             "statuses": {
                 "complete": "Abgeschlossen",
                 "cancelled": "Abgebrochen"
@@ -180,9 +181,9 @@
             "2": "Präsenz",
             "3": "Entdeckung",
             "4": "Aktivitätsfenster",
-            "5": "Access"
+            "5": "Zugang"
         },
-        "slug_preview": "Group slug: {slug}",
+        "slug_preview": "Gruppen-Slug: {slug}",
         "slug_fallback": "deinslug",
         "slug_warning": "Dein Slug ist dauerhaft, sobald die Gruppe erstellt wurde.",
         "validation": {
@@ -216,8 +217,8 @@
                 "subtitle": "Hilf Leuten zu verstehen, in welcher Zeitzone ihr spielt, an welchen Tagen ihr aktiv seid und zu welchen Stunden die Gruppe meist online ist."
             },
             "visibility": {
-                "title": "Access",
-                "subtitle": "Choose how people can join, then decide whether this group appears in discovery."
+                "title": "Zugang",
+                "subtitle": "Wähle, wie Leute beitreten können, und entscheide dann, ob diese Gruppe in der Entdeckung erscheint."
             }
         },
         "fields": {
@@ -304,12 +305,12 @@
                 "placeholder": "Zusätzliche Tags wie Late Night oder Blind Prog hinzufügen oder erstellen",
                 "help": "Optional. Nutze bis zu {max} freie Tags für zusätzlichen Kontext oder Nischendetails.",
                 "suggestions": {
-                    "late_night": "Late Night",
-                    "lgbtq_friendly": "LGBTQ+ Friendly",
+                    "late_night": "Späte Nacht",
+                    "lgbtq_friendly": "LGBTQ+ freundlich",
                     "blind_prog": "Blind Prog",
-                    "alt_friendly": "Alt Friendly",
-                    "achievement_hunting": "Achievement Hunting",
-                    "weekend_raids": "Weekend Raids"
+                    "alt_friendly": "Alt-freundlich",
+                    "achievement_hunting": "Achievement-Jagd",
+                    "weekend_raids": "Wochenend-Raids"
                 }
             },
             "region": {
@@ -336,24 +337,24 @@
                 "help": "Optional. Typisches Ende eures aktiven Zeitfensters."
             },
             "join_mode": {
-                "label": "Join Mode",
-                "placeholder": "Select a join mode",
-                "help": "Open is community-only. Invite-only and application-based groups can still use generated invite links."
+                "label": "Beitrittsmodus",
+                "placeholder": "Beitrittsmodus auswählen",
+                "help": "Offen ist nur für Communities. Gruppen mit Einladung oder Bewerbung können weiterhin generierte Einladungslinks verwenden."
             },
             "is_visible": {
                 "label": "In der Entdeckung sichtbar",
-                "help": "Visible groups can appear in discovery and search."
+                "help": "Sichtbare Gruppen können in Entdeckung und Suche erscheinen."
             }
         },
         "visibility_summary": {
             "label": "Was das bedeutet",
             "default_name": "Diese Gruppe",
-            "open_visible": "{name} can be joined by anyone and can appear in discovery.",
-            "open_hidden": "{name} can be joined by anyone with the permanent slug invite, but will stay out of discovery.",
-            "invite_only_visible": "{name} requires a generated invite link and can appear in discovery.",
-            "invite_only_hidden": "{name} requires a generated invite link and will stay out of discovery.",
-            "application_visible": "{name} will use applications for new members and can appear in discovery. Invite links can still add members directly.",
-            "application_hidden": "{name} will use applications for new members and stay out of discovery. Invite links can still add members directly."
+            "open_visible": "Jeder kann {name} beitreten, und die Gruppe kann in der Entdeckung erscheinen.",
+            "open_hidden": "Jeder mit dem permanenten Slug-Einladungslink kann {name} beitreten, aber die Gruppe bleibt aus der Entdeckung ausgeblendet.",
+            "invite_only_visible": "{name} erfordert einen generierten Einladungslink und kann in der Entdeckung erscheinen.",
+            "invite_only_hidden": "{name} erfordert einen generierten Einladungslink und bleibt aus der Entdeckung ausgeblendet.",
+            "application_visible": "{name} nutzt Bewerbungen für neue Mitglieder und kann in der Entdeckung erscheinen. Einladungslinks können Mitglieder weiterhin direkt hinzufügen.",
+            "application_hidden": "{name} nutzt Bewerbungen für neue Mitglieder und bleibt aus der Entdeckung ausgeblendet. Einladungslinks können Mitglieder weiterhin direkt hinzufügen."
         },
         "toasts": {
             "created": "Deine Gruppe wurde erstellt."

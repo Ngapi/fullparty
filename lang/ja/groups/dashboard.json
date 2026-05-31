@@ -1,7 +1,7 @@
 {
     "actions": {
-        "view_runs": "View Runs",
-        "view_members": "View Members",
+        "view_runs": "Runsを見る",
+        "view_members": "メンバーを見る",
         "open_settings": "Open Settings",
         "open_discord": "Discordを開く",
         "mute_notifications": "Mute Notifications",
@@ -42,20 +42,20 @@
         "completed_runs_hint": "{count} cancelled total"
     },
     "upcoming_runs": {
-        "title": "Coming Up",
-        "subtitle": "See what this group has lined up next.",
-        "accepting_applications": "Accepting Applications",
+        "title": "近日予定",
+        "subtitle": "このグループの次の予定を確認できます。",
+        "accepting_applications": "応募受付中",
         "public": "公開",
-        "private": "Invite Only",
-        "guest_welcome": "Guests Welcome",
-        "starts": "Starts {time}",
-        "view_more": "View More",
-        "apply": "Apply",
-        "view_application": "View Application",
-        "view_overview": "View Overview",
-        "open_board": "Open Board",
-        "empty_title": "No upcoming runs are scheduled.",
-        "empty_description": "Once this group has future runs on the calendar, they will appear here in start-time order."
+        "private": "招待のみ",
+        "guest_welcome": "ゲスト歓迎",
+        "starts": "{time} 開始",
+        "view_more": "詳細を見る",
+        "apply": "応募",
+        "view_application": "応募を見る",
+        "view_overview": "概要を見る",
+        "open_board": "ボードを開く",
+        "empty_title": "予定されている今後のRunsはありません。",
+        "empty_description": "このグループが今後のRunsをカレンダーに追加すると、開始時間順にここへ表示されます。"
     },
     "week_overview": {
         "title": "今週",

@@ -32,10 +32,10 @@ const isOpen = computed({
 });
 const modalMode = computed(() => props.mode ?? 'assign');
 const modalTitle = computed(() => modalMode.value === 'edit'
-	? 'Edit Slot Fields'
+	? t('groups.activities.management.queue.edit_slot_fields')
 	: t('groups.activities.management.queue.assign_to_roster'));
 const submitLabel = computed(() => modalMode.value === 'edit'
-	? 'Save Slot Fields'
+	? t('groups.activities.management.queue.save_slot_fields')
 	: t('groups.activities.management.queue.assign_to_roster'));
 
 const localizedText = (value: LocalizedText, fallback: string) => (
@@ -243,8 +243,8 @@ const submit = () => {
 					variant="soft"
 					:title="modalTitle"
 					:description="modalMode === 'edit'
-						? `${slot.assigned_character.name} will keep this slot, but the slot field values will be updated.`
-						: `${slot.assigned_character.name} will be replaced in this slot.`"
+						? t('groups.activities.management.queue.assignment_update_keeps_character', { character: slot.assigned_character.name })
+						: t('groups.activities.management.queue.assignment_replace_character', { character: slot.assigned_character.name })"
 				/>
 
 				<UAlert
@@ -252,7 +252,7 @@ const submit = () => {
 					color="error"
 					variant="soft"
 					:title="t('general.error')"
-					description="This application has no selected character, so it cannot be assigned to the roster."
+					:description="t('groups.activities.management.queue.no_selected_character')"
 				/>
 
 				<UAlert
@@ -260,7 +260,7 @@ const submit = () => {
 					color="error"
 					variant="soft"
 					:title="t('general.error')"
-					description="This application does not provide compatible answers for the target slot fields."
+					:description="t('groups.activities.management.queue.incompatible_slot_answers')"
 				/>
 
 				<div v-else class="space-y-4">

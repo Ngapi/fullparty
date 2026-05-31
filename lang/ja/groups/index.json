@@ -31,6 +31,7 @@
         "activities": "ラン",
         "statistics": "統計",
         "leaderboard": "リーダーボード",
+        "legacy_leaderboard": "アーカイブ",
         "members": "メンバー",
         "moderation": "モデレーション",
         "membership_applications": "リクエスト",
@@ -52,93 +53,93 @@
     },
     "featured": {
         "title": "注目グループ",
-        "subtitle": "Handpicked groups that are active, welcoming, and ready to raid.",
-        "badge": "Featured",
-        "previous": "Previous featured groups",
-        "next": "Next featured groups",
-        "empty_title": "No featured groups yet",
-        "empty_description": "Featured groups will appear here once discovery data is available."
+        "subtitle": "活動中で、参加しやすく、レイドの準備ができているグループをピックアップしています。",
+        "badge": "注目",
+        "previous": "前の注目グループ",
+        "next": "次の注目グループ",
+        "empty_title": "注目グループはまだありません",
+        "empty_description": "発見データが利用できるようになると、注目グループがここに表示されます。"
     },
     "discovery": {
-        "title": "Search & Filter",
-        "subtitle": "Narrow the field by group type, experience level, region, size, and the discovery metadata each group chose to share.",
+        "title": "検索とフィルター",
+        "subtitle": "グループタイプ、経験レベル、地域、規模、各グループが共有した発見用情報で絞り込めます。",
         "tabs": {
-            "all": "All Groups",
-            "communities": "Communities",
-            "statics": "Statics"
+            "all": "すべてのグループ",
+            "communities": "コミュニティ",
+            "statics": "固定"
         },
         "filters": {
-            "search_placeholder": "Search by group name, vibe, or notable tag",
-            "experience_placeholder": "Experience",
-            "region_placeholder": "Region",
-            "size_placeholder": "Size",
-            "sort_placeholder": "Sort By",
-            "more_filters_open": "More Filters",
-            "more_filters_close": "Hide Extra Filters",
+            "search_placeholder": "グループ名、雰囲気、注目タグで検索",
+            "experience_placeholder": "経験",
+            "region_placeholder": "地域",
+            "size_placeholder": "規模",
+            "sort_placeholder": "並び替え",
+            "more_filters_open": "追加フィルター",
+            "more_filters_close": "追加フィルターを隠す",
             "clear_filters": "フィルターをクリア",
             "recruiting_method_label": "募集方法",
             "recruiting_method_placeholder": "募集方法を選択",
-            "tags_placeholder": "Search by extra tag",
-            "tags_help": "Use this for optional freeform tags such as Late Night or Blind Prog.",
+            "tags_placeholder": "追加タグで検索",
+            "tags_help": "Late Night や Blind Prog など、任意の自由タグに使えます。",
             "recruiting_methods": {
                 "open": "オープン",
                 "invite_only": "招待",
                 "application": "応募"
             },
             "size_options": {
-                "1": "1+ Members",
-                "50": "50+ Members",
-                "100": "100+ Members",
-                "500": "500+ Members"
+                "1": "1人以上",
+                "50": "50人以上",
+                "100": "100人以上",
+                "500": "500人以上"
             },
             "sort_options": {
-                "created_at_desc": "Created Recently (Newest First)",
-                "created_at_asc": "Created Recently (Oldest First)",
-                "active_at_desc": "Active Recently (Most Recent First)",
-                "active_at_asc": "Active Recently (Least Recent First)",
-                "member_count_desc": "Member Count (High to Low)",
-                "member_count_asc": "Member Count (Low to High)"
+                "created_at_desc": "作成日 (新しい順)",
+                "created_at_asc": "作成日 (古い順)",
+                "active_at_desc": "最近の活動 (新しい順)",
+                "active_at_asc": "最近の活動 (古い順)",
+                "member_count_desc": "メンバー数 (多い順)",
+                "member_count_asc": "メンバー数 (少ない順)"
             }
         },
         "placeholder": {
-            "owner_label": "Verified Leader",
-            "schedule_label": "Active Schedule",
-            "activity_label": "Recent Activity",
-            "page_status": "Page {current} out of {total}"
+            "owner_label": "確認済みリーダー",
+            "schedule_label": "活動スケジュール",
+            "activity_label": "最近の活動",
+            "page_status": "ページ {current} / {total}"
         },
         "detail": {
-            "title": "Group Details",
-            "loading": "Loading group details...",
+            "title": "グループ詳細",
+            "loading": "グループ詳細を読み込み中...",
             "actions": {
                 "join": "グループに参加",
                 "leave": "グループを退出",
-                "dashboard": "Dashboard",
-                "apply": "Apply to Join",
-                "mute_notifications": "Mute Notifications",
-                "unmute_notifications": "Unmute Notifications",
-                "invite_required": "Invite Required",
-                "application_required": "Application Based",
-                "application_pending": "Application Pending"
+                "dashboard": "ダッシュボード",
+                "apply": "参加申請",
+                "mute_notifications": "通知をミュート",
+                "unmute_notifications": "通知ミュートを解除",
+                "invite_required": "招待が必要",
+                "application_required": "申請制",
+                "application_pending": "申請中"
             },
             "tabs": {
                 "about": "情報",
                 "activity": "アクティビティ",
-                "content": "Content",
-                "team": "Team"
+                "content": "コンテンツ",
+                "team": "チーム"
             },
             "content": {
-                "summary": "Content Snapshot",
-                "summary_hint": "A quick breakdown of the public runs this group has put together.",
-                "total_public_runs": "Public Runs",
-                "library": "Content Library",
-                "library_hint": "Grouped by the activity types this group has actually been running.",
+                "summary": "コンテンツ概要",
+                "summary_hint": "このグループが開催した公開ランの内訳です。",
+                "total_public_runs": "公開ラン",
+                "library": "コンテンツ一覧",
+                "library_hint": "このグループが実際に開催しているアクティビティタイプごとにまとめています。",
                 "completed": "完了",
                 "active": "有効",
-                "last_run": "Last Run",
-                "next_run": "Next Run",
+                "last_run": "前回のラン",
+                "next_run": "次回のラン",
                 "run_singular": "ラン",
-                "run_plural": "回",
-                "empty": "No public run history yet.",
+                "run_plural": "ラン",
+                "empty": "公開ランの履歴はまだありません。",
                 "statuses": {
                     "draft": "下書き",
                     "scheduled": "予定済み",
@@ -148,22 +149,22 @@
                 }
             },
             "team": {
-                "core_leadership": "Owner & Admins",
-                "core_leadership_hint": "The people leading the group at the highest level and keeping it moving forward.",
-                "moderation_team": "Moderation Team",
-                "moderation_hint": "The people helping organize, moderate, and keep the group healthy.",
-                "no_moderation": "No moderators are listed for this group yet."
+                "core_leadership": "オーナーと管理者",
+                "core_leadership_hint": "グループを最上位で運営し、前に進めているメンバーです。",
+                "moderation_team": "モデレーションチーム",
+                "moderation_hint": "整理、モデレーション、グループ運営を支えるメンバーです。",
+                "no_moderation": "このグループにはまだモデレーターが登録されていません。"
             },
-            "activity_summary": "Activity Summary",
-            "recent_runs": "Recent Runs",
-            "recent_runs_hint": "A quick look at what this group has been running lately.",
-            "no_recent_runs": "No completed or archived runs yet.",
-            "completed_runs": "Completed Runs",
+            "activity_summary": "活動サマリー",
+            "recent_runs": "最近のラン",
+            "recent_runs_hint": "このグループが最近開催した内容の概要です。",
+            "no_recent_runs": "完了済みまたはアーカイブ済みのランはまだありません。",
+            "completed_runs": "完了したラン",
             "total_runs": "総Run数",
-            "runs_per_week": "Runs / Week",
-            "average_turnout": "Avg. Turnout",
-            "progress": "Progress",
-            "showed_up": "{count} showed up",
+            "runs_per_week": "ラン / 週",
+            "average_turnout": "平均参加数",
+            "progress": "進行度",
+            "showed_up": "{count}人が参加",
             "statuses": {
                 "complete": "完了",
                 "cancelled": "キャンセル"
@@ -180,9 +181,9 @@
             "2": "プレゼンス",
             "3": "発見設定",
             "4": "活動時間帯",
-            "5": "Access"
+            "5": "アクセス"
         },
-        "slug_preview": "Group slug: {slug}",
+        "slug_preview": "グループスラッグ: {slug}",
         "slug_fallback": "yourslug",
         "slug_warning": "グループ作成後、slug は変更できません。",
         "validation": {
@@ -216,8 +217,8 @@
                 "subtitle": "普段のタイムゾーン、活動日、よくプレイする時間帯を伝えましょう。"
             },
             "visibility": {
-                "title": "Access",
-                "subtitle": "Choose how people can join, then decide whether this group appears in discovery."
+                "title": "アクセス",
+                "subtitle": "参加方法を選び、このグループを発見画面に表示するかを決めます。"
             }
         },
         "fields": {
@@ -305,11 +306,11 @@
                 "help": "任意。最大 {max} 個まで、雰囲気やニッチな特徴を表す自由タグを使えます。",
                 "suggestions": {
                     "late_night": "Late Night",
-                    "lgbtq_friendly": "LGBTQ+ Friendly",
+                    "lgbtq_friendly": "LGBTQ+歓迎",
                     "blind_prog": "Blind Prog",
-                    "alt_friendly": "Alt Friendly",
-                    "achievement_hunting": "Achievement Hunting",
-                    "weekend_raids": "Weekend Raids"
+                    "alt_friendly": "サブキャラ歓迎",
+                    "achievement_hunting": "実績集め",
+                    "weekend_raids": "週末レイド"
                 }
             },
             "region": {
@@ -336,24 +337,24 @@
                 "help": "任意。普段の活動時間帯の終了時刻です。"
             },
             "join_mode": {
-                "label": "Join Mode",
-                "placeholder": "Select a join mode",
-                "help": "Open is community-only. Invite-only and application-based groups can still use generated invite links."
+                "label": "参加モード",
+                "placeholder": "参加モードを選択",
+                "help": "オープンはコミュニティ専用です。招待制や申請制のグループでも、生成された招待リンクは引き続き使用できます。"
             },
             "is_visible": {
                 "label": "検索に表示する",
-                "help": "Visible groups can appear in discovery and search."
+                "help": "表示中のグループは発見画面と検索に表示されます。"
             }
         },
         "visibility_summary": {
             "label": "この設定の意味",
             "default_name": "このグループ",
-            "open_visible": "{name} can be joined by anyone and can appear in discovery.",
-            "open_hidden": "{name} can be joined by anyone with the permanent slug invite, but will stay out of discovery.",
-            "invite_only_visible": "{name} requires a generated invite link and can appear in discovery.",
-            "invite_only_hidden": "{name} requires a generated invite link and will stay out of discovery.",
-            "application_visible": "{name} will use applications for new members and can appear in discovery. Invite links can still add members directly.",
-            "application_hidden": "{name} will use applications for new members and stay out of discovery. Invite links can still add members directly."
+            "open_visible": "誰でも {name} に参加でき、グループは発見画面に表示できます。",
+            "open_hidden": "永続スラッグ招待リンクを持っている人は誰でも {name} に参加できますが、発見画面には表示されません。",
+            "invite_only_visible": "{name} には生成された招待リンクが必要で、発見画面に表示できます。",
+            "invite_only_hidden": "{name} には生成された招待リンクが必要で、発見画面には表示されません。",
+            "application_visible": "{name} は新規メンバーに申請を使用し、発見画面に表示できます。招待リンクでは引き続きメンバーを直接追加できます。",
+            "application_hidden": "{name} は新規メンバーに申請を使用し、発見画面には表示されません。招待リンクでは引き続きメンバーを直接追加できます。"
         },
         "toasts": {
             "created": "グループを作成しました。"

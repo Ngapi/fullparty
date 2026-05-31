@@ -1,7 +1,7 @@
 {
     "actions": {
-        "view_runs": "View Runs",
-        "view_members": "View Members",
+        "view_runs": "Runs ansehen",
+        "view_members": "Mitglieder ansehen",
         "open_settings": "Open Settings",
         "open_discord": "Discord öffnen",
         "mute_notifications": "Mute Notifications",
@@ -42,20 +42,20 @@
         "completed_runs_hint": "{count} cancelled total"
     },
     "upcoming_runs": {
-        "title": "Coming Up",
-        "subtitle": "See what this group has lined up next.",
-        "accepting_applications": "Accepting Applications",
+        "title": "Demnächst",
+        "subtitle": "Sieh, was diese Gruppe als Nächstes geplant hat.",
+        "accepting_applications": "Bewerbungen offen",
         "public": "Öffentlich",
-        "private": "Invite Only",
-        "guest_welcome": "Guests Welcome",
-        "starts": "Starts {time}",
-        "view_more": "View More",
-        "apply": "Apply",
+        "private": "Nur mit Einladung",
+        "guest_welcome": "Gäste willkommen",
+        "starts": "Startet {time}",
+        "view_more": "Mehr anzeigen",
+        "apply": "Bewerben",
         "view_application": "Bewerbung ansehen",
-        "view_overview": "View Overview",
-        "open_board": "Open Board",
-        "empty_title": "No upcoming runs are scheduled.",
-        "empty_description": "Once this group has future runs on the calendar, they will appear here in start-time order."
+        "view_overview": "Übersicht ansehen",
+        "open_board": "Board öffnen",
+        "empty_title": "Keine kommenden Runs geplant.",
+        "empty_description": "Sobald diese Gruppe zukünftige Runs im Kalender hat, erscheinen sie hier nach Startzeit sortiert."
     },
     "week_overview": {
         "title": "Diese Woche",
