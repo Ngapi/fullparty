@@ -1,7 +1,7 @@
 {
     "title": "Runs",
-    "subtitle": "{group}'s upcoming schedule and monthly calendar at a glance.",
-    "header_badge": "{count} upcoming",
+    "subtitle": "Le planning à venir et le calendrier mensuel de {group} en un coup d'œil.",
+    "header_badge": "{count} à venir",
     "back": "Retour aux runs",
     "statuses": {
         "draft": "Brouillon",
@@ -10,7 +10,7 @@
         "upcoming": "À venir",
         "ongoing": "En cours",
         "complete": "Terminé",
-        "cancelled": "Annulees"
+        "cancelled": "Annulés"
     },
     "intensities": {
         "casual": "Casual",
@@ -39,31 +39,31 @@
     },
     "upcoming": {
         "title": "Runs à venir",
-        "subtitle": "A detailed view of what's coming up next for the group.",
-        "count": "{count} scheduled",
-        "empty": "No upcoming runs are scheduled yet."
+        "subtitle": "Une vue détaillée de ce qui arrive prochainement pour le groupe.",
+        "count": "{count} planifiés",
+        "empty": "Aucun run à venir n'est encore planifié."
     },
     "selected_day": {
-        "title": "Selected Day",
-        "subtitle": "Runs scheduled for {date}.",
+        "title": "Jour sélectionné",
+        "subtitle": "Runs planifiés pour le {date}.",
         "mobile_title": "Runs le {date}",
         "mobile_count": "Il y a {count} runs ce jour-là.",
-        "count": "{count} on this day",
-        "empty": "No runs are scheduled for this day."
+        "count": "{count} ce jour-là",
+        "empty": "Aucun run n'est planifié pour ce jour."
     },
     "calendar": {
-        "title": "Monthly Calendar",
-        "subtitle": "A month view of the group's run schedule.",
-        "month_count": "{count} this month",
+        "title": "Calendrier mensuel",
+        "subtitle": "Une vue mensuelle du planning des runs du groupe.",
+        "month_count": "{count} ce mois-ci",
         "previous": "Précédent",
         "next": "Suivant",
-        "day_count": "{count} items",
-        "more": "+{count} more",
+        "day_count": "{count} éléments",
+        "more": "+{count} de plus",
         "member_count": "Membres {assigned}/{total}",
         "context_menu": {
-            "create_run_18": "Create Run at 18 ST",
-            "create_run_20": "Create Run at 20 ST",
-            "create_run_22": "Create Run at 22 ST"
+            "create_run_18": "Créer un run à 18 h HS",
+            "create_run_20": "Créer un run à 20 h HS",
+            "create_run_22": "Créer un run à 22 h HS"
         }
     },
     "mobile_calendar": {
@@ -114,14 +114,14 @@
     },
     "cards": {
         "unknown_type": "Type d'activité inconnu",
-        "unscheduled": "TBD",
+        "unscheduled": "À définir",
         "no_time": "Heure non définie",
-        "no_relative_time": "Schedule pending",
-        "no_organizer": "Organizer not set",
-        "manage": "Manage run",
+        "no_relative_time": "Planning à venir",
+        "no_organizer": "Organisateur non défini",
+        "manage": "Gérer le run",
         "slots": "{count} slots",
-        "applications": "{count} applications",
-        "milestones": "{count} milestones"
+        "applications": "{count} candidatures",
+        "milestones": "{count} étapes"
     },
     "management": {
         "title": "Run Management",
@@ -480,11 +480,11 @@
         "details": {
             "description": "Description",
             "target_prog_point": "Point de progression cible",
-            "guest_applications": "Guest Applications",
+            "guest_applications": "Candidatures d'invités",
             "pending_applications": "Candidatures",
-            "no_description": "No description provided.",
-            "no_target_prog_point": "No target prog point selected",
-            "no_min_item_level": "No minimum"
+            "no_description": "Aucune description fournie.",
+            "no_target_prog_point": "Aucun point de progression cible sélectionné",
+            "no_min_item_level": "Aucun minimum"
         },
         "board": {
             "title": "Roster Board",
@@ -647,10 +647,10 @@
         }
     },
     "create": {
-        "cta": "Create Run",
-        "title": "Create Run",
-        "subtitle": "Set up a new run for your group.",
-        "back": "Back to Runs",
+        "cta": "Créer un run",
+        "title": "Créer un run",
+        "subtitle": "Configurez un nouveau run pour votre groupe.",
+        "back": "Retour aux runs",
         "placeholder": "The dedicated activity creation flow will live here.",
         "submit": "Create Run",
         "no_types_title": "No activity types available",
