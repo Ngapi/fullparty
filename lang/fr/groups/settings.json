@@ -8,12 +8,12 @@
         "visibility_summary_label": "Résumé de visibilité",
         "visibility_summary": {
             "default_name": "Ce groupe",
-            "open_visible": "{name} can be joined by anyone and can appear in discovery.",
-            "open_hidden": "{name} can be joined by anyone with the permanent slug invite, but will stay out of discovery.",
-            "invite_only_visible": "{name} requires a generated invite link and can appear in discovery.",
-            "invite_only_hidden": "{name} requires a generated invite link and will stay out of discovery.",
-            "application_visible": "{name} will use applications for new members and can appear in discovery. Invite links can still add members directly.",
-            "application_hidden": "{name} will use applications for new members and stay out of discovery. Invite links can still add members directly."
+            "open_visible": "{name} peut être rejoint par n'importe qui et peut apparaître dans la découverte.",
+            "open_hidden": "{name} peut être rejoint par n'importe qui disposant du lien d'invitation permanent, mais restera hors de la découverte.",
+            "invite_only_visible": "{name} nécessite un lien d'invitation généré et peut apparaître dans la découverte.",
+            "invite_only_hidden": "{name} nécessite un lien d'invitation généré et restera hors de la découverte.",
+            "application_visible": "{name} utilisera les candidatures pour les nouveaux membres et peut apparaître dans la découverte. Les liens d'invitation permettent toujours d'ajouter des membres directement.",
+            "application_hidden": "{name} utilisera les candidatures pour les nouveaux membres et restera hors de la découverte. Les liens d'invitation permettent toujours d'ajouter des membres directement."
         },
         "fields": {
             "name": {
@@ -45,13 +45,13 @@
                 "placeholder": "Sélectionnez un centre de données"
             },
             "join_mode": {
-                "label": "Join Mode",
-                "placeholder": "Select a join mode",
-                "help": "Open is community-only. Invite-only and application-based groups can still use generated invite links."
+                "label": "Mode d'accès",
+                "placeholder": "Sélectionnez un mode d'accès",
+                "help": "Le mode ouvert est réservé aux communautés. Les groupes sur invitation et sur candidature peuvent toujours utiliser des liens d'invitation générés."
             },
             "is_visible": {
                 "label": "Visible dans la découverte",
-                "help": "Visible groups can appear in discovery and search."
+                "help": "Les groupes visibles peuvent apparaître dans la découverte et la recherche."
             }
         },
         "validation": {
