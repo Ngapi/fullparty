@@ -79,6 +79,7 @@ const optionsForField = (field: MembershipApplicationFormField) => field.options
 
 const fieldError = (fieldId: string) => form.errors[`answers.${fieldId}`] ?? null;
 const isFreeTextField = (field: MembershipApplicationFormField) => field.type === "small_text" || field.type === "big_text";
+const showsRequiredIndicator = (field: MembershipApplicationFormField) => field.required && field.type !== "toggle";
 const answerTextLength = (fieldId: string) => {
 	const value = form.answers[fieldId];
 
@@ -149,7 +150,7 @@ const backToGroups = () => {
 								:help="localizedValue(field.description, locale)"
 								:hint="answerCounter(field)"
 								:error="fieldError(field.id)"
-								:required="field.required"
+								:required="showsRequiredIndicator(field)"
 							>
 								<UInput
 									v-if="field.type === 'small_text'"

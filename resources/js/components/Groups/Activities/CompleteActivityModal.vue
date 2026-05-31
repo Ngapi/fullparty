@@ -97,9 +97,22 @@ const milestoneInputValue = (milestoneKey: string, field: keyof MilestoneInputSt
 	state.milestones[milestoneKey]?.[field] ?? ''
 );
 
+const shouldAutoCompleteProgress = (value: MilestoneNumberInput): boolean => {
+	const inputValue = value === null || value === undefined ? '' : String(value).trim();
+
+	return /^\d+$/.test(inputValue) && Number(inputValue) > 0;
+};
+
 const updateMilestoneValue = (milestoneKey: string, field: keyof MilestoneInputState, value: MilestoneNumberInput) => {
-	ensureMilestoneInputState(milestoneKey)[field] = value;
+	const milestone = ensureMilestoneInputState(milestoneKey);
+
+	milestone[field] = value;
 	delete milestoneInputErrors.value[`${milestoneKey}.${field}`];
+
+	if (field === 'kills' && shouldAutoCompleteProgress(value)) {
+		milestone.best_progress_percent = '100';
+		delete milestoneInputErrors.value[`${milestoneKey}.best_progress_percent`];
+	}
 };
 
 const updateMilestoneFromInputEvent = (milestoneKey: string, field: keyof MilestoneInputState, event: Event) => {

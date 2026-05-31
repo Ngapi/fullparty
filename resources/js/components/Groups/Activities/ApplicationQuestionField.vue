@@ -26,6 +26,7 @@ const fallbackLocale = computed(() => String(page.props.locale?.fallback ?? 'en'
 
 const label = computed(() => localizedValue(props.question.label, locale.value, fallbackLocale.value) || props.question.key);
 const helpText = computed(() => localizedValue(props.question.help_text ?? null, locale.value, fallbackLocale.value) || undefined);
+const showsRequiredIndicator = computed(() => Boolean(props.question.required) && props.question.type !== 'boolean');
 
 const optionItems = computed(() => props.question.options
 	.filter((option) => option.key !== '')
@@ -90,7 +91,7 @@ const booleanValue = computed({
 		:label="label"
 		:description="helpText"
 		:error="error"
-		:required="Boolean(question.required)"
+		:required="showsRequiredIndicator"
 	>
 		<UInput
 			v-if="question.type === 'text' || question.type === 'url'"

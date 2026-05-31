@@ -236,13 +236,28 @@ const weekRangeFormatter = computed(() => new Intl.DateTimeFormat(locale.value, 
 	month: "short",
 	day: "numeric",
 }))
-const weeklyRunParticipation = computed(() => (props.homeBannerDetails?.weekly_participation ?? []).map((week) => week.count))
-const weeklyRunParticipationRanges = computed(() => (props.homeBannerDetails?.weekly_participation ?? []).map((week) => {
+const rawWeeklyRunParticipation = computed(() => props.homeBannerDetails?.weekly_participation ?? [])
+const visibleWeeklyRunParticipation = computed(() => {
+	const firstActiveWeekIndex = rawWeeklyRunParticipation.value.findIndex((week) => week.count > 0)
+
+	return firstActiveWeekIndex === -1
+		? []
+		: rawWeeklyRunParticipation.value.slice(firstActiveWeekIndex)
+})
+const weeklyRunParticipation = computed(() => visibleWeeklyRunParticipation.value.map((week) => week.count))
+const hasWeeklyRunParticipation = computed(() => weeklyRunParticipation.value.length > 0)
+const weeklyRunParticipationRanges = computed(() => visibleWeeklyRunParticipation.value.map((week) => {
 	const start = new Date(`${week.start}T00:00:00`)
 	const end = new Date(`${week.end}T00:00:00`)
 
 	return `${weekRangeFormatter.value.format(start)}-${weekRangeFormatter.value.format(end)}`
 }))
+const weeklyRunParticipationChartWidth = computed(() => {
+	const pointCount = weeklyRunParticipation.value.length
+	const width = Math.min(560, Math.max(180, pointCount * 46))
+
+	return `min(${width}px, 100%)`
+})
 
 const nextRunWithinSixHours = computed(() => props.homeBannerDetails?.next_run ?? null)
 const isAccountCompletionLoading = computed(() => props.homeAccountCompletion === undefined)
@@ -1012,14 +1027,19 @@ onBeforeUnmount(() => {
 							>
 								<USkeleton class="h-full w-full" />
 							</div>
-							<div v-else class="relative h-20 overflow-hidden">
-								<VueApexCharts
-									type="area"
-									height="80"
-									width="100%"
-									:options="performanceChartOptions"
-									:series="performanceChartSeries"
-								/>
+							<div v-else-if="hasWeeklyRunParticipation" class="flex justify-end">
+								<div
+									class="relative h-20 max-w-full overflow-hidden"
+									:style="{ width: weeklyRunParticipationChartWidth }"
+								>
+									<VueApexCharts
+										type="area"
+										height="80"
+										width="100%"
+										:options="performanceChartOptions"
+										:series="performanceChartSeries"
+									/>
+								</div>
 							</div>
 						</div>
 					</div>
