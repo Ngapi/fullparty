@@ -12,6 +12,14 @@ use Inertia\Testing\AssertableInertia as Assert;
 
 uses(RefreshDatabase::class);
 
+it('renders server-side embed meta for the landing page', function () {
+    $this->get(route('home'))
+        ->assertOk()
+        ->assertSee('<meta property="og:title" content="FFXIV group and roster planning - FullParty.gg">', false)
+        ->assertSee('<meta property="og:image" content="http://fullparty.test/landing.png">', false)
+        ->assertSee('<meta name="twitter:card" content="summary_large_image">', false);
+});
+
 it('shows public this week runs with assigned member stack data', function () {
     CarbonImmutable::setTestNow(CarbonImmutable::parse('2026-05-21 12:00:00'));
 

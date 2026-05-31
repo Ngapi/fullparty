@@ -23,6 +23,7 @@ use App\Services\Notifications\AssignmentNotificationService;
 use App\Services\Notifications\GroupUpdateNotificationService;
 use App\Support\ActivityCompositionPresets;
 use App\Support\Input\RequestTextInputSanitizer;
+use App\Support\Seo\ServerMeta;
 use Carbon\CarbonImmutable;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Http\RedirectResponse;
@@ -43,6 +44,7 @@ class GroupActivityController extends Controller
         private readonly ActivityCancellationService $activityCancellationService,
         private readonly GroupUpdateNotificationService $groupUpdateNotificationService,
         private readonly RequestTextInputSanitizer $requestTextInputSanitizer,
+        private readonly ServerMeta $serverMeta,
     ) {}
 
     public function overview(
@@ -106,7 +108,7 @@ class GroupActivityController extends Controller
                 ? 'Groups/Activities/Overview'
                 : 'Groups/Activities/NonApplicationOverview',
             $props,
-        );
+        )->withViewData('serverMeta', $this->serverMeta->activity($group, $activity));
     }
 
     public function create(Request $request, Group $group): Response

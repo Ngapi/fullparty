@@ -300,6 +300,53 @@ it('exposes the cancellation reason on the attendee overview payload', function 
             ->where('activity.cancellation_reason', 'Raid lead is unavailable tonight.'));
 });
 
+it('renders server-side embed meta for public activity overviews', function () {
+    $owner = User::factory()->create();
+    $group = Group::factory()->open()->create([
+        'owner_id' => $owner->id,
+        'name' => 'Midnight Static',
+    ]);
+    $type = ActivityType::factory()->create([
+        'created_by_user_id' => $owner->id,
+        'slug' => 'arcadion',
+    ]);
+    $version = ActivityTypeVersion::factory()->create([
+        'activity_type_id' => $type->id,
+        'published_by_user_id' => $owner->id,
+        'name' => ['en' => 'AAC Light-heavyweight M4 Savage'],
+        'banner_image_url' => '/storage/activity-banners/m4s.webp',
+        'layout_schema' => ['groups' => []],
+        'slot_schema' => [],
+        'application_schema' => [],
+        'progress_schema' => ['milestones' => []],
+    ]);
+
+    $type->update([
+        'current_published_version_id' => $version->id,
+    ]);
+
+    $activity = Activity::factory()->create([
+        'group_id' => $group->id,
+        'activity_type_id' => $type->id,
+        'activity_type_version_id' => $version->id,
+        'organized_by_user_id' => $owner->id,
+        'status' => Activity::STATUS_SCHEDULED,
+        'title' => 'Storm Raid',
+        'description' => 'Push to clear.',
+        'is_public' => true,
+    ]);
+
+    $this->get(route('groups.activities.overview', [
+        'group' => $group->slug,
+        'activity' => $activity->id,
+    ]))
+        ->assertOk()
+        ->assertSee('<meta property="og:title" content="Storm Raid - FullParty.gg">', false)
+        ->assertSee('<meta property="og:type" content="event">', false)
+        ->assertSee('<meta property="og:description" content="Push to clear.">', false)
+        ->assertSee('<meta property="og:image" content="http://fullparty.test/storage/activity-banners/m4s.webp">', false);
+});
+
 it('falls back to cancelled application review reasons on the attendee overview payload', function () {
     $owner = User::factory()->create();
     $group = Group::factory()->open()->create([

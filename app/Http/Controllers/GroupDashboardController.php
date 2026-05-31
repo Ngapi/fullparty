@@ -8,6 +8,7 @@ use App\Models\Group;
 use App\Models\GroupMembership;
 use App\Models\User;
 use App\Support\Groups\GroupDiscoveryBadgePalette;
+use App\Support\Seo\ServerMeta;
 use Illuminate\Support\Collection;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -16,6 +17,7 @@ class GroupDashboardController extends Controller
 {
     public function __construct(
         private readonly GroupDiscoveryBadgePalette $groupDiscoveryBadgePalette,
+        private readonly ServerMeta $serverMeta,
     ) {}
 
     public function show(Group $group): Response
@@ -224,7 +226,7 @@ class GroupDashboardController extends Controller
                     ->take(6)
                     ->map(fn (Activity $activity) => $this->serializeDashboardActivity($activity, $group, $canManageActivities)),
             ],
-        ]);
+        ])->withViewData('serverMeta', $this->serverMeta->group($group));
     }
 
     private function activityHistoryTimestamp(Activity $activity): int

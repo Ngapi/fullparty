@@ -9,6 +9,12 @@
             "title": "Organisation de groupes et rosters FFXIV",
             "description": "Organisez vos groupes Final Fantasy XIV, candidatures, rosters et runs de raid avec FullParty."
         },
+        "discovery": {
+            "runs_title": "Trouver des runs FFXIV",
+            "runs_description": "Découvrez des runs Final Fantasy XIV planifiés, des candidatures et des groupes qui cherchent des joueurs.",
+            "groups_title": "Trouver des groupes FFXIV",
+            "groups_description": "Découvrez des statics et communautés Final Fantasy XIV qui recrutent via FullParty."
+        },
         "legal": {
             "privacy_title": "Politique de confidentialité",
             "privacy_description": "Découvrez comment cette instance FullParty traite les données personnelles, la confidentialité et les informations de compte.",
@@ -31,6 +37,8 @@
             "application_status_description": "Consultez l'état de votre candidature pour {title} dans {group}."
         },
         "invite": {
+            "group_title": "Rejoindre {group}",
+            "group_description": "Vous avez été invité à rejoindre {group}, un groupe FFXIV sur {datacenter}.",
             "description": "Consultez une invitation de groupe et connectez-vous pour l'accepter sur FullParty."
         }
     }

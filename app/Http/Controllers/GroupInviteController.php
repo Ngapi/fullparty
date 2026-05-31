@@ -9,6 +9,7 @@ use App\Services\AuditLogger;
 use App\Services\Notifications\GroupUpdateNotificationService;
 use App\Support\Audit\AuditScope;
 use App\Support\Audit\AuditSeverity;
+use App\Support\Seo\ServerMeta;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -20,6 +21,7 @@ class GroupInviteController extends Controller
     public function __construct(
         private readonly AuditLogger $auditLogger,
         private readonly GroupUpdateNotificationService $groupUpdateNotificationService,
+        private readonly ServerMeta $serverMeta,
     ) {}
 
     public function show(string $token): Response
@@ -59,7 +61,7 @@ class GroupInviteController extends Controller
                 'current_user_is_banned' => $group->isBanned(auth()->id()),
                 'current_user_is_member' => $group->hasMember(auth()->id()),
             ],
-        ]);
+        ])->withViewData('serverMeta', $this->serverMeta->groupInvite($group));
     }
 
     public function store(Request $request, Group $group): RedirectResponse

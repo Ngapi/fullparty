@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\Group;
+use App\Models\GroupInvite;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Inertia\Testing\AssertableInertia as Assert;
@@ -90,6 +91,31 @@ it('allows generated invites for static groups', function () {
 
     expect($group->memberships()->where('user_id', $viewer->id)->exists())->toBeTrue()
         ->and($invite->fresh()->uses)->toBe(1);
+});
+
+it('renders server-side embed meta for group invite links', function () {
+    $owner = User::factory()->create();
+    $group = Group::factory()->create([
+        'owner_id' => $owner->id,
+        'name' => 'Storm Keepers',
+        'description' => null,
+        'datacenter' => 'Light',
+        'profile_picture_url' => '/storage/groups/storm-profile.webp',
+        'banner_image_url' => '/storage/groups/storm-banner.webp',
+    ]);
+    $invite = GroupInvite::query()->create([
+        'group_id' => $group->id,
+        'created_by' => $owner->id,
+        'token' => 'stormtoken',
+        'is_system' => false,
+    ]);
+
+    $this->get(route('groups.invites.show', $invite->token))
+        ->assertOk()
+        ->assertSee('<meta property="og:title" content="Join Storm Keepers - FullParty.gg">', false)
+        ->assertSee('<meta property="og:description" content="You&#039;ve been invited to join Storm Keepers, an FFXIV group on Light.">', false)
+        ->assertSee('<meta property="og:image" content="http://fullparty.test/storage/groups/storm-banner.webp">', false)
+        ->assertSee('<meta property="og:image" content="http://fullparty.test/storage/groups/storm-profile.webp">', false);
 });
 
 it('allows generated invites for application-based groups without creating a permanent slug invite', function (string $groupType) {

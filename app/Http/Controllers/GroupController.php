@@ -19,6 +19,7 @@ use App\Support\Audit\AuditScope;
 use App\Support\Audit\AuditSeverity;
 use App\Support\Groups\GroupDiscoveryBadgePalette;
 use App\Support\Input\RequestTextInputSanitizer;
+use App\Support\Seo\ServerMeta;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Http\JsonResponse;
@@ -44,6 +45,7 @@ class GroupController extends Controller
         private readonly GeneratedGroupImageService $generatedGroupImageService,
         private readonly MembershipApplicationFormSchemaService $membershipApplicationFormSchemaService,
         private readonly FeaturedGroupService $featuredGroupService,
+        private readonly ServerMeta $serverMeta,
     ) {}
 
     public function index(Request $request): Response
@@ -92,12 +94,22 @@ class GroupController extends Controller
             $user->id
         );
 
+        $metaGroupSlug = $request->query('group');
+        $metaGroup = is_string($metaGroupSlug) && filled($metaGroupSlug)
+            ? Group::query()
+                ->visible()
+                ->where('slug', $metaGroupSlug)
+                ->first()
+            : null;
+
         return Inertia::render('Dashboard/Groups/Index', [
             'ownedGroups' => $ownedGroups,
             'moderatedGroups' => $moderatedGroups,
             'memberGroups' => $memberGroups,
             'discoverGroups' => $discoverGroups,
-        ]);
+        ])->withViewData('serverMeta', $metaGroup
+            ? $this->serverMeta->group($metaGroup)
+            : $this->serverMeta->groupDiscovery());
     }
 
     public function search(Request $request): JsonResponse

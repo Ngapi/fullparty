@@ -9,6 +9,12 @@
             "title": "FFXIV グループとロスター管理",
             "description": "FullParty で Final Fantasy XIV のグループ、申請、ロスター、レイド進行を整理しましょう。"
         },
+        "discovery": {
+            "runs_title": "FFXIV のランを探す",
+            "runs_description": "予定されている Final Fantasy XIV のラン、申請、プレイヤー募集中のグループを探せます。",
+            "groups_title": "FFXIV のグループを探す",
+            "groups_description": "FullParty で募集している Final Fantasy XIV の固定やコミュニティを探せます。"
+        },
         "legal": {
             "privacy_title": "プライバシーポリシー",
             "privacy_description": "この FullParty インスタンスが個人データ、プライバシー、アカウント情報をどのように扱うかを確認できます。",
@@ -31,6 +37,8 @@
             "application_status_description": "{group} の {title} への応募状況を確認できます。"
         },
         "invite": {
+            "group_title": "{group} に参加",
+            "group_description": "{datacenter} の FFXIV グループ {group} への招待が届いています。",
             "description": "グループ招待の内容を確認し、FullParty にサインインして参加できます。"
         }
     }

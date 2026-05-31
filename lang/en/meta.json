@@ -9,6 +9,12 @@
       "title": "FFXIV group and roster planning",
       "description": "Organize Final Fantasy XIV groups, applications, rosters, and raid coordination on FullParty."
     },
+    "discovery": {
+      "runs_title": "Find FFXIV runs",
+      "runs_description": "Discover scheduled Final Fantasy XIV runs, applications, and groups looking for players.",
+      "groups_title": "Find FFXIV groups",
+      "groups_description": "Discover Final Fantasy XIV statics and communities recruiting through FullParty."
+    },
     "legal": {
       "privacy_title": "Privacy Policy",
       "privacy_description": "Read how this FullParty instance handles personal data, privacy, and account information.",
@@ -31,6 +37,8 @@
       "application_status_description": "Review the status of your application for {title} in {group}."
     },
     "invite": {
+      "group_title": "Join {group}",
+      "group_description": "You've been invited to join {group}, an FFXIV group on {datacenter}.",
       "description": "Review a group invite and sign in to accept it on FullParty."
     }
   }
