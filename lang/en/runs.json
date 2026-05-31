@@ -11,7 +11,7 @@
       "sections": {
         "saved_runs": "Saved Runs",
         "search": "Search",
-        "activity_type": "Activity Type",
+        "activity_type": "Activity",
         "datacenter_world": "Data Center / Region",
         "group": "Group",
         "day_time": "Day / Time",
@@ -24,7 +24,10 @@
         "voice_expectation": "Voice Expectation"
       },
       "labels": {
-        "beginner_friendly": "Beginner Friendly"
+        "beginner_friendly": "Beginner Friendly",
+        "range_start": "From",
+        "range_end": "To",
+        "pick_day": "Day"
       },
       "class_picker": {
         "title": "Choose Jobs",
@@ -45,6 +48,7 @@
       },
       "options": {
         "any": {
+          "activity_category": "Any Content Type",
           "activity_type": "Any Activity Type",
           "prog_point": "Any Prog Point",
           "region": "Any Region",
@@ -63,12 +67,24 @@
           "unreal": "Unreal",
           "other": "Other"
         },
+        "activity_categories": {
+          "normal": "Normal",
+          "extreme": "Extreme",
+          "unreal": "Unreal",
+          "exploration": "Exploration",
+          "savage": "Savage",
+          "ultimate": "Ultimate",
+          "chaotic": "Chaotic",
+          "criterion": "Criterion"
+        },
         "prog_points": {
           "any": "Any Prog Point"
         },
         "date_ranges": {
           "next_7_days": "Next 7 Days",
           "next_30_days": "Next 30 Days",
+          "custom_range": "Pick a Range",
+          "custom_day": "Pick a Day",
           "this_week": "This Week",
           "next_week": "Next Week"
         },

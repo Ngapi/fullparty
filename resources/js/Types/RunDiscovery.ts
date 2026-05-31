@@ -1,4 +1,4 @@
-export type RunDiscoveryDateRange = "upcoming" | "next_7_days" | "next_30_days" | "this_week" | "next_week"
+export type RunDiscoveryDateRange = "upcoming" | "next_7_days" | "next_30_days" | "this_week" | "next_week" | "custom_range" | "custom_day"
 export type RunDiscoveryTimeOfDay = "any" | "morning" | "afternoon" | "evening" | "night"
 export type RunDiscoveryRoleCategory = "any" | "tank" | "healer" | "dps" | null
 export type RunDiscoveryClassRoleGroup = "tank" | "healer" | "melee" | "phys" | "magic"
@@ -7,6 +7,7 @@ export type RunDiscoverySort = "starting_soonest" | "newest_posted" | "recently_
 export type RunDiscoveryFilterState = {
 	query: string
 	saved_only: boolean
+	activity_category: string
 	activity_type: string
 	prog_point: string
 	region: string
@@ -14,6 +15,8 @@ export type RunDiscoveryFilterState = {
 	group: string
 	timezone: string
 	date_range: RunDiscoveryDateRange
+	date_from: string | null
+	date_to: string | null
 	time_of_day: RunDiscoveryTimeOfDay
 	run_style: string
 	beginner_friendly: boolean

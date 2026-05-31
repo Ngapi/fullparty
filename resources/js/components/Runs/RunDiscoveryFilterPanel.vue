@@ -8,6 +8,8 @@ import type {
 	RunDiscoveryLookups,
 	RunDiscoveryRoleCategory,
 } from "../../Types/RunDiscovery";
+import type { DateValue } from "@internationalized/date";
+import type { DateRange } from "reka-ui";
 import { computed, onMounted, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import RunDiscoveryClassPickerModal from "@/components/Runs/RunDiscoveryClassPickerModal.vue";
@@ -21,11 +23,12 @@ const emit = defineEmits<{
 	"filters-change": [filters: RunDiscoveryFilterState]
 }>();
 
-const { t } = useI18n();
+const { t, locale } = useI18n();
 const { displayTimeZone, displayTimeZoneLabel } = useTimeDisplayMode();
 
 const searchQuery = ref("");
 const savedOnly = ref(false);
+const selectedActivityCategory = ref("any");
 const selectedActivityType = ref("any");
 const selectedProgPoint = ref("any");
 const selectedRunStyle = ref("any");
@@ -38,6 +41,10 @@ const selectedApplicationStatus = ref<string | null>(null);
 const selectedIntensity = ref<string | null>(null);
 const selectedVoiceExpectation = ref<string | null>(null);
 const selectedDateRange = ref<RunDiscoveryDateRange>("upcoming");
+const customRange = ref<DateRange | null>(null);
+const customDayDate = ref<DateValue | undefined>(undefined);
+const isCustomRangeOpen = ref(false);
+const isCustomDayOpen = ref(false);
 const selectedRegion = ref("any");
 const selectedDatacenter = ref("all");
 const selectedGroup = ref("any");
@@ -49,9 +56,33 @@ const isAdvancedFiltersOpen = ref(false);
 const activityTypeDefinitions = computed<RunDiscoveryActivityTypeOption[]>(() => props.lookups.activity_types ?? []);
 const classOptions = computed<RunDiscoveryClassOption[]>(() => props.lookups.class_options ?? []);
 
+const activityCategoryOptions = computed<RunDiscoveryLookupOption[]>(() => {
+	const availableCategories = Array.from(new Set(
+		activityTypeDefinitions.value
+			.map((option) => option.difficulty)
+			.filter((value): value is string => typeof value === "string" && value !== ""),
+	)).sort();
+
+	return [
+		{ label: t("runs.discovery.filters.options.any.activity_category"), value: "any" },
+		...availableCategories.map((value) => ({
+			label: t(`runs.discovery.filters.options.activity_categories.${value}`),
+			value,
+		})),
+	];
+});
+
+const filteredActivityTypeDefinitions = computed<RunDiscoveryActivityTypeOption[]>(() => {
+	if (selectedActivityCategory.value === "any") {
+		return activityTypeDefinitions.value;
+	}
+
+	return activityTypeDefinitions.value.filter((option) => option.difficulty === selectedActivityCategory.value);
+});
+
 const activityTypeOptions = computed<RunDiscoveryLookupOption[]>(() => [
 	{ label: t("runs.discovery.filters.options.any.activity_type"), value: "any" },
-	...activityTypeDefinitions.value.map(({ label, value }) => ({ label, value })),
+	...filteredActivityTypeDefinitions.value.map(({ label, value }) => ({ label, value })),
 ]);
 
 const selectedActivityTypeDefinition = computed(() => activityTypeDefinitions.value.find((option) => option.value === selectedActivityType.value) ?? null);
@@ -67,19 +98,17 @@ const progPointOptions = computed<RunDiscoveryLookupOption[]>(() => {
 	];
 });
 
-const dateRangeOptions = computed<RunDiscoveryLookupOption[]>(() => [
+const quickDateRangeOptions = computed<RunDiscoveryLookupOption[]>(() => [
 	{ label: t("runs.discovery.filters.options.date_ranges.next_7_days"), value: "next_7_days" },
 	{ label: t("runs.discovery.filters.options.date_ranges.next_30_days"), value: "next_30_days" },
-	{ label: t("runs.discovery.filters.options.date_ranges.this_week"), value: "this_week" },
-	{ label: t("runs.discovery.filters.options.date_ranges.next_week"), value: "next_week" },
 ]);
 
 const roleCategoryOptions = computed(() => [
 	{ label: t("runs.discovery.filters.options.roles.any"), value: "any", icon: "i-lucide-layout-grid" },
 	{ label: t("runs.discovery.filters.options.roles.tank"), value: "tank", icon: "i-lucide-shield" },
 	{ label: t("runs.discovery.filters.options.roles.healer"), value: "healer", icon: "i-lucide-plus" },
-		{ label: t("runs.discovery.filters.options.roles.dps"), value: "dps", icon: "i-lucide-sword" },
-	]);
+	{ label: t("runs.discovery.filters.options.roles.dps"), value: "dps", icon: "i-lucide-sword" },
+]);
 
 const groupTypeOptions = computed<RunDiscoveryLookupOption[]>(() => [
 	{ label: t("runs.discovery.filters.options.group_types.community"), value: "community" },
@@ -160,7 +189,70 @@ const visibleClassOptions = computed(() => {
 });
 
 const selectedClassOptions = computed(() => classOptions.value.filter((option) => selectedClassKeys.value.includes(option.key)));
-const isDateTimeFilterClear = computed(() => selectedDateRange.value === "upcoming" && selectedTimeOfDay.value === "any");
+const isDateTimeFilterClear = computed(() => (
+	selectedDateRange.value === "upcoming"
+	&& selectedTimeOfDay.value === "any"
+	&& customRange.value === null
+	&& customDayDate.value === undefined
+));
+
+const formatDateLabel = (date: string) => {
+	if (date === "") {
+		return "";
+	}
+
+	return new Intl.DateTimeFormat(locale.value, {
+		day: "numeric",
+		month: "short",
+	}).format(new Date(`${date}T00:00:00`));
+};
+
+const customRangeDates = computed<[string | null, string | null]>(() => {
+	const startDate = customRange.value?.start?.toString() ?? "";
+	const endDate = customRange.value?.end?.toString() ?? "";
+
+	if (startDate === "" || endDate === "") {
+		return [null, null];
+	}
+
+	if (startDate <= endDate) {
+		return [startDate, endDate];
+	}
+
+	return [endDate, startDate];
+});
+
+const customDay = computed(() => customDayDate.value?.toString() ?? "");
+
+const effectiveDateRange = computed<RunDiscoveryDateRange>(() => {
+	if (selectedDateRange.value === "custom_day") {
+		return customDay.value === "" ? "upcoming" : "custom_day";
+	}
+
+	if (selectedDateRange.value === "custom_range") {
+		const [start, end] = customRangeDates.value;
+
+		return start && end ? "custom_range" : "upcoming";
+	}
+
+	return selectedDateRange.value;
+});
+
+const customRangeLabel = computed(() => {
+	const [start, end] = customRangeDates.value;
+
+	if (!start || !end) {
+		return t("runs.discovery.filters.options.date_ranges.custom_range");
+	}
+
+	return `${formatDateLabel(start)} - ${formatDateLabel(end)}`;
+});
+
+const customDayLabel = computed(() => (
+	customDay.value === ""
+		? t("runs.discovery.filters.options.date_ranges.custom_day")
+		: formatDateLabel(customDay.value)
+));
 
 const classSummaryLabel = computed(() => {
 	if (selectedClassOptions.value.length === 0) {
@@ -179,21 +271,68 @@ const selectRoleCategory = (value: RunDiscoveryRoleCategory) => {
 	selectedClassKeys.value = [];
 };
 
+const selectQuickDateRange = (value: RunDiscoveryDateRange) => {
+	selectedDateRange.value = value;
+	customRange.value = null;
+	customDayDate.value = undefined;
+};
+
+const openCustomRangePicker = () => {
+	selectedDateRange.value = "custom_range";
+	customDayDate.value = undefined;
+	isCustomRangeOpen.value = true;
+};
+
+const openCustomDayPicker = () => {
+	selectedDateRange.value = "custom_day";
+	customRange.value = null;
+	isCustomDayOpen.value = true;
+};
+
+const handleCustomRangeChange = (value: DateRange | null) => {
+	selectedDateRange.value = "custom_range";
+	customRange.value = value;
+	customDayDate.value = undefined;
+
+	if (value?.start && value.end) {
+		isCustomRangeOpen.value = false;
+	}
+};
+
+const handleCustomDayChange = (value: DateValue | undefined) => {
+	selectedDateRange.value = "custom_day";
+	customDayDate.value = value;
+	customRange.value = null;
+
+	if (value) {
+		isCustomDayOpen.value = false;
+	}
+};
+
 const clearDateTimeFilters = () => {
 	selectedDateRange.value = "upcoming";
+	customRange.value = null;
+	customDayDate.value = undefined;
 	selectedTimeOfDay.value = "any";
 };
 
 const filterState = computed<RunDiscoveryFilterState>(() => ({
 	query: searchQuery.value,
 	saved_only: savedOnly.value,
+	activity_category: selectedActivityCategory.value,
 	activity_type: selectedActivityType.value,
 	prog_point: selectedProgPoint.value,
 	region: selectedRegion.value,
 	datacenter: selectedDatacenter.value,
 	group: selectedGroup.value,
 	timezone: displayTimeZone.value || detectedTimezone.value || "UTC",
-	date_range: selectedDateRange.value,
+	date_range: effectiveDateRange.value,
+	date_from: selectedDateRange.value === "custom_day"
+		? (customDay.value || null)
+		: selectedDateRange.value === "custom_range"
+			? customRangeDates.value[0]
+			: null,
+	date_to: selectedDateRange.value === "custom_range" ? customRangeDates.value[1] : null,
 	time_of_day: selectedTimeOfDay.value as RunDiscoveryFilterState["time_of_day"],
 	run_style: selectedRunStyle.value,
 	beginner_friendly: beginnerFriendlyOnly.value,
@@ -205,6 +344,17 @@ const filterState = computed<RunDiscoveryFilterState>(() => ({
 	intensity: selectedIntensity.value,
 	voice_expectation: selectedVoiceExpectation.value,
 }));
+
+watch(selectedActivityCategory, () => {
+	if (selectedActivityType.value === "any") {
+		return;
+	}
+
+	if (!filteredActivityTypeDefinitions.value.some((option) => option.value === selectedActivityType.value)) {
+		selectedActivityType.value = "any";
+		selectedProgPoint.value = "any";
+	}
+});
 
 watch(
 	() => [selectedActivityType.value, progPointOptions.value] as const,
@@ -262,7 +412,13 @@ const applyInitialFiltersFromUrl = () => {
 		return;
 	}
 
-	const activityType = new URL(window.location.href).searchParams.get("activity_type");
+	const params = new URL(window.location.href).searchParams;
+	const activityCategory = params.get("activity_category");
+	const activityType = params.get("activity_type");
+
+	if (activityCategory && activityCategoryOptions.value.some((option) => option.value === activityCategory)) {
+		selectedActivityCategory.value = activityCategory;
+	}
 
 	if (activityType && activityTypeDefinitions.value.some((option) => option.value === activityType)) {
 		selectedActivityType.value = activityType;
@@ -279,6 +435,7 @@ onMounted(() => {
 const resetFilters = () => {
 	searchQuery.value = "";
 	savedOnly.value = false;
+	selectedActivityCategory.value = "any";
 	selectedActivityType.value = "any";
 	selectedProgPoint.value = "any";
 	selectedRunStyle.value = "any";
@@ -290,6 +447,8 @@ const resetFilters = () => {
 	selectedIntensity.value = null;
 	selectedVoiceExpectation.value = null;
 	selectedDateRange.value = "upcoming";
+	customRange.value = null;
+	customDayDate.value = undefined;
 	selectedRegion.value = "any";
 	selectedDatacenter.value = "all";
 	selectedGroup.value = "any";
@@ -347,22 +506,30 @@ const resetFilters = () => {
 							</p>
 						</div>
 
-							<USelectMenu
-								v-model="selectedActivityType"
-								class="w-full"
-								:items="activityTypeOptions"
-								value-key="value"
-								:placeholder="t('runs.discovery.filters.options.any.activity_type')"
-							/>
+						<USelectMenu
+							v-model="selectedActivityCategory"
+							class="w-full"
+							:items="activityCategoryOptions"
+							value-key="value"
+							:placeholder="t('runs.discovery.filters.options.any.activity_category')"
+						/>
 
-							<USelectMenu
-								v-if="selectedActivityTypeHasProgPoints"
-								v-model="selectedProgPoint"
-								class="w-full"
-								:items="progPointOptions"
-								value-key="value"
-								:placeholder="t('runs.discovery.filters.options.any.prog_point')"
-							/>
+						<USelectMenu
+							v-model="selectedActivityType"
+							class="w-full"
+							:items="activityTypeOptions"
+							value-key="value"
+							:placeholder="t('runs.discovery.filters.options.any.activity_type')"
+						/>
+
+						<USelectMenu
+							v-if="selectedActivityTypeHasProgPoints"
+							v-model="selectedProgPoint"
+							class="w-full"
+							:items="progPointOptions"
+							value-key="value"
+							:placeholder="t('runs.discovery.filters.options.any.prog_point')"
+						/>
 					</section>
 
 					<section class="space-y-3">
@@ -423,15 +590,75 @@ const resetFilters = () => {
 
 						<div class="grid grid-cols-2 gap-2">
 							<UButton
-								v-for="option in dateRangeOptions"
+								v-for="option in quickDateRangeOptions"
 								:key="option.value"
 								color="neutral"
 								:variant="selectedDateRange === option.value ? 'solid' : 'outline'"
 								class="justify-center rounded-none"
 								:class="selectedDateRange === option.value ? 'bg-brand-600 hover:bg-brand-500 border-brand-400/70 text-white' : 'border-white/10 bg-neutral-950/50 text-white/72 hover:bg-neutral-900'"
 								:label="option.label"
-								@click="selectedDateRange = option.value as RunDiscoveryDateRange"
+								@click="selectQuickDateRange(option.value as RunDiscoveryDateRange)"
 							/>
+
+							<UPopover
+								v-model:open="isCustomRangeOpen"
+								:content="{ side: 'bottom', align: 'start', collisionPadding: 8 }"
+							>
+								<template #default>
+									<UButton
+										color="neutral"
+										:variant="selectedDateRange === 'custom_range' ? 'solid' : 'outline'"
+										class="justify-center rounded-none"
+										:class="selectedDateRange === 'custom_range' ? 'bg-brand-600 hover:bg-brand-500 border-brand-400/70 text-white' : 'border-white/10 bg-neutral-950/50 text-white/72 hover:bg-neutral-900'"
+										:label="customRangeLabel"
+										@click="openCustomRangePicker"
+									/>
+								</template>
+
+								<template #content>
+									<div class="border border-white/10 bg-neutral-950 p-3">
+										<UCalendar
+											range
+											:model-value="customRange"
+											:week-starts-on="1"
+											:year-controls="false"
+											color="primary"
+											class="min-w-72"
+											@update:model-value="handleCustomRangeChange"
+										/>
+									</div>
+								</template>
+							</UPopover>
+
+							<UPopover
+								v-model:open="isCustomDayOpen"
+								:content="{ side: 'bottom', align: 'start', collisionPadding: 8 }"
+							>
+								<template #default>
+									<UButton
+										color="neutral"
+										:variant="selectedDateRange === 'custom_day' ? 'solid' : 'outline'"
+										class="justify-center rounded-none"
+										:class="selectedDateRange === 'custom_day' ? 'bg-brand-600 hover:bg-brand-500 border-brand-400/70 text-white' : 'border-white/10 bg-neutral-950/50 text-white/72 hover:bg-neutral-900'"
+										:label="customDayLabel"
+										@click="openCustomDayPicker"
+									/>
+								</template>
+
+								<template #content>
+									<div class="border border-white/10 bg-neutral-950 p-3">
+										<UCalendar
+											:model-value="customDayDate"
+											:week-starts-on="1"
+											:year-controls="false"
+											:prevent-deselect="true"
+											color="primary"
+											class="min-w-72"
+											@update:model-value="handleCustomDayChange"
+										/>
+									</div>
+								</template>
+							</UPopover>
 						</div>
 
 						<USelect

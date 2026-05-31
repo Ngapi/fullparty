@@ -142,7 +142,7 @@ function openGroup() {
 				<div class="flex flex-col justify-between gap-1 p-4 md:w-4/12 xl:w-3/12">
 					<div class="flex flex-col">
 						<h3 class="text-md font-semibold">
-							About Us
+							{{ t("groups.common.labels.about_us") }}
 						</h3>
 						<p class="text-sm text-toned break-words [overflow-wrap:anywhere]">
 							{{ descriptionText }}

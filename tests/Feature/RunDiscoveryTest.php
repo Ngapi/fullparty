@@ -272,6 +272,91 @@ it('defaults date filtering to upcoming runs from now', function () {
         ->assertJsonPath('ids', [$futureRun->id]);
 });
 
+it('filters discoverable runs by content category and custom dates', function () {
+    $viewer = User::factory()->create();
+
+    $savageType = createRunDiscoveryActivityType([
+        'slug' => 'custom-date-savage',
+        'draft_name' => ['en' => 'Custom Date Savage'],
+        'draft_difficulty' => ActivityType::DIFFICULTY_SAVAGE,
+    ]);
+
+    $ultimateType = createRunDiscoveryActivityType([
+        'slug' => 'custom-date-ultimate',
+        'draft_name' => ['en' => 'Custom Date Ultimate'],
+        'draft_difficulty' => ActivityType::DIFFICULTY_ULTIMATE,
+    ]);
+
+    $group = Group::factory()
+        ->open()
+        ->create([
+            'datacenter' => 'Light',
+            'group_type' => Group::TYPE_COMMUNITY,
+            'preferred_languages' => ['en'],
+        ]);
+
+    $targetDate = now()->addDays(10)->toDateString();
+
+    $savageRun = Activity::factory()->create([
+        'group_id' => $group->id,
+        'activity_type_id' => $savageType->id,
+        'activity_type_version_id' => $savageType->current_published_version_id,
+        'status' => Activity::STATUS_SCHEDULED,
+        'title' => 'Savage Custom Day',
+        'starts_at' => now()->addDays(10)->setTime(20, 0),
+        'datacenter' => 'Light',
+        'is_public' => true,
+        'needs_application' => true,
+    ]);
+
+    $ultimateRun = Activity::factory()->create([
+        'group_id' => $group->id,
+        'activity_type_id' => $ultimateType->id,
+        'activity_type_version_id' => $ultimateType->current_published_version_id,
+        'status' => Activity::STATUS_SCHEDULED,
+        'title' => 'Ultimate Custom Day',
+        'starts_at' => now()->addDays(10)->setTime(21, 0),
+        'datacenter' => 'Light',
+        'is_public' => true,
+        'needs_application' => true,
+    ]);
+
+    Activity::factory()->create([
+        'group_id' => $group->id,
+        'activity_type_id' => $savageType->id,
+        'activity_type_version_id' => $savageType->current_published_version_id,
+        'status' => Activity::STATUS_SCHEDULED,
+        'title' => 'Savage Outside Range',
+        'starts_at' => now()->addDays(15)->setTime(20, 0),
+        'datacenter' => 'Light',
+        'is_public' => true,
+        'needs_application' => true,
+    ]);
+
+    $commonParams = [
+        'timezone' => 'UTC',
+        'group_type' => Group::TYPE_COMMUNITY,
+    ];
+
+    $this->actingAs($viewer)
+        ->getJson(route('dashboard.runs.discover', array_merge($commonParams, [
+            'activity_category' => ActivityType::DIFFICULTY_SAVAGE,
+            'date_range' => 'custom_day',
+            'date_from' => $targetDate,
+        ])))
+        ->assertOk()
+        ->assertJsonPath('ids', [$savageRun->id]);
+
+    $this->actingAs($viewer)
+        ->getJson(route('dashboard.runs.discover', array_merge($commonParams, [
+            'date_range' => 'custom_range',
+            'date_from' => $targetDate,
+            'date_to' => now()->addDays(12)->toDateString(),
+        ])))
+        ->assertOk()
+        ->assertJsonPath('ids', [$savageRun->id, $ultimateRun->id]);
+});
+
 it('treats melee-style role hints as dps slots in discovery', function () {
     $viewer = User::factory()->create();
 

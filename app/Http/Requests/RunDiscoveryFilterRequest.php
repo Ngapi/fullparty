@@ -27,13 +27,16 @@ class RunDiscoveryFilterRequest extends FormRequest
         return [
             'query' => ['nullable', 'string', 'max:255'],
             'saved_only' => ['nullable', 'boolean'],
+            'activity_category' => ['nullable', 'string', Rule::in(ActivityType::DIFFICULTIES)],
             'activity_type' => ['nullable', 'string', Rule::in($this->availableActivityTypeSlugs())],
             'prog_point' => ['nullable', 'string', 'max:255'],
             'region' => ['nullable', 'string', Rule::in($this->availableRegions())],
             'datacenter' => ['nullable', 'string', Rule::in(config('datacenters.values', []))],
             'group' => ['nullable', 'string', Rule::in($this->availableGroupSlugs())],
             'timezone' => ['required', 'string', 'timezone'],
-            'date_range' => ['nullable', 'string', Rule::in(['upcoming', 'next_7_days', 'next_30_days', 'this_week', 'next_week'])],
+            'date_range' => ['nullable', 'string', Rule::in(['upcoming', 'next_7_days', 'next_30_days', 'this_week', 'next_week', 'custom_range', 'custom_day'])],
+            'date_from' => ['nullable', 'date_format:Y-m-d'],
+            'date_to' => ['nullable', 'date_format:Y-m-d', 'after_or_equal:date_from'],
             'time_of_day' => ['nullable', 'string', Rule::in(['any', 'morning', 'afternoon', 'evening', 'night'])],
             'run_style' => ['nullable', 'string', Rule::in(Activity::RUN_STYLES)],
             'beginner_friendly' => ['nullable', 'boolean'],
@@ -56,6 +59,7 @@ class RunDiscoveryFilterRequest extends FormRequest
             $this,
             [
                 'query',
+                'activity_category',
                 'activity_type',
                 'prog_point',
                 'region',
@@ -63,6 +67,8 @@ class RunDiscoveryFilterRequest extends FormRequest
                 'group',
                 'timezone',
                 'date_range',
+                'date_from',
+                'date_to',
                 'time_of_day',
                 'run_style',
                 'language',
@@ -81,6 +87,7 @@ class RunDiscoveryFilterRequest extends FormRequest
         ];
 
         foreach ([
+            'activity_category',
             'activity_type',
             'prog_point',
             'region',
@@ -115,6 +122,24 @@ class RunDiscoveryFilterRequest extends FormRequest
     public function withValidator(Validator $validator): void
     {
         $validator->after(function (Validator $validator): void {
+            $dateRange = $this->input('date_range');
+            $dateFrom = $this->input('date_from');
+            $dateTo = $this->input('date_to');
+
+            if ($dateRange === 'custom_day' && (! is_string($dateFrom) || $dateFrom === '')) {
+                $validator->errors()->add('date_from', __('validation.required'));
+            }
+
+            if ($dateRange === 'custom_range') {
+                if (! is_string($dateFrom) || $dateFrom === '') {
+                    $validator->errors()->add('date_from', __('validation.required'));
+                }
+
+                if (! is_string($dateTo) || $dateTo === '') {
+                    $validator->errors()->add('date_to', __('validation.required'));
+                }
+            }
+
             $activityTypeSlug = $this->input('activity_type');
             $progPoint = $this->input('prog_point');
 

@@ -11,7 +11,7 @@
             "sections": {
                 "saved_runs": "Runs enregistrés",
                 "search": "Rechercher",
-                "activity_type": "Type d'activité",
+                "activity_type": "Activité",
                 "datacenter_world": "Centre de données / région",
                 "group": "Groupe",
                 "day_time": "Jour / heure",
@@ -24,7 +24,10 @@
                 "voice_expectation": "Attente vocale"
             },
             "labels": {
-                "beginner_friendly": "Débutants bienvenus"
+                "beginner_friendly": "Débutants bienvenus",
+                "range_start": "Du",
+                "range_end": "Au",
+                "pick_day": "Jour"
             },
             "class_picker": {
                 "title": "Choisir des jobs",
@@ -45,6 +48,7 @@
             },
             "options": {
                 "any": {
+                    "activity_category": "Tout type de contenu",
                     "activity_type": "Tout type d'activité",
                     "prog_point": "Tout point de progression",
                     "region": "Toute région",
@@ -63,12 +67,24 @@
                     "unreal": "Unreal",
                     "other": "Autres"
                 },
+                "activity_categories": {
+                    "normal": "Normal",
+                    "extreme": "Extrême",
+                    "unreal": "Unreal",
+                    "exploration": "Exploration",
+                    "savage": "Savage",
+                    "ultimate": "Ultimate",
+                    "chaotic": "Chaotic",
+                    "criterion": "Critérium"
+                },
                 "prog_points": {
                     "any": "Tout point de progression"
                 },
                 "date_ranges": {
                     "next_7_days": "7 prochains jours",
                     "next_30_days": "30 prochains jours",
+                    "custom_range": "Choisir une période",
+                    "custom_day": "Choisir un jour",
                     "this_week": "Cette semaine",
                     "next_week": "Semaine prochaine"
                 },

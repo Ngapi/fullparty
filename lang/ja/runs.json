@@ -11,7 +11,7 @@
             "sections": {
                 "saved_runs": "保存した募集",
                 "search": "検索",
-                "activity_type": "アクティビティ種別",
+                "activity_type": "アクティビティ",
                 "datacenter_world": "データセンター / リージョン",
                 "group": "グループ",
                 "day_time": "日付 / 時間",
@@ -24,7 +24,10 @@
                 "voice_expectation": "VC の期待値"
             },
             "labels": {
-                "beginner_friendly": "初心者歓迎"
+                "beginner_friendly": "初心者歓迎",
+                "range_start": "開始日",
+                "range_end": "終了日",
+                "pick_day": "日付"
             },
             "class_picker": {
                 "title": "ジョブを選択",
@@ -45,6 +48,7 @@
             },
             "options": {
                 "any": {
+                    "activity_category": "すべてのコンテンツ種別",
                     "activity_type": "すべてのアクティビティ種別",
                     "prog_point": "すべての進行地点",
                     "region": "すべてのリージョン",
@@ -63,12 +67,24 @@
                     "unreal": "幻",
                     "other": "その他"
                 },
+                "activity_categories": {
+                    "normal": "ノーマル",
+                    "extreme": "極",
+                    "unreal": "幻",
+                    "exploration": "探索型",
+                    "savage": "零式",
+                    "ultimate": "絶",
+                    "chaotic": "カオティック",
+                    "criterion": "異聞"
+                },
                 "prog_points": {
                     "any": "すべての進行地点"
                 },
                 "date_ranges": {
                     "next_7_days": "今後7日間",
                     "next_30_days": "今後30日間",
+                    "custom_range": "期間を選択",
+                    "custom_day": "日付を選択",
                     "this_week": "今週",
                     "next_week": "来週"
                 },

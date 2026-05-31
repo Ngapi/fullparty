@@ -10,6 +10,7 @@ use App\Models\ActivityType;
 use App\Models\CharacterClass;
 use App\Models\Group;
 use App\Models\User;
+use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
@@ -418,6 +419,10 @@ final class RunDiscoveryService
             return false;
         }
 
+        if (! $this->matchesActivityCategory($activity, $filters['activity_category'] ?? null)) {
+            return false;
+        }
+
         if (! $this->matchesProgPoint($activity, $filters['prog_point'] ?? null)) {
             return false;
         }
@@ -430,7 +435,7 @@ final class RunDiscoveryService
             return false;
         }
 
-        if (! $this->matchesDateRange($activity, $filters['date_range'] ?? null, $filterTimezone)) {
+        if (! $this->matchesDateRange($activity, $filters['date_range'] ?? null, $filterTimezone, $filters['date_from'] ?? null, $filters['date_to'] ?? null)) {
             return false;
         }
 
@@ -730,6 +735,21 @@ final class RunDiscoveryService
         return $activity->activityType?->slug === $activityType;
     }
 
+    private function matchesActivityCategory(Activity $activity, mixed $activityCategory): bool
+    {
+        if (! is_string($activityCategory) || $activityCategory === '') {
+            return true;
+        }
+
+        return $this->activityDifficulty($activity) === $activityCategory;
+    }
+
+    private function activityDifficulty(Activity $activity): ?string
+    {
+        return $activity->activityTypeVersion?->difficulty
+            ?? $activity->activityType?->currentPublishedVersion?->difficulty;
+    }
+
     private function matchesProgPoint(Activity $activity, mixed $progPoint): bool
     {
         if (! is_string($progPoint) || $progPoint === '') {
@@ -755,7 +775,7 @@ final class RunDiscoveryService
         return true;
     }
 
-    private function matchesDateRange(Activity $activity, mixed $dateRange, string $timezone): bool
+    private function matchesDateRange(Activity $activity, mixed $dateRange, string $timezone, mixed $dateFrom = null, mixed $dateTo = null): bool
     {
         if (! $activity->starts_at) {
             return false;
@@ -770,6 +790,18 @@ final class RunDiscoveryService
             'next_30_days' => [$now->copy(), $now->copy()->addDays(30)],
             'this_week' => [$now->copy(), $now->copy()->endOfWeek()],
             'next_week' => [$now->copy()->addWeek()->startOfWeek(), $now->copy()->addWeek()->endOfWeek()],
+            'custom_day' => is_string($dateFrom) && $dateFrom !== ''
+                ? [
+                    CarbonImmutable::parse($dateFrom, $timezone)->startOfDay(),
+                    CarbonImmutable::parse($dateFrom, $timezone)->endOfDay(),
+                ]
+                : [$now->copy(), null],
+            'custom_range' => is_string($dateFrom) && $dateFrom !== '' && is_string($dateTo) && $dateTo !== ''
+                ? [
+                    CarbonImmutable::parse($dateFrom, $timezone)->startOfDay(),
+                    CarbonImmutable::parse($dateTo, $timezone)->endOfDay(),
+                ]
+                : [$now->copy(), null],
             default => [$now->copy(), null],
         };
 
