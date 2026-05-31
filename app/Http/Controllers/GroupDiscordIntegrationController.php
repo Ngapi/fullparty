@@ -397,7 +397,9 @@ class GroupDiscordIntegrationController extends Controller
                 ->pluck('discord_user_id'))
             ->unique()
             ->count();
-        $memberCount = count($discordUserIds);
+        $memberCount = is_numeric(data_get($membershipCache, 'member_count'))
+            ? max(0, (int) data_get($membershipCache, 'member_count'))
+            : 0;
 
         return [
             'app_linked_member_count' => $linkedCount,
@@ -474,7 +476,7 @@ class GroupDiscordIntegrationController extends Controller
 
     private function membershipCoverageCacheKey(DiscordGuildIntegration $integration): string
     {
-        return "discord-guild-membership-coverage:v2:{$integration->id}";
+        return "discord-guild-membership-coverage:v3:{$integration->id}";
     }
 
     private function authorizeOwner(Group $group): void

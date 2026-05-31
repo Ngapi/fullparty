@@ -81,6 +81,7 @@ it('loads a discord guild snapshot for linked group settings', function () {
                         'discord_guild_id' => '123456789012345678',
                         'cached_member_count' => 3,
                         'member_count' => 128,
+                        'discord_member_count' => 140,
                         'discord_user_ids' => [
                             '123456789012345678',
                             '223456789012345678',
@@ -232,8 +233,8 @@ it('loads a discord guild snapshot for linked group settings', function () {
             ->missing('membershipCoverage')
             ->loadDeferredProps('discord-membership-coverage', fn (Assert $page) => $page
                 ->where('membershipCoverage.app_linked_member_count', 2)
-                ->where('membershipCoverage.unlinked_member_count', 1)
-                ->where('membershipCoverage.member_count', 3)
+                ->where('membershipCoverage.unlinked_member_count', 126)
+                ->where('membershipCoverage.member_count', 128)
                 ->where('membershipCoverage.stats_available', true)
                 ->where('membershipCoverage.membership_cache.refresh_status', 'fresh')
                 ->where('membershipCoverage.membership_cache.refresh_queued', false)
