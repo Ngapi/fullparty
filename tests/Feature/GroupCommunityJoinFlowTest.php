@@ -98,6 +98,7 @@ it('renders server-side embed meta for group invite links', function () {
     $group = Group::factory()->create([
         'owner_id' => $owner->id,
         'name' => 'Storm Keepers',
+        'slug' => 'storm-keepers',
         'description' => null,
         'datacenter' => 'Light',
         'profile_picture_url' => '/storage/groups/storm-profile.webp',
@@ -110,12 +111,18 @@ it('renders server-side embed meta for group invite links', function () {
         'is_system' => false,
     ]);
 
-    $this->get(route('groups.invites.show', $invite->token))
+    $response = $this->get(route('groups.invites.show', $invite->token));
+
+    $response
         ->assertOk()
         ->assertSee('<meta property="og:title" content="Join Storm Keepers - FullParty.gg">', false)
         ->assertSee('<meta property="og:description" content="You&#039;ve been invited to join Storm Keepers, an FFXIV group on Light.">', false)
-        ->assertSee('<meta property="og:image" content="http://fullparty.test/storage/groups/storm-banner.webp">', false)
-        ->assertSee('<meta property="og:image" content="http://fullparty.test/storage/groups/storm-profile.webp">', false);
+        ->assertSee('<meta property="og:image" content="http://fullparty.test/storage/groups/embeds/storm-keepers-', false)
+        ->assertDontSee('<meta property="og:image" content="http://fullparty.test/storage/groups/storm-banner.webp">', false)
+        ->assertDontSee('<meta property="og:image" content="http://fullparty.test/storage/groups/storm-profile.webp">', false)
+        ->assertDontSee('<meta property="og:image" content="http://fullparty.test/landing.png">', false);
+
+    expect(substr_count($response->getContent(), '<meta property="og:image"'))->toBe(1);
 });
 
 it('allows generated invites for application-based groups without creating a permanent slug invite', function (string $groupType) {

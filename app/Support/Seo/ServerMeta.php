@@ -4,6 +4,7 @@ namespace App\Support\Seo;
 
 use App\Models\Activity;
 use App\Models\Group;
+use App\Services\Groups\GroupEmbedImageService;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
@@ -11,6 +12,10 @@ use Illuminate\Support\Str;
 final class ServerMeta
 {
     private const DEFAULT_IMAGE = '/landing.png';
+
+    public function __construct(
+        private readonly GroupEmbedImageService $groupEmbedImageService,
+    ) {}
 
     /**
      * @return array<string, mixed>
@@ -65,6 +70,8 @@ final class ServerMeta
      */
     public function group(Group $group): array
     {
+        $embedImage = $this->groupEmbedImageService->urlFor($group) ?: self::DEFAULT_IMAGE;
+
         return $this->build([
             'title' => $group->name,
             'description' => filled($group->description)
@@ -73,12 +80,8 @@ final class ServerMeta
                     'group' => $group->name,
                     'datacenter' => $group->datacenter ?? 'FFXIV',
                 ]),
-            'image' => $group->banner_image_url ?: $group->profile_picture_url ?: self::DEFAULT_IMAGE,
-            'images' => [
-                $group->banner_image_url,
-                $group->profile_picture_url,
-                self::DEFAULT_IMAGE,
-            ],
+            'image' => $embedImage,
+            'images' => [$embedImage],
         ]);
     }
 
@@ -87,6 +90,8 @@ final class ServerMeta
      */
     public function groupInvite(Group $group): array
     {
+        $embedImage = $this->groupEmbedImageService->urlFor($group) ?: self::DEFAULT_IMAGE;
+
         return $this->build([
             'title' => $this->metaTranslation('seo.invite.group_title', [
                 'group' => $group->name,
@@ -97,12 +102,8 @@ final class ServerMeta
                     'group' => $group->name,
                     'datacenter' => $group->datacenter ?? 'FFXIV',
                 ]),
-            'image' => $group->banner_image_url ?: $group->profile_picture_url ?: self::DEFAULT_IMAGE,
-            'images' => [
-                $group->banner_image_url,
-                $group->profile_picture_url,
-                self::DEFAULT_IMAGE,
-            ],
+            'image' => $embedImage,
+            'images' => [$embedImage],
         ]);
     }
 

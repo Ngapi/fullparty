@@ -19,6 +19,30 @@ use Inertia\Testing\AssertableInertia as Assert;
 
 uses(RefreshDatabase::class);
 
+it('renders a single generated group embed image on the dashboard page', function () {
+    $owner = User::factory()->create();
+    $group = Group::factory()->open()->create([
+        'owner_id' => $owner->id,
+        'name' => 'Storm Keepers',
+        'slug' => 'storm-keepers',
+        'description' => 'Late-night raid group for progression and cleanup.',
+        'profile_picture_url' => '/storage/groups/storm-profile.webp',
+        'banner_image_url' => '/storage/groups/storm-banner.webp',
+    ]);
+
+    $response = $this->actingAs($owner)
+        ->get(route('groups.dashboard', $group));
+
+    $response
+        ->assertOk()
+        ->assertSee('<meta property="og:title" content="Storm Keepers - FullParty.gg">', false)
+        ->assertSee('<meta property="og:image" content="http://fullparty.test/storage/groups/embeds/storm-keepers-', false)
+        ->assertDontSee('<meta property="og:image" content="http://fullparty.test/storage/groups/storm-banner.webp">', false)
+        ->assertDontSee('<meta property="og:image" content="http://fullparty.test/storage/groups/storm-profile.webp">', false);
+
+    expect(substr_count($response->getContent(), '<meta property="og:image"'))->toBe(1);
+});
+
 it('renders the group dashboard with activity-driven overview data', function () {
     Carbon::setTestNow(Carbon::parse('2026-05-27 12:00:00'));
 

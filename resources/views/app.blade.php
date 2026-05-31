@@ -10,11 +10,10 @@
                 : $siteName;
             $description = $serverMeta['description'] ?? null;
             $canonicalUrl = $serverMeta['url'] ?? request()->fullUrl();
-            $imageUrls = collect($serverMeta['images'] ?? [$serverMeta['image'] ?? null])
+            $imageUrl = collect($serverMeta['images'] ?? [$serverMeta['image'] ?? null])
                 ->filter()
                 ->unique()
-                ->values();
-            $imageUrl = $imageUrls->first();
+                ->first();
             $ogType = $serverMeta['type'] ?? 'website';
             $robots = $serverMeta['robots'] ?? 'index, follow';
         @endphp
@@ -34,13 +33,11 @@
         <meta property="og:type" content="{{ $ogType }}">
         <meta property="og:site_name" content="{{ $siteName }}">
         <meta property="og:url" content="{{ $canonicalUrl }}">
-        @foreach ($imageUrls as $openGraphImageUrl)
-            <meta property="og:image" content="{{ $openGraphImageUrl }}">
-        @endforeach
-        @if ($imageUrls->isNotEmpty())
+        @if (filled($imageUrl))
+            <meta property="og:image" content="{{ $imageUrl }}">
             <meta name="twitter:image" content="{{ $imageUrl }}">
         @endif
-        <meta name="twitter:card" content="{{ $imageUrls->isNotEmpty() ? 'summary_large_image' : 'summary' }}">
+        <meta name="twitter:card" content="{{ filled($imageUrl) ? 'summary_large_image' : 'summary' }}">
         <meta name="twitter:title" content="{{ $fullTitle }}">
         <link rel="icon" href="/favicon.ico">
         @vite('resources/css/app.css')

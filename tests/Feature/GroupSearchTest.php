@@ -109,6 +109,29 @@ it('uses the owner primary character in the initial discovery page payload', fun
         );
 });
 
+it('renders group embed meta when discovery opens a specific group', function () {
+    $user = User::factory()->create();
+    Group::factory()->open()->create([
+        'name' => 'FTEL',
+        'slug' => 'ftel',
+        'description' => 'Forked Tower exploration linkshell.',
+        'profile_picture_url' => '/storage/groups/ftel-profile.webp',
+        'banner_image_url' => '/storage/groups/ftel-banner.webp',
+    ]);
+
+    $response = $this->actingAs($user)
+        ->get(route('groups.index', ['group' => 'ftel']));
+
+    $response
+        ->assertOk()
+        ->assertSee('<meta property="og:title" content="FTEL - FullParty.gg">', false)
+        ->assertSee('<meta property="og:image" content="http://fullparty.test/storage/groups/embeds/ftel-', false)
+        ->assertDontSee('<meta property="og:image" content="http://fullparty.test/storage/groups/ftel-banner.webp">', false)
+        ->assertDontSee('<meta property="og:image" content="http://fullparty.test/storage/groups/ftel-profile.webp">', false);
+
+    expect(substr_count($response->getContent(), '<meta property="og:image"'))->toBe(1);
+});
+
 it('shares the sidebar group quick links as my and joined buckets', function () {
     $user = User::factory()->create();
 
