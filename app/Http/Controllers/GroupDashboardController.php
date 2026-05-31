@@ -52,8 +52,8 @@ class GroupDashboardController extends Controller
         $currentMembership = $group->memberships->firstWhere('user_id', $currentUserId);
         $canManageActivities = $group->hasModeratorAccess($currentUserId);
         $now = now();
-        $weekStart = $now->copy()->startOfWeek();
-        $weekEnd = $now->copy()->endOfWeek();
+        $weekStart = $now->copy()->startOfDay();
+        $weekEnd = $weekStart->copy()->addDays(6)->endOfDay();
         $activities = $group->activities
             ->when(
                 ! $canManageActivities,

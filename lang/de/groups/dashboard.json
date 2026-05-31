@@ -58,10 +58,10 @@
         "empty_description": "Sobald diese Gruppe zukünftige Runs im Kalender hat, erscheinen sie hier nach Startzeit sortiert."
     },
     "week_overview": {
-        "title": "Diese Woche",
-        "subtitle": "A simple week-at-a-glance look at what is on the schedule.",
-        "count": "{count} runs",
-        "empty": "No runs are scheduled for this week."
+        "title": "Nächste 7 Tage",
+        "subtitle": "Ein laufender Überblick über die nächsten sieben Kalendertage im Zeitplan.",
+        "count": "{count} Runs",
+        "empty": "In den nächsten 7 Tagen sind keine Runs geplant."
     },
     "content": {
         "title": "What This Group Runs",

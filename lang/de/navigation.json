@@ -28,6 +28,7 @@
             "description": "FullParty befindet sich noch in aktiver Entwicklung. Wenn du auf ein Problem stößt oder Feedback teilen möchtest, tritt dem Discord-Server bei.",
             "github": "GitHub",
             "discord": "Discord beitreten",
+            "dismiss": "Hinweis ausblenden",
             "dev_tag": "Entwickler"
         }
     },

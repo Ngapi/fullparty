@@ -28,6 +28,7 @@
             "description": "FullParty は現在も開発中です。問題を見つけたりフィードバックを共有したい場合は、Discord サーバーに参加してください。",
             "github": "GitHub",
             "discord": "Discord に参加",
+            "dismiss": "お知らせを閉じる",
             "dev_tag": "開発者"
         }
     },

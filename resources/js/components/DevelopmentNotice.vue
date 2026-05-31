@@ -1,19 +1,51 @@
 <script setup>
 import {usePage} from "@inertiajs/vue3";
-import {computed} from "vue";
+import {computed, onMounted, ref} from "vue";
 import {useI18n} from "vue-i18n";
 
 const { t } = useI18n();
 const page = usePage();
+const storageKey = 'fullparty.development_notice.dismissed';
+const isReady = ref(false);
+const isDismissed = ref(false);
 
 const siteLinks = computed(() => page.props.site_links ?? {
 	discord: null,
 });
+
+onMounted(() => {
+	try {
+		isDismissed.value = window.localStorage.getItem(storageKey) === 'true';
+	} catch {
+		isDismissed.value = false;
+	}
+
+	isReady.value = true;
+});
+
+const dismissNotice = () => {
+	isDismissed.value = true;
+
+	try {
+		window.localStorage.setItem(storageKey, 'true');
+	} catch {
+		// Dismiss for this render even if the browser blocks storage.
+	}
+};
 </script>
 
 <template>
-	<div class="relative mt-6">
-		<div class="relative rounded-none border border-brand-500/50 bg-linear-to-br from-brand-800 to-neutral-950 p-4 text-sm text-white/80">
+	<div v-if="isReady && !isDismissed" class="relative mt-6">
+		<div class="relative rounded-none border border-brand-500/50 bg-linear-to-br from-brand-800 to-neutral-950 p-4 pr-9 text-sm text-white/80">
+			<UButton
+				class="absolute right-2 top-2"
+				color="neutral"
+				variant="ghost"
+				icon="i-lucide-x"
+				size="xs"
+				:aria-label="t('navigation.sidebar.notice.dismiss')"
+				@click="dismissNotice"
+			/>
 			<p class="font-semibold text-white">{{t('navigation.sidebar.notice.title')}}</p>
 			<p class="mt-1 leading-5">
 				{{t('navigation.sidebar.notice.description')}}

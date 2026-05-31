@@ -58,10 +58,10 @@
     "empty_description": "Once this group has future runs on the calendar, they will appear here in start-time order."
   },
   "week_overview": {
-    "title": "This Week",
-    "subtitle": "A simple week-at-a-glance look at what is on the schedule.",
+    "title": "Next 7 Days",
+    "subtitle": "A rolling look at the next seven calendar days on the schedule.",
     "count": "{count} runs",
-    "empty": "No runs are scheduled for this week."
+    "empty": "No runs are scheduled in the next 7 days."
   },
   "content": {
     "title": "What This Group Runs",

@@ -58,10 +58,10 @@
         "empty_description": "このグループが今後のRunsをカレンダーに追加すると、開始時間順にここへ表示されます。"
     },
     "week_overview": {
-        "title": "今週",
-        "subtitle": "A simple week-at-a-glance look at what is on the schedule.",
-        "count": "{count} runs",
-        "empty": "No runs are scheduled for this week."
+        "title": "今後7日間",
+        "subtitle": "次の7日間に予定されているRunを確認できます。",
+        "count": "{count}件のRun",
+        "empty": "今後7日間に予定されているRunはありません。"
     },
     "content": {
         "title": "What This Group Runs",
