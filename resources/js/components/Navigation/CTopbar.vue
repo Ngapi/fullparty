@@ -3,6 +3,7 @@ import NotificationBell from "@/components/Navigation/NotificationBell.vue";
 import UserMenu from "@/components/Navigation/UserMenu.vue";
 import AppLocaleSelect from "@/components/Navigation/AppLocaleSelect.vue";
 import GlobalSearchBox from "@/components/Navigation/GlobalSearchBox.vue";
+import TimeDisplayModeToggle from "@/components/Navigation/TimeDisplayModeToggle.vue";
 import { usePage } from "@inertiajs/vue3";
 import { computed, ref } from "vue";
 import { useI18n } from "vue-i18n";
@@ -43,6 +44,7 @@ defineProps({
 		</template>
 
 		<template #right>
+			<TimeDisplayModeToggle v-if="user" />
 			<NotificationBell v-if="user" />
 			<div class="hidden sm:inline-flex">
 				<AppLocaleSelect variant="ghost" />

@@ -6,6 +6,7 @@ import { router } from "@inertiajs/vue3";
 import { route } from "ziggy-js";
 import { useI18n } from "vue-i18n";
 import { createDateTimeFormatter } from "@/utils/dateTimeFormat";
+import { useTimeDisplayMode } from "@/composables/useTimeDisplayMode";
 
 const props = withDefaults(defineProps<{
 	autofocus?: boolean
@@ -20,6 +21,7 @@ const emit = defineEmits<{
 }>();
 
 const { t, locale } = useI18n({ useScope: "global" });
+const { withDisplayTimeZone } = useTimeDisplayMode();
 
 const emptyResults = (): GlobalSearchResponse => ({
 	runs: [],
@@ -161,12 +163,12 @@ const formattedMeta = (result: GlobalSearchResult): string | null => {
 		return null;
 	}
 
-	return createDateTimeFormatter(locale.value, {
+	return createDateTimeFormatter(locale.value, withDisplayTimeZone({
 		day: "numeric",
 		month: "short",
 		hour: "numeric",
 		minute: "2-digit",
-	}).format(date);
+	})).format(date);
 };
 
 const selectResult = (result: GlobalSearchResult) => {

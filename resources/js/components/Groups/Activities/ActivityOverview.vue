@@ -9,6 +9,7 @@ import type { ActivityCompletionSummary } from "@/Types/ActivityProgression";
 import { createDateTimeFormatter } from "@/utils/dateTimeFormat";
 import { formatRelativeTime } from "@/utils/formatRelativeTime";
 import { useMinuteTicker } from "@/composables/useMinuteTicker";
+import { useTimeDisplayMode } from "@/composables/useTimeDisplayMode";
 
 const props = defineProps<{
 	title: string
@@ -86,17 +87,18 @@ const emit = defineEmits<{
 const { t, locale } = useI18n();
 const statusMeta = computed(() => getActivityStatusMeta(props.status));
 const relativeTimeTick = useMinuteTicker();
+const { withDisplayTimeZone } = useTimeDisplayMode();
 
 const dateLabel = computed(() => {
 	if (!props.startsAt) {
 		return t('groups.activities.cards.no_time');
 	}
 
-	return createDateTimeFormatter(locale.value, {
+	return createDateTimeFormatter(locale.value, withDisplayTimeZone({
 		year: 'numeric',
 		month: '2-digit',
 		day: '2-digit',
-	}).format(new Date(props.startsAt));
+	})).format(new Date(props.startsAt));
 });
 
 const timeLabel = computed(() => {
@@ -104,12 +106,11 @@ const timeLabel = computed(() => {
 		return t('groups.activities.cards.no_time');
 	}
 
-	return createDateTimeFormatter(locale.value, {
+	return createDateTimeFormatter(locale.value, withDisplayTimeZone({
 		hour: '2-digit',
 		minute: '2-digit',
-		timeZone: 'UTC',
 		timeZoneName: 'short',
-	}).format(new Date(props.startsAt));
+	})).format(new Date(props.startsAt));
 });
 
 const durationLabel = computed(() => {

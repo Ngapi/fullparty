@@ -1,4 +1,4 @@
-export type RunDiscoveryDateRange = "today" | "this_week" | "next_week" | "this_month"
+export type RunDiscoveryDateRange = "upcoming" | "next_7_days" | "next_30_days" | "this_week" | "next_week"
 export type RunDiscoveryTimeOfDay = "any" | "morning" | "afternoon" | "evening" | "night"
 export type RunDiscoveryRoleCategory = "any" | "tank" | "healer" | "dps" | null
 export type RunDiscoveryClassRoleGroup = "tank" | "healer" | "melee" | "phys" | "magic"

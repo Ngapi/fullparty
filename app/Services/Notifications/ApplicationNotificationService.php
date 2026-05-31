@@ -38,7 +38,6 @@ class ApplicationNotificationService
                 $recipients,
                 $this->submittedAggregateKey($application),
             );
-            $this->notificationService->sendOffSiteNotifications($event, $recipients);
         }
 
         $this->notifyApplicantSubmitted($application, $actor);

@@ -10,6 +10,7 @@ import { canAcceptActivityApplications, isArchivedActivityStatus } from "@/utils
 import { utcToDiscordTimestamp } from "@/utils/discordTimestamp";
 import { localizedValue } from "@/utils/localizedValue";
 import { createDateTimeFormatter } from "@/utils/dateTimeFormat";
+import { useTimeDisplayMode } from "@/composables/useTimeDisplayMode";
 
 const props = defineProps<{
 	groupSlug: string
@@ -21,6 +22,7 @@ const { t, locale } = useI18n();
 const page = usePage();
 const toast = useToast();
 const fallbackLocale = computed(() => String(page.props.locale?.fallback ?? "en"));
+const { withDisplayTimeZone } = useTimeDisplayMode();
 
 const activityTypeName = computed(() => (
 	localizedValue(props.activity.activity_type?.draft_name, locale.value, fallbackLocale.value)
@@ -123,11 +125,11 @@ const formatDateLabel = () => {
 		return t("groups.activities.cards.no_time");
 	}
 
-	return createDateTimeFormatter(locale.value, {
+	return createDateTimeFormatter(locale.value, withDisplayTimeZone({
 		year: "numeric",
 		month: "2-digit",
 		day: "2-digit",
-	}).format(new Date(props.activity.starts_at));
+	})).format(new Date(props.activity.starts_at));
 };
 
 const formatTimeLabel = () => {
@@ -135,10 +137,10 @@ const formatTimeLabel = () => {
 		return t("groups.activities.cards.no_time");
 	}
 
-	return createDateTimeFormatter(locale.value, {
+	return createDateTimeFormatter(locale.value, withDisplayTimeZone({
 		hour: "2-digit",
 		minute: "2-digit",
-	}).format(new Date(props.activity.starts_at));
+	})).format(new Date(props.activity.starts_at));
 };
 
 const durationLabel = computed(() => (

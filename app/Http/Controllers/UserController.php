@@ -12,12 +12,14 @@ use App\Support\Audit\AuditScope;
 use App\Support\Audit\AuditSeverity;
 use App\Support\Input\RequestTextInputSanitizer;
 use App\Support\Notifications\NotificationCategory;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 
 class UserController extends Controller
 {
@@ -287,6 +289,20 @@ class UserController extends Controller
         return redirect()
             ->route('settings')
             ->with('success', ['privacy_settings_updated']);
+    }
+
+    public function changeTimeDisplayPreference(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'time_display_mode' => ['required', 'string', Rule::in(User::TIME_DISPLAY_MODES)],
+        ]);
+
+        $request->user()->update($validated);
+
+        return response()->json([
+            'success' => true,
+            'time_display_mode' => $request->user()->time_display_mode,
+        ]);
     }
 
     public function changePassword(ChangePasswordRequest $request): RedirectResponse

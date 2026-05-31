@@ -174,15 +174,13 @@ it('notifies the run host and applicant when an authenticated user submits an ap
         ->and($notifications->pluck('aggregate_key')->unique()->values()->all())->toBe([
             sprintf('applications.new_for_review.activity.%d', $activity->id),
         ])
-        ->and(NotificationDelivery::query()->where('notification_event_id', $event->id)->count())->toBe(2)
-        ->and(NotificationDelivery::query()->where('notification_event_id', $event->id)->where('channel', NotificationChannel::EMAIL)->where('status', NotificationDelivery::STATUS_PENDING)->count())->toBe(1)
-        ->and(NotificationDelivery::query()->where('notification_event_id', $event->id)->where('channel', NotificationChannel::DISCORD)->where('status', NotificationDelivery::STATUS_SKIPPED)->count())->toBe(1)
+        ->and(NotificationDelivery::query()->where('notification_event_id', $event->id)->count())->toBe(0)
         ->and(UserNotification::query()->where('notification_event_id', $submittedEvent->id)->pluck('user_id')->all())->toBe([$applicant->id])
         ->and(NotificationDelivery::query()->where('notification_event_id', $submittedEvent->id)->count())->toBe(2)
         ->and(NotificationDelivery::query()->where('notification_event_id', $submittedEvent->id)->where('channel', NotificationChannel::EMAIL)->where('status', NotificationDelivery::STATUS_PENDING)->count())->toBe(1)
         ->and(NotificationDelivery::query()->where('notification_event_id', $submittedEvent->id)->where('channel', NotificationChannel::DISCORD)->where('status', NotificationDelivery::STATUS_SKIPPED)->count())->toBe(1);
 
-    Queue::assertPushed(SendNotificationEmailDeliveryJob::class, 2);
+    Queue::assertPushed(SendNotificationEmailDeliveryJob::class, 1);
 });
 
 it('aggregates moderator new-application notifications per activity until they are read', function () {

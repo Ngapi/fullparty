@@ -35,6 +35,13 @@
     "topbar": {
         "search": "Suche",
         "search_bar": "Suche Runs, Gruppen oder Aktivitäten...",
+        "time_display": {
+            "label": "Zeitanzeige",
+            "local": "Lokale Zeit",
+            "server": "Serverzeit",
+            "error_title": "Zeiteinstellung nicht gespeichert",
+            "error_description": "Versuche erneut, die Zeitanzeige umzuschalten."
+        },
         "global_search": {
             "sections": {
                 "runs": "Runs",

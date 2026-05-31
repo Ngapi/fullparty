@@ -33,7 +33,7 @@ class RunDiscoveryFilterRequest extends FormRequest
             'datacenter' => ['nullable', 'string', Rule::in(config('datacenters.values', []))],
             'group' => ['nullable', 'string', Rule::in($this->availableGroupSlugs())],
             'timezone' => ['required', 'string', 'timezone'],
-            'date_range' => ['required', 'string', Rule::in(['today', 'this_week', 'next_week', 'this_month'])],
+            'date_range' => ['nullable', 'string', Rule::in(['upcoming', 'next_7_days', 'next_30_days', 'this_week', 'next_week'])],
             'time_of_day' => ['nullable', 'string', Rule::in(['any', 'morning', 'afternoon', 'evening', 'night'])],
             'run_style' => ['nullable', 'string', Rule::in(Activity::RUN_STYLES)],
             'beginner_friendly' => ['nullable', 'boolean'],

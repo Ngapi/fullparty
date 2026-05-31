@@ -518,6 +518,7 @@ Route::prefix('{locale?}')
             Route::post('/settings/username', [UserController::class, 'changeUsername'])->name('settings.username');
             Route::post('/settings/password', [UserController::class, 'changePassword'])->name('settings.password');
             Route::post('/settings/notifications', [UserController::class, 'changeNotificationSettings'])->name('settings.notifications');
+            Route::patch('/settings/time-display', [UserController::class, 'changeTimeDisplayPreference'])->name('settings.time-display');
             Route::post('/settings/discord-integration/link-token', [UserController::class, 'generateDiscordLinkToken'])->name('settings.discord-integration.link-token');
             Route::delete('/settings/discord-integration', [UserController::class, 'disconnectDiscordIntegration'])->name('settings.discord-integration.destroy');
             Route::post('/settings/privacy', [UserController::class, 'changePrivacySettings'])->name('settings.privacy');

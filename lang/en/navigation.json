@@ -35,6 +35,13 @@
   "topbar": {
     "search": "Search",
     "search_bar": "Search runs, groups, or activities...",
+    "time_display": {
+      "label": "Time display",
+      "local": "Local Time",
+      "server": "Server Time",
+      "error_title": "Time setting not saved",
+      "error_description": "Try switching the time display again."
+    },
     "global_search": {
       "sections": {
         "runs": "Runs",

@@ -225,6 +225,8 @@ export type GroupDashboardActivity = {
 	status: string
 	starts_at: string | null
 	duration_hours: number | null
+	target_prog_point_key: string | null
+	target_prog_point_label: LocalizedText | null
 	is_public: boolean
 	secret_key: string | null
 	can_view_overview: boolean

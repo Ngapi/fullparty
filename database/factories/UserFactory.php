@@ -41,6 +41,7 @@ class UserFactory extends Factory
             'system_notice_notifications' => false,
             'email_notifications' => false,
             'discord_notifications' => false,
+            'time_display_mode' => User::TIME_DISPLAY_LOCAL,
             'remember_token' => Str::random(10),
         ];
     }

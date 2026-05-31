@@ -67,10 +67,10 @@
           "any": "Any Prog Point"
         },
         "date_ranges": {
-          "today": "Today",
+          "next_7_days": "Next 7 Days",
+          "next_30_days": "Next 30 Days",
           "this_week": "This Week",
-          "next_week": "Next Week",
-          "this_month": "This Month"
+          "next_week": "Next Week"
         },
         "time_of_day": {
           "any": "Any Time",

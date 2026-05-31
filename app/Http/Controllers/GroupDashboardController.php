@@ -377,6 +377,8 @@ class GroupDashboardController extends Controller
             'status' => $activity->status,
             'starts_at' => $activity->starts_at?->toIso8601String(),
             'duration_hours' => $activity->duration_hours,
+            'target_prog_point_key' => $activity->target_prog_point_key,
+            'target_prog_point_label' => $this->resolveTargetProgPointLabel($activity),
             'is_public' => $activity->is_public,
             'secret_key' => $canManageActivities ? $activity->secret_key : null,
             'can_view_overview' => $canViewOverview,
@@ -406,6 +408,20 @@ class GroupDashboardController extends Controller
                     : null,
             ],
         ];
+    }
+
+    private function resolveTargetProgPointLabel(Activity $activity): ?array
+    {
+        if (blank($activity->target_prog_point_key)) {
+            return null;
+        }
+
+        $progPoint = collect($activity->activityTypeVersion?->prog_points ?? [])
+            ->firstWhere('key', $activity->target_prog_point_key);
+
+        $label = is_array($progPoint) ? ($progPoint['label'] ?? null) : null;
+
+        return is_array($label) ? $label : null;
     }
 
     /**

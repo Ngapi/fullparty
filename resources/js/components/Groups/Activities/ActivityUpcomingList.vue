@@ -6,6 +6,8 @@ import type { ActivityIndexItem } from "@/Types/ActivityCore";
 import { isArchivedActivityStatus } from "@/utils/activityLifecycle";
 import { getActivityStatusDotClass } from "@/utils/activityStatusMeta";
 import { createDateTimeFormatter } from "@/utils/dateTimeFormat";
+import { useTimeDisplayMode } from "@/composables/useTimeDisplayMode";
+import { toDisplayDateKey } from "@/utils/activityCalendar";
 
 const props = defineProps<{
 	groupSlug: string
@@ -15,15 +17,8 @@ const props = defineProps<{
 }>();
 
 const { t, locale } = useI18n();
+const { displayTimeZone } = useTimeDisplayMode();
 const UPCOMING_ACTIVITY_LIMIT = 20;
-
-const toLocalDateKey = (date: Date) => {
-	const year = date.getFullYear();
-	const month = `${date.getMonth() + 1}`.padStart(2, '0');
-	const day = `${date.getDate()}`.padStart(2, '0');
-
-	return `${year}-${month}-${day}`;
-};
 
 const upcomingActivities = computed(() => {
 	const now = Date.now();
@@ -55,7 +50,7 @@ const selectedDateActivities = computed(() => {
 				return false;
 			}
 
-			return toLocalDateKey(new Date(activity.starts_at)) === props.selectedDateKey;
+			return toDisplayDateKey(new Date(activity.starts_at), displayTimeZone.value) === props.selectedDateKey;
 		})
 		.sort((left, right) => new Date(left.starts_at ?? 0).getTime() - new Date(right.starts_at ?? 0).getTime());
 });

@@ -9,6 +9,7 @@ import ActivityContextMenu from "@/components/Groups/Activities/ActivityContextM
 import { localizedValue } from "@/utils/localizedValue";
 import { getActivityStatusBorderClass } from "@/utils/activityStatusMeta";
 import { createDateTimeFormatter } from "@/utils/dateTimeFormat";
+import { useTimeDisplayMode } from "@/composables/useTimeDisplayMode";
 
 const props = defineProps<{
 	groupSlug: string
@@ -25,6 +26,7 @@ const emit = defineEmits<{
 const { t, locale } = useI18n();
 const page = usePage();
 const fallbackLocale = computed(() => String(page.props.locale?.fallback ?? 'en'));
+const { withDisplayTimeZone } = useTimeDisplayMode();
 
 const visibleActivities = computed(() => props.day.activities.slice(0, 3));
 const hiddenCount = computed(() => Math.max(0, props.day.activities.length - visibleActivities.value.length));
@@ -37,6 +39,12 @@ const activityTypeName = (activity: ActivityIndexItem) => {
 
 const activityLabel = (activity: ActivityIndexItem) => activity.title || activityTypeName(activity);
 
+const activityTargetProgPointLabel = (activity: ActivityIndexItem) => (
+	activity.target_prog_point_key
+		? localizedValue(activity.target_prog_point_label, locale.value, fallbackLocale.value) || activity.target_prog_point_key
+		: null
+);
+
 const activityMemberCount = (activity: ActivityIndexItem) => t("groups.activities.calendar.member_count", {
 	assigned: activity.assigned_slot_count,
 	total: activity.slot_count,
@@ -47,10 +55,10 @@ const activityTime = (activity: ActivityIndexItem) => {
 		return '';
 	}
 
-	return createDateTimeFormatter(locale.value, {
+	return createDateTimeFormatter(locale.value, withDisplayTimeZone({
 		hour: '2-digit',
 		minute: '2-digit',
-	}).format(new Date(activity.starts_at));
+	})).format(new Date(activity.starts_at));
 };
 
 const activityStatusBorderClass = (activity: ActivityIndexItem) => getActivityStatusBorderClass(activity.status);
@@ -154,6 +162,14 @@ const dayContextMenuItems = computed<ContextMenuItem[][]>(() => (
 								<UIcon name="i-lucide-users" class="size-3 shrink-0 text-primary" />
 								<span>{{ activityMemberCount(activity) }}</span>
 							</div>
+							<UBadge
+								v-if="activityTargetProgPointLabel(activity)"
+								class="mt-2"
+								:label="activityTargetProgPointLabel(activity)"
+								color="neutral"
+								variant="soft"
+								size="md"
+							/>
 						</div>
 					</div>
 				</ActivityContextMenu>

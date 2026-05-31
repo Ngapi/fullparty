@@ -2,6 +2,7 @@
 import type {
 	RunDiscoveryActivityTypeOption,
 	RunDiscoveryClassOption,
+	RunDiscoveryDateRange,
 	RunDiscoveryFilterState,
 	RunDiscoveryLookupOption,
 	RunDiscoveryLookups,
@@ -10,6 +11,7 @@ import type {
 import { computed, onMounted, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import RunDiscoveryClassPickerModal from "@/components/Runs/RunDiscoveryClassPickerModal.vue";
+import { useTimeDisplayMode } from "@/composables/useTimeDisplayMode";
 
 const props = defineProps<{
 	lookups: RunDiscoveryLookups
@@ -20,6 +22,7 @@ const emit = defineEmits<{
 }>();
 
 const { t } = useI18n();
+const { displayTimeZone, displayTimeZoneLabel } = useTimeDisplayMode();
 
 const searchQuery = ref("");
 const savedOnly = ref(false);
@@ -34,7 +37,7 @@ const selectedGroupType = ref("community");
 const selectedApplicationStatus = ref<string | null>(null);
 const selectedIntensity = ref<string | null>(null);
 const selectedVoiceExpectation = ref<string | null>(null);
-const selectedDateRange = ref("this_week");
+const selectedDateRange = ref<RunDiscoveryDateRange>("upcoming");
 const selectedRegion = ref("any");
 const selectedDatacenter = ref("all");
 const selectedGroup = ref("any");
@@ -65,10 +68,10 @@ const progPointOptions = computed<RunDiscoveryLookupOption[]>(() => {
 });
 
 const dateRangeOptions = computed<RunDiscoveryLookupOption[]>(() => [
-	{ label: t("runs.discovery.filters.options.date_ranges.today"), value: "today" },
+	{ label: t("runs.discovery.filters.options.date_ranges.next_7_days"), value: "next_7_days" },
+	{ label: t("runs.discovery.filters.options.date_ranges.next_30_days"), value: "next_30_days" },
 	{ label: t("runs.discovery.filters.options.date_ranges.this_week"), value: "this_week" },
 	{ label: t("runs.discovery.filters.options.date_ranges.next_week"), value: "next_week" },
-	{ label: t("runs.discovery.filters.options.date_ranges.this_month"), value: "this_month" },
 ]);
 
 const roleCategoryOptions = computed(() => [
@@ -157,6 +160,7 @@ const visibleClassOptions = computed(() => {
 });
 
 const selectedClassOptions = computed(() => classOptions.value.filter((option) => selectedClassKeys.value.includes(option.key)));
+const isDateTimeFilterClear = computed(() => selectedDateRange.value === "upcoming" && selectedTimeOfDay.value === "any");
 
 const classSummaryLabel = computed(() => {
 	if (selectedClassOptions.value.length === 0) {
@@ -175,6 +179,11 @@ const selectRoleCategory = (value: RunDiscoveryRoleCategory) => {
 	selectedClassKeys.value = [];
 };
 
+const clearDateTimeFilters = () => {
+	selectedDateRange.value = "upcoming";
+	selectedTimeOfDay.value = "any";
+};
+
 const filterState = computed<RunDiscoveryFilterState>(() => ({
 	query: searchQuery.value,
 	saved_only: savedOnly.value,
@@ -183,8 +192,8 @@ const filterState = computed<RunDiscoveryFilterState>(() => ({
 	region: selectedRegion.value,
 	datacenter: selectedDatacenter.value,
 	group: selectedGroup.value,
-	timezone: detectedTimezone.value || "UTC",
-	date_range: selectedDateRange.value as RunDiscoveryFilterState["date_range"],
+	timezone: displayTimeZone.value || detectedTimezone.value || "UTC",
+	date_range: selectedDateRange.value,
 	time_of_day: selectedTimeOfDay.value as RunDiscoveryFilterState["time_of_day"],
 	run_style: selectedRunStyle.value,
 	beginner_friendly: beginnerFriendlyOnly.value,
@@ -280,7 +289,7 @@ const resetFilters = () => {
 	selectedApplicationStatus.value = null;
 	selectedIntensity.value = null;
 	selectedVoiceExpectation.value = null;
-	selectedDateRange.value = "this_week";
+	selectedDateRange.value = "upcoming";
 	selectedRegion.value = "any";
 	selectedDatacenter.value = "all";
 	selectedGroup.value = "any";
@@ -402,6 +411,14 @@ const resetFilters = () => {
 							<p class="text-sm font-semibold text-white">
 								{{ t("runs.discovery.filters.sections.day_time") }}
 							</p>
+							<button
+								type="button"
+								class="text-xs uppercase tracking-[0.14em] transition-colors"
+								:class="isDateTimeFilterClear ? 'text-brand-300' : 'text-white/38 hover:text-white/68'"
+								@click="clearDateTimeFilters"
+							>
+								{{ t("runs.discovery.filters.all") }}
+							</button>
 						</div>
 
 						<div class="grid grid-cols-2 gap-2">
@@ -413,7 +430,7 @@ const resetFilters = () => {
 								class="justify-center rounded-none"
 								:class="selectedDateRange === option.value ? 'bg-brand-600 hover:bg-brand-500 border-brand-400/70 text-white' : 'border-white/10 bg-neutral-950/50 text-white/72 hover:bg-neutral-900'"
 								:label="option.label"
-								@click="selectedDateRange = option.value"
+								@click="selectedDateRange = option.value as RunDiscoveryDateRange"
 							/>
 						</div>
 
@@ -426,7 +443,7 @@ const resetFilters = () => {
 						/>
 
 						<div class="flex items-center justify-between border border-white/10 bg-neutral-950/50 px-3 py-2.5 text-sm text-white/66">
-							<span>{{ detectedTimezone || t("runs.discovery.filters.placeholders.timezone") }}</span>
+							<span>{{ displayTimeZoneLabel || detectedTimezone || t("runs.discovery.filters.placeholders.timezone") }}</span>
 							<UIcon name="i-lucide-globe" class="size-4 text-white/38" />
 						</div>
 					</section>

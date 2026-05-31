@@ -30,6 +30,7 @@ use Illuminate\Notifications\Notifiable;
     'discord_notifications',
     'discord_link_token_hash',
     'discord_link_token_expires_at',
+    'time_display_mode',
     'notification_preferences_reviewed_at',
     'account_completion_celebrated_at',
 ])]
@@ -38,6 +39,15 @@ class User extends Authenticatable implements MustVerifyEmail
 {
     /** @use HasFactory<UserFactory> */
     use HasFactory, Notifiable;
+
+    public const TIME_DISPLAY_LOCAL = 'local';
+
+    public const TIME_DISPLAY_SERVER = 'server';
+
+    public const TIME_DISPLAY_MODES = [
+        self::TIME_DISPLAY_LOCAL,
+        self::TIME_DISPLAY_SERVER,
+    ];
 
     /**
      * Get the attributes that should be cast.

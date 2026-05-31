@@ -35,6 +35,13 @@
     "topbar": {
         "search": "Rechercher",
         "search_bar": "Rechercher des runs, groupes ou activités...",
+        "time_display": {
+            "label": "Affichage de l'heure",
+            "local": "Heure locale",
+            "server": "Heure serveur",
+            "error_title": "Préférence d'heure non enregistrée",
+            "error_description": "Essayez de changer l'affichage de l'heure à nouveau."
+        },
         "global_search": {
             "sections": {
                 "runs": "Runs",

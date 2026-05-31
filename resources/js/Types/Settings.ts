@@ -27,6 +27,7 @@ export type SettingsUser = {
 	system_notice_notifications: boolean
 	email_notifications: boolean
 	discord_notifications: boolean
+	time_display_mode: "local" | "server"
 	discord_link_token_expires_at: string | null
 	notification_preferences_reviewed_at: string | null
 	discord_user_integration: SettingsDiscordUserIntegration | null

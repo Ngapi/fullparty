@@ -4,8 +4,10 @@ import { computed, ref } from "vue";
 import { Link, usePage } from "@inertiajs/vue3";
 import { useI18n } from "vue-i18n";
 import { localizedValue } from "@/utils/localizedValue";
-import { getActivityStatusBorderClass, getActivityStatusMeta } from "@/utils/activityStatusMeta";
+import { getActivityStatusBorderClass } from "@/utils/activityStatusMeta";
 import { createDateTimeFormatter } from "@/utils/dateTimeFormat";
+import { useTimeDisplayMode } from "@/composables/useTimeDisplayMode";
+import { toDisplayDateKey } from "@/utils/activityCalendar";
 
 const props = defineProps<{
 	activities: GroupDashboardActivity[]
@@ -17,6 +19,7 @@ const { t, locale } = useI18n();
 const page = usePage();
 const fallbackLocale = computed(() => String(page.props.locale?.fallback ?? "en"));
 const scrollContainer = ref<HTMLElement | null>(null);
+const { displayTimeZone, withDisplayTimeZone } = useTimeDisplayMode();
 
 const parseDateKey = (value: string) => {
 	const [year, month, day] = value.split("-").map((segment) => Number.parseInt(segment, 10));
@@ -62,7 +65,7 @@ const activityMap = computed(() => {
 			return map;
 		}
 
-		const key = toDateKey(new Date(activity.starts_at));
+		const key = toDisplayDateKey(new Date(activity.starts_at), displayTimeZone.value);
 		map[key] ??= [];
 		map[key].push(activity);
 
@@ -103,15 +106,21 @@ const activitySubtitle = (activity: GroupDashboardActivity) => (
 		: null
 );
 
+const activityTargetProgPointLabel = (activity: GroupDashboardActivity) => (
+	activity.target_prog_point_key
+		? localizedValue(activity.target_prog_point_label, locale.value, fallbackLocale.value) || activity.target_prog_point_key
+		: null
+);
+
 const activityStartsAtLabel = (activity: GroupDashboardActivity) => {
 	if (! activity.starts_at) {
 		return t("groups.activities.cards.no_time");
 	}
 
-	return createDateTimeFormatter(locale.value, {
+	return createDateTimeFormatter(locale.value, withDisplayTimeZone({
 		hour: "2-digit",
 		minute: "2-digit",
-	}).format(new Date(activity.starts_at));
+	})).format(new Date(activity.starts_at));
 };
 
 const scrollByDirection = (direction: "left" | "right") => {
@@ -213,10 +222,11 @@ const scrollByDirection = (direction: "left" | "right") => {
 											{{ activityStartsAtLabel(activity) }}
 										</p>
 										<UBadge
-											:label="t(`groups.activities.statuses.${activity.status}`)"
-											:color="getActivityStatusMeta(activity.status).color"
+											v-if="activityTargetProgPointLabel(activity)"
+											:label="activityTargetProgPointLabel(activity)"
+											color="neutral"
 											variant="soft"
-											size="xs"
+											size="md"
 										/>
 									</div>
 

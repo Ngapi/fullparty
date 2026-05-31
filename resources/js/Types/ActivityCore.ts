@@ -34,6 +34,8 @@ export interface ActivityIndexItem {
 	banner_image_url: string | null
 	starts_at: string | null
 	duration_hours: number | null
+	target_prog_point_key: string | null
+	target_prog_point_label: LocalizedText | null
 	organized_by: {
 		id: number
 		name: string

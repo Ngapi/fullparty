@@ -6,9 +6,11 @@ import type { ActivityIndexItem } from "@/Types/ActivityCore";
 import {
 	buildMonthCalendarDays,
 	createMonthStart,
-	groupActivitiesByLocalDate,
+	groupActivitiesByDisplayDate,
+	toDisplayDateKey,
 } from "@/utils/activityCalendar";
 import { createDateTimeFormatter } from "@/utils/dateTimeFormat";
+import { useTimeDisplayMode } from "@/composables/useTimeDisplayMode";
 
 const props = defineProps<{
 	groupSlug: string
@@ -22,8 +24,10 @@ const emit = defineEmits<{
 }>();
 
 const { t, locale } = useI18n();
+const { displayTimeZone } = useTimeDisplayMode();
 
 const monthCursor = ref(createMonthStart(new Date()));
+const todayKey = computed(() => toDisplayDateKey(new Date(), displayTimeZone.value));
 
 const dayLabels = computed(() => {
 	const mondayStart = new Date(2026, 0, 5);
@@ -38,9 +42,9 @@ const monthLabel = computed(() => createDateTimeFormatter(locale.value, {
 	year: 'numeric',
 }).format(monthCursor.value));
 
-const activityMap = computed(() => groupActivitiesByLocalDate(props.activities));
+const activityMap = computed(() => groupActivitiesByDisplayDate(props.activities, displayTimeZone.value));
 
-const calendarDays = computed(() => buildMonthCalendarDays(activityMap.value, monthCursor.value));
+const calendarDays = computed(() => buildMonthCalendarDays(activityMap.value, monthCursor.value, todayKey.value));
 
 const visibleMonthActivityCount = computed(() => {
 	const targetYear = monthCursor.value.getFullYear();
@@ -51,9 +55,11 @@ const visibleMonthActivityCount = computed(() => {
 			return false;
 		}
 
-		const date = new Date(activity.starts_at);
+		const [activityYear, activityMonth] = toDisplayDateKey(new Date(activity.starts_at), displayTimeZone.value)
+			.split('-')
+			.map(Number);
 
-		return date.getFullYear() === targetYear && date.getMonth() === targetMonth;
+		return activityYear === targetYear && activityMonth - 1 === targetMonth;
 	}).length;
 });
 

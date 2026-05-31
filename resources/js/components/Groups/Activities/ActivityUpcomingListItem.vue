@@ -8,6 +8,7 @@ import { localizedValue } from "@/utils/localizedValue";
 import type { ActivityIndexItem } from "@/Types/ActivityCore";
 import { getActivityStatusMeta } from "@/utils/activityStatusMeta";
 import { createDateTimeFormatter, createRelativeTimeFormatter } from "@/utils/dateTimeFormat";
+import { useTimeDisplayMode } from "@/composables/useTimeDisplayMode";
 
 const props = defineProps<{
 	groupSlug: string
@@ -18,6 +19,7 @@ const props = defineProps<{
 const { t, locale } = useI18n();
 const page = usePage();
 const fallbackLocale = computed(() => String(page.props.locale?.fallback ?? 'en'));
+const { withDisplayTimeZone } = useTimeDisplayMode();
 
 const activityDate = computed(() => props.activity.starts_at ? new Date(props.activity.starts_at) : null);
 
@@ -29,6 +31,12 @@ const activityTypeName = computed(() => {
 
 const activityTitle = computed(() => props.activity.title || activityTypeName.value);
 
+const targetProgPointLabel = computed(() => (
+	props.activity.target_prog_point_key
+		? localizedValue(props.activity.target_prog_point_label, locale.value, fallbackLocale.value) || props.activity.target_prog_point_key
+		: null
+));
+
 const dateParts = computed(() => {
 	if (!activityDate.value) {
 		return {
@@ -39,9 +47,9 @@ const dateParts = computed(() => {
 	}
 
 	return {
-		weekday: createDateTimeFormatter(locale.value, { weekday: 'short' }).format(activityDate.value),
-		day: createDateTimeFormatter(locale.value, { day: 'numeric' }).format(activityDate.value),
-		month: createDateTimeFormatter(locale.value, { month: 'short' }).format(activityDate.value),
+		weekday: createDateTimeFormatter(locale.value, withDisplayTimeZone({ weekday: 'short' })).format(activityDate.value),
+		day: createDateTimeFormatter(locale.value, withDisplayTimeZone({ day: 'numeric' })).format(activityDate.value),
+		month: createDateTimeFormatter(locale.value, withDisplayTimeZone({ month: 'short' })).format(activityDate.value),
 	};
 });
 
@@ -50,13 +58,13 @@ const startsAtLabel = computed(() => {
 		return t('groups.activities.cards.no_time');
 	}
 
-	return createDateTimeFormatter(locale.value, {
+	return createDateTimeFormatter(locale.value, withDisplayTimeZone({
 		weekday: 'long',
 		day: 'numeric',
 		month: 'long',
 		hour: '2-digit',
 		minute: '2-digit',
-	}).format(activityDate.value);
+	})).format(activityDate.value);
 });
 
 const relativeLabel = computed(() => {
@@ -139,6 +147,13 @@ const goToManagementPage = () => {
 									<h3 class="break-words [overflow-wrap:anywhere] text-base font-semibold text-toned">
 										{{ activityTitle }}
 									</h3>
+									<UBadge
+										v-if="targetProgPointLabel"
+										:label="targetProgPointLabel"
+										color="neutral"
+										variant="soft"
+										size="md"
+									/>
 									<UBadge
 										:label="t(`groups.activities.statuses.${activity.status}`)"
 										:color="statusMeta.color"

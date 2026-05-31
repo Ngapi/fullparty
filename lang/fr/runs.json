@@ -67,10 +67,10 @@
                     "any": "Tout point de progression"
                 },
                 "date_ranges": {
-                    "today": "Aujourd'hui",
+                    "next_7_days": "7 prochains jours",
+                    "next_30_days": "30 prochains jours",
                     "this_week": "Cette semaine",
-                    "next_week": "Semaine prochaine",
-                    "this_month": "Ce mois-ci"
+                    "next_week": "Semaine prochaine"
                 },
                 "time_of_day": {
                     "any": "Toute heure",

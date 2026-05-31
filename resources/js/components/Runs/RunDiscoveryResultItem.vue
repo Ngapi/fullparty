@@ -4,6 +4,7 @@ import { computed } from "vue";
 import { router } from "@inertiajs/vue3";
 import { useI18n } from "vue-i18n";
 import { createDateTimeFormatter } from "@/utils/dateTimeFormat";
+import { useTimeDisplayMode } from "@/composables/useTimeDisplayMode";
 
 const props = defineProps<{
 	item: RunDiscoveryResultItemData
@@ -15,6 +16,7 @@ const emit = defineEmits<{
 }>();
 
 const { t, locale } = useI18n();
+const { withDisplayTimeZone } = useTimeDisplayMode();
 
 const roleSlotIconUrls: Record<string, string> = {
 	tank: "/role-icons/tank.png",
@@ -52,6 +54,20 @@ const tagLabels = computed(() => {
 const startsAtDate = computed(() => props.item.starts_at ? new Date(props.item.starts_at) : null);
 const nowDate = computed(() => new Date());
 
+const calendarDateInDisplayZone = (date: Date): Date => {
+	const parts = createDateTimeFormatter(locale.value, withDisplayTimeZone({
+		year: "numeric",
+		month: "numeric",
+		day: "numeric",
+	})).formatToParts(date);
+
+	const year = Number(parts.find((part) => part.type === "year")?.value ?? date.getFullYear());
+	const month = Number(parts.find((part) => part.type === "month")?.value ?? (date.getMonth() + 1));
+	const day = Number(parts.find((part) => part.type === "day")?.value ?? date.getDate());
+
+	return new Date(year, month - 1, day);
+};
+
 const scheduleLabel = computed(() => {
 	if (!startsAtDate.value) {
 		return t("groups.activities.cards.no_time");
@@ -59,8 +75,8 @@ const scheduleLabel = computed(() => {
 
 	const start = startsAtDate.value;
 	const now = nowDate.value;
-	const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-	const startDay = new Date(start.getFullYear(), start.getMonth(), start.getDate());
+	const todayStart = calendarDateInDisplayZone(now);
+	const startDay = calendarDateInDisplayZone(start);
 	const diffDays = Math.round((startDay.getTime() - todayStart.getTime()) / 86400000);
 
 	if (diffDays === 0) {
@@ -71,11 +87,11 @@ const scheduleLabel = computed(() => {
 		return t("runs.discovery.results.placeholder_item.schedule.tomorrow");
 	}
 
-	return createDateTimeFormatter(locale.value, {
+	return createDateTimeFormatter(locale.value, withDisplayTimeZone({
 		weekday: "short",
 		day: "numeric",
 		month: "short",
-	}).format(start);
+	})).format(start);
 });
 
 const timeLabel = computed(() => {
@@ -83,10 +99,10 @@ const timeLabel = computed(() => {
 		return "—";
 	}
 
-	return createDateTimeFormatter(locale.value, {
+	return createDateTimeFormatter(locale.value, withDisplayTimeZone({
 		hour: "numeric",
 		minute: "2-digit",
-	}).format(startsAtDate.value);
+	})).format(startsAtDate.value);
 });
 
 const timezoneLabel = computed(() => {
@@ -94,9 +110,9 @@ const timezoneLabel = computed(() => {
 		return Intl.DateTimeFormat().resolvedOptions().timeZone;
 	}
 
-	const parts = createDateTimeFormatter(locale.value, {
+	const parts = createDateTimeFormatter(locale.value, withDisplayTimeZone({
 		timeZoneName: "short",
-	}).formatToParts(startsAtDate.value);
+	})).formatToParts(startsAtDate.value);
 
 	return parts.find((part) => part.type === "timeZoneName")?.value
 		|| Intl.DateTimeFormat().resolvedOptions().timeZone;

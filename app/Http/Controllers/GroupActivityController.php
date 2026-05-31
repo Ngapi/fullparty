@@ -215,6 +215,7 @@ class GroupActivityController extends Controller
                     'small_image_url' => $activity->activityTypeVersion?->small_image_url,
                     'banner_image_url' => $activity->activityTypeVersion?->banner_image_url,
                     'target_prog_point_key' => $activity->target_prog_point_key,
+                    'target_prog_point_label' => $this->resolveTargetProgPointLabel($activity),
                     'notes' => $activity->notes,
                     'furthest_progress_key' => $activity->furthest_progress_key,
                     'datacenter' => $activity->datacenter,
@@ -659,6 +660,20 @@ class GroupActivityController extends Controller
         $validated['organized_by_user_id'] = $organizerUserId;
 
         return $validated;
+    }
+
+    private function resolveTargetProgPointLabel(Activity $activity): ?array
+    {
+        if (blank($activity->target_prog_point_key)) {
+            return null;
+        }
+
+        $progPoint = collect($activity->activityTypeVersion?->prog_points ?? [])
+            ->firstWhere('key', $activity->target_prog_point_key);
+
+        $label = is_array($progPoint) ? ($progPoint['label'] ?? null) : null;
+
+        return is_array($label) ? $label : null;
     }
 
     /**

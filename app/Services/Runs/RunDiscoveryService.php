@@ -430,7 +430,7 @@ final class RunDiscoveryService
             return false;
         }
 
-        if (! $this->matchesDateRange($activity, (string) ($filters['date_range'] ?? 'this_week'), $filterTimezone)) {
+        if (! $this->matchesDateRange($activity, $filters['date_range'] ?? null, $filterTimezone)) {
             return false;
         }
 
@@ -753,21 +753,27 @@ final class RunDiscoveryService
         return true;
     }
 
-    private function matchesDateRange(Activity $activity, string $dateRange, string $timezone): bool
+    private function matchesDateRange(Activity $activity, mixed $dateRange, string $timezone): bool
     {
         if (! $activity->starts_at) {
             return false;
         }
 
+        $normalizedDateRange = is_string($dateRange) && $dateRange !== '' ? $dateRange : 'upcoming';
         $startsAt = $activity->starts_at->copy()->setTimezone($timezone);
         $now = now()->setTimezone($timezone);
 
-        [$rangeStart, $rangeEnd] = match ($dateRange) {
-            'today' => [$now->copy()->startOfDay(), $now->copy()->endOfDay()],
+        [$rangeStart, $rangeEnd] = match ($normalizedDateRange) {
+            'next_7_days' => [$now->copy(), $now->copy()->addDays(7)],
+            'next_30_days' => [$now->copy(), $now->copy()->addDays(30)],
+            'this_week' => [$now->copy(), $now->copy()->endOfWeek()],
             'next_week' => [$now->copy()->addWeek()->startOfWeek(), $now->copy()->addWeek()->endOfWeek()],
-            'this_month' => [$now->copy()->startOfMonth(), $now->copy()->endOfMonth()],
-            default => [$now->copy()->startOfWeek(), $now->copy()->endOfWeek()],
+            default => [$now->copy(), null],
         };
+
+        if ($rangeEnd === null) {
+            return $startsAt->greaterThanOrEqualTo($rangeStart);
+        }
 
         return $startsAt->betweenIncluded($rangeStart, $rangeEnd);
     }

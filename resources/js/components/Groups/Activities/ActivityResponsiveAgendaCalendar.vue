@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onBeforeUnmount, ref } from "vue";
+import { computed, onBeforeUnmount, ref, watch } from "vue";
 import { router, usePage } from "@inertiajs/vue3";
 import { route } from "ziggy-js";
 import { useI18n } from "vue-i18n";
@@ -10,13 +10,15 @@ import {
 	buildWeekCalendarDays,
 	createDateFromLocalKey,
 	createMonthStart,
-	groupActivitiesByLocalDate,
+	groupActivitiesByDisplayDate,
 	sortActivitiesByStart,
+	toDisplayDateKey,
 	toLocalDateKey,
 } from "@/utils/activityCalendar";
 import { createDateTimeFormatter } from "@/utils/dateTimeFormat";
 import { getActivityStatusMeta } from "@/utils/activityStatusMeta";
 import { localizedValue } from "@/utils/localizedValue";
+import { useTimeDisplayMode } from "@/composables/useTimeDisplayMode";
 
 const props = defineProps<{
 	groupSlug: string
@@ -27,8 +29,9 @@ const props = defineProps<{
 const { t, locale } = useI18n();
 const page = usePage();
 const fallbackLocale = computed(() => String(page.props.locale?.fallback ?? 'en'));
-const todayKey = toLocalDateKey(new Date());
-const selectedDateKey = ref(todayKey);
+const { displayTimeZone, withDisplayTimeZone } = useTimeDisplayMode();
+const todayKey = computed(() => toDisplayDateKey(new Date(), displayTimeZone.value));
+const selectedDateKey = ref(todayKey.value);
 const monthCursor = ref(createMonthStart(new Date()));
 const isCollapsedToWeek = ref(false);
 const renderedCalendarMode = ref<'month' | 'week'>('month');
@@ -40,14 +43,20 @@ onBeforeUnmount(() => {
 	}
 });
 
-const activityMap = computed(() => groupActivitiesByLocalDate(props.activities));
+watch(todayKey, (nextTodayKey, previousTodayKey) => {
+	if (selectedDateKey.value === previousTodayKey) {
+		selectedDateKey.value = nextTodayKey;
+	}
+});
+
+const activityMap = computed(() => groupActivitiesByDisplayDate(props.activities, displayTimeZone.value));
 const selectedDate = computed(() => createDateFromLocalKey(selectedDateKey.value));
 const monthLabel = computed(() => createDateTimeFormatter(locale.value, {
 	month: 'long',
 	year: 'numeric',
 }).format(monthCursor.value));
 const selectedDateLabel = computed(() => {
-	if (selectedDateKey.value === todayKey) {
+	if (selectedDateKey.value === todayKey.value) {
 		return t('groups.activities.mobile_calendar.today');
 	}
 
@@ -74,8 +83,8 @@ const dayLabels = computed(() => {
 	}).format(new Date(mondayStart.getFullYear(), mondayStart.getMonth(), mondayStart.getDate() + index)));
 });
 
-const monthDays = computed(() => buildMonthCalendarDays(activityMap.value, monthCursor.value));
-const weekDays = computed(() => buildWeekCalendarDays(activityMap.value, selectedDate.value));
+const monthDays = computed(() => buildMonthCalendarDays(activityMap.value, monthCursor.value, todayKey.value));
+const weekDays = computed(() => buildWeekCalendarDays(activityMap.value, selectedDate.value, todayKey.value));
 const visibleDays = computed(() => renderedCalendarMode.value === 'week' ? weekDays.value : monthDays.value);
 const selectedDateActivities = computed(() => sortActivitiesByStart(activityMap.value[selectedDateKey.value] ?? []));
 const selectedDateCountLabel = computed(() => t('groups.activities.selected_day.count', {
@@ -90,15 +99,21 @@ const activityTypeName = (activity: ActivityIndexItem) => (
 
 const activityTitle = (activity: ActivityIndexItem) => activity.title || activityTypeName(activity);
 
+const activityTargetProgPointLabel = (activity: ActivityIndexItem) => (
+	activity.target_prog_point_key
+		? localizedValue(activity.target_prog_point_label, locale.value, fallbackLocale.value) || activity.target_prog_point_key
+		: null
+);
+
 const activityTime = (activity: ActivityIndexItem) => {
 	if (!activity.starts_at) {
 		return t('groups.activities.cards.no_time');
 	}
 
-	return createDateTimeFormatter(locale.value, {
+	return createDateTimeFormatter(locale.value, withDisplayTimeZone({
 		hour: '2-digit',
 		minute: '2-digit',
-	}).format(new Date(activity.starts_at));
+	})).format(new Date(activity.starts_at));
 };
 
 const activityMemberCount = (activity: ActivityIndexItem) => t("groups.activities.calendar.member_count", {
@@ -326,14 +341,21 @@ const goToManagement = (activity: ActivityIndexItem) => {
 					</div>
 
 					<div class="min-w-0">
-						<div class="flex min-w-0 items-center gap-2">
+						<div class="flex min-w-0 flex-wrap items-center gap-2">
 							<span
 								class="h-2.5 w-2.5 shrink-0 rounded-full"
 								:class="getActivityStatusMeta(activity.status).dotClass"
 							/>
-							<h3 class="line-clamp-2 text-sm font-semibold text-toned">
+							<h3 class="min-w-0 flex-1 line-clamp-2 text-sm font-semibold text-toned">
 								{{ activityTitle(activity) }}
 							</h3>
+							<UBadge
+								v-if="activityTargetProgPointLabel(activity)"
+								:label="activityTargetProgPointLabel(activity)"
+								color="neutral"
+								variant="soft"
+								size="md"
+							/>
 						</div>
 						<p class="mt-1 truncate text-xs text-muted">
 							{{ activityTypeName(activity) }}

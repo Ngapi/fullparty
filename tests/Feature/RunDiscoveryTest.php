@@ -223,6 +223,55 @@ it('matches discoverable runs by activity tags', function () {
         ->assertJsonPath('items.0.activity_type_name', 'AAC Light-heavyweight M4 (Savage)');
 });
 
+it('defaults date filtering to upcoming runs from now', function () {
+    $viewer = User::factory()->create();
+
+    $activityType = createRunDiscoveryActivityType([
+        'slug' => 'default-upcoming-check',
+        'draft_name' => ['en' => 'Default Upcoming Check'],
+    ]);
+
+    $group = Group::factory()
+        ->open()
+        ->create([
+            'datacenter' => 'Light',
+            'group_type' => Group::TYPE_COMMUNITY,
+            'preferred_languages' => ['en'],
+        ]);
+
+    Activity::factory()->create([
+        'group_id' => $group->id,
+        'activity_type_id' => $activityType->id,
+        'activity_type_version_id' => $activityType->current_published_version_id,
+        'status' => Activity::STATUS_SCHEDULED,
+        'title' => 'Already Started',
+        'starts_at' => now()->subHour(),
+        'datacenter' => 'Light',
+        'is_public' => true,
+        'needs_application' => true,
+    ]);
+
+    $futureRun = Activity::factory()->create([
+        'group_id' => $group->id,
+        'activity_type_id' => $activityType->id,
+        'activity_type_version_id' => $activityType->current_published_version_id,
+        'status' => Activity::STATUS_SCHEDULED,
+        'title' => 'Far Future Run',
+        'starts_at' => now()->addWeeks(8),
+        'datacenter' => 'Light',
+        'is_public' => true,
+        'needs_application' => true,
+    ]);
+
+    $this->actingAs($viewer)
+        ->getJson(route('dashboard.runs.discover', [
+            'timezone' => 'Europe/London',
+            'group_type' => Group::TYPE_COMMUNITY,
+        ]))
+        ->assertOk()
+        ->assertJsonPath('ids', [$futureRun->id]);
+});
+
 it('treats melee-style role hints as dps slots in discovery', function () {
     $viewer = User::factory()->create();
 

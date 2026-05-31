@@ -67,10 +67,10 @@
                     "any": "Beliebiger Prog-Punkt"
                 },
                 "date_ranges": {
-                    "today": "Heute",
+                    "next_7_days": "Nächste 7 Tage",
+                    "next_30_days": "Nächste 30 Tage",
                     "this_week": "Diese Woche",
-                    "next_week": "Nächste Woche",
-                    "this_month": "Diesen Monat"
+                    "next_week": "Nächste Woche"
                 },
                 "time_of_day": {
                     "any": "Beliebige Zeit",

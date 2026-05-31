@@ -67,10 +67,10 @@
                     "any": "すべての進行地点"
                 },
                 "date_ranges": {
-                    "today": "今日",
+                    "next_7_days": "今後7日間",
+                    "next_30_days": "今後30日間",
                     "this_week": "今週",
-                    "next_week": "来週",
-                    "this_month": "今月"
+                    "next_week": "来週"
                 },
                 "time_of_day": {
                     "any": "いつでも",

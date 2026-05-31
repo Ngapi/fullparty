@@ -35,6 +35,13 @@
     "topbar": {
         "search": "検索",
         "search_bar": "ラン、グループ、アクティビティを検索...",
+        "time_display": {
+            "label": "時刻表示",
+            "local": "ローカル時間",
+            "server": "サーバー時間",
+            "error_title": "時刻設定を保存できませんでした",
+            "error_description": "もう一度、時刻表示を切り替えてください。"
+        },
         "global_search": {
             "sections": {
                 "runs": "ラン",

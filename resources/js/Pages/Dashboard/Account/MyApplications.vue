@@ -9,6 +9,7 @@ import PageHeader from "@/components/PageHeader.vue";
 import { localizedValue } from "@/utils/localizedValue";
 import { getActivityStatusMeta } from "@/utils/activityStatusMeta";
 import { createDateTimeFormatter } from "@/utils/dateTimeFormat";
+import { useTimeDisplayMode } from "@/composables/useTimeDisplayMode";
 
 const props = defineProps<{
 	activeApplications: AccountApplication[]
@@ -22,6 +23,7 @@ const fallbackLocale = computed(() => String(page.props.locale?.fallback ?? "en"
 const pendingWithdrawal = ref<AccountApplication | null>(null);
 const isWithdrawing = ref(false);
 const hasAnyApplications = computed(() => props.activeApplications.length > 0 || props.historicalApplications.length > 0);
+const { withDisplayTimeZone } = useTimeDisplayMode();
 
 const formatDateTime = (value: string | null, options?: Intl.DateTimeFormatOptions) => {
 	if (!value) {
@@ -43,15 +45,14 @@ const formatRunTime = (value: string | null) => {
 		return t("groups.activities.cards.no_time");
 	}
 
-	return createDateTimeFormatter(locale.value, {
+	return createDateTimeFormatter(locale.value, withDisplayTimeZone({
 		year: "numeric",
 		month: "2-digit",
 		day: "2-digit",
 		hour: "2-digit",
 		minute: "2-digit",
-		timeZone: "UTC",
 		timeZoneName: "short",
-	}).format(new Date(value));
+	})).format(new Date(value));
 };
 
 const formatDuration = (hours: number | null) => {

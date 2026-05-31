@@ -173,6 +173,7 @@ class HandleInertiaRequests extends Middleware
             'system_notice_notifications' => (bool) $user->system_notice_notifications,
             'email_notifications' => (bool) $user->email_notifications,
             'discord_notifications' => (bool) $user->discord_notifications,
+            'time_display_mode' => $user->time_display_mode ?: User::TIME_DISPLAY_LOCAL,
             'discord_link_token_expires_at' => $user->discord_link_token_expires_at?->toIso8601String(),
             'discord_user_integration' => $user->discordUserIntegration ? [
                 'id' => $user->discordUserIntegration->id,
