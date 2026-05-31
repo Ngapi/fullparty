@@ -166,15 +166,15 @@
             "thief": "Voleur fantôme",
             "samurai": "Samouraï fantôme",
             "berserker": "Berserker fantôme",
-            "ranger": "Ranger fantôme",
-            "mystic_knight": "Chevalier mystique fantôme",
-            "time_mage": "Mage du temps fantôme",
-            "chemist": "Chimiste fantôme",
+            "ranger": "Rôdeur fantôme",
+            "mystic_knight": "Chevalier mage fantôme",
+            "time_mage": "Chronomancien fantôme",
+            "chemist": "Alchimiste fantôme",
             "geomancer": "Géomancien fantôme",
             "bard": "Barde fantôme",
             "dancer": "Danseur fantôme",
-            "oracle": "Oracle fantôme",
-            "cannoneer": "Canonnier fantôme",
+            "oracle": "Devin fantôme",
+            "cannoneer": "Artilleur fantôme",
             "gladiator": "Gladiateur fantôme",
             "freelancer": "Freelancer fantôme"
         }
@@ -196,8 +196,8 @@
         "sections": {
             "classes": "Classes",
             "occult": "Occulte",
-            "forked_tower_blood": "Forked Tower du sang",
-            "forked_tower_magic": "Forked Tower de la magie"
+            "forked_tower_blood": "Tour fourchue de la force",
+            "forked_tower_magic": "Tour fourchue de la magie"
         },
         "forked_tower": {
             "clear_count": "Nombre de victoires",
