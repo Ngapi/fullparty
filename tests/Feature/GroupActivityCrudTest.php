@@ -174,6 +174,52 @@ it('allows moderators to create private application activities with guest applic
         ->and($auditLog->metadata['needs_application'])->toBeTrue();
 });
 
+it('allows group admins to organize runs with their own character', function () {
+    $owner = User::factory()->create();
+    $admin = User::factory()->create();
+    $group = Group::factory()->open()->create([
+        'owner_id' => $owner->id,
+    ]);
+    $group->memberships()->create([
+        'user_id' => $admin->id,
+        'role' => GroupMembership::ROLE_ADMIN,
+        'joined_at' => now(),
+    ]);
+
+    $adminCharacter = Character::factory()->primary()->create([
+        'user_id' => $admin->id,
+    ]);
+    $activityType = createCrudActivityType($owner);
+
+    $this->actingAs($admin)
+        ->get(route('groups.dashboard.activities.create', [
+            'group' => $group->slug,
+        ]))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('organizerCharacters.0.id', $adminCharacter->id)
+            ->where('organizerCharacters.0.user_id', $admin->id));
+
+    $this->actingAs($admin)
+        ->post(route('groups.dashboard.activities.store', [
+            'group' => $group->slug,
+        ]), [
+            'activity_type_id' => $activityType->id,
+            'organized_by_user_id' => $admin->id,
+            'organized_by_character_id' => $adminCharacter->id,
+            'status' => Activity::STATUS_DRAFT,
+        ])
+        ->assertRedirect(route('groups.dashboard.activities.index', [
+            'group' => $group->slug,
+        ]));
+
+    $this->assertDatabaseHas('activities', [
+        'group_id' => $group->id,
+        'organized_by_user_id' => $admin->id,
+        'organized_by_character_id' => $adminCharacter->id,
+    ]);
+});
+
 it('defaults activity discovery metadata from the group and activity type version', function () {
     $owner = User::factory()->create();
     $group = Group::factory()->open()->create([

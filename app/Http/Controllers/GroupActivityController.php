@@ -579,6 +579,7 @@ class GroupActivityController extends Controller
         $moderatorIds = $group->memberships
             ->filter(fn (GroupMembership $membership) => in_array($membership->role, [
                 GroupMembership::ROLE_OWNER,
+                GroupMembership::ROLE_ADMIN,
                 GroupMembership::ROLE_MODERATOR,
             ], true))
             ->pluck('user_id')
@@ -1022,6 +1023,7 @@ class GroupActivityController extends Controller
         return $group->memberships
             ->filter(fn (GroupMembership $membership) => in_array($membership->role, [
                 GroupMembership::ROLE_OWNER,
+                GroupMembership::ROLE_ADMIN,
                 GroupMembership::ROLE_MODERATOR,
             ], true))
             ->pluck('user_id')
