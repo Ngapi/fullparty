@@ -26,6 +26,7 @@ const roleSlotIconUrls: Record<string, string> = {
 
 const contentName = computed(() => props.item.activity_type_name);
 const showContentName = computed(() => contentName.value !== "");
+const targetProgPointLabel = computed(() => props.item.target_prog_point_label || props.item.target_prog_point_key);
 
 const descriptionLabel = computed(() => props.item.description || t("groups.activities.overview.details.no_description"));
 
@@ -191,6 +192,13 @@ const toggleSaved = () => {
 							<h3 class="text-xl font-semibold leading-tight text-white">
 								{{ item.title }}
 							</h3>
+							<UBadge
+								v-if="targetProgPointLabel"
+								:label="targetProgPointLabel"
+								color="neutral"
+								variant="soft"
+								size="md"
+							/>
 						</div>
 
 						<div class="flex flex-wrap items-center gap-x-3 gap-y-2 text-sm text-white/70">

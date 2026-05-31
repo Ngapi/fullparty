@@ -615,6 +615,8 @@ final class RunDiscoveryService
             'activity_type_name' => $this->activityDisplayName($activity),
             'difficulty' => $activity->activityTypeVersion?->difficulty
                 ?? $activity->activityType?->currentPublishedVersion?->difficulty,
+            'target_prog_point_key' => $activity->target_prog_point_key,
+            'target_prog_point_label' => $this->targetProgPointLabel($activity),
             'group_name' => $group?->name,
             'group_slug' => $group?->slug,
             'group_type' => $group?->group_type,
@@ -1038,6 +1040,20 @@ final class RunDiscoveryService
         return $this->resolveLocalizedText($activity->activityTypeVersion?->name)
             ?? $this->resolveLocalizedText($activity->activityType?->currentPublishedVersion?->name)
             ?? (filled($activity->title) ? (string) $activity->title : 'Run');
+    }
+
+    private function targetProgPointLabel(Activity $activity): ?string
+    {
+        if (blank($activity->target_prog_point_key)) {
+            return null;
+        }
+
+        $progPoint = collect($activity->activityTypeVersion?->prog_points ?? [])
+            ->firstWhere('key', $activity->target_prog_point_key);
+
+        $label = is_array($progPoint) ? ($progPoint['label'] ?? null) : null;
+
+        return $this->resolveLocalizedText($label) ?? $activity->target_prog_point_key;
     }
 
     private function resolveLocalizedText(mixed $value): ?string

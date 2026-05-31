@@ -4,6 +4,7 @@ import { router } from "@inertiajs/vue3";
 import { computed, defineAsyncComponent, ref } from "vue";
 import { useI18n } from "vue-i18n";
 import { route } from "ziggy-js";
+import { useConfirmationModal } from "@/composables/useConfirmationModal";
 import { useGroupNotificationToast } from "@/composables/useGroupNotificationToast";
 
 const GroupDiscoveryInfoTab = defineAsyncComponent(() => import("@/components/Groups/GroupDiscoveryInfoTab.vue"));
@@ -23,6 +24,7 @@ const emit = defineEmits<{
 }>();
 
 const { t } = useI18n();
+const confirmationModal = useConfirmationModal();
 const { showGroupNotificationsToast } = useGroupNotificationToast();
 
 const openModel = computed({
@@ -126,25 +128,58 @@ const refreshCurrentGroup = () => {
 	}
 };
 
-const toggleMembership = () => {
+const leaveGroup = async () => {
+	if (!props.group || isActionPending.value || !props.group.permissions.can_leave) {
+		return;
+	}
+
+	const group = props.group;
+
+	await confirmationModal.open({
+		title: t("groups.dashboard.leave_group_modal.title", { name: group.name }),
+		description: t("groups.dashboard.leave_group_modal.description", { name: group.name }),
+		severity: "error",
+		warningText: t("groups.dashboard.leave_group_modal.warning"),
+		confirmLabel: t("groups.dashboard.leave_group_modal.confirm"),
+		confirmIcon: "i-lucide-log-out",
+		onConfirm: async ({ patch }) => {
+			patch({ confirmLoading: true });
+			isActionPending.value = true;
+
+			return await new Promise<boolean>((resolve) => {
+				router.post(route("groups.leave", group.slug), {
+					redirect_to: "back",
+				}, {
+					preserveScroll: true,
+					preserveState: true,
+					onSuccess: () => {
+						emit("refresh-group", group.slug);
+						resolve(true);
+					},
+					onError: () => {
+						resolve(false);
+					},
+					onFinish: () => {
+						isActionPending.value = false;
+						patch({ confirmLoading: false });
+					},
+				});
+			});
+		},
+	});
+};
+
+const toggleMembership = async () => {
 	if (!props.group || isActionPending.value || !showMembershipAction.value) {
 		return;
 	}
 
-	isActionPending.value = true;
-
 	if (props.group.permissions.can_leave) {
-		router.post(route("groups.leave", props.group.slug), {
-			redirect_to: "back",
-		}, {
-			preserveScroll: true,
-			preserveState: true,
-			onSuccess: refreshCurrentGroup,
-			onFinish: finishAction,
-		});
-
+		await leaveGroup();
 		return;
 	}
+
+	isActionPending.value = true;
 
 	if (props.group.permissions.can_apply) {
 		router.get(route("groups.membership-applications.create", props.group.slug), {}, {

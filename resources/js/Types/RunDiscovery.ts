@@ -82,6 +82,8 @@ export type RunDiscoveryResultItemData = {
 	title: string
 	activity_type_name: string
 	difficulty: string | null
+	target_prog_point_key: string | null
+	target_prog_point_label: string | null
 	group_name: string | null
 	group_slug: string | null
 	group_type: string | null
