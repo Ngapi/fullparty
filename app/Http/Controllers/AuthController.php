@@ -61,20 +61,18 @@ class AuthController extends Controller
 
     public function login(LoginRequest $request): RedirectResponse
     {
-        $credentials = [
-            'email' => $request->validated('email'),
-            'password' => $request->validated('password'),
-        ];
-
+        $login = $request->validated('login');
+        $password = $request->validated('password');
         $remember = (bool) $request->validated('remember', false);
+        $user = $this->findPasswordLoginUser($login);
 
-        if (! Auth::attempt($credentials, $remember)) {
+        if (! $user || ! $user->password || ! Hash::check($password, $user->password)) {
             throw ValidationException::withMessages([
-                'email' => __('auth.failed'),
+                'login' => __('auth.failed'),
             ]);
         }
 
-        $user = $request->user();
+        Auth::login($user, $remember);
 
         $request->session()->regenerate();
 
@@ -93,6 +91,21 @@ class AuthController extends Controller
         );
 
         return redirect()->intended(route('dashboard'));
+    }
+
+    private function findPasswordLoginUser(string $login): ?User
+    {
+        $normalizedLogin = Str::lower($login);
+
+        if (filter_var($login, FILTER_VALIDATE_EMAIL)) {
+            return User::query()
+                ->whereRaw('LOWER(email) = ?', [$normalizedLogin])
+                ->first();
+        }
+
+        return User::query()
+            ->whereRaw('LOWER(name) = ?', [$normalizedLogin])
+            ->first();
     }
 
     public function logout(Request $request): RedirectResponse

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Activity;
+use App\Models\ActivityApplication;
 use App\Models\ActivitySlot;
 use App\Models\ActivitySlotAssignment;
 use App\Models\Group;
@@ -129,6 +130,23 @@ class GroupActivitySlotMissingController extends Controller
             throw ValidationException::withMessages([
                 'assignment' => 'Only missing assignments can be undone.',
             ]);
+        }
+
+        $assignment->loadMissing('application');
+
+        if (
+            $assignment->application
+            && ! in_array($assignment->application->status, ActivityApplication::ACTIVE_STATUSES, true)
+        ) {
+            $message = __('groups.activities.management.messages.missing_application_cancelled');
+
+            return response()->json([
+                'message' => $message,
+                'errors' => [
+                    'assignment' => [$message],
+                ],
+                'remove_missing_assignment_ids' => [(int) $assignment->id],
+            ], 422);
         }
 
         $validated = $request->validate([

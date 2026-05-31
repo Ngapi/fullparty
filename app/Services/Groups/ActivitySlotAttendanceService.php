@@ -37,7 +37,7 @@ class ActivitySlotAttendanceService
             ->keyBy('selected_character_id');
 
         foreach ($activity->slots as $slot) {
-            if (!$slot->assigned_character_id) {
+            if (! $slot->assigned_character_id) {
                 continue;
             }
 
@@ -85,7 +85,7 @@ class ActivitySlotAttendanceService
     ): void {
         $activity = $slot->activity;
 
-        if (!$activity) {
+        if (! $activity) {
             return;
         }
 
@@ -169,7 +169,7 @@ class ActivitySlotAttendanceService
     {
         $activity = $slot->activity;
 
-        if (!$activity || !$slot->assigned_character_id) {
+        if (! $activity || ! $slot->assigned_character_id) {
             return null;
         }
 
@@ -181,7 +181,7 @@ class ActivitySlotAttendanceService
                 ->latest('assigned_at')
                 ->first();
 
-            if (!$assignment) {
+            if (! $assignment) {
                 $assignment = ActivitySlotAssignment::query()->create([
                     'activity_id' => $activity->id,
                     'group_id' => $activity->group_id,
@@ -231,7 +231,7 @@ class ActivitySlotAttendanceService
     {
         $activity = $slot->activity;
 
-        if (!$activity || !$slot->assigned_character_id) {
+        if (! $activity || ! $slot->assigned_character_id) {
             return null;
         }
 
@@ -243,7 +243,7 @@ class ActivitySlotAttendanceService
                 ->latest('assigned_at')
                 ->first();
 
-            if (!$assignment) {
+            if (! $assignment) {
                 $assignment = ActivitySlotAssignment::query()->create([
                     'activity_id' => $activity->id,
                     'group_id' => $activity->group_id,
@@ -257,7 +257,7 @@ class ActivitySlotAttendanceService
                 ]);
             }
 
-            if (!in_array($assignment->attendance_status, [
+            if (! in_array($assignment->attendance_status, [
                 ActivitySlotAssignment::STATUS_CHECKED_IN,
                 ActivitySlotAssignment::STATUS_LATE,
             ], true)) {
@@ -280,7 +280,7 @@ class ActivitySlotAttendanceService
     {
         $activity = $slot->activity;
 
-        if (!$activity || !$slot->assigned_character_id) {
+        if (! $activity || ! $slot->assigned_character_id) {
             return null;
         }
 
@@ -292,7 +292,7 @@ class ActivitySlotAttendanceService
                 ->latest('assigned_at')
                 ->first();
 
-            if (!$assignment) {
+            if (! $assignment) {
                 $assignment = ActivitySlotAssignment::query()->create([
                     'activity_id' => $activity->id,
                     'group_id' => $activity->group_id,
@@ -350,10 +350,19 @@ class ActivitySlotAttendanceService
     {
         $assignment->loadMissing(['activity.slots.fieldValues', 'application', 'slot.fieldValues']);
 
+        if (
+            $assignment->application
+            && ! in_array($assignment->application->status, ActivityApplication::ACTIVE_STATUSES, true)
+        ) {
+            throw ValidationException::withMessages([
+                'assignment' => __('groups.activities.management.messages.missing_application_cancelled'),
+            ]);
+        }
+
         $activity = $assignment->activity;
         $originalSlot = $assignment->slot;
 
-        if (!$activity || !$originalSlot) {
+        if (! $activity || ! $originalSlot) {
             throw ValidationException::withMessages([
                 'assignment' => 'The original slot for this missing assignment could not be found.',
             ]);
@@ -370,14 +379,14 @@ class ActivitySlotAttendanceService
 
             $isRestoredToBench = false;
 
-            if (!$targetSlot) {
+            if (! $targetSlot) {
                 $targetSlot = $activity->slots
                     ->first(fn (ActivitySlot $slot) => $slotBench->isBench($slot) && $slot->assigned_character_id === null);
 
                 $isRestoredToBench = $targetSlot !== null;
             }
 
-            if (!$targetSlot) {
+            if (! $targetSlot) {
                 throw ValidationException::withMessages([
                     'assignment' => 'No space is available to undo this missing assignment. Free a bench slot first.',
                 ]);

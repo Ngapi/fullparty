@@ -17,7 +17,7 @@ const wasPasswordReset = computed(() => successFlags.value.includes('password_re
 const passwordVisibility = usePasswordVisibility(['password'] as const);
 
 const form = useForm({
-	email: '',
+	login: '',
 	password: '',
 	remember: false,
 })
@@ -65,8 +65,8 @@ defineOptions({
 
 		<div class="flex items-center w-full mb-4">
 			<form class="space-y-4 w-full" @submit.prevent="submit">
-				<UFormField name="email" class="w-full" :error="form.errors.email">
-					<UInput v-model="form.email" size="xl" class="w-full" :placeholder="t('general.email')"/>
+				<UFormField name="login" class="w-full" :error="form.errors.login">
+					<UInput v-model="form.login" size="xl" class="w-full" :placeholder="t('general.email_or_username')"/>
 				</UFormField>
 
 				<UFormField name="password" :error="form.errors.password">

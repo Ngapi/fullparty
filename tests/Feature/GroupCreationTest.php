@@ -290,6 +290,26 @@ it('allows overnight active schedule windows when creating a group', function ()
         ->and($group->active_end_time)->toBe('05:00');
 });
 
+it('allows the UTC minus twelve active timezone when creating a group', function () {
+    $user = User::factory()->create();
+
+    $this->actingAs($user)
+        ->post(route('groups.store'), validCreateGroupPayload([
+            'name' => 'Date Line Group',
+            'slug' => 'dateline',
+            'group_type' => Group::TYPE_COMMUNITY,
+            'active_timezone' => 'Etc/GMT+12',
+            'active_days' => ['fri'],
+            'active_start_time' => '19:00',
+            'active_end_time' => '23:00',
+        ]))
+        ->assertRedirect(route('groups.dashboard', 'dateline'));
+
+    $group = Group::query()->where('slug', 'dateline')->firstOrFail();
+
+    expect($group->active_timezone)->toBe('Etc/GMT+12');
+});
+
 it('requires the discovery and group fit fields when creating a group', function () {
     $user = User::factory()->create();
 

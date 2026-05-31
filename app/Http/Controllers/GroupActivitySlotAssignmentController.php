@@ -51,12 +51,12 @@ class GroupActivitySlotAssignmentController extends Controller
 
         $sourceSlot = null;
 
-        if (!empty($validated['source_slot_id'])) {
+        if (! empty($validated['source_slot_id'])) {
             $sourceSlot = $activity->slots()
                 ->with(['assignedCharacter', 'fieldValues', 'activity', 'assignments'])
                 ->find((int) $validated['source_slot_id']);
 
-            if (!$sourceSlot) {
+            if (! $sourceSlot) {
                 abort(404);
             }
         }
@@ -77,7 +77,7 @@ class GroupActivitySlotAssignmentController extends Controller
         $restoredQueueApplication = null;
         $queueApplicationSyncIds = [];
 
-        if (!empty($validated['character_id'])) {
+        if (! empty($validated['character_id'])) {
             $groupMemberUserIds = $group->memberships()
                 ->pluck('user_id')
                 ->push($group->owner_id)
@@ -92,7 +92,7 @@ class GroupActivitySlotAssignmentController extends Controller
                 ->whereIn('user_id', $groupMemberUserIds)
                 ->find((int) $validated['character_id']);
 
-            if (!$character) {
+            if (! $character) {
                 abort(404);
             }
 
@@ -110,22 +110,15 @@ class GroupActivitySlotAssignmentController extends Controller
                 ->with(['answers', 'selectedCharacter'])
                 ->find((int) $validated['application_id']);
 
-            if (!$application) {
+            if (! $application) {
                 abort(404);
             }
 
-            $isAllowedStatus = $application->status === ActivityApplication::STATUS_PENDING
-                || (
-                    $application->status === ActivityApplication::STATUS_APPROVED
-                    && (int) $application->selected_character_id === (int) $slot->assigned_character_id
-                )
-                || (
-                    $application->status === ActivityApplication::STATUS_ON_BENCH
-                    && $sourceSlot !== null
+            if (! $this->applicationCanBeAssigned($application, $slot, $sourceSlot)) {
+                return $this->applicationUnavailableResponse(
+                    $activity,
+                    $application,
                 );
-
-            if (!$isAllowedStatus) {
-                abort(404);
             }
 
             $applicationFieldDefinitions = collect($fieldDefinitions)
@@ -198,5 +191,46 @@ class GroupActivitySlotAssignmentController extends Controller
             'queue_application_remove_ids' => array_values(array_unique($removedQueueApplicationIds)),
             'restored_queue_application' => $restoredQueueApplication,
         ]);
+    }
+
+    private function applicationCanBeAssigned(
+        ActivityApplication $application,
+        ActivitySlot $slot,
+        ?ActivitySlot $sourceSlot,
+    ): bool {
+        return $application->status === ActivityApplication::STATUS_PENDING
+            || (
+                $application->status === ActivityApplication::STATUS_APPROVED
+                && (int) $application->selected_character_id === (int) $slot->assigned_character_id
+            )
+            || (
+                $application->status === ActivityApplication::STATUS_ON_BENCH
+                && $sourceSlot !== null
+            );
+    }
+
+    private function applicationUnavailableResponse(
+        Activity $activity,
+        ActivityApplication $application,
+    ): JsonResponse {
+        $message = in_array($application->status, [
+            ActivityApplication::STATUS_CANCELLED,
+            ActivityApplication::STATUS_WITHDRAWN,
+        ], true)
+            ? __('groups.activities.management.messages.application_cancelled_assignment')
+            : __('groups.activities.management.messages.application_no_longer_pending_assignment');
+        $pendingApplicationCount = $activity->applications()
+            ->where('status', ActivityApplication::STATUS_PENDING)
+            ->count();
+        $removedApplicationIds = [(int) $application->id];
+
+        return response()->json([
+            'message' => $message,
+            'errors' => [
+                'application_id' => [$message],
+            ],
+            'pending_application_count' => $pendingApplicationCount,
+            'queue_application_remove_ids' => $removedApplicationIds,
+        ], 422);
     }
 }

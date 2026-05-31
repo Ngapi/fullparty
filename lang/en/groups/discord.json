@@ -6,6 +6,25 @@
     "subtitle": "Add the bot to the Discord server you use for this group.",
     "description": "After the bot is installed, generate a link token and use it in Discord so FullParty can match this group to the correct server."
   },
+  "setup": {
+    "invite": {
+      "title": "Invite the bot",
+      "subtitle": "Add FullParty to your Discord server.",
+      "description": "Start by inviting the FullParty bot to the server this group uses."
+    },
+    "link": {
+      "title": "Link this group",
+      "subtitle": "Generate a token and use it in Discord.",
+      "description": "Generate a link token here, then run /link token in your Discord server."
+    },
+    "complete": {
+      "title": "Complete setup",
+      "subtitle": "FullParty will unlock the bot settings after linking.",
+      "description": "Once the command succeeds, refresh this page and the server settings will appear.",
+      "command_title": "Use this in Discord",
+      "command_description": "/link token"
+    }
+  },
   "status": {
     "title": "Linked Server",
     "subtitle": "The Discord server currently connected to this group.",

@@ -46,6 +46,7 @@
     "actions": "操作",
     "username": "ユーザー名",
     "email": "メールアドレス",
+    "email_or_username": "メールアドレスまたはユーザー名",
     "datacenter": "データセンター",
     "members": "メンバー",
     "public": "公開",

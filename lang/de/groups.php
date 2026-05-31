@@ -1,6 +1,15 @@
 <?php
 
 return [
+    'activities' => [
+        'management' => [
+            'messages' => [
+                'application_cancelled_assignment' => 'Diese Bewerbung wurde abgebrochen und aus der Warteschlange entfernt.',
+                'application_no_longer_pending_assignment' => 'Diese Bewerbung ist nicht mehr ausstehend und wurde aus der Warteschlange entfernt.',
+                'missing_application_cancelled' => 'Dieser Spieler hat seine Anmeldung abgebrochen, daher wurde der Fehlend-Eintrag entfernt.',
+            ],
+        ],
+    ],
     'membership_applications' => [
         'apply' => [
             'validation' => [

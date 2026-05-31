@@ -43,12 +43,13 @@ class GroupActivityManagementDataController extends Controller
             'progressMilestones',
             'applications',
             'slotAssignments.character',
+            'slotAssignments.application',
             'slotAssignments.slot',
         ]);
 
         $benchSlotBackfillService->ensureBenchSlots($activity);
         $attendanceService->ensureActiveAssignments($activity);
-        $activity->load(['slots.assignments', 'slots.compositionHints.characterClass', 'slotAssignments.character', 'slotAssignments.slot']);
+        $activity->load(['slots.assignments', 'slots.compositionHints.characterClass', 'slotAssignments.character', 'slotAssignments.application', 'slotAssignments.slot']);
 
         $mainSlots = $activity->slots->filter(fn ($slot) => ! $slotBench->isBench($slot))->values();
         $benchSlots = $activity->slots->filter(fn ($slot) => $slotBench->isBench($slot))->values();
@@ -137,6 +138,8 @@ class GroupActivityManagementDataController extends Controller
                 'slots' => $activity->slots->map(fn ($slot) => $slotSerializer->serialize($slot))->values(),
                 'missing_assignments' => $activity->slotAssignments
                     ->where('attendance_status', ActivitySlotAssignment::STATUS_MISSING)
+                    ->filter(fn (ActivitySlotAssignment $assignment) => ! $assignment->application
+                        || in_array($assignment->application->status, ActivityApplication::ACTIVE_STATUSES, true))
                     ->sortByDesc('marked_missing_at')
                     ->values()
                     ->map(fn ($assignment) => [

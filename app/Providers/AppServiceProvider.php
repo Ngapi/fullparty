@@ -37,9 +37,9 @@ class AppServiceProvider extends ServiceProvider
         Gate::define('viewPulse', fn (?User $user) => (bool) $user?->is_admin);
 
         RateLimiter::for('login', function (Request $request) {
-            $email = Str::lower(trim((string) $request->input('email')));
+            $login = Str::lower(trim((string) $request->input('login', $request->input('email'))));
 
-            return Limit::perMinute(5)->by($email.'|'.$request->ip());
+            return Limit::perMinute(5)->by(($login ?: 'unknown').'|'.$request->ip());
         });
 
         RateLimiter::for('auth.registration', function (Request $request) {

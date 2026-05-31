@@ -433,7 +433,119 @@ watch(
 			/>
 		</PageHeader>
 
-		<div class="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(340px,420px)]">
+		<div
+			v-if="!integration"
+			class="mt-4 grid gap-4 lg:grid-cols-3"
+		>
+			<UCard>
+				<template #header>
+					<div class="flex items-center gap-3">
+						<div class="flex size-10 items-center justify-center border border-brand-400/25 bg-brand-500/10 text-brand">
+							<span class="text-sm font-semibold">1</span>
+						</div>
+						<div>
+							<h2 class="text-base font-semibold text-highlighted">{{ t("groups.discord.setup.invite.title") }}</h2>
+							<p class="text-sm text-muted">{{ t("groups.discord.setup.invite.subtitle") }}</p>
+						</div>
+					</div>
+				</template>
+
+				<div class="space-y-4 text-sm text-muted">
+					<p>{{ t("groups.discord.setup.invite.description") }}</p>
+					<UButton
+						:href="inviteUrl"
+						icon="i-lucide-external-link"
+						color="primary"
+						variant="solid"
+					>
+						{{ t("groups.discord.actions.invite") }}
+					</UButton>
+				</div>
+			</UCard>
+
+			<UCard>
+				<template #header>
+					<div class="flex items-center gap-3">
+						<div class="flex size-10 items-center justify-center border border-brand-400/25 bg-brand-500/10 text-brand">
+							<span class="text-sm font-semibold">2</span>
+						</div>
+						<div>
+							<h2 class="text-base font-semibold text-highlighted">{{ t("groups.discord.setup.link.title") }}</h2>
+							<p class="text-sm text-muted">{{ t("groups.discord.setup.link.subtitle") }}</p>
+						</div>
+					</div>
+				</template>
+
+				<div class="space-y-4 text-sm text-muted">
+					<p>{{ t("groups.discord.setup.link.description") }}</p>
+					<UButton
+						icon="i-lucide-key-round"
+						color="neutral"
+						variant="soft"
+						:loading="generatingToken"
+						@click="generateToken"
+					>
+						{{ t("groups.discord.actions.generate_token") }}
+					</UButton>
+
+					<div
+						v-if="linkToken"
+						class="space-y-3 border border-brand-400/25 bg-brand-500/10 p-4"
+					>
+						<div class="min-w-0">
+							<p class="text-xs font-semibold uppercase tracking-wide text-brand">{{ t("groups.discord.link.generated_token") }}</p>
+							<p class="mt-1 break-all font-mono text-lg font-semibold text-highlighted">{{ linkToken.token }}</p>
+							<p class="mt-1 text-xs text-muted">{{ t("groups.discord.link.expires_at", { date: new Date(linkToken.expires_at).toLocaleString() }) }}</p>
+						</div>
+						<UButton
+							icon="i-lucide-copy"
+							color="neutral"
+							variant="soft"
+							@click="copyToken"
+						>
+							{{ t("groups.discord.actions.copy_token") }}
+						</UButton>
+					</div>
+
+					<UAlert
+						v-else-if="hasActiveToken"
+						color="info"
+						variant="soft"
+						icon="i-lucide-clock"
+						:title="t('groups.discord.link.active_token_title')"
+						:description="t('groups.discord.link.active_token_description', { date: tokenExpiresAt ? new Date(tokenExpiresAt).toLocaleString() : '' })"
+					/>
+				</div>
+			</UCard>
+
+			<UCard>
+				<template #header>
+					<div class="flex items-center gap-3">
+						<div class="flex size-10 items-center justify-center border border-default/60 bg-muted text-muted">
+							<span class="text-sm font-semibold">3</span>
+						</div>
+						<div>
+							<h2 class="text-base font-semibold text-highlighted">{{ t("groups.discord.setup.complete.title") }}</h2>
+							<p class="text-sm text-muted">{{ t("groups.discord.setup.complete.subtitle") }}</p>
+						</div>
+					</div>
+				</template>
+
+				<div class="space-y-4 text-sm text-muted">
+					<p>{{ t("groups.discord.setup.complete.description") }}</p>
+					<UAlert
+						color="neutral"
+						variant="soft"
+						icon="i-lucide-terminal"
+						:title="t('groups.discord.setup.complete.command_title')"
+						:description="t('groups.discord.setup.complete.command_description')"
+					/>
+				</div>
+			</UCard>
+		</div>
+
+		<template v-else>
+			<div class="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(340px,420px)]">
 			<UCard>
 				<template #header>
 					<div class="flex items-center gap-3">
@@ -538,9 +650,9 @@ watch(
 					{{ t("groups.discord.status.empty") }}
 				</div>
 			</UCard>
-		</div>
+			</div>
 
-		<div class="mt-4 grid grid-cols-1 gap-4 xl:grid-cols-[minmax(0,1fr)_minmax(340px,420px)]">
+			<div class="mt-4 grid grid-cols-1 gap-4 xl:grid-cols-[minmax(0,1fr)_minmax(340px,420px)]">
 			<UCard>
 				<template #header>
 					<div class="flex items-center justify-between gap-3">
@@ -735,6 +847,7 @@ watch(
 					<p class="mt-2 break-words text-sm text-toned">{{ botPermissionsLabel }}</p>
 				</div>
 			</UCard>
-		</div>
+			</div>
+		</template>
 	</div>
 </template>

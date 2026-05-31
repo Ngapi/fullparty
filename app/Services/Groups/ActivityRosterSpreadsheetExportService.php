@@ -930,8 +930,8 @@ class ActivityRosterSpreadsheetExportService
   <borders count="1">{$bordersXml}</borders>
   <cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs>
   <cellXfs count="{$this->xmlInt(count($cellXfs))}">{$cellXfsXml}</cellXfs>
-  <dxfs count="4">{$dxfsXml}</dxfs>
   <cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles>
+  <dxfs count="4">{$dxfsXml}</dxfs>
 </styleSheet>
 XML;
 
@@ -1052,8 +1052,8 @@ XML;
   <cols>{$columnsXml}</cols>
   <sheetData>{$rowsXml}</sheetData>
   {$mergeCellsXml}
-  {$dataValidationsXml}
   {$conditionalFormattingXml}
+  {$dataValidationsXml}
 </worksheet>
 XML;
     }

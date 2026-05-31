@@ -144,7 +144,11 @@ const normalizeCurrentSlotValue = (
 watch(
 	() => [props.open, props.slot?.id, props.application?.id] as const,
 	() => {
-		if (!props.open || !props.slot || !props.application) {
+		if (!props.open) {
+			return;
+		}
+
+		if (!props.slot || !props.application) {
 			selections.value = {};
 			return;
 		}

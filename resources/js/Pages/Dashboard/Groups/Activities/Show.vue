@@ -69,7 +69,6 @@ const assignmentModalApplication = ref<QueueApplication | null>(null);
 const assignmentModalSlotId = ref<number | null>(null);
 const assignmentModalSourceSlotId = ref<number | null>(null);
 const assignmentModalMode = ref<'assign' | 'edit'>('assign');
-const assignmentModalResetTimeoutId = ref<number | null>(null);
 const manualAssignmentModalOpen = ref(false);
 const manualAssignmentSlotId = ref<number | null>(null);
 const manualAssignmentSourceSlotId = ref<number | null>(null);
@@ -457,6 +456,31 @@ const dispatchQueueSyncEvent = (
 	}));
 };
 
+const numericIdsFromResponse = (value: unknown): number[] => {
+	if (!Array.isArray(value)) {
+		return [];
+	}
+
+	return value
+		.map((id) => Number(id))
+		.filter((id) => Number.isInteger(id));
+};
+
+const removeMissingAssignmentsFromResponse = (error: any) => {
+	const removeMissingAssignmentIds = numericIdsFromResponse(error?.response?.data?.remove_missing_assignment_ids);
+
+	if (removeMissingAssignmentIds.length === 0 || !currentActivity.value) {
+		return;
+	}
+
+	const removeMissingAssignmentIdSet = new Set(removeMissingAssignmentIds);
+
+	activityData.value = {
+		...currentActivity.value,
+		missing_assignments: currentActivity.value.missing_assignments.filter((entry) => !removeMissingAssignmentIdSet.has(entry.id)),
+	};
+};
+
 const applyManagementPatch = (patch: ActivityManagementPatch) => {
 	if (!currentActivity.value) {
 		return;
@@ -672,7 +696,7 @@ const openAssignmentModal = (payload: { slotId: number, application: QueueApplic
 		return;
 	}
 
-	cancelPendingAssignmentModalReset();
+	resetAssignmentModalState();
 	assignmentModalMode.value = 'assign';
 	assignmentModalSlotId.value = payload.slotId;
 	assignmentModalSourceSlotId.value = null;
@@ -680,33 +704,26 @@ const openAssignmentModal = (payload: { slotId: number, application: QueueApplic
 	assignmentModalVisible.value = true;
 };
 
-const cancelPendingAssignmentModalReset = () => {
-	if (assignmentModalResetTimeoutId.value === null) {
-		return;
-	}
-
-	window.clearTimeout(assignmentModalResetTimeoutId.value);
-	assignmentModalResetTimeoutId.value = null;
-};
-
 const closeAssignmentModal = () => {
 	assignmentModalVisible.value = false;
-	cancelPendingAssignmentModalReset();
-	assignmentModalResetTimeoutId.value = window.setTimeout(() => {
-		assignmentModalMode.value = 'assign';
-		assignmentModalSlotId.value = null;
-		assignmentModalSourceSlotId.value = null;
-		assignmentModalApplication.value = null;
-		assignmentModalResetTimeoutId.value = null;
-	}, 200);
 };
 
-const closeManualAssignmentModal = () => {
-	manualAssignmentModalOpen.value = false;
+const resetAssignmentModalState = () => {
+	assignmentModalMode.value = 'assign';
+	assignmentModalSlotId.value = null;
+	assignmentModalSourceSlotId.value = null;
+	assignmentModalApplication.value = null;
+};
+
+const resetManualAssignmentModalState = () => {
 	manualAssignmentSlotId.value = null;
 	manualAssignmentSourceSlotId.value = null;
 	manualAssignmentInitialCharacterId.value = null;
 	manualAssignmentCharacters.value = [];
+};
+
+const closeManualAssignmentModal = () => {
+	manualAssignmentModalOpen.value = false;
 };
 
 const fetchSlotAssignmentContext = async (slotId: number) => {
@@ -747,6 +764,7 @@ const openManualAssignmentModalForSlot = async (
 	}
 
 	try {
+		resetManualAssignmentModalState();
 		manualAssignmentCharacters.value = await fetchManualAssignmentOptions(slotId, options.sourceSlotId);
 		manualAssignmentSlotId.value = slotId;
 		manualAssignmentSourceSlotId.value = options.sourceSlotId ?? null;
@@ -779,13 +797,13 @@ const openAssignmentModalFromSlot = async (targetSlotId: number, sourceSlotId: n
 	}
 
 	try {
+		resetAssignmentModalState();
 		const application = await fetchSlotAssignmentContext(sourceSlotId);
 
 		if (!application) {
 			return;
 		}
 
-		cancelPendingAssignmentModalReset();
 		assignmentModalMode.value = 'assign';
 		assignmentModalSlotId.value = targetSlotId;
 		assignmentModalSourceSlotId.value = sourceSlotId;
@@ -832,7 +850,7 @@ const openSlotEditModal = async (slotId: number) => {
 	}
 
 	try {
-		cancelPendingAssignmentModalReset();
+		resetAssignmentModalState();
 		assignmentModalMode.value = 'edit';
 		assignmentModalSlotId.value = slotId;
 		assignmentModalSourceSlotId.value = null;
@@ -1266,6 +1284,8 @@ const undoMissingAssignment = async (assignmentId: number) => {
 			return;
 		}
 
+		removeMissingAssignmentsFromResponse(error);
+
 		const warningMessage = error?.response?.data?.errors?.assignment?.[0];
 
 		toast.add({
@@ -1351,6 +1371,24 @@ const handleAssignApplicantToSlot = async (payload: { applicationId: number, slo
 		if (await handleSlotStateConflict(error)) {
 			closeAssignmentModal();
 			return;
+		}
+
+		const removedQueueApplicationIds = numericIdsFromResponse(error?.response?.data?.queue_application_remove_ids);
+		const pendingApplicationCount = error?.response?.data?.pending_application_count;
+
+		if (typeof pendingApplicationCount === 'number' && currentActivity.value) {
+			activityData.value = {
+				...currentActivity.value,
+				pending_application_count: pendingApplicationCount,
+			};
+		}
+
+		if (removedQueueApplicationIds.length > 0) {
+			dispatchQueueSyncEvent([], removedQueueApplicationIds);
+
+			if (removedQueueApplicationIds.includes(payload.applicationId)) {
+				closeAssignmentModal();
+			}
 		}
 
 		toast.add({
@@ -1455,7 +1493,6 @@ onBeforeUnmount(() => {
 		echo.leave(subscribedManagementChannelName.value);
 	}
 
-	cancelPendingAssignmentModalReset();
 	window.removeEventListener('fullparty:activity-slot-returned-to-queue', handleSlotReturnedToQueue as EventListener);
 	window.removeEventListener('fullparty:activity-application-declined', handleApplicationDeclined as EventListener);
 });

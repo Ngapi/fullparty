@@ -21,7 +21,7 @@ return new class extends Migration
             $table->string('discord_invite_url')->nullable();
             $table->string('datacenter');
             $table->boolean('is_visible')->default(true);
-            $table->string('slug', 8)->unique();
+            $table->string('slug')->unique();
             $table->string('group_type', 32)->default('community');
             $table->string('join_mode', 32)->default('invite_only');
             $table->json('membership_application_schema')->nullable();
@@ -32,8 +32,8 @@ return new class extends Migration
             $table->json('tags')->nullable();
             $table->string('active_timezone')->nullable();
             $table->json('active_days')->nullable();
-            $table->string('active_start_time', 5)->nullable();
-            $table->string('active_end_time', 5)->nullable();
+            $table->string('active_start_time', 8)->nullable();
+            $table->string('active_end_time', 8)->nullable();
             $table->timestamps();
 
             $table->index('group_type');

@@ -254,11 +254,6 @@ export const useGroupCreateValidation = ({
 			isValid = false;
 		}
 
-		if (hasActiveStart && hasActiveEnd && form.active_start_time >= form.active_end_time) {
-			setFieldError("active_end_time", t("groups.common.validation.active_end_time_after_start"));
-			isValid = false;
-		}
-
 		return isValid;
 	};
 

@@ -46,6 +46,7 @@
     "actions": "Aktionen",
     "username": "Benutzername",
     "email": "E-Mail",
+    "email_or_username": "E-Mail oder Benutzername",
     "datacenter": "Datenzentrum",
     "members": "Mitglieder",
     "public": "Öffentlich",

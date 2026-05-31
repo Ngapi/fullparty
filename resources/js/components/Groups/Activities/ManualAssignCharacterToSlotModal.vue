@@ -141,8 +141,6 @@ watch(
 	() => props.open,
 	(value) => {
 		if (!value) {
-			selectedCharacterId.value = null
-			selections.value = {}
 			return
 		}
 
@@ -153,7 +151,11 @@ watch(
 watch(
 	() => [props.open, selectedCharacterId.value, props.slot?.id] as const,
 	() => {
-		if (!props.open || !props.slot || !selectedCharacter.value) {
+		if (!props.open) {
+			return
+		}
+
+		if (!props.slot || !selectedCharacter.value) {
 			selections.value = {}
 			return
 		}

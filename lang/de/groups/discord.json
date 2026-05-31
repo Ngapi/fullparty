@@ -6,6 +6,25 @@
         "subtitle": "Füge den Bot dem Discord-Server hinzu, den du für diese Gruppe nutzt.",
         "description": "Nachdem der Bot installiert ist, erstelle einen Link-Token und nutze ihn in Discord, damit FullParty diese Gruppe dem richtigen Server zuordnen kann."
     },
+    "setup": {
+        "invite": {
+            "title": "Bot einladen",
+            "subtitle": "Füge FullParty zu deinem Discord-Server hinzu.",
+            "description": "Lade zuerst den FullParty-Bot auf den Server ein, den diese Gruppe nutzt."
+        },
+        "link": {
+            "title": "Diese Gruppe verknüpfen",
+            "subtitle": "Erstelle einen Token und nutze ihn in Discord.",
+            "description": "Erstelle hier einen Link-Token und führe dann /link token auf deinem Discord-Server aus."
+        },
+        "complete": {
+            "title": "Einrichtung abschließen",
+            "subtitle": "FullParty zeigt die Bot-Einstellungen nach dem Verknüpfen an.",
+            "description": "Sobald der Befehl erfolgreich war, aktualisiere diese Seite. Danach erscheinen die Servereinstellungen.",
+            "command_title": "In Discord verwenden",
+            "command_description": "/link token"
+        }
+    },
     "status": {
         "title": "Verknüpfter Server",
         "subtitle": "Der aktuell mit dieser Gruppe verbundene Discord-Server.",

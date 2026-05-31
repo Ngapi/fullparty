@@ -288,6 +288,7 @@ it('exports a styled excel-compatible roster sheet', function () {
     expect($openResult)->toBeTrue();
 
     $sheetXml = $archive->getFromName('xl/worksheets/sheet1.xml');
+    $stylesXml = $archive->getFromName('xl/styles.xml');
 
     expect($sheetXml)->not->toBeFalse()
         ->and($sheetXml)->toContain('Party A')
@@ -319,6 +320,10 @@ it('exports a styled excel-compatible roster sheet', function () {
         ->and($sheetXml)->toContain('COUNTIF')
         ->and($sheetXml)->toContain('Roster!$R$4:$R$4')
         ->and($sheetXml)->toContain('Roster!$V$4:$V$11');
+
+    expect($stylesXml)->not->toBeFalse();
+    expect(strpos($sheetXml, '<conditionalFormatting'))->toBeLessThan(strpos($sheetXml, '<dataValidations'));
+    expect(strpos($stylesXml, '<cellStyles'))->toBeLessThan(strpos($stylesXml, '<dxfs'));
 
     expect($archive->locateName('xl/drawings/drawing1.xml'))->toBeFalse();
     expect($archive->locateName('xl/media/image1.png'))->toBeFalse();

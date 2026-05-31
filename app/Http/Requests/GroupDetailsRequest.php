@@ -53,7 +53,7 @@ abstract class GroupDetailsRequest extends FormRequest
             'preferred_languages.*' => ['required', 'string', Rule::in(config('group_discovery.preferred_languages', []))],
             'tags' => ['nullable', 'array', 'max:'.config('group_discovery.max_tags', 12)],
             'tags.*' => ['required', 'string', 'max:50'],
-            'active_timezone' => ['nullable', 'timezone:all'],
+            'active_timezone' => ['nullable', 'timezone:all_with_bc'],
             'active_days' => ['nullable', 'array'],
             'active_days.*' => ['required', 'string', Rule::in(config('group_discovery.active_days', []))],
             'active_start_time' => ['nullable', 'date_format:H:i'],

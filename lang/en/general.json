@@ -46,6 +46,7 @@
   "actions": "Actions",
   "username": "Username",
   "email": "Email",
+  "email_or_username": "Email or username",
   "datacenter": "Data Center",
   "members": "Members",
   "public": "Public",

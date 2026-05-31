@@ -1,6 +1,15 @@
 <?php
 
 return [
+    'activities' => [
+        'management' => [
+            'messages' => [
+                'application_cancelled_assignment' => 'Cette candidature a ete annulee et retiree de la file.',
+                'application_no_longer_pending_assignment' => 'Cette candidature n\'est plus en attente et a ete retiree de la file.',
+                'missing_application_cancelled' => 'Ce joueur a annule son inscription, l\'entree manquante a donc ete retiree.',
+            ],
+        ],
+    ],
     'membership_applications' => [
         'apply' => [
             'validation' => [

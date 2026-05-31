@@ -6,6 +6,25 @@
         "subtitle": "このグループで使うDiscordサーバーにBotを追加します。",
         "description": "Botをインストールしたら、リンクトークンを生成してDiscord内で使用し、FullPartyが正しいサーバーとグループを紐付けられるようにします。"
     },
+    "setup": {
+        "invite": {
+            "title": "Botを招待",
+            "subtitle": "FullPartyをDiscordサーバーに追加します。",
+            "description": "まず、このグループで使うサーバーにFullParty Botを招待してください。"
+        },
+        "link": {
+            "title": "このグループを連携",
+            "subtitle": "トークンを生成してDiscordで使用します。",
+            "description": "ここでリンクトークンを生成し、Discordサーバーで /link token を実行してください。"
+        },
+        "complete": {
+            "title": "設定を完了",
+            "subtitle": "連携後にFullPartyのBot設定が表示されます。",
+            "description": "コマンドが成功したらこのページを更新してください。サーバー設定が表示されます。",
+            "command_title": "Discordで使用",
+            "command_description": "/link token"
+        }
+    },
     "status": {
         "title": "連携中のサーバー",
         "subtitle": "このグループに現在接続されているDiscordサーバーです。",

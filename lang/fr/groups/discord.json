@@ -6,6 +6,25 @@
         "subtitle": "Ajoutez le bot au serveur Discord utilisé par ce groupe.",
         "description": "Une fois le bot installé, générez un jeton de liaison et utilisez-le dans Discord afin que FullParty associe ce groupe au bon serveur."
     },
+    "setup": {
+        "invite": {
+            "title": "Inviter le bot",
+            "subtitle": "Ajoutez FullParty à votre serveur Discord.",
+            "description": "Commencez par inviter le bot FullParty sur le serveur utilisé par ce groupe."
+        },
+        "link": {
+            "title": "Lier ce groupe",
+            "subtitle": "Générez un jeton et utilisez-le dans Discord.",
+            "description": "Générez un jeton de liaison ici, puis exécutez /link token sur votre serveur Discord."
+        },
+        "complete": {
+            "title": "Terminer la configuration",
+            "subtitle": "FullParty affichera les paramètres du bot après la liaison.",
+            "description": "Une fois la commande réussie, actualisez cette page pour voir les paramètres du serveur.",
+            "command_title": "À utiliser dans Discord",
+            "command_description": "/link token"
+        }
+    },
     "status": {
         "title": "Serveur lié",
         "subtitle": "Le serveur Discord actuellement connecté à ce groupe.",

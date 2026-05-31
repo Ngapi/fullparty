@@ -1063,6 +1063,68 @@ it('does not allow manually reassigning a character while they are still marked 
             ->count())->toBe(1);
 });
 
+it('prevents restoring missing application assignments after the applicant withdraws', function () {
+    extract(createRosterAssignmentSetup());
+    extract(createApplicantForAssignment($activity, $tankClass, $phantomKnight));
+
+    $this->actingAs($owner);
+
+    $this->postJson(route('groups.dashboard.activities.slot-assignments.store', [
+        'group' => $group->slug,
+        'activity' => $activity->id,
+        'slot' => $mainSlot->id,
+    ]), [
+        'application_id' => $application->id,
+        'expected_slot_state_token' => activity_slot_state_token($mainSlot),
+        'field_values' => [
+            'character_class' => (string) $tankClass->id,
+            'phantom_job' => (string) $phantomKnight->id,
+        ],
+    ])->assertOk();
+
+    $mainSlot = $mainSlot->fresh(['fieldValues', 'assignments']);
+
+    $this->postJson(route('groups.dashboard.activities.slot-missing.store', [
+        'group' => $group->slug,
+        'activity' => $activity->id,
+        'slot' => $mainSlot->id,
+    ]), [
+        'expected_slot_state_token' => activity_slot_state_token($mainSlot),
+    ])->assertOk();
+
+    $missingAssignment = ActivitySlotAssignment::query()
+        ->where('application_id', $application->id)
+        ->where('attendance_status', ActivitySlotAssignment::STATUS_MISSING)
+        ->sole();
+
+    $this->actingAs($user)
+        ->delete(route('account.applications.destroy', $application))
+        ->assertRedirect(route('account.applications'));
+
+    expect($application->fresh()->status)->toBe(ActivityApplication::STATUS_WITHDRAWN)
+        ->and($mainSlot->fresh()->assigned_character_id)->toBeNull();
+
+    $this->actingAs($owner)
+        ->getJson(route('groups.dashboard.activities.management-data', [
+            'group' => $group->slug,
+            'activity' => $activity->id,
+        ]))
+        ->assertOk()
+        ->assertJsonCount(0, 'activity.missing_assignments');
+
+    $this->postJson(route('groups.dashboard.activities.slot-missing.undo', [
+        'group' => $group->slug,
+        'activity' => $activity->id,
+        'assignment' => $missingAssignment->id,
+    ]))
+        ->assertStatus(422)
+        ->assertJsonValidationErrors(['assignment'])
+        ->assertJsonPath('message', 'This player cancelled their registration, so the missing entry was removed.')
+        ->assertJsonPath('remove_missing_assignment_ids.0', $missingAssignment->id);
+
+    expect($application->fresh()->status)->toBe(ActivityApplication::STATUS_WITHDRAWN);
+});
+
 it('does not allow assigning an application when the character is already in another slot', function () {
     extract(createRosterAssignmentSetup());
     extract(createGroupMemberCharacterForManualAssignment($group));
@@ -1123,6 +1185,43 @@ it('does not allow assigning an application when the character is already in ano
     expect($secondMainSlot->fresh()->assigned_character_id)->toBeNull()
         ->and($application->fresh()->status)->toBe(ActivityApplication::STATUS_PENDING);
 });
+
+it('returns queue removal details when assigning a stale unavailable application', function (string $status) {
+    extract(createRosterAssignmentSetup());
+    extract(createApplicantForAssignment($activity, $tankClass, $phantomKnight));
+
+    $application->update([
+        'status' => $status,
+        'reviewed_at' => now(),
+    ]);
+
+    $this->actingAs($owner);
+
+    $response = $this->postJson(route('groups.dashboard.activities.slot-assignments.store', [
+        'group' => $group->slug,
+        'activity' => $activity->id,
+        'slot' => $mainSlot->id,
+    ]), [
+        'application_id' => $application->id,
+        'expected_slot_state_token' => activity_slot_state_token($mainSlot),
+        'field_values' => [
+            'character_class' => (string) $tankClass->id,
+            'phantom_job' => (string) $phantomKnight->id,
+        ],
+    ]);
+
+    $response
+        ->assertStatus(422)
+        ->assertJsonValidationErrors(['application_id'])
+        ->assertJsonPath('message', 'This application was cancelled and has been removed from the queue.')
+        ->assertJsonPath('queue_application_remove_ids.0', $application->id);
+
+    expect($mainSlot->fresh()->assigned_character_id)->toBeNull()
+        ->and($application->fresh()->status)->toBe($status);
+})->with([
+    'cancelled application' => [ActivityApplication::STATUS_CANCELLED],
+    'withdrawn application' => [ActivityApplication::STATUS_WITHDRAWN],
+]);
 
 it('moves raid leader designations with manual reassignments between roster slots', function () {
     extract(createRosterAssignmentSetup());
