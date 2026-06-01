@@ -283,6 +283,13 @@ it('returns public upcoming runs for a linked discord guild', function () {
     $version = ActivityTypeVersion::factory()->create([
         'name' => ['en' => 'The Weapon\'s Refrain (Ultimate)'],
         'difficulty' => 'ultimate',
+        'prog_points' => [
+            [
+                'key' => 'titan-cleanup',
+                'label' => ['en' => 'Titan Cleanup'],
+                'order' => 3,
+            ],
+        ],
     ]);
 
     $first = Activity::factory()->create([
@@ -293,7 +300,57 @@ it('returns public upcoming runs for a linked discord guild', function () {
         'status' => Activity::STATUS_SCHEDULED,
         'starts_at' => now()->addHour(),
         'is_public' => true,
+        'target_prog_point_key' => 'titan-cleanup',
     ]);
+    $first->slots()->delete();
+
+    $assignedCharacter = Character::factory()->create([
+        'name' => 'Assigned One',
+    ]);
+    $secondAssignedCharacter = Character::factory()->create([
+        'name' => 'Assigned Two',
+    ]);
+
+    ActivitySlot::factory()->assignedTo($assignedCharacter)->create([
+        'activity_id' => $first->id,
+        'group_key' => 'party-a',
+        'slot_key' => 'party-a-slot-1',
+    ]);
+    ActivitySlot::factory()->assignedTo($secondAssignedCharacter)->create([
+        'activity_id' => $first->id,
+        'group_key' => 'party-a',
+        'slot_key' => 'party-a-slot-2',
+    ]);
+    ActivitySlot::factory()->create([
+        'activity_id' => $first->id,
+        'group_key' => 'party-a',
+        'slot_key' => 'party-a-slot-3',
+    ]);
+    ActivitySlot::factory()->assignedTo(Character::factory()->create())->create([
+        'activity_id' => $first->id,
+        'group_key' => 'bench',
+        'slot_key' => 'bench-slot-1',
+    ]);
+
+    ActivityApplication::factory()->create([
+        'activity_id' => $first->id,
+        'status' => ActivityApplication::STATUS_PENDING,
+    ]);
+    ActivityApplication::factory()->approved()->create([
+        'activity_id' => $first->id,
+    ]);
+    ActivityApplication::factory()->create([
+        'activity_id' => $first->id,
+        'status' => ActivityApplication::STATUS_ON_BENCH,
+    ]);
+    ActivityApplication::factory()->declined()->create([
+        'activity_id' => $first->id,
+    ]);
+    ActivityApplication::factory()->create([
+        'activity_id' => $first->id,
+        'status' => ActivityApplication::STATUS_WITHDRAWN,
+    ]);
+
     Activity::factory()->private()->create([
         'group_id' => $group->id,
         'activity_type_version_id' => $version->id,
@@ -341,6 +398,17 @@ it('returns public upcoming runs for a linked discord guild', function () {
         ->assertJsonPath('data.0.is_public', true)
         ->assertJsonPath('data.0.group.slug', 'guildgrp')
         ->assertJsonPath('data.0.activity_type.name.en', 'The Weapon\'s Refrain (Ultimate)')
+        ->assertJsonPath('data.0.target_prog_point_key', 'titan-cleanup')
+        ->assertJsonPath('data.0.target_prog_point.key', 'titan-cleanup')
+        ->assertJsonPath('data.0.target_prog_point.label.en', 'Titan Cleanup')
+        ->assertJsonPath('data.0.target_prog_point.order', 3)
+        ->assertJsonPath('data.0.counts.assigned_slots', 2)
+        ->assertJsonPath('data.0.counts.total_slots', 3)
+        ->assertJsonPath('data.0.counts.total_applicants', 3)
+        ->assertJsonPath('data.0.urls.application', route('groups.activities.application', [
+            'group' => $group,
+            'activity' => $first,
+        ], false))
         ->assertJsonPath('meta.discord_guild_id', '133700000000000001')
         ->assertJsonPath('meta.group.slug', 'guildgrp');
 });

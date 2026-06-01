@@ -102,9 +102,18 @@ class IntegrationGuildController extends Controller
         $activities = Activity::query()
             ->with([
                 'group:id,name,slug',
-                'activityTypeVersion:id,name,small_image_url,banner_image_url,difficulty',
+                'activityTypeVersion:id,name,small_image_url,banner_image_url,difficulty,prog_points',
                 'organizer:id,name',
                 'organizerCharacter:id,name,world,datacenter',
+            ])
+            ->withCount([
+                'slots as assigned_slot_count' => fn ($query) => $query
+                    ->where('group_key', '!=', 'bench')
+                    ->whereNotNull('assigned_character_id'),
+                'slots as total_slot_count' => fn ($query) => $query
+                    ->where('group_key', '!=', 'bench'),
+                'applications as total_applicant_count' => fn ($query) => $query
+                    ->whereIn('status', ActivityApplication::ACTIVE_STATUSES),
             ])
             ->where('group_id', $guildIntegration->group_id)
             ->where('is_public', true)
@@ -141,7 +150,7 @@ class IntegrationGuildController extends Controller
 
         $activity->loadMissing([
             'group:id,name,slug',
-            'activityTypeVersion:id,name,small_image_url,banner_image_url,difficulty',
+            'activityTypeVersion:id,name,small_image_url,banner_image_url,difficulty,prog_points',
             'organizer:id,name',
             'organizerCharacter:id,name,world,datacenter',
             'slots.assignedCharacter.user.discordUserIntegration',
@@ -260,6 +269,7 @@ class IntegrationGuildController extends Controller
     private function serializeGuildRun(Activity $activity): array
     {
         $activity->loadMissing(['group', 'activityTypeVersion', 'organizer', 'organizerCharacter']);
+        $counts = $this->serializeRunCounts($activity);
 
         return [
             'id' => $activity->id,
@@ -272,8 +282,10 @@ class IntegrationGuildController extends Controller
             'run_style' => $activity->run_style,
             'intensity' => $activity->intensity,
             'target_prog_point_key' => $activity->target_prog_point_key,
+            'target_prog_point' => $this->serializeTargetProgPoint($activity),
             'is_public' => (bool) $activity->is_public,
             'needs_application' => (bool) $activity->needs_application,
+            'counts' => $counts,
             'group' => $this->serializeGroup($activity->group),
             'activity_type' => [
                 'id' => $activity->activityTypeVersion?->id,
@@ -297,7 +309,78 @@ class IntegrationGuildController extends Controller
                     'group' => $activity->group,
                     'activity' => $activity,
                 ], false),
+                'application' => route('groups.activities.application', [
+                    'group' => $activity->group,
+                    'activity' => $activity,
+                ], false),
             ],
+        ];
+    }
+
+    /**
+     * @return array{key: string, label: mixed, order: int|null}|null
+     */
+    private function serializeTargetProgPoint(Activity $activity): ?array
+    {
+        if (blank($activity->target_prog_point_key)) {
+            return null;
+        }
+
+        $key = (string) $activity->target_prog_point_key;
+        $progPoint = collect($activity->activityTypeVersion?->prog_points ?? [])
+            ->filter(fn (mixed $point): bool => is_array($point))
+            ->first(fn (array $point): bool => ($point['key'] ?? null) === $key);
+
+        if (! is_array($progPoint)) {
+            return [
+                'key' => $key,
+                'label' => null,
+                'order' => null,
+            ];
+        }
+
+        return [
+            'key' => $key,
+            'label' => $progPoint['label'] ?? null,
+            'order' => isset($progPoint['order']) ? (int) $progPoint['order'] : null,
+        ];
+    }
+
+    /**
+     * @return array{assigned_slots: int, total_slots: int, total_applicants: int}
+     */
+    private function serializeRunCounts(Activity $activity): array
+    {
+        if ($activity->getAttribute('assigned_slot_count') !== null
+            && $activity->getAttribute('total_slot_count') !== null
+            && $activity->getAttribute('total_applicant_count') !== null) {
+            return [
+                'assigned_slots' => (int) $activity->getAttribute('assigned_slot_count'),
+                'total_slots' => (int) $activity->getAttribute('total_slot_count'),
+                'total_applicants' => (int) $activity->getAttribute('total_applicant_count'),
+            ];
+        }
+
+        $activity->loadMissing([
+            'slots:id,activity_id,group_key,assigned_character_id',
+            'applications:id,activity_id,status',
+        ]);
+
+        $mainSlots = $activity->slots
+            ->filter(fn (ActivitySlot $slot): bool => $slot->group_key !== 'bench');
+
+        return [
+            'assigned_slots' => $mainSlots
+                ->filter(fn (ActivitySlot $slot): bool => $slot->assigned_character_id !== null)
+                ->count(),
+            'total_slots' => $mainSlots->count(),
+            'total_applicants' => $activity->applications
+                ->filter(fn (ActivityApplication $application): bool => in_array(
+                    $application->status,
+                    ActivityApplication::ACTIVE_STATUSES,
+                    true
+                ))
+                ->count(),
         ];
     }
 
