@@ -33,9 +33,14 @@ type AuthNotificationUser = {
 	system_notice_notifications: boolean
 	email_notifications: boolean
 	discord_notifications: boolean
+	notification_preferences: NotificationPreferencePayload
 	notification_preferences_reviewed_at: string | null
 	discord_user_integration: AuthDiscordUserIntegration | null
 }
+
+type NotificationChannelKey = "in_app" | "email" | "discord"
+type ExternalNotificationChannelKey = "email" | "discord"
+type NotificationPreferencePayload = Record<string, Partial<Record<NotificationChannelKey, boolean>>>
 
 type NotificationPreferences = {
 	application_notifications: boolean
@@ -48,12 +53,32 @@ type NotificationPreferences = {
 	discord_notifications: boolean
 }
 
+type NotificationSettingsResponse = Partial<NotificationPreferences> & {
+	notification_preferences?: NotificationPreferencePayload
+}
+
 type QuickLink = {
 	label: string
 	description: string
 	icon: string
 	to: string
 }
+
+const externalNotificationTopics = [
+	{ key: "applications.submitted", email: true, discord: true },
+	{ key: "applications.host_updates", email: true, discord: true },
+	{ key: "applications.outcomes", email: true, discord: true },
+	{ key: "assignments.roster", email: true, discord: true },
+	{ key: "assignments.bench", email: true, discord: true },
+	{ key: "assignments.status", email: true, discord: true },
+	{ key: "assignments.designations", email: true, discord: true },
+	{ key: "runs.reminders", email: true, discord: true },
+	{ key: "runs.lifecycle", email: true, discord: true },
+	{ key: "account.connected_accounts", email: true, discord: true },
+	{ key: "characters.changes", email: true, discord: true },
+	{ key: "system.maintenance", email: true, discord: true },
+	{ key: "system.announcements", email: true, discord: true },
+] as const
 
 const { t } = useI18n()
 const page = usePage()
@@ -64,6 +89,7 @@ const notificationSaveState = ref<"idle" | "saving" | "saved" | "error">("idle")
 const notificationRequestId = ref(0)
 const onboardingSaveState = ref<"idle" | "saving" | "error">("idle")
 const localOnboardingState = ref<OnboardingState | null>(null)
+const notificationPreferenceChannels = ref<NotificationPreferencePayload>({})
 let notificationSaveStateTimer: number | null = null
 const forceOpenForTesting = false
 
@@ -173,10 +199,16 @@ const clearNotificationSaveStateTimer = () => {
 	notificationSaveStateTimer = null
 }
 
+const channelHasEnabledPreference = (channel: ExternalNotificationChannelKey) => externalNotificationTopics.some((topic) => (
+	topic[channel] && notificationPreferenceChannels.value[topic.key]?.[channel] === true
+))
+
 const syncNotificationPreferences = () => {
 	if (!user.value) {
 		return
 	}
+
+	notificationPreferenceChannels.value = user.value.notification_preferences ?? {}
 
 	notificationPreferences.value = {
 		application_notifications: user.value.application_notifications,
@@ -185,9 +217,42 @@ const syncNotificationPreferences = () => {
 		assignment_notifications: user.value.assignment_notifications,
 		account_character_notifications: user.value.account_character_notifications,
 		system_notice_notifications: user.value.system_notice_notifications,
-		email_notifications: user.value.email_notifications,
-		discord_notifications: hasDiscordIntegration.value && user.value.discord_notifications,
+		email_notifications: channelHasEnabledPreference("email"),
+		discord_notifications: hasDiscordIntegration.value && channelHasEnabledPreference("discord"),
 	}
+}
+
+const mergeChannelPreferencePayload = (
+	payload: NotificationPreferencePayload,
+	channel: ExternalNotificationChannelKey,
+	enabled: boolean,
+) => {
+	externalNotificationTopics.forEach((topic) => {
+		if (!topic[channel]) {
+			return
+		}
+
+		payload[topic.key] = {
+			...payload[topic.key],
+			[channel]: enabled,
+		}
+	})
+}
+
+const buildNotificationPreferencesPayload = (
+	changes: Partial<NotificationPreferences>,
+) => {
+	const payload: NotificationPreferencePayload = {}
+
+	if ("email_notifications" in changes) {
+		mergeChannelPreferencePayload(payload, "email", Boolean(changes.email_notifications))
+	}
+
+	if ("discord_notifications" in changes && hasDiscordIntegration.value) {
+		mergeChannelPreferencePayload(payload, "discord", Boolean(changes.discord_notifications))
+	}
+
+	return payload
 }
 
 const close = () => {
@@ -351,7 +416,11 @@ const saveNotificationPreferences = async (changes: Partial<NotificationPreferen
 	clearNotificationSaveStateTimer()
 
 	try {
-		const response = await axios.post(route("settings.notifications"), notificationPreferences.value, {
+		const notificationPreferencesPayload = buildNotificationPreferencesPayload(changes)
+		const response = await axios.post(route("settings.notifications"), {
+			...notificationPreferences.value,
+			notification_preferences: notificationPreferencesPayload,
+		}, {
 			headers: {
 				Accept: "application/json",
 			},
@@ -361,9 +430,11 @@ const saveNotificationPreferences = async (changes: Partial<NotificationPreferen
 			return
 		}
 
-		const notifications = response.data?.notifications as Partial<NotificationPreferences> | undefined
+		const notifications = response.data?.notifications as NotificationSettingsResponse | undefined
 
 		if (notifications) {
+			notificationPreferenceChannels.value = notifications.notification_preferences ?? notificationPreferenceChannels.value
+
 			notificationPreferences.value = {
 				application_notifications: Boolean(notifications.application_notifications),
 				run_and_reminder_notifications: Boolean(notifications.run_and_reminder_notifications),
@@ -371,8 +442,8 @@ const saveNotificationPreferences = async (changes: Partial<NotificationPreferen
 				assignment_notifications: Boolean(notifications.assignment_notifications),
 				account_character_notifications: Boolean(notifications.account_character_notifications),
 				system_notice_notifications: Boolean(notifications.system_notice_notifications),
-				email_notifications: Boolean(notifications.email_notifications),
-				discord_notifications: hasDiscordIntegration.value && Boolean(notifications.discord_notifications),
+				email_notifications: channelHasEnabledPreference("email"),
+				discord_notifications: hasDiscordIntegration.value && channelHasEnabledPreference("discord"),
 			}
 		}
 		notificationSaveState.value = "saved"
