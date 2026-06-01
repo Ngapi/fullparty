@@ -126,12 +126,12 @@
     "kick_modal": {
         "title": "Retirer {name} ?",
         "subtitle": "Cela retirera le membre sélectionné de {group}.",
-        "warning": "They will lose dashboard access immediately and will need to rejoin through an open join mode or a fresh invite."
+        "warning": "Il perdra immédiatement l'accès au tableau de bord et devra rejoindre via un mode d'accès ouvert ou une nouvelle invitation."
     },
     "ban_modal": {
         "title": "Bannir {name} ?",
         "subtitle": "Cela retirera le membre sélectionné de {group} et l'empêchera de rejoindre à nouveau.",
-        "warning": "Banned users can still view discoverable groups, but they will not be able to join through open access or invite links.",
+        "warning": "Les utilisateurs bannis peuvent toujours voir les groupes découvrables, mais ils ne pourront pas les rejoindre via l'accès ouvert ou les liens d'invitation.",
         "reason": {
             "label": "Raison",
             "help": "Optionnel. Ajoutez une note expliquant pourquoi ce bannissement a été appliqué.",

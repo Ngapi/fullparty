@@ -145,21 +145,21 @@
     },
     "runs": {
         "cancelled": {
-            "title": "Run cancelled",
-            "body": "{activity} was cancelled.",
-            "body_with_reason": "{activity} was cancelled. Raison : {reason}"
+            "title": "Run annulé",
+            "body": "{activity} a été annulé.",
+            "body_with_reason": "{activity} a été annulé. Raison : {reason}"
         },
         "starting_soon": {
-            "title": "Run starting soon",
-            "body": "{activity} is starting soon."
+            "title": "Run sur le point de commencer",
+            "body": "{activity} commence bientôt."
         },
         "starting_now": {
-            "title": "Run starting now",
-            "body": "{activity} is starting now."
+            "title": "Run en cours de démarrage",
+            "body": "{activity} commence maintenant."
         },
         "completed": {
-            "title": "Run complete",
-            "body": "{activity} is now complete."
+            "title": "Run terminé",
+            "body": "{activity} est maintenant terminé."
         }
     },
     "groups": {
@@ -168,43 +168,43 @@
             "body": "{activity} est actuellement à l'état de brouillon pour {group}."
         },
         "run_scheduled": {
-            "title": "New run scheduled",
-            "body": "{activity} was scheduled for {group}."
+            "title": "Nouveau run planifié",
+            "body": "{activity} a été planifié pour {group}."
         },
         "member_promoted": {
-            "title": "Role updated",
-            "body": "Your role in {group} was updated to {role}."
+            "title": "Rôle mis à jour",
+            "body": "Votre rôle dans {group} a été mis à jour en {role}."
         },
         "member_demoted": {
-            "title": "Role updated",
-            "body": "Your role in {group} was updated to {role}."
+            "title": "Rôle mis à jour",
+            "body": "Votre rôle dans {group} a été mis à jour en {role}."
         },
         "ownership_transferred_to_you": {
             "title": "Propriété du groupe transférée",
-            "body": "{group} was transferred to you by {user}."
+            "body": "{group} vous a été transféré par {user}."
         },
         "ownership_transferred_from_you": {
             "title": "Propriété du groupe transférée",
-            "body": "You transferred ownership of {group} to {user}."
+            "body": "Vous avez transféré la propriété de {group} à {user}."
         },
         "member_joined": {
-            "title": "Member joined",
-            "body": "{user} joined {group}."
+            "title": "Nouveau membre",
+            "body": "{user} a rejoint {group}."
         },
         "member_left": {
-            "title": "Member left",
-            "body": "{user} left {group}."
+            "title": "Départ d'un membre",
+            "body": "{user} a quitté {group}."
         },
         "member_banned": {
-            "title": "Removed from group",
-            "body": "You were banned from {group}."
+            "title": "Retiré du groupe",
+            "body": "Vous avez été banni de {group}."
         }
     },
     "system": {
         "maintenance": {
             "title": "{headline}",
             "body": "{message}",
-            "body_with_schedule": "{message}\nScheduled for: {scheduled_for}"
+            "body_with_schedule": "{message}\nPrévu pour : {scheduled_for}"
         },
         "announcement": {
             "title": "{headline}",
