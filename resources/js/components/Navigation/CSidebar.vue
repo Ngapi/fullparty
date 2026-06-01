@@ -58,9 +58,14 @@ const full_logo = "/logos/full.png";
 const compact_logo = "/logos/compact.png";
 const currentUrl = computed(() => page.url)
 const isAdmin = computed(() => Boolean(page.props.auth?.user?.is_admin))
-const groupQuickLinks = computed(() => page.props.navigation?.group_quick_links ?? {
-	my: [],
-	joined: [],
+const normalizeQuickLinks = (items) => Array.isArray(items) ? items : []
+const groupQuickLinks = computed(() => {
+	const quickLinks = page.props.navigation?.group_quick_links ?? {}
+
+	return {
+		my: normalizeQuickLinks(quickLinks.my),
+		joined: normalizeQuickLinks(quickLinks.joined),
+	}
 })
 const groupDrawerOpen = ref({
 	my: false,

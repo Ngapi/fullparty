@@ -266,7 +266,26 @@ it('returns public upcoming runs for a linked discord guild', function () {
             ],
         ]);
 
+    $host = User::factory()->create([
+        'name' => 'Host Person',
+        'avatar_url' => 'https://example.com/host-avatar.png',
+    ]);
+    $hostCharacter = Character::factory()->primary()->create([
+        'user_id' => $host->id,
+        'name' => 'Host Character',
+        'world' => 'Twintania',
+        'datacenter' => 'Light',
+        'avatar_url' => 'https://example.com/host-character.png',
+    ]);
+    DiscordUserIntegration::query()->create([
+        'user_id' => $host->id,
+        'discord_user_id' => '800000000000000001',
+        'username' => 'host-person',
+        'user_app_installed_at' => now(),
+    ]);
+
     $group = Group::factory()->create([
+        'owner_id' => $host->id,
         'name' => 'Guild Linked Group',
         'slug' => 'guildgrp',
     ]);
@@ -297,6 +316,8 @@ it('returns public upcoming runs for a linked discord guild', function () {
         'activity_type_version_id' => $version->id,
         'activity_type_id' => $version->activity_type_id,
         'title' => 'Soon public',
+        'organized_by_user_id' => $host->id,
+        'organized_by_character_id' => $hostCharacter->id,
         'status' => Activity::STATUS_SCHEDULED,
         'starts_at' => now()->addHour(),
         'is_public' => true,
@@ -402,6 +423,14 @@ it('returns public upcoming runs for a linked discord guild', function () {
         ->assertJsonPath('data.0.target_prog_point.key', 'titan-cleanup')
         ->assertJsonPath('data.0.target_prog_point.label.en', 'Titan Cleanup')
         ->assertJsonPath('data.0.target_prog_point.order', 3)
+        ->assertJsonPath('data.0.host.user_id', $host->id)
+        ->assertJsonPath('data.0.host.name', 'Host Person')
+        ->assertJsonPath('data.0.host.avatar_url', 'https://example.com/host-avatar.png')
+        ->assertJsonPath('data.0.host.discord_user_id', '800000000000000001')
+        ->assertJsonPath('data.0.host.character.name', 'Host Character')
+        ->assertJsonPath('data.0.host.character.avatar_url', 'https://example.com/host-character.png')
+        ->assertJsonPath('data.0.organizer.discord_user_id', '800000000000000001')
+        ->assertJsonPath('data.0.organizer.avatar_url', 'https://example.com/host-avatar.png')
         ->assertJsonPath('data.0.counts.assigned_slots', 2)
         ->assertJsonPath('data.0.counts.total_slots', 3)
         ->assertJsonPath('data.0.counts.total_applicants', 3)

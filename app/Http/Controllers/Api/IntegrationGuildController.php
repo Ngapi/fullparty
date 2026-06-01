@@ -103,8 +103,9 @@ class IntegrationGuildController extends Controller
             ->with([
                 'group:id,name,slug',
                 'activityTypeVersion:id,name,small_image_url,banner_image_url,difficulty,prog_points',
-                'organizer:id,name',
-                'organizerCharacter:id,name,world,datacenter',
+                'organizer:id,name,avatar_url',
+                'organizer.discordUserIntegration:id,user_id,discord_user_id,user_app_installed_at',
+                'organizerCharacter:id,name,world,datacenter,avatar_url',
             ])
             ->withCount([
                 'slots as assigned_slot_count' => fn ($query) => $query
@@ -151,8 +152,9 @@ class IntegrationGuildController extends Controller
         $activity->loadMissing([
             'group:id,name,slug',
             'activityTypeVersion:id,name,small_image_url,banner_image_url,difficulty,prog_points',
-            'organizer:id,name',
-            'organizerCharacter:id,name,world,datacenter',
+            'organizer:id,name,avatar_url',
+            'organizer.discordUserIntegration:id,user_id,discord_user_id,user_app_installed_at',
+            'organizerCharacter:id,name,world,datacenter,avatar_url',
             'slots.assignedCharacter.user.discordUserIntegration',
             'slots.assignedCharacter.user.primaryCharacter',
             'applications.user.discordUserIntegration',
@@ -268,8 +270,14 @@ class IntegrationGuildController extends Controller
      */
     private function serializeGuildRun(Activity $activity): array
     {
-        $activity->loadMissing(['group', 'activityTypeVersion', 'organizer', 'organizerCharacter']);
+        $activity->loadMissing([
+            'group',
+            'activityTypeVersion',
+            'organizer.discordUserIntegration',
+            'organizerCharacter',
+        ]);
         $counts = $this->serializeRunCounts($activity);
+        $host = $this->serializeRunHost($activity);
 
         return [
             'id' => $activity->id,
@@ -297,13 +305,17 @@ class IntegrationGuildController extends Controller
             'organizer' => [
                 'id' => $activity->organizer?->id,
                 'name' => $activity->organizer?->name,
+                'avatar_url' => $activity->organizer?->avatar_url,
+                'discord_user_id' => $this->activeDiscordUserId($activity->organizer),
                 'character' => $activity->organizerCharacter ? [
                     'id' => $activity->organizerCharacter->id,
                     'name' => $activity->organizerCharacter->name,
                     'world' => $activity->organizerCharacter->world,
                     'datacenter' => $activity->organizerCharacter->datacenter,
+                    'avatar_url' => $activity->organizerCharacter->avatar_url,
                 ] : null,
             ],
+            'host' => $host,
             'urls' => [
                 'overview' => route('groups.activities.overview', [
                     'group' => $activity->group,
@@ -314,6 +326,26 @@ class IntegrationGuildController extends Controller
                     'activity' => $activity,
                 ], false),
             ],
+        ];
+    }
+
+    /**
+     * @return array{user_id: int|null, name: string|null, avatar_url: string|null, discord_user_id: string|null, character: array{id: int, name: string, world: string, datacenter: string, avatar_url: string|null}|null}
+     */
+    private function serializeRunHost(Activity $activity): array
+    {
+        return [
+            'user_id' => $activity->organizer?->id,
+            'name' => $activity->organizer?->name,
+            'avatar_url' => $activity->organizer?->avatar_url,
+            'discord_user_id' => $this->activeDiscordUserId($activity->organizer),
+            'character' => $activity->organizerCharacter ? [
+                'id' => $activity->organizerCharacter->id,
+                'name' => $activity->organizerCharacter->name,
+                'world' => $activity->organizerCharacter->world,
+                'datacenter' => $activity->organizerCharacter->datacenter,
+                'avatar_url' => $activity->organizerCharacter->avatar_url,
+            ] : null,
         ];
     }
 
