@@ -583,6 +583,25 @@ it('renders assignment notification emails with translated copy instead of raw k
         ->and($message['body'])->toBe('The roster for Weekly Savage has been published. You are assigned to Party A 1 as Astra Vale.');
 });
 
+it('renders same-origin notification action urls without a fixed locale for browser preference', function () {
+    $recipient = User::factory()->create();
+
+    $event = NotificationEvent::query()->forceCreate([
+        'type' => 'user.social_account.linked',
+        'category' => NotificationCategory::ACCOUNT_CHARACTER_UPDATES,
+        'title_key' => 'notifications.user.social_account.linked.title',
+        'body_key' => 'notifications.user.social_account.linked.body',
+        'message_params' => [
+            'provider' => 'Discord',
+        ],
+        'action_url' => 'http://fullparty.test/en/settings?tab=notifications#channels',
+    ]);
+
+    $message = app(NotificationMessageRenderer::class)->render($event, $recipient);
+
+    expect($message['action_url'])->toBe('http://fullparty.test/settings?tab=notifications#channels');
+});
+
 it('rejects invalid notification categories', function () {
     app(NotificationService::class)->createEvent(
         type: 'applications.submitted',

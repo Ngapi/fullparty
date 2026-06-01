@@ -6,6 +6,7 @@ use App\Models\ActivitySlot;
 use App\Models\ActivityTypeVersion;
 use App\Models\AuditLog;
 use App\Models\Character;
+use App\Models\DiscordGuildIntegration;
 use App\Models\DiscordUserIntegration;
 use App\Models\Group;
 use App\Models\IntegrationClient;
@@ -253,6 +254,246 @@ it('returns only ongoing applications for a linked discord user', function () {
         ->assertJsonPath('data.0.character.name', 'Api Applicant')
         ->assertJsonPath('data.0.activity.display_name', 'Application Run 3')
         ->assertJsonPath('data.2.id', $pending->id);
+});
+
+it('returns public upcoming runs for a linked discord guild', function () {
+    $token = IntegrationClient::makePlainApiToken();
+    IntegrationClient::factory()
+        ->withApiToken($token)
+        ->create([
+            'scopes' => [
+                IntegrationClient::SCOPE_RUNS_READ,
+            ],
+        ]);
+
+    $group = Group::factory()->create([
+        'name' => 'Guild Linked Group',
+        'slug' => 'guildgrp',
+    ]);
+    DiscordGuildIntegration::query()->create([
+        'group_id' => $group->id,
+        'discord_guild_id' => '133700000000000001',
+        'name' => 'Guild One',
+        'guild_installed_at' => now(),
+    ]);
+
+    $otherGroup = Group::factory()->create([
+        'slug' => 'othergrp',
+    ]);
+    $version = ActivityTypeVersion::factory()->create([
+        'name' => ['en' => 'The Weapon\'s Refrain (Ultimate)'],
+        'difficulty' => 'ultimate',
+    ]);
+
+    $first = Activity::factory()->create([
+        'group_id' => $group->id,
+        'activity_type_version_id' => $version->id,
+        'activity_type_id' => $version->activity_type_id,
+        'title' => 'Soon public',
+        'status' => Activity::STATUS_SCHEDULED,
+        'starts_at' => now()->addHour(),
+        'is_public' => true,
+    ]);
+    Activity::factory()->private()->create([
+        'group_id' => $group->id,
+        'activity_type_version_id' => $version->id,
+        'activity_type_id' => $version->activity_type_id,
+        'title' => 'Private hidden',
+        'status' => Activity::STATUS_SCHEDULED,
+        'starts_at' => now()->addMinutes(30),
+    ]);
+    Activity::factory()->create([
+        'group_id' => $group->id,
+        'activity_type_version_id' => $version->id,
+        'activity_type_id' => $version->activity_type_id,
+        'title' => 'Past hidden',
+        'status' => Activity::STATUS_SCHEDULED,
+        'starts_at' => now()->subMinute(),
+        'is_public' => true,
+    ]);
+    Activity::factory()->complete()->create([
+        'group_id' => $group->id,
+        'activity_type_version_id' => $version->id,
+        'activity_type_id' => $version->activity_type_id,
+        'title' => 'Complete hidden',
+        'starts_at' => now()->addMinutes(45),
+        'is_public' => true,
+    ]);
+    Activity::factory()->create([
+        'group_id' => $otherGroup->id,
+        'activity_type_version_id' => $version->id,
+        'activity_type_id' => $version->activity_type_id,
+        'title' => 'Other group hidden',
+        'status' => Activity::STATUS_SCHEDULED,
+        'starts_at' => now()->addMinutes(15),
+        'is_public' => true,
+    ]);
+
+    $this->getJson(route('api.integrations.discord-guilds.upcoming-runs.index', [
+        'discordGuildId' => '133700000000000001',
+    ]), [
+        'Authorization' => 'Bearer '.$token,
+    ])
+        ->assertOk()
+        ->assertJsonCount(1, 'data')
+        ->assertJsonPath('data.0.id', $first->id)
+        ->assertJsonPath('data.0.display_name', 'Soon public')
+        ->assertJsonPath('data.0.is_public', true)
+        ->assertJsonPath('data.0.group.slug', 'guildgrp')
+        ->assertJsonPath('data.0.activity_type.name.en', 'The Weapon\'s Refrain (Ultimate)')
+        ->assertJsonPath('meta.discord_guild_id', '133700000000000001')
+        ->assertJsonPath('meta.group.slug', 'guildgrp');
+});
+
+it('returns role assignment participants with discord ids and an unlinked count for a guild run', function () {
+    $token = IntegrationClient::makePlainApiToken();
+    IntegrationClient::factory()
+        ->withApiToken($token)
+        ->create([
+            'scopes' => [
+                IntegrationClient::SCOPE_RUNS_READ,
+            ],
+        ]);
+
+    $group = Group::factory()->create([
+        'slug' => 'rolesgrp',
+    ]);
+    DiscordGuildIntegration::query()->create([
+        'group_id' => $group->id,
+        'discord_guild_id' => '133700000000000002',
+        'name' => 'Role Guild',
+        'guild_installed_at' => now(),
+    ]);
+    $version = ActivityTypeVersion::factory()->create([
+        'name' => ['en' => 'AAC Cruiserweight M4 (Savage)'],
+        'difficulty' => 'savage',
+    ]);
+    $activity = Activity::factory()->create([
+        'group_id' => $group->id,
+        'activity_type_version_id' => $version->id,
+        'activity_type_id' => $version->activity_type_id,
+        'title' => 'Role Run',
+        'status' => Activity::STATUS_ASSIGNED,
+        'starts_at' => now()->addHour(),
+    ]);
+    $activity->slots()->delete();
+
+    $linkedUser = User::factory()->create();
+    $linkedCharacter = Character::factory()->primary()->create([
+        'user_id' => $linkedUser->id,
+        'name' => 'Linked Slot',
+        'world' => 'Twintania',
+        'datacenter' => 'Light',
+    ]);
+    DiscordUserIntegration::query()->create([
+        'user_id' => $linkedUser->id,
+        'discord_user_id' => '900000000000000001',
+        'username' => 'linked-slot',
+        'user_app_installed_at' => now(),
+    ]);
+    ActivitySlot::factory()->assignedTo($linkedCharacter)->create([
+        'activity_id' => $activity->id,
+        'group_key' => 'party-a',
+        'group_label' => ['en' => 'Party A'],
+        'slot_key' => 'party-a-slot-1',
+        'slot_label' => ['en' => 'Party A 1'],
+        'sort_order' => 1,
+    ]);
+    ActivityApplication::factory()->approved()->create([
+        'activity_id' => $activity->id,
+        'user_id' => $linkedUser->id,
+        'selected_character_id' => $linkedCharacter->id,
+    ]);
+
+    $benchUser = User::factory()->create();
+    $benchCharacter = Character::factory()->primary()->create([
+        'user_id' => $benchUser->id,
+        'name' => 'Linked Bench',
+        'world' => 'Lich',
+        'datacenter' => 'Light',
+    ]);
+    DiscordUserIntegration::query()->create([
+        'user_id' => $benchUser->id,
+        'discord_user_id' => '900000000000000002',
+        'username' => 'linked-bench',
+        'user_app_installed_at' => now(),
+    ]);
+    ActivityApplication::factory()->create([
+        'activity_id' => $activity->id,
+        'user_id' => $benchUser->id,
+        'selected_character_id' => $benchCharacter->id,
+        'status' => ActivityApplication::STATUS_ON_BENCH,
+    ]);
+
+    $unlinkedUser = User::factory()->create();
+    $unlinkedCharacter = Character::factory()->primary()->create([
+        'user_id' => $unlinkedUser->id,
+        'name' => 'No Discord',
+    ]);
+    ActivitySlot::factory()->assignedTo($unlinkedCharacter)->create([
+        'activity_id' => $activity->id,
+        'group_key' => 'party-a',
+        'slot_key' => 'party-a-slot-2',
+        'slot_label' => ['en' => 'Party A 2'],
+        'sort_order' => 2,
+    ]);
+
+    $response = $this->getJson(route('api.integrations.discord-guilds.runs.role-assignment', [
+        'discordGuildId' => '133700000000000002',
+        'activity' => $activity,
+    ]), [
+        'Authorization' => 'Bearer '.$token,
+    ]);
+
+    $response
+        ->assertOk()
+        ->assertJsonPath('data.run.id', $activity->id)
+        ->assertJsonPath('data.run.display_name', 'Role Run')
+        ->assertJsonPath('data.discord_guild.id', '133700000000000002')
+        ->assertJsonPath('data.discord_user_ids.0', '900000000000000001')
+        ->assertJsonPath('data.discord_user_ids.1', '900000000000000002')
+        ->assertJsonPath('data.participants.0.discord_user_id', '900000000000000001')
+        ->assertJsonPath('data.participants.0.source', 'slot')
+        ->assertJsonPath('data.participants.0.character.name', 'Linked Slot')
+        ->assertJsonPath('data.participants.0.slot.slot_key', 'party-a-slot-1')
+        ->assertJsonPath('data.participants.1.discord_user_id', '900000000000000002')
+        ->assertJsonPath('data.participants.1.source', 'application')
+        ->assertJsonPath('data.participants.1.character.name', 'Linked Bench')
+        ->assertJsonPath('data.unlinked_count', 1)
+        ->assertJsonPath('data.total_placed_count', 3);
+});
+
+it('does not return role assignment data for a run outside the linked guild group', function () {
+    $token = IntegrationClient::makePlainApiToken();
+    IntegrationClient::factory()
+        ->withApiToken($token)
+        ->create([
+            'scopes' => [
+                IntegrationClient::SCOPE_RUNS_READ,
+            ],
+        ]);
+
+    $linkedGroup = Group::factory()->create([
+        'slug' => 'linkedgp',
+    ]);
+    DiscordGuildIntegration::query()->create([
+        'group_id' => $linkedGroup->id,
+        'discord_guild_id' => '133700000000000003',
+        'guild_installed_at' => now(),
+    ]);
+
+    $otherActivity = Activity::factory()->create([
+        'group_id' => Group::factory()->create(['slug' => 'wronggrp'])->id,
+        'status' => Activity::STATUS_SCHEDULED,
+        'starts_at' => now()->addHour(),
+    ]);
+
+    $this->getJson(route('api.integrations.discord-guilds.runs.role-assignment', [
+        'discordGuildId' => '133700000000000003',
+        'activity' => $otherActivity,
+    ]), [
+        'Authorization' => 'Bearer '.$token,
+    ])->assertNotFound();
 });
 
 it('returns not found when an integration asks for an unlinked discord user', function () {

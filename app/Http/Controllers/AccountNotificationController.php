@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\SystemNotificationBroadcast;
 use App\Models\UserNotification;
+use App\Services\Notifications\NotificationActionUrlService;
 use App\Services\Notifications\NotificationInboxService;
 use App\Services\Notifications\NotificationRealtimeService;
 use Illuminate\Http\JsonResponse;
@@ -19,6 +20,7 @@ class AccountNotificationController extends Controller
     public function __construct(
         private readonly NotificationInboxService $notificationInboxService,
         private readonly NotificationRealtimeService $notificationRealtimeService,
+        private readonly NotificationActionUrlService $notificationActionUrlService,
     ) {}
 
     public function index(Request $request): Response
@@ -77,7 +79,10 @@ class AccountNotificationController extends Controller
 
         $notification->loadMissing('notificationEvent');
 
-        return redirect()->to($this->sameOriginActionUrl($request, $notification->notificationEvent?->action_url));
+        return redirect()->to($this->notificationActionUrlService->forRequest(
+            $request,
+            $notification->notificationEvent?->action_url,
+        ));
     }
 
     public function openBroadcast(Request $request, SystemNotificationBroadcast $broadcast): RedirectResponse
@@ -86,36 +91,10 @@ class AccountNotificationController extends Controller
         $this->notificationRealtimeService->broadcastUserInboxUpdated($request->user());
 
         return redirect()->to(
-            $this->notificationInboxService->broadcastActionUrl($broadcast)
+            $this->notificationActionUrlService->forRequest(
+                $request,
+                $this->notificationInboxService->broadcastActionUrl($broadcast),
+            )
         );
-    }
-
-    private function sameOriginActionUrl(Request $request, ?string $actionUrl): string
-    {
-        if (blank($actionUrl)) {
-            return route('account.notifications.index');
-        }
-
-        if (str_starts_with($actionUrl, '/') && ! str_starts_with($actionUrl, '//')) {
-            return $actionUrl;
-        }
-
-        $parts = parse_url($actionUrl);
-
-        if (! is_array($parts) || ! isset($parts['scheme'], $parts['host'])) {
-            return route('account.notifications.index');
-        }
-
-        if (! in_array(strtolower((string) $parts['scheme']), ['http', 'https'], true)) {
-            return route('account.notifications.index');
-        }
-
-        $port = isset($parts['port']) ? ':'.$parts['port'] : '';
-        $actionOrigin = strtolower($parts['scheme'].'://'.$parts['host'].$port);
-        $requestOrigin = strtolower($request->getSchemeAndHttpHost());
-
-        return hash_equals($requestOrigin, $actionOrigin)
-            ? $actionUrl
-            : route('account.notifications.index');
     }
 }

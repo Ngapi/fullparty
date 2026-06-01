@@ -22,6 +22,14 @@ Route::prefix('integrations')
 
         Route::middleware('integration.client:'.IntegrationClient::SCOPE_RUNS_READ)
             ->group(function () {
+                Route::get('/discord-guilds/{discordGuildId}/upcoming-runs', [IntegrationGuildController::class, 'upcomingRuns'])
+                    ->whereNumber('discordGuildId')
+                    ->name('api.integrations.discord-guilds.upcoming-runs.index');
+
+                Route::get('/discord-guilds/{discordGuildId}/runs/{activity}/role-assignment', [IntegrationGuildController::class, 'roleAssignment'])
+                    ->whereNumber('discordGuildId')
+                    ->name('api.integrations.discord-guilds.runs.role-assignment');
+
                 Route::get('/discord-users/{discordUserId}/upcoming-runs', [IntegrationUserController::class, 'upcomingRuns'])
                     ->whereNumber('discordUserId')
                     ->name('api.integrations.discord-users.upcoming-runs.index');

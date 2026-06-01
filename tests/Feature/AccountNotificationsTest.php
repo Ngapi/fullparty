@@ -222,7 +222,7 @@ it('opens a notification, marks it as read, and redirects to its action url', fu
     $this->actingAs($user);
 
     $this->get(route('account.notifications.open', $notification))
-        ->assertRedirect('/settings');
+        ->assertRedirect('/en/settings');
 
     expect($notification->fresh()->read_at)->not->toBeNull();
 
@@ -230,6 +230,44 @@ it('opens a notification, marks it as read, and redirects to its action url', fu
     Event::assertDispatched(UserNotificationsUpdated::class, function (UserNotificationsUpdated $event) use ($user) {
         return $event->userId === $user->id;
     });
+});
+
+it('opens notification action urls using the current locale', function () {
+    Event::fake([UserNotificationsUpdated::class]);
+
+    $user = User::factory()->create();
+    $notification = createNotificationForUser(
+        $user,
+        actionUrl: '/en/settings?tab=notifications#channels',
+    );
+
+    $this->actingAs($user);
+
+    $this->get(route('account.notifications.open', [
+        'locale' => 'de',
+        'notification' => $notification,
+    ]))->assertRedirect('/de/settings?tab=notifications#channels');
+
+    expect($notification->fresh()->read_at)->not->toBeNull();
+});
+
+it('opens same-origin absolute notification action urls using the current locale', function () {
+    Event::fake([UserNotificationsUpdated::class]);
+
+    $user = User::factory()->create();
+    $notification = createNotificationForUser(
+        $user,
+        actionUrl: 'http://fullparty.test/en/account/applications',
+    );
+
+    $this->actingAs($user);
+
+    $this->get(route('account.notifications.open', [
+        'locale' => 'ja',
+        'notification' => $notification,
+    ]))->assertRedirect('/ja/account/applications');
+
+    expect($notification->fresh()->read_at)->not->toBeNull();
 });
 
 it('redirects notification opens without an action url back to the notifications page', function () {
@@ -286,11 +324,32 @@ it('opens a broadcast notification, marks it as read, and redirects to its actio
 
     $this->actingAs($user)
         ->get(route('account.notifications.broadcasts.open', $broadcast))
-        ->assertRedirect('/settings');
+        ->assertRedirect('/en/settings');
 
     expect($broadcast->reads()->where('user_id', $user->id)->exists())->toBeTrue();
 
     Event::assertDispatchedTimes(UserNotificationsUpdated::class, 1);
+});
+
+it('opens broadcast action urls using the current locale', function () {
+    Event::fake([UserNotificationsUpdated::class]);
+
+    $user = User::factory()->create([
+        'system_notice_notifications' => true,
+    ]);
+
+    $broadcast = createSystemBroadcast(
+        actionUrl: '/en/settings',
+    );
+
+    $this->actingAs($user)
+        ->get(route('account.notifications.broadcasts.open', [
+            'locale' => 'fr',
+            'broadcast' => $broadcast,
+        ]))
+        ->assertRedirect('/fr/settings');
+
+    expect($broadcast->reads()->where('user_id', $user->id)->exists())->toBeTrue();
 });
 
 it('does not allow users to open another users notification', function () {

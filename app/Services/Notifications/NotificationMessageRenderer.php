@@ -22,6 +22,10 @@ class NotificationMessageRenderer
         'settings.privacy.show_character_data' => 'email/labels.privacy.show_character_data',
     ];
 
+    public function __construct(
+        private readonly NotificationActionUrlService $notificationActionUrlService,
+    ) {}
+
     /**
      * @return array{subject: string, body: ?string, action_url: ?string}
      */
@@ -35,7 +39,7 @@ class NotificationMessageRenderer
             'body' => $event->body_key
                 ? $this->translateNotificationKey($event->body_key, $params, $locale)
                 : null,
-            'action_url' => $event->action_url,
+            'action_url' => $this->notificationActionUrlService->forBrowserLocalePreference($event->action_url),
         ];
     }
 
@@ -60,18 +64,15 @@ class NotificationMessageRenderer
             ->all();
     }
 
-    /**
-     * @param  mixed  $value
-     */
     private function translateLabelKeys(mixed $value, string $locale): string
     {
-        if (!is_array($value)) {
+        if (! is_array($value)) {
             return '';
         }
 
         return collect($value)
             ->map(function (mixed $key) use ($locale) {
-                if (!is_string($key)) {
+                if (! is_string($key)) {
                     return null;
                 }
 
@@ -98,7 +99,7 @@ class NotificationMessageRenderer
      */
     private function translateNotificationKey(?string $key, array $params, string $locale): string
     {
-        if (!$key) {
+        if (! $key) {
             return '';
         }
 

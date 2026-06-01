@@ -11,6 +11,7 @@ class DiscordNotificationDeliveryService
 {
     public function __construct(
         private readonly IntegrationWebhookDispatcher $webhookDispatcher,
+        private readonly NotificationActionUrlService $notificationActionUrlService,
     ) {}
 
     public function send(NotificationDelivery $delivery): void
@@ -55,7 +56,7 @@ class DiscordNotificationDeliveryService
                     'type' => $delivery->notificationEvent->type,
                     'category' => $delivery->notificationEvent->category,
                     'params' => $delivery->notificationEvent->message_params ?? [],
-                    'action_url' => $delivery->notificationEvent->action_url,
+                    'action_url' => $this->notificationActionUrlService->forBrowserLocalePreference($delivery->notificationEvent->action_url),
                     'payload' => $delivery->notificationEvent->payload,
                 ],
             ],
