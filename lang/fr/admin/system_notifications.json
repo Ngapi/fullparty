@@ -1,29 +1,29 @@
 {
     "title": "Notifications système",
-    "subtitle": "Send site-wide maintenance notices and update announcements, and review the latest sent history.",
+    "subtitle": "Envoyez des avis de maintenance et des annonces de mise à jour à l'échelle du site, et consultez l'historique des derniers envois.",
     "admin_access": "Accès admin",
     "banner": {
-        "title": "System Banner",
-        "description": "Show an ongoing site-wide banner above the topbar for outages, degraded service, or other active updates that should stay visible.",
-        "live_title": "Banner is currently live",
-        "live_description": "Saving this form updates the active site-wide banner immediately.",
-        "empty_title": "No active banner",
-        "empty_description": "Save a banner here when you want a persistent site-wide notice without sending notifications.",
-        "preview": "Live Preview",
-        "preview_empty_title": "Banner title preview",
-        "preview_empty_message": "Banner message preview",
-        "save": "Save Banner",
-        "clear": "Clear Banner",
+        "title": "Bandeau système",
+        "description": "Affichez un bandeau persistant à l'échelle du site, au-dessus de la barre supérieure, pour les pannes, les services dégradés ou d'autres mises à jour actives devant rester visibles.",
+        "live_title": "Le bandeau est actuellement actif",
+        "live_description": "Enregistrer ce formulaire met à jour immédiatement le bandeau actif à l'échelle du site.",
+        "empty_title": "Aucun bandeau actif",
+        "empty_description": "Enregistrez un bandeau ici lorsque vous souhaitez un avis persistant à l'échelle du site sans envoyer de notifications.",
+        "preview": "Aperçu en direct",
+        "preview_empty_title": "Aperçu du titre du bandeau",
+        "preview_empty_message": "Aperçu du message du bandeau",
+        "save": "Enregistrer le bandeau",
+        "clear": "Effacer le bandeau",
         "fields": {
-            "title": "Banner Title",
-            "message": "Banner Message",
-            "action_label": "Action Button Label",
-            "action_url": "Action Button URL"
+            "title": "Titre du bandeau",
+            "message": "Message du bandeau",
+            "action_label": "Libellé du bouton d'action",
+            "action_url": "URL du bouton d'action"
         },
         "placeholders": {
-            "title": "Service issue affecting roster updates...",
-            "message": "Let people know what is happening, what is affected, and where to look for updates.",
-            "action_label": "View status",
+            "title": "Problème de service affectant les mises à jour de composition...",
+            "message": "Indiquez aux utilisateurs ce qui se passe, ce qui est affecté et où trouver les mises à jour.",
+            "action_label": "Voir le statut",
             "action_url": "https://status.fullparty.gg/"
         }
     },
@@ -34,41 +34,41 @@
         "action_url": "URL d'action"
     },
     "placeholders": {
-        "headline": "Write a clear notification title...",
-        "message": "Write the notification body...",
+        "headline": "Rédigez un titre de notification clair...",
+        "message": "Rédigez le corps de la notification...",
         "action_url": "https://status.example.com/maintenance"
     },
     "maintenance": {
-        "title": "Mandatory Maintenance Notice",
-        "description": "Use this for important service-impacting maintenance or urgent site-wide operational notices.",
-        "notice_title": "Mandatory delivery",
-        "notice_description": "These notices ignore the optional system-notices preference and are sent in-site and off-site.",
-        "send": "Send Maintenance Notice"
+        "title": "Avis de maintenance obligatoire",
+        "description": "Utilisez ceci pour les maintenances importantes affectant le service ou les avis opérationnels urgents à l'échelle du site.",
+        "notice_title": "Distribution obligatoire",
+        "notice_description": "Ces avis ignorent la préférence facultative relative aux avis système et sont envoyés sur le site et en dehors du site.",
+        "send": "Envoyer l'avis de maintenance"
     },
     "announcement": {
-        "title": "Optional Update Announcement",
-        "description": "Use this for feature updates, project news, and other lower-priority product communication.",
-        "notice_title": "Optional delivery",
-        "notice_description": "These notices respect the user's system-notices preference, but still use in-site and off-site channels when enabled.",
-        "send": "Send Update Announcement"
+        "title": "Annonce de mise à jour facultative",
+        "description": "Utilisez ceci pour les mises à jour de fonctionnalités, les actualités du projet et toute autre communication produit de priorité moindre.",
+        "notice_title": "Distribution facultative",
+        "notice_description": "Ces avis respectent la préférence de l'utilisateur relative aux avis système, mais utilisent tout de même les canaux sur le site et en dehors du site lorsqu'ils sont activés.",
+        "send": "Envoyer l'annonce de mise à jour"
     },
     "history": {
-        "title": "Recent History",
-        "subtitle": "Showing the latest system notifications sent through FullParty.",
-        "empty": "No system notifications have been sent yet.",
-        "open_link": "Open Link",
-        "sent_by": "Sent by {user}",
-        "reads": "{count} users have opened it",
-        "deliveries": "{count} off-site deliveries",
+        "title": "Historique récent",
+        "subtitle": "Affichage des dernières notifications système envoyées via FullParty.",
+        "empty": "Aucune notification système n'a encore été envoyée.",
+        "open_link": "Ouvrir le lien",
+        "sent_by": "Envoyé par {user}",
+        "reads": "{count} utilisateurs l'ont ouverte",
+        "deliveries": "{count} distributions en dehors du site",
         "badges": {
-            "mandatory": "Mandatory",
-            "optional": "Optional"
+            "mandatory": "Obligatoire",
+            "optional": "Facultatif"
         }
     },
     "toasts": {
-        "maintenance_sent": "Maintenance notification sent.",
-        "announcement_sent": "Update announcement sent.",
-        "banner_saved": "System banner saved.",
-        "banner_cleared": "System banner cleared."
+        "maintenance_sent": "Notification de maintenance envoyée.",
+        "announcement_sent": "Annonce de mise à jour envoyée.",
+        "banner_saved": "Bandeau système enregistré.",
+        "banner_cleared": "Bandeau système effacé."
     }
 }

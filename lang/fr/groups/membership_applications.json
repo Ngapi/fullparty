@@ -7,15 +7,15 @@
     "answers": {
         "yes": "Oui",
         "no": "Non",
-        "no_answer": "No answer"
+        "no_answer": "Aucune réponse"
     },
     "apply": {
         "title": "Demander à rejoindre {group}",
         "subtitle": "Envoyez une demande à l'équipe du groupe.",
-        "toggle_answer": "Your answer",
-        "submitted_answers": "Submitted Answers",
+        "toggle_answer": "Votre réponse",
+        "submitted_answers": "Réponses envoyées",
         "actions": {
-            "back": "Back to Groups",
+            "back": "Retour aux groupes",
             "submit": "Envoyer la demande",
             "update": "Mettre à jour la demande"
         },
@@ -30,33 +30,33 @@
     },
     "review": {
         "title": "Demandes",
-        "subtitle": "Review, approve, or decline people waiting to join this group.",
+        "subtitle": "Examinez, acceptez ou refusez les personnes en attente pour rejoindre ce groupe.",
         "pending_title": "Demandes en attente",
-        "pending_subtitle": "{count} waiting for review",
+        "pending_subtitle": "{count} en attente d'examen",
         "reviewed_title": "Demandes traitées",
         "reviewed_subtitle": "Demandes récemment acceptées ou refusées.",
         "empty_pending_title": "Aucune demande en attente",
         "empty_pending_description": "Les nouvelles demandes apparaîtront ici.",
         "empty_reviewed_title": "Aucune demande traitée",
         "empty_reviewed_description": "Les demandes acceptées et refusées apparaîtront ici.",
-        "not_reviewed": "Not reviewed",
-        "unknown_user": "Unknown user",
+        "not_reviewed": "Non traitée",
+        "unknown_user": "Utilisateur inconnu",
         "submitted_at": "Envoyée {date}",
         "reviewed_at": "Traitée {date}",
-        "reviewed_by": "Reviewed by {user}",
+        "reviewed_by": "Traitée par {user}",
         "actions": {
-            "approve": "Approve",
+            "approve": "Accepter",
             "decline": "Refuser",
             "cancel": "Annuler"
         },
         "decline_modal": {
             "title": "Refuser la demande",
             "reason_label": "Raison",
-            "reason_help": "Optional. Keep it short and useful for the group record."
+            "reason_help": "Facultatif. Restez bref et utile pour le suivi du groupe."
         },
         "validation": {
             "already_reviewed": "Cette demande a déjà été traitée.",
-            "applicant_banned": "Les utilisateurs bannis ne peuvent pas etre acceptes dans le groupe."
+            "applicant_banned": "Les utilisateurs bannis ne peuvent pas être acceptés dans le groupe."
         }
     },
     "requests": {
@@ -87,69 +87,69 @@
     "form": {
         "title": "Formulaire de demande",
         "subtitle": "Créez les questions auxquelles les personnes répondent avant de rejoindre.",
-        "inactive_title": "This form is ready, but the group is not application based",
-        "inactive_description": "Switch the group join mode to Application Based when you want this form to appear to applicants.",
-        "question_count": "{count} of {max} questions",
-        "new_question": "New question",
-        "new_option": "New option",
+        "inactive_title": "Ce formulaire est prêt, mais le groupe n'est pas basé sur les candidatures",
+        "inactive_description": "Passez le mode d'adhésion du groupe sur Basé sur les candidatures lorsque vous voulez que ce formulaire apparaisse aux candidats.",
+        "question_count": "{count} sur {max} questions",
+        "new_question": "Nouvelle question",
+        "new_option": "Nouvelle option",
         "question_title": "Question {number}",
-        "question_hint": "Name, describe, and configure this application field.",
+        "question_hint": "Nommez, décrivez et configurez ce champ de candidature.",
         "actions": {
-            "add_question": "Add Question",
-            "save": "Save Form",
-            "move_up": "Move question up",
-            "move_down": "Move question down",
-            "remove_question": "Remove question",
-            "add_option": "Add Option",
-            "remove_option": "Remove option"
+            "add_question": "Ajouter une question",
+            "save": "Enregistrer le formulaire",
+            "move_up": "Déplacer la question vers le haut",
+            "move_down": "Déplacer la question vers le bas",
+            "remove_question": "Supprimer la question",
+            "add_option": "Ajouter une option",
+            "remove_option": "Supprimer l'option"
         },
         "field_types": {
-            "small_text": "Small Text",
-            "big_text": "Big Text",
-            "select": "Select Menu",
-            "toggle": "Toggle"
+            "small_text": "Texte court",
+            "big_text": "Texte long",
+            "select": "Menu déroulant",
+            "toggle": "Interrupteur"
         },
         "fields": {
             "name": {
                 "label": "Nom",
-                "help": "The question shown to applicants.",
+                "help": "La question affichée aux candidats.",
                 "placeholder": "Question"
             },
             "description": {
                 "label": "Description",
-                "help": "Optional extra context below the question.",
+                "help": "Contexte supplémentaire facultatif sous la question.",
                 "placeholder": "Description"
             },
             "type": {
-                "label": "Input Type"
+                "label": "Type de saisie"
             },
             "required": {
-                "label": "Required",
-                "help": "Applicants must provide an answer. A toggle can be on or off."
+                "label": "Requis",
+                "help": "Les candidats doivent fournir une réponse. Un interrupteur peut être activé ou désactivé."
             }
         },
         "options": {
             "title": "Options",
-            "subtitle": "Les questions a selection doivent avoir au moins une option.",
+            "subtitle": "Les questions à menu déroulant doivent avoir au moins une option.",
             "label": "Option {number}",
             "placeholder": "Option"
         },
         "validation": {
             "fields_required": "Ajoutez au moins une question.",
             "minimum_fields": "Les formulaires de demande doivent avoir au moins une question.",
-            "max_fields": "Application forms can have up to {max} questions.",
-            "field_invalid": "Chaque question doit etre un objet valide.",
+            "max_fields": "Les formulaires de candidature peuvent comporter jusqu'à {max} questions.",
+            "field_invalid": "Chaque question doit être un objet valide.",
             "type_invalid": "Choisissez un type de champ valide.",
             "name_required": "Le nom anglais est obligatoire.",
-            "localized_text_invalid": "Le texte localise doit etre du texte.",
-            "localized_text_max": "Localized text must be {max} characters or fewer.",
-            "options_required": "Les questions a selection doivent avoir au moins une option.",
-            "options_max": "Select menu questions can have up to {max} options.",
-            "option_invalid": "Chaque option doit etre un objet valide.",
-            "answer_unknown": "Cette reponse ne correspond pas au formulaire actuel.",
-            "answer_required": "Cette reponse est obligatoire.",
-            "answer_invalid": "Saisissez une reponse valide.",
-            "answer_max": "This answer must be {max} characters or fewer.",
+            "localized_text_invalid": "Le texte localisé doit être du texte.",
+            "localized_text_max": "Le texte localisé doit comporter au maximum {max} caractères.",
+            "options_required": "Les questions à menu déroulant doivent avoir au moins une option.",
+            "options_max": "Les questions à menu déroulant peuvent comporter jusqu'à {max} options.",
+            "option_invalid": "Chaque option doit être un objet valide.",
+            "answer_unknown": "Cette réponse ne correspond pas au formulaire actuel.",
+            "answer_required": "Cette réponse est obligatoire.",
+            "answer_invalid": "Saisissez une réponse valide.",
+            "answer_max": "Cette réponse doit comporter au maximum {max} caractères.",
             "answer_option_invalid": "Choisissez une des options disponibles."
         }
     }
