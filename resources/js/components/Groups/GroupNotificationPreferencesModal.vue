@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { GroupNotificationPreferences, NotificationPreferenceChannel } from "@/Types/Groups";
+import { GROUP_NOTIFICATION_TOPIC_KEYS } from "@/utils/groupNotifications";
 import { useForm } from "@inertiajs/vue3";
 import { computed, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
@@ -35,17 +36,17 @@ const isOpen = computed({
 
 const topics = [
 	{
-		key: "group_updates.run_posts",
+		key: GROUP_NOTIFICATION_TOPIC_KEYS[0],
 		titleKey: "settings.notifications.topics.group_run_posts.title",
 		descriptionKey: "settings.notifications.topics.group_run_posts.description",
 	},
 	{
-		key: "group_updates.membership",
+		key: GROUP_NOTIFICATION_TOPIC_KEYS[1],
 		titleKey: "settings.notifications.topics.group_membership.title",
 		descriptionKey: "settings.notifications.topics.group_membership.description",
 	},
 	{
-		key: "group_updates.roles",
+		key: GROUP_NOTIFICATION_TOPIC_KEYS[2],
 		titleKey: "settings.notifications.topics.group_roles.title",
 		descriptionKey: "settings.notifications.topics.group_roles.description",
 	},
@@ -69,6 +70,10 @@ const choiceItems = computed(() => [
 ]);
 
 const choiceFor = (topic: string): NotificationChoice => {
+	if (!props.group.notifications.enabled) {
+		return "off";
+	}
+
 	const value = props.group.notifications.preferences?.[topic]?.[channel];
 
 	if (value === true) {
@@ -89,7 +94,7 @@ const resetChoices = () => {
 };
 
 watch(
-	() => [props.group.slug, props.group.notifications.preferences],
+	() => [props.group.slug, props.group.notifications.enabled, props.group.notifications.preferences],
 	resetChoices,
 	{ immediate: true },
 );
@@ -118,8 +123,10 @@ const preferencePayload = () => Object.fromEntries(
 	]),
 );
 
+const hasAnyEnabledChoice = () => Object.values(choices.value).some((choice) => choice !== "off");
+
 const submit = () => {
-	form.enabled = props.group.notifications.enabled;
+	form.enabled = hasAnyEnabledChoice();
 	form.notification_preferences = preferencePayload();
 
 	form.patch(route("groups.notifications.update", props.group.slug), {

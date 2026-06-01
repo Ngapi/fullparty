@@ -5,8 +5,8 @@ import { computed, defineAsyncComponent, ref } from "vue";
 import { useI18n } from "vue-i18n";
 import { route } from "ziggy-js";
 import { useConfirmationModal } from "@/composables/useConfirmationModal";
-import { useGroupNotificationToast } from "@/composables/useGroupNotificationToast";
 import GroupNotificationPreferencesModal from "@/components/Groups/GroupNotificationPreferencesModal.vue";
+import { groupNotificationIcon } from "@/utils/groupNotifications";
 
 const GroupDiscoveryInfoTab = defineAsyncComponent(() => import("@/components/Groups/GroupDiscoveryInfoTab.vue"));
 const GroupDiscoveryActivityTab = defineAsyncComponent(() => import("@/components/Groups/GroupDiscoveryActivityTab.vue"));
@@ -26,7 +26,6 @@ const emit = defineEmits<{
 
 const { t } = useI18n();
 const confirmationModal = useConfirmationModal();
-const { showGroupNotificationsToast } = useGroupNotificationToast();
 
 const openModel = computed({
 	get: () => props.open,
@@ -93,9 +92,7 @@ const membershipActionLabel = computed(() => (
 		: t("groups.index.discovery.detail.actions.join")
 ));
 const notificationsActionLabel = computed(() => (
-	props.group?.notifications.enabled
-		? t("groups.index.discovery.detail.actions.mute_notifications")
-		: t("groups.index.discovery.detail.actions.unmute_notifications")
+	t("groups.notifications.preferences.title")
 ));
 const showMembershipAction = computed(() => canShowActionButtons.value
 	&& Boolean(props.group?.permissions.can_join || props.group?.permissions.can_apply || props.group?.permissions.can_leave));
@@ -210,27 +207,6 @@ const openDashboard = () => {
 	router.get(props.group.links.dashboard);
 };
 
-const toggleNotifications = () => {
-	if (!props.group || isActionPending.value || !props.group.permissions.can_toggle_notifications) {
-		return;
-	}
-
-	const enabled = !props.group.notifications.enabled;
-	isActionPending.value = true;
-
-	router.patch(route("groups.notifications.update", props.group.slug), {
-		enabled,
-	}, {
-		preserveScroll: true,
-		preserveState: true,
-		onSuccess: () => {
-			showGroupNotificationsToast(enabled);
-			refreshCurrentGroup();
-		},
-		onFinish: finishAction,
-	});
-};
-
 const openNotificationPreferences = () => {
 	if (!props.group || isActionPending.value || !props.group.permissions.can_toggle_notifications) {
 		return;
@@ -340,19 +316,9 @@ const openNotificationPreferences = () => {
 											v-if="showNotificationsAction"
 											color="neutral"
 											variant="ghost"
-											:icon="group.notifications.enabled ? 'i-lucide-bell' : 'i-lucide-bell-off'"
+											:icon="groupNotificationIcon(group.notifications)"
 											:aria-label="notificationsActionLabel"
 											:title="notificationsActionLabel"
-											:disabled="isActionPending"
-											@click="toggleNotifications"
-										/>
-										<UButton
-											v-if="showNotificationsAction"
-											color="neutral"
-											variant="ghost"
-											icon="i-lucide-settings"
-											:aria-label="t('groups.notifications.preferences.title')"
-											:title="t('groups.notifications.preferences.title')"
 											:disabled="isActionPending"
 											@click="openNotificationPreferences"
 										/>

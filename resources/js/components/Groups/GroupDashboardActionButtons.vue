@@ -6,8 +6,8 @@ import { ref } from "vue";
 import { useI18n } from "vue-i18n";
 // @ts-ignore
 import { useConfirmationModal } from "@/composables/useConfirmationModal";
-import { useGroupNotificationToast } from "@/composables/useGroupNotificationToast";
 import GroupNotificationPreferencesModal from "@/components/Groups/GroupNotificationPreferencesModal.vue";
+import { groupNotificationIcon } from "@/utils/groupNotifications";
 
 const props = defineProps<{
 	group: GroupDashboardGroup
@@ -15,12 +15,9 @@ const props = defineProps<{
 
 const { t } = useI18n();
 const confirmationModal = useConfirmationModal();
-const { showGroupNotificationsToast } = useGroupNotificationToast();
 const notificationPreferencesOpen = ref(false);
 
-const notificationActionLabel = () => props.group.notifications.enabled
-	? t("groups.dashboard.actions.mute_notifications")
-	: t("groups.dashboard.actions.unmute_notifications");
+const notificationActionLabel = () => t("groups.notifications.preferences.title");
 
 const openRuns = () => {
 	router.get(route("groups.dashboard.activities.index", props.group.slug));
@@ -32,23 +29,6 @@ const openMembers = () => {
 
 const openSettings = () => {
 	router.get(route("groups.dashboard.settings", props.group.slug));
-};
-
-const toggleNotifications = () => {
-	if (!props.group.permissions.can_toggle_notifications) {
-		return;
-	}
-
-	const enabled = !props.group.notifications.enabled;
-
-	router.patch(route("groups.notifications.update", props.group.slug), {
-		enabled,
-	}, {
-		preserveScroll: true,
-		onSuccess: () => {
-			showGroupNotificationsToast(enabled);
-		},
-	});
 };
 
 const openNotificationPreferences = () => {
@@ -134,19 +114,9 @@ const openDiscordInvite = () => {
 				v-if="group.permissions.can_toggle_notifications"
 				color="neutral"
 				variant="ghost"
-				:icon="group.notifications.enabled ? 'i-lucide-bell' : 'i-lucide-bell-off'"
+				:icon="groupNotificationIcon(group.notifications)"
 				:aria-label="notificationActionLabel()"
 				:title="notificationActionLabel()"
-				class="justify-center"
-				@click="toggleNotifications"
-			/>
-			<UButton
-				v-if="group.permissions.can_toggle_notifications"
-				color="neutral"
-				variant="ghost"
-				icon="i-lucide-settings"
-				:aria-label="t('groups.notifications.preferences.title')"
-				:title="t('groups.notifications.preferences.title')"
 				class="justify-center"
 				@click="openNotificationPreferences"
 			/>
