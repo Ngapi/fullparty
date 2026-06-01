@@ -89,6 +89,7 @@
                 "username_updated": "hat die Benutzernamenseinstellungen aktualisiert.",
                 "password_updated": "hat die Passworteinstellungen aktualisiert.",
                 "notifications_updated": "hat die Benachrichtigungseinstellungen aktualisiert.",
+                "profile_picture_updated": "hat das Profilbild des Kontos aktualisiert.",
                 "privacy_updated": "hat die Datenschutzeinstellungen aktualisiert."
             }
         },
@@ -331,6 +332,7 @@
                 "username_updated": "Benutzername aktualisiert",
                 "password_updated": "Passwort aktualisiert",
                 "notifications_updated": "Benachrichtigungseinstellungen aktualisiert",
+                "profile_picture_updated": "Profilbild aktualisiert",
                 "privacy_updated": "Datenschutzeinstellungen aktualisiert"
             }
         },

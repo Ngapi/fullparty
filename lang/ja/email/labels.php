@@ -3,6 +3,7 @@
 return [
     'open' => '開く',
     'username' => 'ユーザー名',
+    'profile_picture' => 'プロフィール画像',
     'notifications' => [
         'applications' => '応募',
         'assignments' => '割り当て',

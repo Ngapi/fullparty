@@ -42,6 +42,10 @@
         "title": "Account settings updated",
         "body": "Your account settings were updated. Changed settings: {settings}"
       },
+      "profile_picture_updated": {
+        "title": "Account settings updated",
+        "body": "Your account settings were updated. Changed settings: {settings}"
+      },
       "password_updated": {
         "title": "Password updated",
         "body": "Your account password was updated."

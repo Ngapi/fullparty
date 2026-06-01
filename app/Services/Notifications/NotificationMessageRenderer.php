@@ -10,6 +10,7 @@ class NotificationMessageRenderer
 {
     private const EMAIL_LABEL_KEY_MAP = [
         'general.username' => 'email/labels.username',
+        'general.profile_picture' => 'email/labels.profile_picture',
         'settings.notifications.applications' => 'email/labels.notifications.applications',
         'settings.notifications.assignments' => 'email/labels.notifications.assignments',
         'settings.notifications.runs_and_reminders' => 'email/labels.notifications.runs_and_reminders',

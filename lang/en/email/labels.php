@@ -3,6 +3,7 @@
 return [
     'open' => 'Open',
     'username' => 'Username',
+    'profile_picture' => 'Profile Picture',
     'notifications' => [
         'applications' => 'Applications',
         'assignments' => 'Assignments',

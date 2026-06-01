@@ -6,6 +6,7 @@ use App\Events\DiscordUserAppDisconnected;
 use App\Http\Requests\ChangePasswordRequest;
 use App\Models\User;
 use App\Services\AuditLogger;
+use App\Services\ManagedImageStorage;
 use App\Services\Notifications\NotificationPreferenceSettingsService;
 use App\Services\Notifications\NotificationService;
 use App\Services\Users\UserAccountDeletionService;
@@ -25,8 +26,11 @@ use Illuminate\Validation\Rule;
 
 class UserController extends Controller
 {
+    private const PROFILE_IMAGE_DIRECTORY = 'users';
+
     private const ACCOUNT_SETTING_LABEL_KEYS = [
         'name' => 'general.username',
+        'avatar_url' => 'general.profile_picture',
         'password' => 'settings.account.password',
     ];
 
@@ -55,6 +59,7 @@ class UserController extends Controller
         private readonly NotificationPreferenceSettingsService $notificationPreferenceSettingsService,
         private readonly UserAccountDeletionService $userAccountDeletionService,
         private readonly RequestTextInputSanitizer $requestTextInputSanitizer,
+        private readonly ManagedImageStorage $managedImageStorage,
     ) {}
 
     public function changeUsername(Request $request)
@@ -97,6 +102,56 @@ class UserController extends Controller
         return redirect()
             ->route('settings')
             ->with('success', ['username_updated', $validated['username']]);
+    }
+
+    public function changeProfilePicture(Request $request): RedirectResponse
+    {
+        $request->validate([
+            'profile_picture' => ['required', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5120'],
+        ]);
+
+        $user = $request->user();
+        $originalValues = [
+            'avatar_url' => $user->avatar_url,
+        ];
+
+        $avatarUrl = $this->managedImageStorage->replaceUploadedImageIfPresent(
+            currentUrl: $user->avatar_url,
+            file: $request->file('profile_picture'),
+            directory: self::PROFILE_IMAGE_DIRECTORY,
+            shouldProcess: true,
+        );
+
+        $user->update([
+            'avatar_url' => $avatarUrl,
+        ]);
+
+        $updatedUser = $user->fresh();
+        $updatedValues = [
+            'avatar_url' => $updatedUser->avatar_url,
+        ];
+
+        $changes = $this->buildSettingsChanges($originalValues, $updatedValues);
+
+        $this->logUserSettingsChange(
+            user: $updatedUser,
+            action: 'user.settings.profile_picture_updated',
+            message: 'audit_log.events.user.settings.profile_picture_updated',
+            changes: $changes,
+        );
+
+        $this->notifyUserAboutSettingsChange(
+            user: $updatedUser,
+            type: 'user.settings.profile_picture_updated',
+            titleKey: 'notifications.user.settings.profile_picture_updated.title',
+            bodyKey: 'notifications.user.settings.profile_picture_updated.body',
+            changes: $changes,
+            fieldLabelKeys: self::ACCOUNT_SETTING_LABEL_KEYS,
+        );
+
+        return redirect()
+            ->route('settings')
+            ->with('success', ['profile_picture_updated']);
     }
 
     public function changeNotificationSettings(Request $request)

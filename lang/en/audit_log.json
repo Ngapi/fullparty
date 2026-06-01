@@ -89,6 +89,7 @@
         "username_updated": "updated account username settings.",
         "password_updated": "updated account password settings.",
         "notifications_updated": "updated notification settings.",
+        "profile_picture_updated": "updated account profile picture settings.",
         "privacy_updated": "updated privacy settings."
       }
     },
@@ -331,6 +332,7 @@
         "username_updated": "Username updated",
         "password_updated": "Password updated",
         "notifications_updated": "Notification settings updated",
+        "profile_picture_updated": "Profile picture updated",
         "privacy_updated": "Privacy settings updated"
       }
     },

@@ -89,6 +89,7 @@
                 "username_updated": "a mis à jour les paramètres du nom d'utilisateur.",
                 "password_updated": "a mis à jour les paramètres du mot de passe.",
                 "notifications_updated": "a mis à jour les paramètres de notification.",
+                "profile_picture_updated": "a mis à jour la photo de profil du compte.",
                 "privacy_updated": "a mis à jour les paramètres de confidentialité."
             }
         },
@@ -331,6 +332,7 @@
                 "username_updated": "Nom d'utilisateur mis à jour",
                 "password_updated": "Mot de passe mis à jour",
                 "notifications_updated": "Paramètres de notification mis à jour",
+                "profile_picture_updated": "Photo de profil mise à jour",
                 "privacy_updated": "Paramètres de confidentialité mis à jour"
             }
         },

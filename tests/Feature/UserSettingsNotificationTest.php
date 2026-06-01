@@ -9,8 +9,10 @@ use App\Support\Notifications\NotificationCategory;
 use App\Support\Notifications\NotificationPreferenceChannel;
 use App\Support\Notifications\NotificationTopic;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Storage;
 
 uses(RefreshDatabase::class);
 
@@ -97,6 +99,75 @@ it('sanitizes usernames before saving account settings changes', function () {
     $auditLog = AuditLog::query()->where('action', 'user.settings.username_updated')->sole();
 
     expect($auditLog->metadata['changes']['name']['new'])->toBe('After Name');
+});
+
+it('updates the user profile picture without touching character avatars', function () {
+    Storage::fake('public');
+
+    $user = User::factory()->create([
+        'avatar_url' => null,
+    ]);
+    $character = $user->characters()->create([
+        'name' => 'Dena Marvin',
+        'world' => 'Twintania',
+        'datacenter' => 'Light',
+        'lodestone_id' => '123456',
+        'avatar_url' => 'https://example.com/character-avatar.png',
+        'verified_at' => now(),
+    ]);
+
+    $this->actingAs($user);
+
+    $this->post(route('settings.profile-picture'), [
+        'profile_picture' => UploadedFile::fake()->image('avatar.png', 400, 300),
+    ])->assertRedirect(route('settings'))
+        ->assertSessionHas('success', ['profile_picture_updated']);
+
+    $user->refresh();
+    $character->refresh();
+
+    expect($user->avatar_url)->not->toBeNull()
+        ->and($user->avatar_url)->toContain('/storage/users/')
+        ->and($character->avatar_url)->toBe('https://example.com/character-avatar.png');
+
+    $storedPath = str_replace('storage/', '', ltrim((string) parse_url($user->avatar_url, PHP_URL_PATH), '/'));
+    Storage::disk('public')->assertExists($storedPath);
+
+    $auditLog = AuditLog::query()->where('action', 'user.settings.profile_picture_updated')->sole();
+
+    expect($auditLog->actor_user_id)->toBe($user->id)
+        ->and($auditLog->metadata['changes']['avatar_url']['old'])->toBeNull()
+        ->and($auditLog->metadata['changes']['avatar_url']['new'])->toBe($user->avatar_url);
+
+    $event = NotificationEvent::query()->where('type', 'user.settings.profile_picture_updated')->sole();
+
+    expect($event->category)->toBe(NotificationCategory::ACCOUNT_CHARACTER_UPDATES)
+        ->and($event->is_mandatory)->toBeFalse()
+        ->and($event->message_params['changed_setting_label_keys'])->toBe([
+            'general.profile_picture',
+        ]);
+
+    $userNotification = UserNotification::query()->where('notification_event_id', $event->id)->sole();
+
+    expect($userNotification->user_id)->toBe($user->id);
+});
+
+it('rejects profile pictures larger than five megabytes', function () {
+    Storage::fake('public');
+
+    $user = User::factory()->create([
+        'avatar_url' => null,
+    ]);
+
+    $this->actingAs($user);
+
+    $this->from(route('settings'))->post(route('settings.profile-picture'), [
+        'profile_picture' => UploadedFile::fake()->image('avatar.png')->size(5121),
+    ])->assertRedirect(route('settings'))
+        ->assertSessionHasErrors('profile_picture');
+
+    expect($user->fresh()->avatar_url)->toBeNull()
+        ->and(NotificationEvent::query()->where('type', 'user.settings.profile_picture_updated')->exists())->toBeFalse();
 });
 
 it('creates an in app notification when privacy settings are updated', function () {

@@ -3,6 +3,7 @@
 return [
     'open' => 'Öffnen',
     'username' => 'Benutzername',
+    'profile_picture' => 'Profilbild',
     'notifications' => [
         'applications' => 'Bewerbungen',
         'assignments' => 'Zuweisungen',

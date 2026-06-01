@@ -42,6 +42,10 @@
                 "title": "Kontoeinstellungen aktualisiert",
                 "body": "Deine Kontoeinstellungen wurden aktualisiert. Geänderte Einstellungen: {settings}"
             },
+            "profile_picture_updated": {
+                "title": "Kontoeinstellungen aktualisiert",
+                "body": "Deine Kontoeinstellungen wurden aktualisiert. Geänderte Einstellungen: {settings}"
+            },
             "password_updated": {
                 "title": "Passwort aktualisiert",
                 "body": "Dein Kontopasswort wurde aktualisiert."

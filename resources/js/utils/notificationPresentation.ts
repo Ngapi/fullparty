@@ -10,6 +10,10 @@ const TYPE_META: Record<string, NotificationDisplayMeta> = {
 		icon: 'i-lucide-user-round-pen',
 		iconColor: 'text-sky-500',
 	},
+	'user.settings.profile_picture_updated': {
+		icon: 'i-lucide-image-up',
+		iconColor: 'text-sky-500',
+	},
 	'user.settings.privacy_updated': {
 		icon: 'i-lucide-shield-check',
 		iconColor: 'text-emerald-500',

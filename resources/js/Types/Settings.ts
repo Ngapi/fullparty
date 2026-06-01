@@ -17,6 +17,7 @@ export type SettingsDiscordUserIntegration = {
 export type SettingsUser = {
 	name: string
 	email: string
+	avatar_url: string | null
 	public_profile: boolean
 	public_characters: boolean
 	application_notifications: boolean

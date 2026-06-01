@@ -516,6 +516,7 @@ Route::prefix('{locale?}')
 
             Route::get('/settings', [SettingsController::class, 'index'])->name('settings');
             Route::post('/settings/username', [UserController::class, 'changeUsername'])->name('settings.username');
+            Route::post('/settings/profile-picture', [UserController::class, 'changeProfilePicture'])->name('settings.profile-picture');
             Route::post('/settings/password', [UserController::class, 'changePassword'])->name('settings.password');
             Route::post('/settings/notifications', [UserController::class, 'changeNotificationSettings'])->name('settings.notifications');
             Route::patch('/settings/time-display', [UserController::class, 'changeTimeDisplayPreference'])->name('settings.time-display');

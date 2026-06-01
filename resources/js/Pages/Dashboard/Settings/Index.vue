@@ -29,6 +29,14 @@ watch(
 				icon: 'i-lucide-check'
 			})
 		}
+		if (success.includes('profile_picture_updated')) {
+			toast.add({
+				title: t('settings.toasts.title'),
+				description: t('settings.toasts.profile_picture_updated'),
+				color: 'success',
+				icon: 'i-lucide-check'
+			})
+		}
 		if(success.includes('notification_settings_updated')){
 			toast.add({
 				title: t('settings.toasts.title'),

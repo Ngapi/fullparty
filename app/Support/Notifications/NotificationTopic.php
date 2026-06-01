@@ -146,6 +146,7 @@ class NotificationTopic
         'user.social_account.linked' => self::ACCOUNT_CONNECTED_ACCOUNTS,
         'user.social_account.unlinked' => self::ACCOUNT_CONNECTED_ACCOUNTS,
         'user.settings.username_updated' => self::ACCOUNT_SETTINGS,
+        'user.settings.profile_picture_updated' => self::ACCOUNT_SETTINGS,
         'user.settings.notifications_updated' => self::ACCOUNT_SETTINGS,
         'user.settings.privacy_updated' => self::ACCOUNT_SETTINGS,
         'user.settings.password_updated' => self::ACCOUNT_SETTINGS,

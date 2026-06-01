@@ -89,6 +89,7 @@
                 "username_updated": "がユーザー名設定を更新しました。",
                 "password_updated": "がパスワード設定を更新しました。",
                 "notifications_updated": "が通知設定を更新しました。",
+                "profile_picture_updated": "がアカウントのプロフィール画像設定を更新しました。",
                 "privacy_updated": "がプライバシー設定を更新しました。"
             }
         },
@@ -331,6 +332,7 @@
                 "username_updated": "ユーザー名を更新",
                 "password_updated": "パスワードを更新",
                 "notifications_updated": "通知設定を更新",
+                "profile_picture_updated": "プロフィール画像を更新",
                 "privacy_updated": "プライバシー設定を更新"
             }
         },
