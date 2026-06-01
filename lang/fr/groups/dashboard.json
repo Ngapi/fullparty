@@ -2,44 +2,44 @@
     "actions": {
         "view_runs": "Voir les runs",
         "view_members": "Voir les membres",
-        "open_settings": "Open Settings",
+        "open_settings": "Ouvrir les paramètres",
         "open_discord": "Ouvrir Discord",
-        "mute_notifications": "Mute Notifications",
-        "unmute_notifications": "Unmute Notifications",
+        "mute_notifications": "Couper les notifications",
+        "unmute_notifications": "Réactiver les notifications",
         "leave_group": "Quitter le groupe"
     },
     "leave_group_modal": {
-        "title": "Leave {name}?",
-        "description": "You will lose member access to this group until you join again or receive a new invite.",
-        "warning": "Any group-specific access, moderation privileges, and member-only dashboard actions will no longer be available after you leave.",
+        "title": "Quitter {name} ?",
+        "description": "Vous perdrez votre accès en tant que membre de ce groupe jusqu'à ce que vous le rejoigniez à nouveau ou receviez une nouvelle invitation.",
+        "warning": "Tout accès propre au groupe, les privilèges de modération et les actions du tableau de bord réservées aux membres ne seront plus disponibles après votre départ.",
         "confirm": "Quitter le groupe"
     },
     "labels": {
         "just_now": "à l'instant",
         "not_available": "Non disponible",
-        "no_recent_activity": "No recent activity yet",
-        "no_member_joins": "No member joins recorded"
+        "no_recent_activity": "Aucune activité récente pour le moment",
+        "no_member_joins": "Aucune arrivée de membre enregistrée"
     },
     "hero": {
-        "last_activity": "Last Run Activity",
-        "latest_member": "Latest Member Join",
-        "reach": "Reach",
-        "public_runs": "{count} public runs",
-        "guest_friendly_runs": "{count} guest-friendly runs"
+        "last_activity": "Dernière activité de run",
+        "latest_member": "Dernière arrivée de membre",
+        "reach": "Portée",
+        "public_runs": "{count} runs publics",
+        "guest_friendly_runs": "{count} runs ouverts aux invités"
     },
     "stats": {
         "members": "Membres",
-        "members_hint": "{count} leadership seats",
-        "leadership": "Leadership",
-        "leadership_hint": "{count} owner seat",
+        "members_hint": "{count} sièges de direction",
+        "leadership": "Direction",
+        "leadership_hint": "{count} siège de propriétaire",
         "draft_runs": "Runs en brouillon",
-        "draft_runs_hint": "Not published yet",
+        "draft_runs_hint": "Pas encore publiés",
         "active_runs": "Runs actifs",
-        "active_runs_hint": "{count} scheduled or assigned",
-        "open_applications": "Open Applications",
-        "open_applications_hint": "{count} open to guests",
-        "completed_runs": "Completed Runs",
-        "completed_runs_hint": "{count} cancelled total"
+        "active_runs_hint": "{count} planifiés ou assignés",
+        "open_applications": "Candidatures ouvertes",
+        "open_applications_hint": "{count} ouverts aux invités",
+        "completed_runs": "Runs terminés",
+        "completed_runs_hint": "{count} annulés au total"
     },
     "upcoming_runs": {
         "title": "À venir",
@@ -64,68 +64,68 @@
         "empty": "Aucun run n’est prévu dans les 7 prochains jours."
     },
     "content": {
-        "title": "What This Group Runs",
-        "subtitle": "See the kinds of content this group keeps coming back to, along with their history for each one.",
-        "total_runs": "{count} visible runs",
-        "visible_runs": "Visible Runs",
-        "visible_runs_hint": "This reflects the run history visible to the current viewer, including the group's status mix.",
-        "library": "Activity Types",
-        "library_hint": "Grouped by the kinds of content this group has actually been running.",
-        "completed": "Completed: {count}",
-        "active": "Active: {count}",
-        "last_run": "Last Run",
-        "next_run": "Next Run",
+        "title": "Ce que ce groupe joue",
+        "subtitle": "Découvrez les types de contenu auxquels ce groupe revient régulièrement, ainsi que leur historique pour chacun.",
+        "total_runs": "{count} runs visibles",
+        "visible_runs": "Runs visibles",
+        "visible_runs_hint": "Cela reflète l'historique des runs visible par le spectateur actuel, y compris la répartition des statuts du groupe.",
+        "library": "Types d'activité",
+        "library_hint": "Regroupés par les types de contenu que ce groupe a réellement joués.",
+        "completed": "Terminés : {count}",
+        "active": "Actifs : {count}",
+        "last_run": "Dernier run",
+        "next_run": "Prochain run",
         "run_singular": "run",
         "run_plural": "runs",
-        "empty": "No visible run history yet.",
+        "empty": "Aucun historique de run visible pour le moment.",
         "statuses": {
             "draft": "Brouillon",
-            "scheduled": "Planifiés",
+            "scheduled": "Planifié",
             "active": "Actif",
             "complete": "Terminé",
-            "cancelled": "Annulees"
+            "cancelled": "Annulé"
         }
     },
     "history_runs": {
-        "title": "Run History",
+        "title": "Historique des runs",
         "count": "{count} affichés",
         "public": "Public",
-        "private": "Invite Only",
-        "ran": "Ran {time}",
-        "view_overview": "View Overview",
-        "open_board": "Open Board",
-        "empty_title": "No completed runs yet."
+        "private": "Sur invitation",
+        "ran": "Joué {time}",
+        "view_overview": "Voir l’aperçu",
+        "open_board": "Ouvrir le tableau",
+        "empty_title": "Aucun run terminé pour le moment."
     },
     "pipeline": {
-        "title": "Run Pipeline",
-        "total": "{count} total",
-        "active_management": "In Management",
-        "archived": "Archived",
-        "empty": "No run data is available yet."
+        "title": "Pipeline des runs",
+        "total": "{count} au total",
+        "active_management": "En gestion",
+        "archived": "Archivés",
+        "empty": "Aucune donnée de run n’est disponible pour le moment."
     },
     "setup": {
-        "title": "Setup Health",
-        "subtitle": "Quick checks for the pieces that make the group feel established and easier to join.",
-        "score": "{configured}/{total} configured",
-        "coverage": "Coverage",
-        "configured": "Configured",
-        "missing": "Missing",
-        "join_mode": "Join Mode",
-        "join_mode_open": "Ouvrir le groupe",
-        "join_mode_invite_only": "Invite Only",
-        "join_mode_application": "Application Based",
+        "title": "État de la configuration",
+        "subtitle": "Vérifications rapides des éléments qui rendent le groupe établi et plus facile à rejoindre.",
+        "score": "{configured}/{total} configurés",
+        "coverage": "Couverture",
+        "configured": "Configuré",
+        "missing": "Manquant",
+        "join_mode": "Mode d'accès",
+        "join_mode_open": "Groupe ouvert",
+        "join_mode_invite_only": "Sur invitation",
+        "join_mode_application": "Sur candidature",
         "discovery": "Découverte",
         "discovery_visible": "Découvrable",
         "discovery_hidden": "Masqué",
         "items": {
-            "description": "Group Description",
+            "description": "Description du groupe",
             "profile_picture": "Image de profil",
             "discord": "Invitation Discord"
         }
     },
     "members": {
-        "title": "Member Snapshot",
-        "subtitle": "A quick read on who is around the table right now.",
-        "empty": "No members are available to preview yet."
+        "title": "Aperçu des membres",
+        "subtitle": "Un aperçu rapide de qui est autour de la table en ce moment.",
+        "empty": "Aucun membre n’est disponible à prévisualiser pour le moment."
     }
 }

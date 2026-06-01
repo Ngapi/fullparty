@@ -113,7 +113,7 @@
             "actions": {
                 "join": "Rejoindre le groupe",
                 "leave": "Quitter le groupe",
-                "dashboard": "Dashboard",
+                "dashboard": "Tableau de bord",
                 "apply": "Postuler",
                 "mute_notifications": "Désactiver les notifications",
                 "unmute_notifications": "Réactiver les notifications",

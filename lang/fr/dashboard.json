@@ -282,7 +282,7 @@
             }
         }
     },
-    "subtitle": "Your personal base for runs, groups, alerts, and account readiness.",
+    "subtitle": "Votre base personnelle pour les runs, les groupes, les alertes et la préparation de votre compte.",
     "actions": {
         "characters": "Mes personnages",
         "applications": "Mes candidatures",
@@ -295,89 +295,89 @@
         "not_available": "Non disponible"
     },
     "identity": {
-        "eyebrow": "Your Home Base",
-        "setup_score": "{configured}/{total} ready",
-        "verified_email": "Email verified",
-        "email_needs_attention": "Email needs attention",
-        "ready_badge": "Ready to join runs",
-        "with_character": "This page is your home surface: what is coming up, what needs attention, and where to jump back into content the fastest.",
-        "without_character": "This page becomes much more useful once you connect a primary character and start joining groups or applying to runs.",
-        "no_connected_accounts": "No connected accounts yet"
+        "eyebrow": "Votre base d'accueil",
+        "setup_score": "{configured}/{total} prêts",
+        "verified_email": "E-mail vérifié",
+        "email_needs_attention": "L'e-mail nécessite votre attention",
+        "ready_badge": "Prêt à rejoindre des runs",
+        "with_character": "Cette page est votre espace d'accueil : ce qui arrive, ce qui nécessite votre attention et où reprendre le contenu le plus rapidement.",
+        "without_character": "Cette page devient bien plus utile une fois que vous connectez un personnage principal et commencez à rejoindre des groupes ou à postuler à des runs.",
+        "no_connected_accounts": "Aucun compte connecté pour l'instant"
     },
     "hero_stats": {
-        "unread": "Unread Alerts",
-        "unread_hint": "Fresh inbox items waiting for you",
+        "unread": "Alertes non lues",
+        "unread_hint": "Nouveaux éléments dans votre boîte de réception",
         "active_applications": "Candidatures actives",
-        "active_applications_hint": "{count} still pending review",
-        "confirmed_runs": "Confirmed Runs",
-        "confirmed_runs_hint": "Approved or benched runs still ahead",
+        "active_applications_hint": "{count} encore en attente d'examen",
+        "confirmed_runs": "Runs confirmés",
+        "confirmed_runs_hint": "Runs approuvés ou en remplaçant encore à venir",
         "groups": "Groupes",
-        "groups_hint": "{count} owned directly"
+        "groups_hint": "{count} dont vous êtes propriétaire"
     },
     "profile": {
-        "title": "Profile Snapshot",
-        "subtitle": "A quick read on the identity other players and organizers meet on the site.",
+        "title": "Aperçu du profil",
+        "subtitle": "Un aperçu rapide de l'identité que les autres joueurs et organisateurs voient sur le site.",
         "visible": "Visible",
         "hidden": "Masqué",
-        "none_yet": "None yet",
-        "group_presence_value": "{owned} owned · {moderated} moderated · {member} member",
+        "none_yet": "Aucun pour l'instant",
+        "group_presence_value": "{owned} en tant que propriétaire · {moderated} en tant que modérateur · {member} en tant que membre",
         "details": {
             "email": "E-mail",
             "primary_character": "Personnage principal",
-            "linked_accounts": "Linked Accounts",
-            "public_profile": "Public Profile",
-            "public_characters": "Public Characters",
-            "group_presence": "Group Presence"
+            "linked_accounts": "Comptes liés",
+            "public_profile": "Profil public",
+            "public_characters": "Personnages publics",
+            "group_presence": "Présence dans les groupes"
         }
     },
     "setup": {
-        "title": "Readiness",
-        "subtitle": "The small things that make groups, rosters, and applications work better.",
-        "coverage": "Coverage",
-        "complete": "Ready",
-        "incomplete": "Missing",
+        "title": "Préparation",
+        "subtitle": "Les petits détails qui font mieux fonctionner les groupes, les compositions et les candidatures.",
+        "coverage": "Couverture",
+        "complete": "Prêt",
+        "incomplete": "Manquant",
         "items": {
             "primary_character": "Personnage principal",
-            "verified_characters": "Verified Characters",
-            "xivauth": "XIVAuth Connected",
-            "discord": "Discord Connected",
-            "public_profile": "Public Profile",
-            "public_characters": "Public Characters"
+            "verified_characters": "Personnages vérifiés",
+            "xivauth": "XIVAuth connecté",
+            "discord": "Discord connecté",
+            "public_profile": "Profil public",
+            "public_characters": "Personnages publics"
         }
     },
     "groups": {
         "title": "Vos groupes",
-        "subtitle": "The communities where you already have a place, role, or dashboard to check.",
-        "count": "{count} total",
+        "subtitle": "Les communautés où vous avez déjà une place, un rôle ou un tableau de bord à consulter.",
+        "count": "{count} au total",
         "empty_title": "Aucun groupe pour l'instant.",
-        "empty_description": "Once you start joining or creating groups, your quick links will live here.",
+        "empty_description": "Dès que vous rejoindrez ou créerez des groupes, vos liens rapides apparaîtront ici.",
         "sections": {
-            "owned": "Owned",
-            "moderated": "Moderated",
+            "owned": "Propriétaire",
+            "moderated": "Modérateur",
             "member": "Membre"
         }
     },
     "next_up": {
-        "title": "Next Up",
-        "subtitle": "Your clearest look at the content you are actively moving through right now.",
-        "queue_label": "Coming Up Next",
-        "submitted": "Submitted {time}",
-        "more_title": "Also In Motion",
-        "no_description": "No additional notes were provided for this run.",
-        "empty_title": "Nothing is lined up right now.",
-        "empty_description": "Once you start applying to runs or getting placed onto rosters, this becomes your fastest way back into the action."
+        "title": "À suivre",
+        "subtitle": "La vue la plus claire du contenu dans lequel vous progressez activement en ce moment.",
+        "queue_label": "Prochainement",
+        "submitted": "Envoyé {time}",
+        "more_title": "Également en cours",
+        "no_description": "Aucune note supplémentaire n'a été fournie pour ce run.",
+        "empty_title": "Rien de prévu pour l'instant.",
+        "empty_description": "Dès que vous commencerez à postuler à des runs ou à être placé dans des compositions, ce sera votre chemin le plus rapide pour reprendre l'action."
     },
     "alerts": {
-        "title": "Latest Alerts",
-        "subtitle": "Recent updates, reminders, and system notices that may need your attention.",
-        "empty_title": "Your inbox is quiet.",
-        "empty_description": "New reminders, roster updates, and notices will show up here."
+        "title": "Dernières alertes",
+        "subtitle": "Mises à jour récentes, rappels et avis système qui peuvent nécessiter votre attention.",
+        "empty_title": "Votre boîte de réception est calme.",
+        "empty_description": "Les nouveaux rappels, mises à jour de composition et avis apparaîtront ici."
     },
     "activity": {
-        "title": "Application Activity",
-        "subtitle": "Your latest signups, approvals, and older run entries in one place.",
-        "submitted": "Submitted {time}",
-        "empty_title": "No application history yet.",
-        "empty_description": "Once you begin signing up for content, your recent activity will appear here."
+        "title": "Activité des candidatures",
+        "subtitle": "Vos dernières inscriptions, approbations et anciennes participations à des runs en un seul endroit.",
+        "submitted": "Envoyé {time}",
+        "empty_title": "Aucun historique de candidature pour l'instant.",
+        "empty_description": "Dès que vous commencerez à vous inscrire à du contenu, votre activité récente apparaîtra ici."
     }
 }
