@@ -37,7 +37,6 @@ const togglePreferred = () => {
 		phantom_job_id: props.phantomJob.id,
 		is_preferred: !props.phantomJob.is_preferred,
 	}, {
-		preserveScroll: true,
 		onFinish: () => {
 			isUpdating.value = false;
 		}
@@ -79,9 +78,9 @@ const handleCompactTap = () => {
 				PJ
 			</div>
 			<UIcon
-				v-if="phantomJob.is_preferred"
-				name="i-lucide-heart"
-				class="absolute -right-1 -top-1 size-4 fill-rose-500 text-rose-500"
+				:name="phantomJob.is_preferred ? 'mdi:heart' : 'i-lucide-heart'"
+				class="absolute -right-1 -top-1 size-4"
+				:class="phantomJob.is_preferred ? 'text-rose-500' : 'text-white/55'"
 			/>
 		</div>
 		<p class="text-xs font-semibold leading-none text-white/86">
@@ -107,8 +106,8 @@ const handleCompactTap = () => {
 		</div>
 
 		<div class="min-w-0 flex-1">
-			<div class="flex flex-wrap items-center gap-1.5">
-				<p class="truncate text-sm font-semibold">{{ translatedPhantomJobName }}</p>
+			<div class="flex min-w-0 flex-wrap items-center gap-1.5">
+				<p class="max-w-full whitespace-normal break-words text-sm font-semibold leading-tight">{{ translatedPhantomJobName }}</p>
 			</div>
 
 			<div class="flex flex-wrap items-center gap-1.5">
@@ -129,13 +128,12 @@ const handleCompactTap = () => {
 			@click.stop="togglePreferred"
 			:loading="isUpdating"
 			:disabled="isUpdating"
-			icon="i-lucide-heart"
+			:icon="phantomJob.is_preferred ? 'mdi:heart' : 'i-lucide-heart'"
 			size="sm"
 			variant="ghost"
 			:color="phantomJob.is_preferred ? 'error' : 'neutral'"
 			class="absolute right-2 top-1/2 -translate-y-1/2 transition-opacity duration-200"
-			:class="phantomJob.is_preferred ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'"
-			:ui="{ base: phantomJob.is_preferred ? 'text-rose-500' : '' }"
+			:ui="{ base: phantomJob.is_preferred ? 'text-rose-500' : 'text-white/55 hover:text-rose-400' }"
 		/>
 	</div>
 </template>

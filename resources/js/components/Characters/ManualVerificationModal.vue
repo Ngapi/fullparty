@@ -23,7 +23,6 @@ const checkExistsForm = useForm({
 const checkExists = () => {
 	checkExistsForm.post(route('characters.exists'), {
 		preserveState: true,
-		preserveScroll: true,
 		onSuccess: () => {
 			const result = page.props.flash?.data?.manual_character_lookup
 			console.log(result)
@@ -68,7 +67,6 @@ const verify = () => {
 	verifyForm.character_id = character.value.id;
 	verifyForm.post(route('characters.verify'), {
 		preserveState: true,
-		preserveScroll: true,
 		onSuccess: () => {
 			const result = page.props.flash?.data?.character_verification
 			console.log(result)

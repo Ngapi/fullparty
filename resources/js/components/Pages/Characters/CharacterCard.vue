@@ -51,7 +51,6 @@ const refreshCharacterData = () => {
 	isRefreshing.value = true;
 
 	router.post(route('characters.refresh', props.character.id), {}, {
-		preserveScroll: true,
 		onFinish: () => {
 			isRefreshing.value = false;
 		},
@@ -62,7 +61,6 @@ const makePrimary = () => {
 	isMakingPrimary.value = true;
 
 	router.post(route('characters.make-primary', props.character.id), {}, {
-		preserveScroll: true,
 		onFinish: () => {
 			isMakingPrimary.value = false;
 		},
@@ -73,7 +71,6 @@ const removeCharacter = () => {
 	isRemoving.value = true;
 
 	router.delete(route('characters.destroy', props.character.id), {
-		preserveScroll: true,
 		onFinish: () => {
 			isRemoving.value = false;
 			removeModalOpen.value = false;

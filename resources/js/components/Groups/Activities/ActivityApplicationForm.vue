@@ -216,14 +216,12 @@ const submit = () => {
 
 	if (props.application) {
 		form.put(route(targetRoute, routeParams), {
-			preserveScroll: true,
 		});
 
 		return;
 	}
 
 	form.post(route(targetRoute, routeParams), {
-		preserveScroll: true,
 	});
 };
 </script>

@@ -30,7 +30,6 @@ const character_form = useForm({
 const fetch_characters = () => {
 	form.post(route('characters.xivauth'), {
 		preserveState: true,
-		preserveScroll: true,
 		onSuccess: () => {
 			const data = page.props.flash?.data;
 			characters.value = data.characters;

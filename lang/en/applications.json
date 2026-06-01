@@ -1,6 +1,6 @@
 {
   "title": "My Applications",
-  "subtitle": "Review your recent run applications and manage anything still pending.",
+  "subtitle": "Keep track of the runs you’ve applied for and what’s coming up next.",
   "empty_title": "No applications yet",
   "empty_description": "Once you apply to runs, they will show up here from newest to oldest.",
   "summary_fallback": "Your submitted run details and current application status are summarized here.",
@@ -22,13 +22,17 @@
   },
   "sections": {
     "active_title": "Active Applications",
-    "active_description": "Your current signups that are still live, pending, or otherwise in motion.",
+    "active_description": "Runs you’re still waiting on or already approved for.",
     "active_empty_title": "No active applications",
     "active_empty_description": "Anything still in progress will show up here.",
     "history_title": "History",
-    "history_description": "Past, declined, withdrawn, or otherwise closed-out applications stay here for reference.",
+    "history_description": "Older applications move here after the run time has passed.",
     "history_empty_title": "No application history yet",
-    "history_empty_description": "Once an application is completed, declined, withdrawn, or archived, it will move here."
+    "history_empty_description": "Once an older application is ready to look back on, it will appear here.",
+    "next_title": "Next up",
+    "next_description": "Your closest upcoming run, with the details you’ll need at a glance.",
+    "cancelled_title": "Cancelled Applications",
+    "cancelled_description": "Applications you backed out of or that didn’t go ahead, kept here until the run time passes."
   },
   "edit": "Edit Application",
   "view_run": "View Run",
@@ -43,8 +47,30 @@
     "action_application": "Withdraw Application",
     "action_run": "Withdraw from Run",
     "success_title": "Application withdrawn",
-    "success_description": "Your application has been withdrawn and moved to your history.",
+    "success_description": "Your application has been withdrawn.",
     "error_title": "Unable to withdraw application",
     "error_description": "This application could not be withdrawn right now."
+  },
+  "group": "Group",
+  "search_placeholder": "Search by run, type, prog point, group, character, or status...",
+  "search_empty_title": "No applications match that search",
+  "search_empty_description": "Try a different activity, group, prog point, or status.",
+  "assignment": {
+    "title": "Roster details",
+    "party": "Party",
+    "slot": "Slot",
+    "class": "Class",
+    "phantom_job": "Phantom Job",
+    "raid_position": "Raid Position"
+  },
+  "history": {
+    "collapsed_title": "Want to look back?",
+    "collapsed_description": "Open your older applications whenever you need them.",
+    "view_button": "View History",
+    "per_page": "Per page",
+    "range": "Showing {from}-{to} of {total}",
+    "empty_range": "No history loaded",
+    "error_title": "Could not load history",
+    "error_description": "Your application history could not be loaded right now."
   }
 }

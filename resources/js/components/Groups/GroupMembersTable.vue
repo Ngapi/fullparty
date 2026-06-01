@@ -1,95 +1,262 @@
 <script setup lang="ts">
 import type {
+	GroupBannedMemberRecord,
+	GroupBannedMembersTableModerationController,
 	GroupMemberCharacter,
 	GroupMemberNotesController,
 	GroupMemberRecord,
 	GroupMembersTableModerationController,
-	GroupMemberTableRow,
+	GroupRole,
 } from "@/Types/Groups";
-import { getPaginationRowModel } from "@tanstack/vue-table";
-import { computed, ref, useTemplateRef, watch } from "vue";
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import MemberNotesButton from "@/components/Shared/Notes/MemberNotesButton.vue";
-import type { GroupRole } from "@/Types/Groups";
-import { createDateTimeFormatter } from "@/utils/dateTimeFormat";
 
-const props = defineProps<{
+const pageSize = 15;
+const fallbackProfileBackground = "/default-homepage-bg.jpg";
+
+type ViewMode = "list" | "grid";
+
+type ActiveMemberCard = {
+	kind: "active"
+	id: string
+	member: GroupMemberRecord
+	displayName: string
+	avatarUrl: string | null
+	backgroundUrl: string | null
+	characters: GroupMemberCharacter[]
+	searchText: string
+};
+
+type BannedMemberCard = {
+	kind: "banned"
+	id: string
+	member: GroupBannedMemberRecord
+	displayName: string
+	avatarUrl: string | null
+	backgroundUrl: string | null
+	characters: GroupMemberCharacter[]
+	searchText: string
+};
+
+type MemberCard = ActiveMemberCard | BannedMemberCard;
+
+const props = withDefaults(defineProps<{
 	members: GroupMemberRecord[]
+	bannedMembers?: GroupBannedMemberRecord[]
+	canViewBans?: boolean
 	notes: GroupMemberNotesController
-	moderation: GroupMembersTableModerationController
-}>();
-
-const { t } = useI18n();
-const memberTable = useTemplateRef('memberTable');
-const responsiveMemberTable = useTemplateRef('responsiveMemberTable');
-
-const memberPagination = ref({
-	pageIndex: 0,
-	pageSize: 8,
+	moderation: GroupMembersTableModerationController & GroupBannedMembersTableModerationController
+}>(), {
+	bannedMembers: () => [],
+	canViewBans: false,
 });
-const memberGlobalFilter = ref('');
-const memberExpanded = ref<Record<string, boolean>>({});
 
-const memberCountLabel = computed(() => t('groups.members.roster.count', { count: props.members.length }));
-const notAvailableLabel = computed(() => t('groups.members.roster.not_available'));
+const { locale, t } = useI18n();
+
+const search = ref("");
+const viewMode = ref<ViewMode>("list");
+const showBannedMembers = ref(false);
+const visibleCount = ref(pageSize);
+const loadMoreSentinel = ref<HTMLElement | null>(null);
+let observer: IntersectionObserver | null = null;
+
+const relativeTimeFormatter = computed(() => new Intl.RelativeTimeFormat(locale.value, {
+	numeric: "auto",
+	style: "long",
+}));
 
 const roleBadge = (role: string) => ({
 	owner: {
-		label: t('groups.common.roles.owner'),
-		color: 'warning',
-		icon: 'i-lucide-crown',
+		label: t("groups.common.roles.owner"),
+		color: "warning",
+		icon: "i-lucide-crown",
 	},
 	moderator: {
-		label: t('groups.common.roles.moderator'),
-		color: 'primary',
-		icon: 'i-lucide-shield',
+		label: t("groups.common.roles.moderator"),
+		color: "primary",
+		icon: "i-lucide-shield",
 	},
 	admin: {
-		label: t('groups.common.roles.admin'),
-		color: 'secondary',
-		icon: 'i-lucide-shield-check',
+		label: t("groups.common.roles.admin"),
+		color: "secondary",
+		icon: "i-lucide-shield-check",
 	},
 	member: {
-		label: t('groups.common.roles.member'),
-		color: 'neutral',
-		icon: 'i-lucide-user',
+		label: t("groups.common.roles.member"),
+		color: "neutral",
+		icon: "i-lucide-user",
 	},
 }[role] ?? {
 	label: role,
-	color: 'neutral',
-	icon: 'i-lucide-user',
+	color: "neutral",
+	icon: "i-lucide-user",
 });
 
-const formatShortDate = (value: string | null) => {
+const bannedBadge = computed(() => ({
+	label: t("groups.members.bans.badge"),
+	color: "error",
+	icon: "i-lucide-ban",
+}));
+
+const currentTitle = computed(() => showBannedMembers.value
+	? t("groups.members.bans.title")
+	: t("groups.members.roster.title"));
+const currentSubtitle = computed(() => showBannedMembers.value
+	? t("groups.members.bans.subtitle")
+	: t("groups.members.roster.subtitle"));
+const currentCountLabel = computed(() => showBannedMembers.value
+	? t("groups.members.bans.count", { count: props.bannedMembers.length })
+	: t("groups.members.roster.count", { count: props.members.length }));
+const currentSearchPlaceholder = computed(() => showBannedMembers.value
+	? t("groups.members.bans.search_placeholder")
+	: t("groups.members.roster.search_placeholder"));
+const emptyLabel = computed(() => showBannedMembers.value
+	? t("groups.members.bans.empty")
+	: t("groups.members.roster.empty"));
+
+const formatRelativeTime = (value: string | null) => {
 	if (!value) {
-		return notAvailableLabel.value;
+		return t("groups.members.roster.not_available");
 	}
 
-	return createDateTimeFormatter(undefined, {
-		year: 'numeric',
-		month: '2-digit',
-		day: '2-digit',
-	}).format(new Date(value));
+	const date = new Date(value);
+	if (Number.isNaN(date.getTime())) {
+		return t("groups.members.roster.not_available");
+	}
+
+	const diffSeconds = Math.round((date.getTime() - Date.now()) / 1000);
+	const units = [
+		{ unit: "year", seconds: 60 * 60 * 24 * 365 },
+		{ unit: "month", seconds: 60 * 60 * 24 * 30 },
+		{ unit: "week", seconds: 60 * 60 * 24 * 7 },
+		{ unit: "day", seconds: 60 * 60 * 24 },
+		{ unit: "hour", seconds: 60 * 60 },
+	] as const;
+
+	for (const item of units) {
+		if (Math.abs(diffSeconds) >= item.seconds) {
+			return relativeTimeFormatter.value.format(Math.round(diffSeconds / item.seconds), item.unit);
+		}
+	}
+
+	return relativeTimeFormatter.value.format(Math.round(diffSeconds / 60), "minute");
 };
 
-const summarizeCharacters = (characters: GroupMemberCharacter[]) => {
-	return characters
-		.map((character) => `${character.name} ${character.world} ${character.is_primary ? 'primary' : ''}`.trim())
-		.join(' ');
-};
+const joinedLabel = (member: GroupMemberRecord) => t("groups.members.roster.joined_at", {
+	date: formatRelativeTime(member.joined_at),
+});
 
-const summarizeMember = (member: GroupMemberRecord) => [
-	member.name,
-	roleBadge(member.role).label,
-	formatShortDate(member.joined_at),
-	String(member.participated_run_count),
-].join(' ');
+const bannedAtLabel = (member: GroupBannedMemberRecord) => t("groups.members.bans.banned_at_relative", {
+	date: formatRelativeTime(member.banned_at),
+});
 
-const memberTableData = computed<GroupMemberTableRow[]>(() => props.members.map((member) => ({
-	...member,
-	member_summary: summarizeMember(member),
-	character_summary: summarizeCharacters(member.characters),
+const characterSubtitle = (character: GroupMemberCharacter) => [character.datacenter, character.world]
+	.filter(Boolean)
+	.join(" - ") || character.world;
+
+const summarizeCharacters = (characters: GroupMemberCharacter[]) => characters
+	.map((character) => `${character.name} ${character.world} ${character.datacenter ?? ""} ${character.is_primary ? "primary" : ""}`.trim())
+	.join(" ");
+
+const activeCards = computed<ActiveMemberCard[]>(() => props.members.map((member) => ({
+	kind: "active",
+	id: `active-${member.id}`,
+	member,
+	displayName: member.name,
+	avatarUrl: member.avatar_url,
+	backgroundUrl: member.home_background_image_url ?? null,
+	characters: member.characters,
+	searchText: [
+		member.name,
+		roleBadge(member.role).label,
+		String(member.participated_run_count),
+		joinedLabel(member),
+		summarizeCharacters(member.characters),
+	].join(" ").toLowerCase(),
 })));
+
+const bannedCards = computed<BannedMemberCard[]>(() => props.bannedMembers.map((member) => ({
+	kind: "banned",
+	id: `banned-${member.id}`,
+	member,
+	displayName: member.name ?? t("groups.members.bans.unknown_member"),
+	avatarUrl: member.avatar_url,
+	backgroundUrl: member.home_background_image_url ?? null,
+	characters: member.characters,
+	searchText: [
+		member.name ?? t("groups.members.bans.unknown_member"),
+		member.reason ?? t("groups.members.bans.no_reason"),
+		member.banned_by?.name ?? t("groups.members.bans.system"),
+		bannedAtLabel(member),
+		summarizeCharacters(member.characters),
+	].join(" ").toLowerCase(),
+})));
+
+const currentCards = computed<MemberCard[]>(() => showBannedMembers.value ? bannedCards.value : activeCards.value);
+const filteredCards = computed<MemberCard[]>(() => {
+	const query = search.value.trim().toLowerCase();
+
+	if (!query) {
+		return currentCards.value;
+	}
+
+	return currentCards.value.filter((card) => card.searchText.includes(query));
+});
+const visibleCards = computed(() => filteredCards.value.slice(0, visibleCount.value));
+const hasMore = computed(() => visibleCount.value < filteredCards.value.length);
+const shouldShowNoResults = computed(() => filteredCards.value.length === 0);
+
+const listViewActive = computed(() => viewMode.value === "list");
+const gridViewActive = computed(() => viewMode.value === "grid");
+
+const resetVisibleCards = () => {
+	visibleCount.value = pageSize;
+};
+
+const loadMore = () => {
+	if (!hasMore.value) {
+		return;
+	}
+
+	visibleCount.value = Math.min(visibleCount.value + pageSize, filteredCards.value.length);
+};
+
+const observeLoadMoreSentinel = () => {
+	observer?.disconnect();
+
+	if (!observer || !loadMoreSentinel.value || !hasMore.value) {
+		return;
+	}
+
+	observer.observe(loadMoreSentinel.value);
+};
+
+onMounted(() => {
+	if (typeof window === "undefined" || !("IntersectionObserver" in window)) {
+		return;
+	}
+
+	observer = new IntersectionObserver((entries) => {
+		if (entries.some((entry) => entry.isIntersecting)) {
+			loadMore();
+		}
+	}, {
+		rootMargin: "240px",
+	});
+
+	nextTick(observeLoadMoreSentinel);
+});
+
+onBeforeUnmount(() => {
+	observer?.disconnect();
+});
+
+watch([search, showBannedMembers], resetVisibleCards);
+watch([hasMore, visibleCards], async () => {
+	await nextTick();
+	observeLoadMoreSentinel();
+});
 
 const nextPromotedRole = (role: GroupRole) => {
 	if (role === "member") {
@@ -111,136 +278,149 @@ const nextDemotedRole = (role: GroupRole) => {
 	return "member";
 };
 
-const memberColumns = computed(() => [
-	{ accessorKey: 'name', header: t('groups.members.table.columns.member') },
-	{ accessorKey: 'role', header: t('general.role') },
-	{ accessorKey: 'joined_at', header: t('groups.members.table.columns.joined_at') },
-	{ accessorKey: 'participated_run_count', header: t('groups.members.table.columns.runs_participated') },
-	{ accessorKey: 'character_summary', header: t('groups.members.table.columns.characters') },
-	{ id: 'actions', header: t('general.actions') },
-]);
+const canShowActiveActions = (member: GroupMemberRecord) => member.note_summary.can_view
+	|| member.permissions.can_promote
+	|| member.permissions.can_demote
+	|| member.permissions.can_kick
+	|| member.permissions.can_ban;
 
-const responsiveMemberColumns = computed(() => [
-	{ accessorKey: 'member_summary', header: t('groups.members.table.columns.member') },
-	{
-		accessorKey: 'character_summary',
-		header: t('groups.members.table.columns.characters'),
-		meta: {
-			class: {
-				th: 'hidden md:table-cell',
-				td: 'hidden md:table-cell',
-			},
-		},
-	},
-]);
-
-const activeMemberTable = computed(() => memberTable.value ?? responsiveMemberTable.value);
-const filteredRowCount = computed(() => activeMemberTable.value?.tableApi?.getFilteredRowModel().rows.length ?? 0);
-const shouldFixTableHeight = computed(() => filteredRowCount.value > memberPagination.value.pageSize);
-
-watch(memberGlobalFilter, () => {
-	memberPagination.value.pageIndex = 0;
-	memberExpanded.value = {};
-});
-
-watch(() => memberPagination.value.pageIndex, () => {
-	memberExpanded.value = {};
-});
-
-const toggleResponsiveRow = (_event: Event, row: any) => {
-	row.toggleExpanded();
-};
+const canShowBannedActions = (member: GroupBannedMemberRecord) => Boolean(member.user_id)
+	&& (member.note_summary.can_view || member.permissions.can_unban);
 </script>
 
 <template>
 	<UCard class="w-full dark:bg-elevated/25">
 		<template #header>
-			<div class="flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:justify-between">
-				<div class="flex flex-col gap-1">
-					<p class="font-semibold text-md">{{ t('groups.members.roster.title') }}</p>
-					<p class="text-sm text-muted">{{ t('groups.members.roster.subtitle') }}</p>
+			<div class="flex flex-col gap-4">
+				<div class="flex flex-col items-start gap-3 lg:flex-row lg:items-center lg:justify-between">
+					<div class="flex flex-col gap-1">
+						<p class="font-semibold text-md">{{ currentTitle }}</p>
+						<p class="text-sm text-muted">{{ currentSubtitle }}</p>
+					</div>
+
+					<UBadge :label="currentCountLabel" color="neutral" variant="subtle" />
 				</div>
-				<div class="flex w-full items-center gap-2 sm:w-auto">
+
+				<div class="flex flex-col gap-2 xl:flex-row xl:items-center xl:justify-between">
 					<UInput
-						v-model="memberGlobalFilter"
-						class="min-w-0 flex-1 sm:w-72 sm:flex-none"
+						v-model="search"
+						class="w-full xl:max-w-md"
 						icon="i-lucide-search"
-						:placeholder="t('groups.members.roster.search_placeholder')"
+						:placeholder="currentSearchPlaceholder"
 					/>
-					<UBadge :label="memberCountLabel" color="neutral" variant="subtle" />
+
+					<div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-end">
+						<div class="flex w-full gap-1 sm:w-auto">
+							<UButton
+								class="flex-1 sm:flex-none"
+								:color="listViewActive ? 'primary' : 'neutral'"
+								:variant="listViewActive ? 'solid' : 'subtle'"
+								icon="i-lucide-list"
+								:label="t('groups.members.view.list')"
+								@click="viewMode = 'list'"
+							/>
+							<UButton
+								class="flex-1 sm:flex-none"
+								:color="gridViewActive ? 'primary' : 'neutral'"
+								:variant="gridViewActive ? 'solid' : 'subtle'"
+								icon="i-lucide-layout-grid"
+								:label="t('groups.members.view.blocks')"
+								@click="viewMode = 'grid'"
+							/>
+						</div>
+
+						<UButton
+							v-if="props.canViewBans"
+							color="neutral"
+							variant="subtle"
+							:icon="showBannedMembers ? 'i-lucide-users' : 'i-lucide-ban'"
+							:label="showBannedMembers ? t('groups.members.view.members') : t('groups.members.view.banned')"
+							@click="showBannedMembers = !showBannedMembers"
+						/>
+					</div>
 				</div>
 			</div>
 		</template>
 
-		<div class="flex flex-col gap-4">
-			<div
-				class="xl:hidden"
-				:class="shouldFixTableHeight ? 'h-[34rem] overflow-auto' : 'overflow-auto'"
-			>
-				<UTable
-					ref="responsiveMemberTable"
-					v-model:pagination="memberPagination"
-					v-model:global-filter="memberGlobalFilter"
-					v-model:expanded="memberExpanded"
-					:data="memberTableData"
-					:columns="responsiveMemberColumns"
-					:pagination-options="{ getPaginationRowModel: getPaginationRowModel() }"
-					:on-select="toggleResponsiveRow"
-					class="w-full [&_td]:py-3.5 [&_th]:py-2 md:[&_td]:py-3"
+		<div class="space-y-4">
+			<div v-if="shouldShowNoResults" class="flex min-h-52 flex-col items-center justify-center gap-3 border border-dashed border-default bg-muted/10 px-6 py-12 text-center">
+				<UIcon :name="showBannedMembers ? 'i-lucide-ban' : 'i-lucide-users'" class="size-8 text-muted" />
+				<p class="font-medium text-toned">{{ emptyLabel }}</p>
+				<p v-if="search" class="max-w-md text-sm text-muted">
+					{{ t('groups.members.view.no_search_results') }}
+				</p>
+			</div>
+
+			<div v-else-if="listViewActive" class="space-y-3">
+				<div
+					v-for="card in visibleCards"
+					:key="card.id"
+					class="flex flex-col gap-4 border border-default bg-default/60 p-4 shadow-sm transition hover:border-primary/35 hover:bg-elevated/60 lg:flex-row lg:items-center"
 				>
-					<template #member_summary-cell="{ row }">
-						<div class="flex min-w-56 items-center gap-2.5 md:min-w-72">
-							<div v-if="row.original.avatar_url" class="h-9 w-9 shrink-0 overflow-hidden rounded-sm border border-default bg-muted/30">
-								<img
-									:src="row.original.avatar_url"
-									:alt="`${row.original.name} avatar`"
-									class="h-full w-full object-cover"
-								>
-							</div>
-							<div v-else class="flex h-9 w-9 shrink-0 items-center justify-center rounded-sm border border-default bg-muted/20">
-								<UIcon name="i-lucide-user" size="16" class="text-muted" />
-							</div>
-
-							<div class="min-w-0 space-y-1">
-								<div class="flex flex-wrap items-center gap-2">
-									<p class="break-words font-semibold leading-tight text-toned [overflow-wrap:anywhere]">{{ row.original.name }}</p>
-									<UBadge
-										:label="roleBadge(row.original.role).label"
-										:color="roleBadge(row.original.role).color"
-										:icon="roleBadge(row.original.role).icon"
-										variant="subtle"
-										size="xs"
-									/>
-								</div>
-
-								<div class="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted">
-									<span class="inline-flex items-center gap-1">
-										<UIcon name="i-lucide-calendar-days" class="size-3" />
-										{{ t('groups.members.table.columns.joined_at') }}: {{ formatShortDate(row.original.joined_at) }}
-									</span>
-									<span class="inline-flex items-center gap-1">
-										<UIcon name="i-lucide-swords" class="size-3" />
-										{{ t('groups.members.table.columns.runs_participated') }}: {{ row.original.participated_run_count }}
-									</span>
-								</div>
-							</div>
-
-							<UIcon
-								:name="row.getIsExpanded() ? 'i-lucide-chevron-up' : 'i-lucide-chevron-down'"
-								class="ml-auto size-4 shrink-0 text-muted"
-							/>
+					<div class="flex items-start gap-4 lg:w-[24rem] lg:shrink-0">
+						<div v-if="card.avatarUrl" class="h-16 w-16 shrink-0 overflow-hidden rounded-full border border-default bg-muted/30">
+							<img
+								:src="card.avatarUrl"
+								:alt="`${card.displayName} avatar`"
+								class="h-full w-full object-cover"
+								loading="lazy"
+							>
 						</div>
-					</template>
+						<div v-else class="flex h-16 w-16 shrink-0 items-center justify-center rounded-full border border-default bg-muted/20">
+							<UIcon name="i-lucide-user" size="22" class="text-muted" />
+						</div>
 
-					<template #character_summary-cell="{ row }">
-						<div v-if="row.original.characters.length > 0" class="flex min-w-56 flex-wrap gap-1.5">
+						<div class="min-w-0 space-y-2">
+							<div class="flex flex-wrap items-center gap-2">
+								<p class="break-words text-base font-semibold leading-tight text-toned [overflow-wrap:anywhere]">{{ card.displayName }}</p>
+
+								<template v-if="card.kind === 'active'">
+									<UBadge
+										:label="roleBadge(card.member.role).label"
+										:color="roleBadge(card.member.role).color"
+										:icon="roleBadge(card.member.role).icon"
+										variant="subtle"
+										size="sm"
+									/>
+									<UBadge
+										:label="t('groups.members.roster.runs_badge', { count: card.member.participated_run_count })"
+										color="neutral"
+										variant="subtle"
+										icon="i-lucide-swords"
+										size="sm"
+									/>
+								</template>
+								<UBadge
+									v-else
+									:label="bannedBadge.label"
+									:color="bannedBadge.color"
+									:icon="bannedBadge.icon"
+									variant="subtle"
+									size="sm"
+								/>
+							</div>
+
+							<p v-if="card.kind === 'active'" class="text-sm text-muted">
+								{{ joinedLabel(card.member) }}
+							</p>
+							<div v-else class="space-y-1 text-sm text-muted">
+								<p>{{ bannedAtLabel(card.member) }}</p>
+								<p>
+									{{ t('groups.members.bans.reason_inline', { reason: card.member.reason || t('groups.members.bans.no_reason') }) }}
+								</p>
+							</div>
+						</div>
+					</div>
+
+					<div class="min-w-0 flex-1">
+						<div v-if="card.characters.length > 0" class="flex flex-wrap gap-2">
 							<div
-								v-for="character in row.original.characters"
+								v-for="character in card.characters"
 								:key="character.id"
-								class="inline-flex max-w-48 items-center gap-2 rounded-sm border border-default bg-muted/20 px-2 py-1.5"
+								class="inline-flex max-w-full items-center gap-2 rounded-sm border border-default bg-muted/20 px-2.5 py-2"
 								:title="`${character.name} - ${character.world}`"
 							>
-								<div v-if="character.avatar_url" class="h-6 w-6 shrink-0 overflow-hidden rounded-sm border border-default bg-muted/30">
+								<div v-if="character.avatar_url" class="h-8 w-8 shrink-0 overflow-hidden rounded-sm border border-default bg-muted/30">
 									<img
 										:src="character.avatar_url"
 										:alt="`${character.name} avatar`"
@@ -248,19 +428,19 @@ const toggleResponsiveRow = (_event: Event, row: any) => {
 										loading="lazy"
 									>
 								</div>
-								<div v-else class="flex h-6 w-6 shrink-0 items-center justify-center rounded-sm border border-default bg-muted/20">
-									<UIcon name="i-lucide-user-round" size="12" class="text-muted" />
+								<div v-else class="flex h-8 w-8 shrink-0 items-center justify-center rounded-sm border border-default bg-muted/20">
+									<UIcon name="i-lucide-user-round" size="13" class="text-muted" />
 								</div>
 
 								<div class="min-w-0">
-									<p class="truncate text-xs font-medium text-toned">{{ character.name }}</p>
-									<p class="truncate text-[11px] leading-tight text-muted">{{ character.world }}</p>
+									<p class="truncate text-sm font-medium text-toned">{{ character.name }}</p>
+									<p class="truncate text-xs leading-tight text-muted">{{ characterSubtitle(character) }}</p>
 								</div>
 
 								<UIcon
 									v-if="character.is_primary"
 									name="i-lucide-star"
-									class="size-3 shrink-0 text-warning"
+									class="size-3.5 shrink-0 text-warning"
 								/>
 							</div>
 						</div>
@@ -268,241 +448,298 @@ const toggleResponsiveRow = (_event: Event, row: any) => {
 						<p v-else class="text-sm text-muted">
 							{{ t('groups.members.roster.no_characters') }}
 						</p>
-					</template>
+					</div>
 
-					<template #expanded="{ row }">
-						<div class="space-y-4 bg-muted/10 px-1 py-2">
-							<div class="space-y-2 md:hidden">
-								<p class="text-xs font-semibold uppercase tracking-wide text-muted">
-									{{ t('groups.members.table.columns.characters') }}
-								</p>
-								<div v-if="row.original.characters.length > 0" class="flex flex-wrap gap-1.5">
-									<div
-										v-for="character in row.original.characters"
-										:key="character.id"
-										class="inline-flex max-w-full items-center gap-2 rounded-sm border border-default bg-muted/20 px-2 py-1.5"
-										:title="`${character.name} - ${character.world}`"
-									>
-										<div v-if="character.avatar_url" class="h-6 w-6 shrink-0 overflow-hidden rounded-sm border border-default bg-muted/30">
-											<img
-												:src="character.avatar_url"
-												:alt="`${character.name} avatar`"
-												class="h-full w-full object-cover"
-												loading="lazy"
-											>
-										</div>
-										<div v-else class="flex h-6 w-6 shrink-0 items-center justify-center rounded-sm border border-default bg-muted/20">
-											<UIcon name="i-lucide-user-round" size="12" class="text-muted" />
-										</div>
-
-										<div class="min-w-0">
-											<p class="truncate text-xs font-medium text-toned">{{ character.name }}</p>
-											<p class="truncate text-[11px] leading-tight text-muted">{{ character.world }}</p>
-										</div>
-
-										<UIcon
-											v-if="character.is_primary"
-											name="i-lucide-star"
-											class="size-3 shrink-0 text-warning"
-										/>
-									</div>
-								</div>
-
-								<p v-else class="text-sm text-muted">
-									{{ t('groups.members.roster.no_characters') }}
-								</p>
-							</div>
-
-							<div class="space-y-2">
-								<p class="text-xs font-semibold uppercase tracking-wide text-muted">
-									{{ t('general.actions') }}
-								</p>
-								<div v-if="row.original.note_summary.can_view || row.original.permissions.can_promote || row.original.permissions.can_demote || row.original.permissions.can_kick || row.original.permissions.can_ban" class="flex flex-wrap items-center gap-2">
+					<div class="flex flex-wrap gap-2 lg:w-72 lg:shrink-0 lg:justify-end">
+						<template v-if="card.kind === 'active'">
+							<div v-if="canShowActiveActions(card.member)" class="flex w-full flex-col gap-2 sm:w-auto sm:items-end">
+								<div class="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:justify-end">
 									<MemberNotesButton
-										:user-id="row.original.id"
-										:note-summary="row.original.note_summary"
+										:user-id="card.member.id"
+										:note-summary="card.member.note_summary"
 										size="sm"
 										@open="props.notes.openMemberNotes"
 									/>
 									<UButton
-										v-if="row.original.permissions.can_promote"
+										v-if="card.member.permissions.can_promote"
 										color="primary"
 										variant="subtle"
 										icon="i-lucide-arrow-up"
 										size="sm"
 										:label="t('groups.members.actions.promote')"
-										:loading="props.moderation.updateRoleForm.processing && props.moderation.memberPendingRoleUpdateId === row.original.id"
-										@click="props.moderation.updateMemberRole(row.original, nextPromotedRole(row.original.role))"
+										:loading="props.moderation.updateRoleForm.processing && props.moderation.memberPendingRoleUpdateId === card.member.id"
+										@click="props.moderation.updateMemberRole(card.member, nextPromotedRole(card.member.role))"
 									/>
 									<UButton
-										v-if="row.original.permissions.can_demote"
+										v-if="card.member.permissions.can_demote"
 										color="neutral"
 										variant="subtle"
 										icon="i-lucide-arrow-down"
 										size="sm"
 										:label="t('groups.members.actions.demote')"
-										:loading="props.moderation.updateRoleForm.processing && props.moderation.memberPendingRoleUpdateId === row.original.id"
-										@click="props.moderation.updateMemberRole(row.original, nextDemotedRole(row.original.role))"
+										:loading="props.moderation.updateRoleForm.processing && props.moderation.memberPendingRoleUpdateId === card.member.id"
+										@click="props.moderation.updateMemberRole(card.member, nextDemotedRole(card.member.role))"
 									/>
+								</div>
+
+								<div class="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:justify-end">
 									<UButton
-										v-if="row.original.permissions.can_kick"
+										v-if="card.member.permissions.can_kick"
 										color="error"
 										variant="ghost"
 										icon="i-lucide-user-round-x"
 										size="sm"
 										:label="t('groups.members.actions.kick')"
-										:loading="props.moderation.removeForm.processing && props.moderation.memberPendingRemovalId === row.original.id"
-										@click="props.moderation.openKickConfirmation(row.original)"
+										:loading="props.moderation.removeForm.processing && props.moderation.memberPendingRemovalId === card.member.id"
+										@click="props.moderation.openKickConfirmation(card.member)"
 									/>
 									<UButton
-										v-if="row.original.permissions.can_ban"
+										v-if="card.member.permissions.can_ban"
 										color="error"
 										variant="subtle"
 										icon="i-lucide-ban"
 										size="sm"
 										:label="t('groups.members.actions.ban')"
-										:loading="props.moderation.banForm.processing && props.moderation.memberPendingBanId === row.original.id"
-										@click="props.moderation.openBanConfirmation(row.original)"
+										:loading="props.moderation.banForm.processing && props.moderation.memberPendingBanId === card.member.id"
+										@click="props.moderation.openBanConfirmation(card.member)"
+									/>
+								</div>
+							</div>
+
+							<span v-else class="text-sm text-muted">-</span>
+						</template>
+
+						<template v-else>
+							<div v-if="canShowBannedActions(card.member)" class="flex flex-wrap gap-2 lg:justify-end">
+								<MemberNotesButton
+									v-if="card.member.user_id"
+									:user-id="card.member.user_id"
+									:note-summary="card.member.note_summary"
+									size="sm"
+									@open="props.notes.openMemberNotes"
+								/>
+								<UButton
+									v-if="card.member.permissions.can_unban && card.member.user_id"
+									color="success"
+									variant="subtle"
+									icon="i-lucide-undo-2"
+									size="sm"
+									:label="t('groups.members.actions.unban')"
+									:loading="props.moderation.unbanForm.processing && props.moderation.memberPendingUnbanId === card.member.user_id"
+									@click="props.moderation.unbanMember(card.member)"
+								/>
+							</div>
+
+							<span v-else class="text-sm text-muted">-</span>
+						</template>
+					</div>
+				</div>
+			</div>
+
+			<div v-else class="grid gap-4 md:grid-cols-2 2xl:grid-cols-3">
+				<div
+					v-for="card in visibleCards"
+					:key="card.id"
+					class="overflow-hidden border border-default bg-default/60 shadow-sm transition hover:border-primary/35 hover:bg-elevated/60"
+				>
+					<div
+						class="h-24 bg-cover bg-center bg-muted/30"
+						:style="{ backgroundImage: `url('${card.backgroundUrl || fallbackProfileBackground}')` }"
+					/>
+
+					<div class="px-4 pb-4">
+						<div class="-mt-10 flex justify-center">
+							<div v-if="card.avatarUrl" class="h-20 w-20 overflow-hidden rounded-full border-4 border-default bg-muted/30 shadow-sm">
+								<img
+									:src="card.avatarUrl"
+									:alt="`${card.displayName} avatar`"
+									class="h-full w-full object-cover"
+									loading="lazy"
+								>
+							</div>
+							<div v-else class="flex h-20 w-20 items-center justify-center rounded-full border-4 border-default bg-muted/20 shadow-sm">
+								<UIcon name="i-lucide-user" size="26" class="text-muted" />
+							</div>
+						</div>
+
+						<div class="mt-3 space-y-3 text-center">
+							<p class="break-words text-lg font-semibold leading-tight text-toned [overflow-wrap:anywhere]">{{ card.displayName }}</p>
+
+							<div class="flex flex-wrap items-center justify-center gap-2">
+								<template v-if="card.kind === 'active'">
+									<UBadge
+										:label="roleBadge(card.member.role).label"
+										:color="roleBadge(card.member.role).color"
+										:icon="roleBadge(card.member.role).icon"
+										variant="subtle"
+										size="sm"
+									/>
+									<UBadge
+										:label="t('groups.members.roster.runs_badge', { count: card.member.participated_run_count })"
+										color="neutral"
+										variant="subtle"
+										icon="i-lucide-swords"
+										size="sm"
+									/>
+									<UBadge
+										:label="joinedLabel(card.member)"
+										color="neutral"
+										variant="outline"
+										icon="i-lucide-calendar-days"
+										size="sm"
+									/>
+								</template>
+								<template v-else>
+									<UBadge
+										:label="bannedBadge.label"
+										:color="bannedBadge.color"
+										:icon="bannedBadge.icon"
+										variant="subtle"
+										size="sm"
+									/>
+									<UBadge
+										:label="bannedAtLabel(card.member)"
+										color="neutral"
+										variant="outline"
+										icon="i-lucide-calendar-x"
+										size="sm"
+									/>
+								</template>
+							</div>
+						</div>
+
+						<div class="mt-4">
+							<div v-if="card.characters.length > 0" class="flex flex-wrap justify-center gap-2">
+								<div
+									v-for="character in card.characters"
+									:key="character.id"
+									class="inline-flex max-w-full items-center gap-2 rounded-sm border border-default bg-muted/20 px-2.5 py-2 text-left"
+									:title="`${character.name} - ${character.world}`"
+								>
+									<div v-if="character.avatar_url" class="h-8 w-8 shrink-0 overflow-hidden rounded-sm border border-default bg-muted/30">
+										<img
+											:src="character.avatar_url"
+											:alt="`${character.name} avatar`"
+											class="h-full w-full object-cover"
+											loading="lazy"
+										>
+									</div>
+									<div v-else class="flex h-8 w-8 shrink-0 items-center justify-center rounded-sm border border-default bg-muted/20">
+										<UIcon name="i-lucide-user-round" size="13" class="text-muted" />
+									</div>
+
+									<div class="min-w-0">
+										<p class="truncate text-sm font-medium text-toned">{{ character.name }}</p>
+										<p class="truncate text-xs leading-tight text-muted">{{ characterSubtitle(character) }}</p>
+									</div>
+
+									<UIcon
+										v-if="character.is_primary"
+										name="i-lucide-star"
+										class="size-3.5 shrink-0 text-warning"
+									/>
+								</div>
+							</div>
+
+							<p v-else class="text-sm text-muted">
+								{{ t('groups.members.roster.no_characters') }}
+							</p>
+						</div>
+
+						<div class="mt-4 border-t border-default pt-4">
+							<template v-if="card.kind === 'active'">
+								<div v-if="canShowActiveActions(card.member)" class="flex flex-col items-center gap-2">
+									<div class="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:justify-center">
+										<MemberNotesButton
+											:user-id="card.member.id"
+											:note-summary="card.member.note_summary"
+											size="sm"
+											@open="props.notes.openMemberNotes"
+										/>
+										<UButton
+											v-if="card.member.permissions.can_promote"
+											color="primary"
+											variant="subtle"
+											icon="i-lucide-arrow-up"
+											size="sm"
+											:label="t('groups.members.actions.promote')"
+											:loading="props.moderation.updateRoleForm.processing && props.moderation.memberPendingRoleUpdateId === card.member.id"
+											@click="props.moderation.updateMemberRole(card.member, nextPromotedRole(card.member.role))"
+										/>
+										<UButton
+											v-if="card.member.permissions.can_demote"
+											color="neutral"
+											variant="subtle"
+											icon="i-lucide-arrow-down"
+											size="sm"
+											:label="t('groups.members.actions.demote')"
+											:loading="props.moderation.updateRoleForm.processing && props.moderation.memberPendingRoleUpdateId === card.member.id"
+											@click="props.moderation.updateMemberRole(card.member, nextDemotedRole(card.member.role))"
+										/>
+									</div>
+
+									<div class="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:justify-center">
+										<UButton
+											v-if="card.member.permissions.can_kick"
+											color="error"
+											variant="ghost"
+											icon="i-lucide-user-round-x"
+											size="sm"
+											:label="t('groups.members.actions.kick')"
+											:loading="props.moderation.removeForm.processing && props.moderation.memberPendingRemovalId === card.member.id"
+											@click="props.moderation.openKickConfirmation(card.member)"
+										/>
+										<UButton
+											v-if="card.member.permissions.can_ban"
+											color="error"
+											variant="subtle"
+											icon="i-lucide-ban"
+											size="sm"
+											:label="t('groups.members.actions.ban')"
+											:loading="props.moderation.banForm.processing && props.moderation.memberPendingBanId === card.member.id"
+											@click="props.moderation.openBanConfirmation(card.member)"
+										/>
+									</div>
+								</div>
+
+								<p v-else class="text-center text-sm text-muted">-</p>
+							</template>
+
+							<template v-else>
+								<div v-if="canShowBannedActions(card.member)" class="flex flex-wrap justify-center gap-2">
+									<MemberNotesButton
+										v-if="card.member.user_id"
+										:user-id="card.member.user_id"
+										:note-summary="card.member.note_summary"
+										size="sm"
+										@open="props.notes.openMemberNotes"
+									/>
+									<UButton
+										v-if="card.member.permissions.can_unban && card.member.user_id"
+										color="success"
+										variant="subtle"
+										icon="i-lucide-undo-2"
+										size="sm"
+										:label="t('groups.members.actions.unban')"
+										:loading="props.moderation.unbanForm.processing && props.moderation.memberPendingUnbanId === card.member.user_id"
+										@click="props.moderation.unbanMember(card.member)"
 									/>
 								</div>
 
-								<span v-else class="text-sm text-muted">-</span>
-							</div>
+								<p v-else class="text-center text-sm text-muted">-</p>
+							</template>
 						</div>
-					</template>
-				</UTable>
+					</div>
+				</div>
 			</div>
 
-			<div
-				class="hidden xl:block"
-				:class="shouldFixTableHeight ? 'h-[34rem] overflow-auto' : 'overflow-auto'"
-			>
-				<UTable
-					ref="memberTable"
-					v-model:pagination="memberPagination"
-					v-model:global-filter="memberGlobalFilter"
-					:data="memberTableData"
-					:columns="memberColumns"
-					:pagination-options="{ getPaginationRowModel: getPaginationRowModel() }"
-					class="w-full"
-				>
-					<template #name-cell="{ row }">
-						<div class="flex items-center gap-3">
-							<div v-if="row.original.avatar_url" class="h-10 w-10 shrink-0 overflow-hidden rounded-sm border border-default bg-muted/30">
-								<img
-									:src="row.original.avatar_url"
-									:alt="`${row.original.name} avatar`"
-									class="h-full w-full object-cover"
-								>
-							</div>
-							<div v-else class="flex h-10 w-10 shrink-0 items-center justify-center rounded-sm border border-default bg-muted/20">
-								<UIcon name="i-lucide-user" size="16" class="text-muted" />
-							</div>
-
-							<div class="min-w-0">
-								<p class="font-semibold">{{ row.original.name }}</p>
-							</div>
-						</div>
-					</template>
-
-					<template #role-cell="{ row }">
-						<UBadge
-							:label="roleBadge(row.original.role).label"
-							:color="roleBadge(row.original.role).color"
-							:icon="roleBadge(row.original.role).icon"
-							variant="subtle"
-							size="sm"
-						/>
-					</template>
-
-					<template #joined_at-cell="{ row }">
-						<span class="text-sm">{{ formatShortDate(row.original.joined_at) }}</span>
-					</template>
-
-					<template #participated_run_count-cell="{ row }">
-						<UBadge :label="`${row.original.participated_run_count}`" color="neutral" variant="subtle" />
-					</template>
-
-					<template #character_summary-cell="{ row }">
-						<div v-if="row.original.characters.length > 0" class="flex flex-wrap gap-2">
-							<div
-								v-for="character in row.original.characters"
-								:key="character.id"
-								class="min-w-36 rounded-sm border border-default bg-muted/20 px-3 py-2"
-							>
-								<UUser
-									:name="character.name"
-									:description="character.datacenter + ' - ' + character.world"
-									:avatar="{
-									  src: character.avatar_url,
-									  loading: 'lazy',
-									  icon: 'i-lucide-image'
-									}"
-								/>
-							</div>
-						</div>
-
-						<p v-else class="text-sm text-muted">
-							{{ t('groups.members.roster.no_characters') }}
-						</p>
-					</template>
-
-					<template #actions-cell="{ row }">
-						<div v-if="row.original.note_summary.can_view || row.original.permissions.can_promote || row.original.permissions.can_demote || row.original.permissions.can_kick || row.original.permissions.can_ban" class="flex flex-wrap items-center gap-2">
-							<MemberNotesButton
-								:user-id="row.original.id"
-								:note-summary="row.original.note_summary"
-								@open="props.notes.openMemberNotes"
-							/>
-							<UButton
-								v-if="row.original.permissions.can_promote"
-								color="primary"
-								variant="subtle"
-								icon="i-lucide-arrow-up"
-								:label="t('groups.members.actions.promote')"
-								:loading="props.moderation.updateRoleForm.processing && props.moderation.memberPendingRoleUpdateId === row.original.id"
-								@click="props.moderation.updateMemberRole(row.original, nextPromotedRole(row.original.role))"
-							/>
-							<UButton
-								v-if="row.original.permissions.can_demote"
-								color="neutral"
-								variant="subtle"
-								icon="i-lucide-arrow-down"
-								:label="t('groups.members.actions.demote')"
-								:loading="props.moderation.updateRoleForm.processing && props.moderation.memberPendingRoleUpdateId === row.original.id"
-								@click="props.moderation.updateMemberRole(row.original, nextDemotedRole(row.original.role))"
-							/>
-							<UButton
-								v-if="row.original.permissions.can_kick"
-								color="error"
-								variant="ghost"
-								icon="i-lucide-user-round-x"
-								:label="t('groups.members.actions.kick')"
-								:loading="props.moderation.removeForm.processing && props.moderation.memberPendingRemovalId === row.original.id"
-								@click="props.moderation.openKickConfirmation(row.original)"
-							/>
-							<UButton
-								v-if="row.original.permissions.can_ban"
-								color="error"
-								variant="subtle"
-								icon="i-lucide-ban"
-								:label="t('groups.members.actions.ban')"
-								:loading="props.moderation.banForm.processing && props.moderation.memberPendingBanId === row.original.id"
-								@click="props.moderation.openBanConfirmation(row.original)"
-							/>
-						</div>
-
-						<span v-else class="text-sm text-muted">-</span>
-					</template>
-				</UTable>
-			</div>
-
-			<div class="flex justify-end border-t border-default px-4 pt-4">
-				<UPagination
-					:page="(memberTable?.tableApi?.getState().pagination.pageIndex || 0) + 1"
-					:items-per-page="memberTable?.tableApi?.getState().pagination.pageSize"
-					:total="filteredRowCount"
-					@update:page="(page) => memberTable?.tableApi?.setPageIndex(page - 1)"
+			<div v-if="hasMore" ref="loadMoreSentinel" class="flex justify-center pt-2">
+				<UButton
+					color="neutral"
+					variant="ghost"
+					icon="i-lucide-chevrons-down"
+					:label="t('groups.members.view.load_more')"
+					@click="loadMore"
 				/>
 			</div>
 		</div>

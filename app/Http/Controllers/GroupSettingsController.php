@@ -62,7 +62,7 @@ class GroupSettingsController extends Controller
     {
         $group->loadMissing('memberships', 'invites');
 
-        $this->authorizeOwnerAccess($group);
+        $this->authorizeAdminAccess($group);
         $validated = $request->validated();
 
         $profilePictureUrl = $this->managedImageStorage->replaceUploadedImageIfPresent(
@@ -211,13 +211,6 @@ class GroupSettingsController extends Controller
         return redirect()->back()->with('success', 'group_discovery_updated');
     }
 
-    private function authorizeOwnerAccess(Group $group): void
-    {
-        if (! $group->isOwnedBy(auth()->id())) {
-            abort(403);
-        }
-    }
-
     private function authorizeAdminAccess(Group $group): void
     {
         if (! $group->hasAdminAccess(auth()->id())) {
@@ -291,6 +284,7 @@ class GroupSettingsController extends Controller
                 ?->role,
             'permissions' => [
                 'can_manage_group' => $group->isOwnedBy($currentUserId),
+                'can_update_group_settings' => $group->hasAdminAccess($currentUserId),
                 'can_manage_members' => $group->hasModeratorAccess($currentUserId),
                 'can_manage_discovery' => $group->hasAdminAccess($currentUserId),
                 'can_manage_invites' => $group->hasModeratorAccess($currentUserId),

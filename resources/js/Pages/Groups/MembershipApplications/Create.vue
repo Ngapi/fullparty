@@ -95,7 +95,6 @@ const answerCounter = (field: MembershipApplicationFormField) => {
 
 const submit = () => {
 	const options = {
-		preserveScroll: true,
 	};
 
 	if (hasPendingApplication.value) {

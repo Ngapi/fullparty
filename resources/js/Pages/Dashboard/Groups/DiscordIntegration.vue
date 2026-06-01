@@ -323,7 +323,6 @@ const generateToken = () => {
 	generatingToken.value = true;
 
 	router.post(route("groups.dashboard.discord-integration.link-token", props.group.slug), {}, {
-		preserveScroll: true,
 		onFinish: () => {
 			generatingToken.value = false;
 		},
@@ -349,7 +348,6 @@ const refreshSnapshot = () => {
 
 	router.reload({
 		only: ["snapshot"],
-		preserveScroll: true,
 		onFinish: () => {
 			refreshingSnapshot.value = false;
 		},
@@ -373,7 +371,6 @@ const saveSettings = () => {
 			sync_discord_names_to_ff14: data.name_sync_enabled,
 		}))
 		.put(route("groups.dashboard.discord-integration.settings.update", props.group.slug), {
-			preserveScroll: true,
 		});
 };
 

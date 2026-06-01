@@ -5,9 +5,11 @@ use App\Models\CharacterClass;
 use App\Models\PhantomJob;
 use App\Models\User;
 use App\Services\ManagedImageStorage;
+use Illuminate\Database\Eloquent\Factories\Sequence;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
+use Inertia\Testing\AssertableInertia as Assert;
 
 uses(RefreshDatabase::class);
 
@@ -207,6 +209,59 @@ function activityTypePublicStoragePath(?string $url): string
 
     return substr((string) $path, strlen('/storage/'));
 }
+
+it('paginates and searches the admin activity type index', function () {
+    $admin = User::factory()->create([
+        'is_admin' => true,
+    ]);
+
+    ActivityType::factory()
+        ->count(13)
+        ->sequence(fn (Sequence $sequence) => [
+            'slug' => sprintf('filler-type-%02d', $sequence->index),
+            'draft_name' => ['en' => sprintf('Filler Type %02d', $sequence->index)],
+            'updated_at' => now()->subMinutes($sequence->index + 1),
+        ])
+        ->create();
+
+    $matchingType = ActivityType::factory()->create([
+        'slug' => 'needle-raid',
+        'draft_name' => ['en' => 'Needle Raid'],
+        'draft_description' => ['en' => 'Search target for admin pagination.'],
+        'draft_difficulty' => ActivityType::DIFFICULTY_ULTIMATE,
+        'updated_at' => now(),
+    ]);
+
+    $this->actingAs($admin)
+        ->get(route('admin.activity-types.index'))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->has('activityTypes.data', 12)
+            ->where('activityTypes.meta.current_page', 1)
+            ->where('activityTypes.meta.per_page', 12)
+            ->where('activityTypes.meta.total', 14)
+            ->where('filters.search', '')
+        );
+
+    $this->actingAs($admin)
+        ->get(route('admin.activity-types.index', ['page' => 2]))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->has('activityTypes.data', 2)
+            ->where('activityTypes.meta.current_page', 2)
+            ->where('activityTypes.meta.total', 14)
+        );
+
+    $this->actingAs($admin)
+        ->get(route('admin.activity-types.index', ['search' => 'needle']))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->has('activityTypes.data', 1)
+            ->where('activityTypes.data.0.id', $matchingType->id)
+            ->where('activityTypes.meta.total', 1)
+            ->where('filters.search', 'needle')
+        );
+});
 
 it('allows admins to save roster summary presets on activity type drafts', function () {
     $admin = User::factory()->create([

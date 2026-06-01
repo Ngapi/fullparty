@@ -4,7 +4,7 @@
     "general": {
         "title": "Paramètres généraux",
         "subtitle": "Mettez à jour les détails modifiables qui définissent l'apparence de votre groupe et la manière dont les membres le rejoignent.",
-        "owner_only_notice": "Seuls les propriétaires du groupe peuvent mettre à jour ces paramètres. Les modérateurs peuvent les consulter ici.",
+        "owner_only_notice": "Seuls les propriétaires et admins du groupe peuvent mettre à jour ces paramètres. Les modérateurs peuvent les consulter ici.",
         "visibility_summary_label": "Résumé de visibilité",
         "visibility_summary": {
             "default_name": "Ce groupe",

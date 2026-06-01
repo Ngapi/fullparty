@@ -13,6 +13,7 @@ use App\Support\ActivityCompositionPresets;
 use App\Support\Audit\AuditScope;
 use App\Support\Audit\AuditSeverity;
 use Illuminate\Contracts\Validation\ValidationRule;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -25,22 +26,53 @@ class ActivityTypeController extends Controller
 {
     private const IMAGE_DIRECTORY = 'activity-types';
 
+    private const INDEX_PER_PAGE = 12;
+
     public function __construct(
         private readonly AuditLogger $auditLogger,
         private readonly ManagedImageStorage $managedImageStorage,
     ) {}
 
-    public function index(): Response
+    public function index(Request $request): Response
     {
         $this->authorizeAdminAccess();
 
-        $activityTypes = ActivityType::query()
-            ->with(['creator:id,name', 'currentPublishedVersion.publisher:id,name', 'versions.publisher:id,name', 'tags:id,name'])
+        $validated = $request->validate([
+            'search' => ['nullable', 'string', 'max:120'],
+            'page' => ['nullable', 'integer', 'min:1'],
+        ]);
+        $search = trim((string) ($validated['search'] ?? ''));
+
+        $activityTypeQuery = ActivityType::query()
+            ->with(['creator:id,name', 'currentPublishedVersion.publisher:id,name', 'versions.publisher:id,name', 'tags:id,name']);
+
+        if ($search !== '') {
+            $this->applyIndexSearch($activityTypeQuery, $search);
+        }
+
+        $activityTypes = $activityTypeQuery
             ->latest('updated_at')
-            ->get();
+            ->paginate(self::INDEX_PER_PAGE)
+            ->withQueryString();
 
         return Inertia::render('Admin/ActivityTypes', [
-            'activityTypes' => $activityTypes->map(fn (ActivityType $activityType) => $this->transformActivityType($activityType)),
+            'activityTypes' => [
+                'data' => $activityTypes
+                    ->getCollection()
+                    ->map(fn (ActivityType $activityType) => $this->transformActivityType($activityType))
+                    ->values(),
+                'meta' => [
+                    'current_page' => $activityTypes->currentPage(),
+                    'last_page' => $activityTypes->lastPage(),
+                    'per_page' => $activityTypes->perPage(),
+                    'total' => $activityTypes->total(),
+                    'from' => $activityTypes->firstItem(),
+                    'to' => $activityTypes->lastItem(),
+                ],
+            ],
+            'filters' => [
+                'search' => $search,
+            ],
             'schemaReference' => $this->schemaReference(),
         ]);
     }
@@ -259,6 +291,35 @@ class ActivityTypeController extends Controller
         );
 
         return redirect()->back()->with('success', 'activity_type_archived');
+    }
+
+    private function applyIndexSearch(Builder $query, string $search): void
+    {
+        $likeSearch = '%'.mb_strtolower($search).'%';
+
+        $query->where(function (Builder $query) use ($likeSearch) {
+            $query
+                ->whereRaw('LOWER(slug) LIKE ?', [$likeSearch])
+                ->orWhereRaw("LOWER(COALESCE(draft_difficulty, '')) LIKE ?", [$likeSearch])
+                ->orWhereHas('tags', fn (Builder $tagQuery) => $tagQuery
+                    ->whereRaw('LOWER(name) LIKE ?', [$likeSearch]));
+
+            $this->orWhereJsonTextLike($query, 'draft_name', $likeSearch);
+            $this->orWhereJsonTextLike($query, 'draft_description', $likeSearch);
+        });
+    }
+
+    private function orWhereJsonTextLike(Builder $query, string $column, string $likeSearch): void
+    {
+        $driver = $query->getModel()->getConnection()->getDriverName();
+
+        $expression = match ($driver) {
+            'pgsql' => "LOWER(COALESCE({$column}::text, '')) LIKE ?",
+            'sqlite' => "LOWER(COALESCE({$column}, '')) LIKE ?",
+            default => "LOWER(COALESCE(CAST({$column} AS CHAR), '')) LIKE ?",
+        };
+
+        $query->orWhereRaw($expression, [$likeSearch]);
     }
 
     /**

@@ -2,6 +2,7 @@
 
 use App\Models\Activity;
 use App\Models\ActivityApplication;
+use App\Models\ActivitySlotAssignment;
 use App\Models\ActivityType;
 use App\Models\ActivityTypeVersion;
 use App\Models\AuditLog;
@@ -52,15 +53,17 @@ function createAccountApplicationsActivity(): Activity
     ]);
 }
 
-it('shows the authenticated users applications newest first', function () {
+it('shows the authenticated users applications by upcoming run time', function () {
     $activity = createAccountApplicationsActivity();
     $secondActivity = createAccountApplicationsActivity();
+    $activity->update(['starts_at' => now()->addDays(3)]);
+    $secondActivity->update(['starts_at' => now()->addDay()]);
     $user = User::factory()->create();
     $character = Character::factory()->primary()->create([
         'user_id' => $user->id,
     ]);
 
-    ActivityApplication::factory()->create([
+    $later = ActivityApplication::factory()->create([
         'activity_id' => $activity->id,
         'user_id' => $user->id,
         'selected_character_id' => $character->id,
@@ -82,10 +85,12 @@ it('shows the authenticated users applications newest first', function () {
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
             ->component('Dashboard/Account/MyApplications')
-            ->where('activeApplications.0.id', $latest->id)
-            ->where('activeApplications.0.can_edit', true)
-            ->where('activeApplications.0.can_withdraw', true)
-            ->where('historicalApplications', []));
+            ->where('featuredApplication.id', $latest->id)
+            ->where('featuredApplication.can_edit', true)
+            ->where('featuredApplication.can_withdraw', true)
+            ->where('activeApplications.0.id', $later->id)
+            ->where('cancelledApplications', [])
+            ->where('hasHistoricalApplications', false));
 });
 
 it('allows users to withdraw their own pending application', function () {
@@ -176,7 +181,7 @@ it('does not allow users to withdraw declined applications', function () {
     expect($application->fresh()->status)->toBe(ActivityApplication::STATUS_DECLINED);
 });
 
-it('shows withdrawn applications in history', function () {
+it('shows withdrawn future applications as cancelled until the run time passes', function () {
     $activity = createAccountApplicationsActivity();
     $user = User::factory()->create();
     $character = Character::factory()->primary()->create([
@@ -199,13 +204,16 @@ it('shows withdrawn applications in history', function () {
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
             ->component('Dashboard/Account/MyApplications')
+            ->where('featuredApplication', null)
             ->where('activeApplications', [])
-            ->where('historicalApplications.0.id', $withdrawn->id)
-            ->where('historicalApplications.0.status', ActivityApplication::STATUS_WITHDRAWN));
+            ->where('cancelledApplications.0.id', $withdrawn->id)
+            ->where('cancelledApplications.0.status', ActivityApplication::STATUS_WITHDRAWN)
+            ->where('hasHistoricalApplications', false));
 });
 
 it('includes moderator review reasons in application history', function () {
     $activity = createAccountApplicationsActivity();
+    $activity->update(['starts_at' => now()->subHour()]);
     $user = User::factory()->create();
     $character = Character::factory()->primary()->create([
         'user_id' => $user->id,
@@ -226,6 +234,62 @@ it('includes moderator review reasons in application history', function () {
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
             ->component('Dashboard/Account/MyApplications')
-            ->where('historicalApplications.0.id', $declined->id)
-            ->where('historicalApplications.0.review_reason', 'The roster is already final for this run.'));
+            ->where('hasHistoricalApplications', true)
+            ->where('cancelledApplications', []));
+
+    $this->getJson(route('account.applications.history'))
+        ->assertOk()
+        ->assertJsonPath('data.0.id', $declined->id)
+        ->assertJsonPath('data.0.review_reason', 'The roster is already final for this run.');
+});
+
+it('paginates application history with roster snapshots when present', function () {
+    $activity = createAccountApplicationsActivity();
+    $activity->update(['starts_at' => now()->subDay()]);
+    $user = User::factory()->create();
+    $character = Character::factory()->primary()->create([
+        'user_id' => $user->id,
+    ]);
+
+    $application = ActivityApplication::factory()->approved()->create([
+        'activity_id' => $activity->id,
+        'user_id' => $user->id,
+        'selected_character_id' => $character->id,
+    ]);
+    $slot = $activity->slots()->firstOrFail();
+
+    ActivitySlotAssignment::query()->create([
+        'activity_id' => $activity->id,
+        'group_id' => $activity->group_id,
+        'activity_slot_id' => $slot->id,
+        'character_id' => $character->id,
+        'application_id' => $application->id,
+        'field_values_snapshot' => [
+            'character_class' => [
+                'name' => 'White Mage',
+                'shorthand' => 'WHM',
+                'role' => 'healer',
+            ],
+            'phantom_job' => [
+                'name' => 'Phantom Bard',
+            ],
+            'raid_position' => [
+                'key' => 'h1',
+                'label' => ['en' => 'H1'],
+            ],
+        ],
+        'attendance_status' => ActivitySlotAssignment::STATUS_ASSIGNED,
+        'assigned_at' => now()->subDay(),
+        'assigned_by_user_id' => $activity->group->owner_id,
+    ]);
+
+    $this->actingAs($user);
+
+    $this->getJson(route('account.applications.history', ['per_page' => 10]))
+        ->assertOk()
+        ->assertJsonPath('meta.per_page', 10)
+        ->assertJsonPath('data.0.id', $application->id)
+        ->assertJsonPath('data.0.assignment.character_class.name', 'White Mage')
+        ->assertJsonPath('data.0.assignment.phantom_job.name', 'Phantom Bard')
+        ->assertJsonPath('data.0.assignment.raid_position.label.en', 'H1');
 });

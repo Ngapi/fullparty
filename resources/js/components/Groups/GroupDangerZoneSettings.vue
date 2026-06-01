@@ -28,7 +28,6 @@ const confirmDelete = () => {
 	isDeleting.value = true;
 
 	router.delete(route('groups.destroy', props.group.slug), {
-		preserveScroll: true,
 		onSuccess: () => {
 			toast.add({
 				title: t('general.success'),

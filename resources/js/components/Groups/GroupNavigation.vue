@@ -10,6 +10,7 @@ const props = defineProps<{
 		name?: string
 		permissions?: {
 			can_manage_group?: boolean
+			can_update_group_settings?: boolean
 			can_manage_members?: boolean
 			can_manage_discovery?: boolean
 			can_manage_activities?: boolean
@@ -62,6 +63,7 @@ const showsLegacyLeaderboard = computed(() => props.group.slug === 'ftel')
 
 const isManagementUser = computed(() => Boolean(
 	props.group.permissions?.can_manage_group
+	|| props.group.permissions?.can_update_group_settings
 	|| props.group.permissions?.can_manage_members
 	|| props.group.permissions?.can_manage_discovery
 	|| props.group.permissions?.can_manage_activities

@@ -37,7 +37,6 @@ const togglePreferred = () => {
 		character_class_id: props.characterClass.id,
 		is_preferred: !props.characterClass.is_preferred,
 	}, {
-		preserveScroll: true,
 		onFinish: () => {
 			isUpdating.value = false;
 		}
@@ -79,9 +78,9 @@ const handleCompactTap = () => {
 				{{ characterClass.shorthand }}
 			</div>
 			<UIcon
-				v-if="characterClass.is_preferred"
-				name="i-lucide-heart"
-				class="absolute -right-1 -top-1 size-4 fill-rose-500 text-rose-500"
+				:name="characterClass.is_preferred ? 'mdi:heart' : 'i-lucide-heart'"
+				class="absolute -right-1 -top-1 size-4"
+				:class="characterClass.is_preferred ? 'text-rose-500' : 'text-white/55'"
 			/>
 		</div>
 		<p class="text-xs font-semibold leading-none text-white/86">
@@ -107,8 +106,8 @@ const handleCompactTap = () => {
 		</div>
 
 		<div class="min-w-0 flex-1">
-			<div class="flex items-center gap-1.5">
-				<p class="truncate text-sm font-semibold">{{ translatedClassName }}</p>
+			<div class="flex min-w-0 items-center gap-1.5">
+				<p class="max-w-full whitespace-normal break-words text-sm font-semibold leading-tight">{{ translatedClassName }}</p>
 			</div>
 			<p class="text-xs text-muted">
 				{{ characterClass.shorthand }} · {{ characterClass.level }}
@@ -119,13 +118,12 @@ const handleCompactTap = () => {
 			@click.stop="togglePreferred"
 			:loading="isUpdating"
 			:disabled="isUpdating"
-			icon="i-lucide-heart"
+			:icon="characterClass.is_preferred ? 'mdi:heart' : 'i-lucide-heart'"
 			size="sm"
 			variant="ghost"
 			:color="characterClass.is_preferred ? 'error' : 'neutral'"
 			class="absolute right-2 top-1/2 -translate-y-1/2 transition-opacity duration-200"
-			:class="characterClass.is_preferred ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'"
-			:ui="{ base: characterClass.is_preferred ? 'text-rose-500' : '' }"
+			:ui="{ base: characterClass.is_preferred ? 'text-rose-500' : 'text-white/55 hover:text-rose-400' }"
 		/>
 	</div>
 </template>

@@ -72,7 +72,19 @@ const goToApply = () => {
 </script>
 
 <template>
-	<div class="flex h-full w-[20rem] shrink-0 snap-start flex-col overflow-hidden border border-white/10 bg-neutral-950 shadow-[0_20px_50px_rgba(0,0,0,0.32)]">
+	<div class="relative flex h-full w-[20rem] shrink-0 snap-start flex-col overflow-visible border border-white/10 bg-neutral-950 shadow-[0_20px_50px_rgba(0,0,0,0.32)]">
+		<div
+			v-if="activity.has_existing_application"
+			class="pointer-events-none absolute -left-2 -top-2 z-20 flex h-8 w-8 items-center justify-center"
+			:aria-label="t('groups.dashboard.upcoming_runs.view_application')"
+			:title="t('groups.dashboard.upcoming_runs.view_application')"
+		>
+			<UIcon
+				name="i-lucide-pin"
+				class="h-8 w-8 -rotate-35 text-brand-400 drop-shadow-[0_4px_10px_rgba(168,85,247,0.85)]"
+			/>
+		</div>
+
 		<div class="relative h-56 overflow-hidden border-b border-white/10 bg-neutral-900">
 			<img
 				v-if="imageUrl"

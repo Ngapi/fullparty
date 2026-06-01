@@ -118,7 +118,7 @@ it('updates the new notification category preferences and delivery channels', fu
     $event = NotificationEvent::query()->where('type', 'user.settings.notifications_updated')->sole();
 
     expect($event->category)->toBe(NotificationCategory::ACCOUNT_CHARACTER_UPDATES)
-        ->and($event->is_mandatory)->toBeTrue()
+        ->and($event->is_mandatory)->toBeFalse()
         ->and($event->actor_user_id)->toBe($user->id)
         ->and($event->subject_type)->toBe(User::class)
         ->and($event->subject_id)->toBe($user->id)
@@ -148,10 +148,8 @@ it('updates the new notification category preferences and delivery channels', fu
             'settings.notifications.discord_notifications',
         ]);
 
-    $userNotification = UserNotification::query()->where('notification_event_id', $event->id)->sole();
-
-    expect($userNotification->user_id)->toBe($user->id)
-        ->and($user->fresh()->inAppNotifications)->toHaveCount(1);
+    expect(UserNotification::query()->where('notification_event_id', $event->id)->exists())->toBeFalse()
+        ->and($user->fresh()->inAppNotifications)->toHaveCount(0);
 });
 
 it('stores granular notification preferences per topic and channel', function () {

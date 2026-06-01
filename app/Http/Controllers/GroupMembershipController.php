@@ -180,7 +180,6 @@ class GroupMembershipController extends Controller
     public function update(Request $request, Group $group, User $user): RedirectResponse
     {
         $group->loadMissing('memberships');
-        $this->authorizeOwnerAccess($group);
 
         $validated = $request->validate([
             'role' => ['required', Rule::in([
@@ -199,6 +198,8 @@ class GroupMembershipController extends Controller
                 'error' => 'group_owner_role_locked',
             ]);
         }
+
+        $this->authorizeRoleUpdate($group, $membership, $validated['role']);
 
         $previousRole = $membership->role;
 
@@ -466,6 +467,35 @@ class GroupMembershipController extends Controller
     private function authorizeOwnerAccess(Group $group): void
     {
         if (! $group->isOwnedBy(auth()->id())) {
+            abort(403);
+        }
+    }
+
+    private function authorizeRoleUpdate(Group $group, GroupMembership $membership, string $nextRole): void
+    {
+        $actorId = auth()->id();
+
+        if ($membership->user_id === $actorId) {
+            abort(403);
+        }
+
+        if ($group->isOwnedBy($actorId)) {
+            return;
+        }
+
+        if (! $group->hasAdminAccess($actorId)) {
+            abort(403);
+        }
+
+        $isAllowedAdminRoleChange = (
+            $membership->role === GroupMembership::ROLE_MEMBER
+            && $nextRole === GroupMembership::ROLE_MODERATOR
+        ) || (
+            $membership->role === GroupMembership::ROLE_MODERATOR
+            && $nextRole === GroupMembership::ROLE_MEMBER
+        );
+
+        if (! $isAllowedAdminRoleChange) {
             abort(403);
         }
     }

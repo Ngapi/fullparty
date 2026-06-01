@@ -58,7 +58,6 @@ const leaveGroup = async () => {
 				router.post(route("groups.leave", props.group.slug), {
 					redirect_to: props.group.is_visible ? "profile" : "groups",
 				}, {
-					preserveScroll: true,
 					onSuccess: () => {
 						resolve(true);
 					},

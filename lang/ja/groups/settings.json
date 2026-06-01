@@ -4,7 +4,7 @@
     "general": {
         "title": "一般設定",
         "subtitle": "グループの見え方や参加方法を定義する変更可能な情報を更新します。",
-        "owner_only_notice": "これらの設定を更新できるのはグループオーナーのみです。モデレーターはここで確認できます。",
+        "owner_only_notice": "これらの設定を更新できるのはグループオーナーと管理者のみです。モデレーターはここで確認できます。",
         "visibility_summary_label": "公開設定の概要",
         "visibility_summary": {
             "default_name": "このグループ",

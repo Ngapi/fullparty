@@ -363,6 +363,119 @@ it('notifies the affected user when they are promoted and demoted', function () 
         ->and(UserNotification::query()->pluck('user_id')->unique()->all())->toBe([$member->id]);
 });
 
+it('allows admins to promote members to moderators and demote moderators to members', function () {
+    $owner = User::factory()->create();
+    $admin = User::factory()->create();
+    $member = User::factory()->create();
+
+    $group = Group::factory()->open()->create([
+        'owner_id' => $owner->id,
+    ]);
+
+    $group->memberships()->createMany([
+        [
+            'user_id' => $admin->id,
+            'role' => GroupMembership::ROLE_ADMIN,
+            'joined_at' => now(),
+        ],
+        [
+            'user_id' => $member->id,
+            'role' => GroupMembership::ROLE_MEMBER,
+            'joined_at' => now(),
+        ],
+    ]);
+
+    $this->actingAs($admin)
+        ->put(route('groups.members.update', [
+            'group' => $group,
+            'user' => $member,
+        ]), [
+            'role' => GroupMembership::ROLE_MODERATOR,
+        ])
+        ->assertRedirect();
+
+    expect($group->memberships()->where('user_id', $member->id)->sole()->role)
+        ->toBe(GroupMembership::ROLE_MODERATOR);
+
+    $this->actingAs($admin)
+        ->put(route('groups.members.update', [
+            'group' => $group,
+            'user' => $member,
+        ]), [
+            'role' => GroupMembership::ROLE_MEMBER,
+        ])
+        ->assertRedirect();
+
+    expect($group->memberships()->where('user_id', $member->id)->sole()->role)
+        ->toBe(GroupMembership::ROLE_MEMBER);
+});
+
+it('prevents admins from managing owner or admin-level roles', function () {
+    $owner = User::factory()->create();
+    $admin = User::factory()->create();
+    $otherAdmin = User::factory()->create();
+    $moderator = User::factory()->create();
+    $member = User::factory()->create();
+
+    $group = Group::factory()->open()->create([
+        'owner_id' => $owner->id,
+    ]);
+
+    $group->memberships()->createMany([
+        [
+            'user_id' => $admin->id,
+            'role' => GroupMembership::ROLE_ADMIN,
+            'joined_at' => now(),
+        ],
+        [
+            'user_id' => $otherAdmin->id,
+            'role' => GroupMembership::ROLE_ADMIN,
+            'joined_at' => now(),
+        ],
+        [
+            'user_id' => $moderator->id,
+            'role' => GroupMembership::ROLE_MODERATOR,
+            'joined_at' => now(),
+        ],
+        [
+            'user_id' => $member->id,
+            'role' => GroupMembership::ROLE_MEMBER,
+            'joined_at' => now(),
+        ],
+    ]);
+
+    $this->actingAs($admin)
+        ->put(route('groups.members.update', [
+            'group' => $group,
+            'user' => $member,
+        ]), [
+            'role' => GroupMembership::ROLE_ADMIN,
+        ])
+        ->assertForbidden();
+
+    $this->actingAs($admin)
+        ->put(route('groups.members.update', [
+            'group' => $group,
+            'user' => $moderator,
+        ]), [
+            'role' => GroupMembership::ROLE_ADMIN,
+        ])
+        ->assertForbidden();
+
+    $this->actingAs($admin)
+        ->put(route('groups.members.update', [
+            'group' => $group,
+            'user' => $otherAdmin,
+        ]), [
+            'role' => GroupMembership::ROLE_MODERATOR,
+        ])
+        ->assertForbidden();
+
+    expect($group->memberships()->where('user_id', $member->id)->sole()->role)->toBe(GroupMembership::ROLE_MEMBER)
+        ->and($group->memberships()->where('user_id', $moderator->id)->sole()->role)->toBe(GroupMembership::ROLE_MODERATOR)
+        ->and($group->memberships()->where('user_id', $otherAdmin->id)->sole()->role)->toBe(GroupMembership::ROLE_ADMIN);
+});
+
 it('treats admin as an elevated promotion tier with the same notification flow', function () {
     $owner = User::factory()->create();
     $moderator = User::factory()->create([

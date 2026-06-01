@@ -40,7 +40,7 @@ class GroupDashboardController extends Controller
                 ])
                 ->withCount([
                     'slots',
-                    'applications',
+                    'applications' => fn ($query) => $query->whereIn('status', ActivityApplication::ACTIVE_STATUSES),
                 ]),
         ]);
 

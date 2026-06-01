@@ -12,6 +12,11 @@
     "version_badge": "Published v{version}",
     "no_description": "Aucune description pour le moment.",
     "empty": "No activity types have been created yet.",
+    "empty_filtered": "Aucun type d'activité ne correspond à votre recherche.",
+    "search_placeholder": "Rechercher par nom, slug, tag ou difficulté",
+    "clear_search": "Effacer la recherche",
+    "pagination_summary": "Affichage de {from}-{to} sur {total}",
+    "pagination_empty": "Aucun type d'activité à afficher",
     "delete_confirm": "Delete this activity type? This will archive it.",
     "back": "Back to Activity Types",
     "form": {

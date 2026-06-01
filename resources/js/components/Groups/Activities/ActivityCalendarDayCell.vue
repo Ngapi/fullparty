@@ -143,6 +143,18 @@ const dayContextMenuItems = computed<ContextMenuItem[][]>(() => (
 						class="group relative z-0 origin-top-left overflow-visible rounded-sm border-t-2 bg-primary/15 px-2 py-1.5 text-xs shadow-sm transition duration-150 ease-out hover:z-50 hover:scale-125 hover:bg-elevated hover:shadow-xl"
 						:class="activityStatusBorderClass(activity)"
 					>
+						<div
+							v-if="activity.has_existing_application"
+							class="pointer-events-none absolute -left-1.5 -top-2 z-20 flex h-5 w-5 items-center justify-center"
+							:aria-label="t('groups.dashboard.upcoming_runs.view_application')"
+							:title="t('groups.dashboard.upcoming_runs.view_application')"
+						>
+							<UIcon
+								name="i-lucide-pin"
+								class="h-5 w-5 -rotate-35 text-brand-400 drop-shadow-[0_3px_8px_rgba(168,85,247,0.75)]"
+							/>
+						</div>
+
 						<p class="font-medium text-toned">
 							{{ activityTime(activity) }}
 						</p>

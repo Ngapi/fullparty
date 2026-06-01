@@ -151,7 +151,6 @@ const createInvite = () => {
 		max_uses: form.value.max_uses ? Number(form.value.max_uses) : null,
 		expires_at: resolveExpiresAt(form.value.expires_in),
 	}, {
-		preserveScroll: true,
 		onSuccess: () => {
 			toast.add({
 				title: t('general.success'),
@@ -179,7 +178,6 @@ const revokeInvite = (inviteId: number) => {
 		group: props.group.slug,
 		invite: inviteId,
 	}), {
-		preserveScroll: true,
 		onSuccess: () => {
 			toast.add({
 				title: t('general.success'),

@@ -103,7 +103,9 @@ class GroupActivityManagementDataController extends Controller
                 ] : null,
                 'slot_count' => $mainSlots->count(),
                 'bench_slot_count' => $benchSlots->count(),
-                'application_count' => $activity->applications->count(),
+                'application_count' => $activity->applications
+                    ->whereIn('status', ActivityApplication::ACTIVE_STATUSES)
+                    ->count(),
                 'pending_application_count' => $activity->applications
                     ->where('status', ActivityApplication::STATUS_PENDING)
                     ->count(),

@@ -243,7 +243,6 @@ const confirmScheduleActivity = () => {
 		group: props.group.slug,
 		activity: props.activity.id,
 	}), {}, {
-		preserveScroll: true,
 		onSuccess: () => {
 			isScheduleConfirmOpen.value = false;
 			void fetchManagementData();
@@ -264,7 +263,6 @@ const confirmCancelActivity = () => {
 			group: props.group.slug,
 			activity: props.activity.id,
 		}), {
-			preserveScroll: true,
 			onSuccess: () => {
 				isCancelConfirmOpen.value = false;
 				cancelForm.reset();
@@ -289,7 +287,6 @@ const confirmDeleteActivity = () => {
 		group: props.group.slug,
 		activity: props.activity.id,
 	}), {
-		preserveScroll: true,
 		onFinish: () => {
 			isDeletingActivity.value = false;
 		},
@@ -365,7 +362,6 @@ const confirmPublishRoster = () => {
 		group: props.group.slug,
 		activity: props.activity.id,
 	}), {}, {
-		preserveScroll: true,
 		onSuccess: () => {
 			isPublishRosterConfirmOpen.value = false;
 			void fetchManagementData();

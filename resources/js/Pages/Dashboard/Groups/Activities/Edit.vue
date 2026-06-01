@@ -135,7 +135,6 @@ const submit = () => {
 		group: props.group.slug,
 		activity: props.activity.id,
 	}), {
-		preserveScroll: true,
 		onError: (errors) => {
 			const firstErrorField = Object.keys(errors)[0] ?? null;
 

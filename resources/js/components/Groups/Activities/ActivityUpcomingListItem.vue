@@ -119,13 +119,25 @@ const goToManagementPage = () => {
 		:activity="activity"
 	>
 		<div
-			class="cursor-pointer rounded-sm border border-default bg-elevated/50 px-4 py-4 transition hover:border-primary/40 hover:bg-primary/5 hover:shadow-sm"
+			class="relative cursor-pointer overflow-visible rounded-sm border border-default bg-elevated/50 px-4 py-4 transition hover:border-primary/40 hover:bg-primary/5 hover:shadow-sm"
 			role="button"
 			tabindex="0"
 			@click="goToManagementPage"
 			@keydown.enter.prevent="goToManagementPage"
 			@keydown.space.prevent="goToManagementPage"
 		>
+			<div
+				v-if="activity.has_existing_application"
+				class="pointer-events-none absolute -left-2 -top-2 z-20 flex h-7 w-7 items-center justify-center"
+				:aria-label="t('groups.dashboard.upcoming_runs.view_application')"
+				:title="t('groups.dashboard.upcoming_runs.view_application')"
+			>
+				<UIcon
+					name="i-lucide-pin"
+					class="h-7 w-7 -rotate-35 text-brand-400 drop-shadow-[0_4px_10px_rgba(168,85,247,0.8)]"
+				/>
+			</div>
+
 			<div class="flex flex-col gap-4 xl:flex-row xl:items-start">
 				<div class="flex h-20 w-20 shrink-0 flex-col items-center justify-center rounded-sm border border-default bg-background text-center">
 					<p class="text-xs font-semibold uppercase tracking-[0.16em] text-muted">

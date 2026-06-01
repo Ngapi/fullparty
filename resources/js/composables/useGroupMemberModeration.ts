@@ -61,7 +61,6 @@ export const useGroupMemberModeration = (options: UseGroupMemberModerationOption
 		updateRoleForm.role = role;
 
 		updateRoleForm.put(route('groups.members.update', [currentGroupSlug.value, member.id]), {
-			preserveScroll: true,
 			onSuccess: () => {
 				showSuccessToast(isRolePromotion(member.role, role)
 					? t('groups.members.toasts.promoted')
@@ -89,7 +88,6 @@ export const useGroupMemberModeration = (options: UseGroupMemberModerationOption
 
                 return await new Promise<boolean>((resolve) => {
                     removeForm.delete(route('groups.members.destroy', [currentGroupSlug.value, member.id]), {
-                        preserveScroll: true,
                         onSuccess: () => {
                             showSuccessToast(t('groups.members.toasts.removed'));
                             resolve(true);
@@ -131,7 +129,6 @@ export const useGroupMemberModeration = (options: UseGroupMemberModerationOption
 
                 return await new Promise<boolean>((resolve) => {
                     banForm.post(route('groups.members.ban', [currentGroupSlug.value, member.id]), {
-                        preserveScroll: true,
                         onSuccess: () => {
                             showSuccessToast(t('groups.members.toasts.banned'));
                             banForm.reset();
@@ -161,7 +158,6 @@ export const useGroupMemberModeration = (options: UseGroupMemberModerationOption
 		memberPendingUnbanId.value = member.user_id;
 
 		unbanForm.delete(route('groups.members.unban', [currentGroupSlug.value, member.user_id]), {
-			preserveScroll: true,
 			onSuccess: () => {
 				showSuccessToast(t('groups.members.toasts.unbanned'));
 			},

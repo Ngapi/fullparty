@@ -149,7 +149,6 @@ const leaveGroup = async () => {
 				router.post(route("groups.leave", group.slug), {
 					redirect_to: "back",
 				}, {
-					preserveScroll: true,
 					preserveState: true,
 					onSuccess: () => {
 						emit("refresh-group", group.slug);
@@ -182,7 +181,6 @@ const toggleMembership = async () => {
 
 	if (props.group.permissions.can_apply) {
 		router.get(route("groups.membership-applications.create", props.group.slug), {}, {
-			preserveScroll: true,
 			onFinish: finishAction,
 		});
 
@@ -192,7 +190,6 @@ const toggleMembership = async () => {
 	router.post(route("groups.join", props.group.slug), {
 		redirect_to: "back",
 	}, {
-		preserveScroll: true,
 		preserveState: true,
 		onSuccess: refreshCurrentGroup,
 		onFinish: finishAction,

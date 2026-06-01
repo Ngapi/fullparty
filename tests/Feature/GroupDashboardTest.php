@@ -24,7 +24,7 @@ it('renders a single generated group embed image on the dashboard page', functio
     $group = Group::factory()->open()->create([
         'owner_id' => $owner->id,
         'name' => 'Storm Keepers',
-        'slug' => 'storm-keepers',
+        'slug' => 'stormkee',
         'description' => 'Late-night raid group for progression and cleanup.',
         'profile_picture_url' => '/storage/groups/storm-profile.webp',
         'banner_image_url' => '/storage/groups/storm-banner.webp',
@@ -36,7 +36,7 @@ it('renders a single generated group embed image on the dashboard page', functio
     $response
         ->assertOk()
         ->assertSee('<meta property="og:title" content="Storm Keepers - FullParty.gg">', false)
-        ->assertSee('<meta property="og:image" content="http://fullparty.test/storage/groups/embeds/storm-keepers-', false)
+        ->assertSee('<meta property="og:image" content="http://fullparty.test/storage/groups/embeds/stormkee-', false)
         ->assertDontSee('<meta property="og:image" content="http://fullparty.test/storage/groups/storm-banner.webp">', false)
         ->assertDontSee('<meta property="og:image" content="http://fullparty.test/storage/groups/storm-profile.webp">', false);
 
@@ -226,6 +226,9 @@ it('renders the group dashboard with activity-driven overview data', function ()
         'activity_id' => $draftActivity->id,
         'user_id' => $member->id,
         'selected_character_id' => $memberCharacter->id,
+    ]);
+    ActivityApplication::factory()->guest()->declined()->create([
+        'activity_id' => $draftActivity->id,
     ]);
 
     try {
@@ -714,17 +717,17 @@ it('renders the group leaderboard with participation and host success rankings',
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
             ->component('Dashboard/Groups/Leaderboard')
-            ->where('leaderboard.summary.total_participations', 7)
+            ->where('leaderboard.summary.total_participations', 6)
             ->where('leaderboard.summary.ranked_participants', 3)
             ->where('leaderboard.summary.raid_leader_participations', 3)
-            ->where('leaderboard.summary.host_participations', 5)
+            ->where('leaderboard.summary.host_participations', 4)
             ->where('leaderboard.summary.completed_hosted_runs', 4)
             ->where('leaderboard.rankings.overall.0.character.name', 'Kevin Clear')
-            ->where('leaderboard.rankings.overall.0.count', 4)
+            ->where('leaderboard.rankings.overall.0.count', 3)
             ->where('leaderboard.rankings.raid_leaders.0.character.name', 'Alice Anchor')
             ->where('leaderboard.rankings.raid_leaders.0.count', 2)
             ->where('leaderboard.rankings.hosts.0.character.name', 'Kevin Clear')
-            ->where('leaderboard.rankings.hosts.0.count', 4)
+            ->where('leaderboard.rankings.hosts.0.count', 3)
             ->has('leaderboard.rankings.host_success', 1)
             ->where('leaderboard.rankings.host_success.0.character.name', 'Kevin Clear')
             ->where('leaderboard.rankings.host_success.0.hosted_runs', 3)

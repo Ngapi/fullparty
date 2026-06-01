@@ -89,7 +89,6 @@ const unsubscribeFromNotificationsChannel = () => {
 
 const markAllAsRead = () => {
 	router.post(route('account.notifications.read-all'), {}, {
-		preserveScroll: true,
 		preserveState: true,
 		onSuccess: () => {
 			unreadCount.value = 0

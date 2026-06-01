@@ -153,9 +153,21 @@ const toggleSaved = () => {
 
 <template>
 	<article
-		class="relative isolate overflow-hidden border border-white/10 bg-neutral-950/72 shadow-[0_20px_40px_rgba(0,0,0,0.2)]"
-		:class="props.item.has_existing_application ? 'border-l-4 border-l-brand-400' : ''"
+		class="relative isolate overflow-visible border border-white/10 bg-neutral-950/72 shadow-[0_20px_40px_rgba(0,0,0,0.2)]"
+		:class="props.item.has_existing_application ? 'border-r-4 border-r-brand-400' : ''"
 	>
+		<div
+			v-if="item.has_existing_application"
+			class="pointer-events-none absolute -left-2 -top-2 z-20 flex h-8 w-8 items-center justify-center"
+			:aria-label="t('runs.discovery.results.placeholder_item.actions.view_application')"
+			:title="t('runs.discovery.results.placeholder_item.actions.view_application')"
+		>
+			<UIcon
+				name="i-lucide-pin"
+				class="h-8 w-8 -rotate-35 text-brand-400 drop-shadow-[0_4px_10px_rgba(168,85,247,0.85)]"
+			/>
+		</div>
+
 		<img
 			v-if="item.image_url"
 			:src="item.image_url"
@@ -168,17 +180,17 @@ const toggleSaved = () => {
 		/>
 		<div class="absolute inset-0 bg-linear-to-b from-neutral-950/58 via-neutral-950/74 to-neutral-950/94 xl:hidden" />
 
-		<div class="relative z-10 grid grid-cols-2 gap-3 p-4 sm:grid-cols-[minmax(0,1.5fr)_minmax(8rem,0.85fr)_minmax(8rem,0.85fr)] sm:items-center sm:gap-4 sm:p-5 xl:grid-cols-[7rem_minmax(0,1.6fr)_11rem_10rem_11rem] xl:p-0">
-			<div class="relative hidden border border-white/8 bg-neutral-900/70 xl:block">
+		<div class="relative z-10 grid grid-cols-2 gap-3 p-4 sm:grid-cols-[minmax(0,1.5fr)_minmax(8rem,0.85fr)_minmax(8rem,0.85fr)] sm:items-center sm:gap-4 sm:p-5 xl:grid-cols-[7rem_minmax(0,1.6fr)_11rem_10rem_11rem] xl:items-stretch xl:p-0">
+			<div class="relative hidden h-full border border-white/8 bg-neutral-900/70 xl:block">
 				<img
 					v-if="item.image_url"
 					:src="item.image_url"
 					:alt="item.title"
-					class="h-38 w-34 object-cover"
+					class="h-full min-h-38 w-34 object-cover"
 				>
 				<div
 					v-else
-					class="h-38 w-34 bg-[radial-gradient(circle_at_top_left,rgba(123,97,153,0.34),transparent_46%),radial-gradient(circle_at_center_right,rgba(84,136,184,0.28),transparent_38%),linear-gradient(180deg,#201c24_0%,#151217_100%)]"
+					class="h-full min-h-38 w-34 bg-[radial-gradient(circle_at_top_left,rgba(123,97,153,0.34),transparent_46%),radial-gradient(circle_at_center_right,rgba(84,136,184,0.28),transparent_38%),linear-gradient(180deg,#201c24_0%,#151217_100%)]"
 				/>
 				<div v-if="showContentName" class="pointer-events-none absolute inset-x-0 bottom-0 p-2 bg-neutral-950/70">
 					<p class="block text-center font-semibold uppercase text-xs">{{ contentName }}</p>

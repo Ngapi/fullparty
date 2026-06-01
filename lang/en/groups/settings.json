@@ -4,7 +4,7 @@
   "general": {
     "title": "General Settings",
     "subtitle": "Update the mutable details that define how your group appears and how members join it.",
-    "owner_only_notice": "Only group owners can update these settings. Moderators can review them here.",
+    "owner_only_notice": "Only group owners and admins can update these settings. Moderators can review them here.",
     "visibility_summary_label": "Visibility Summary",
     "visibility_summary": {
       "default_name": "This group",

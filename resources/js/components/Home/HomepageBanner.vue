@@ -71,7 +71,7 @@ const displayJobLevel = computed(() => props.homeBanner.character.display_job_le
 const characterLocation = computed(() => [selectedCharacter.value.world, selectedCharacter.value.datacenter].filter(Boolean).join(" - "))
 const biography = computed(() => props.profile.home_profile.description || t("dashboard.character_panel.hero_quote"))
 const profileHeroStyle = computed(() => ({
-	backgroundImage: `url("${props.profile.home_profile.background_image_url || "/profile_bg.jpg"}")`,
+	backgroundImage: `url("${props.profile.home_profile.background_image_url || "/default-homepage-bg.jpg"}")`,
 	backgroundPosition: "center center",
 }))
 
@@ -189,7 +189,6 @@ const submitHomeProfile = () => {
 		}))
 		.post(route("dashboard.profile.update"), {
 			forceFormData: true,
-			preserveScroll: true,
 			onSuccess: () => {
 				isHomeProfileModalOpen.value = false
 				homeProfileForm.background_image = null

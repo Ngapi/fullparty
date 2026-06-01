@@ -8,6 +8,7 @@
         "search_placeholder": "Mitglieder suchen",
         "joined_at": "Beigetreten {date}",
         "runs_participated": "{count} absolvierte Runs",
+        "runs_badge": "{count} Runs",
         "characters_label": "Charaktere",
         "no_characters": "Noch keine verifizierten Charaktere verknüpft.",
         "not_available": "Nicht verfügbar",
@@ -28,7 +29,19 @@
             "actions": "Aktionen"
         },
         "no_reason": "Kein Grund angegeben",
+        "badge": "Gebannt",
+        "unknown_member": "Unbekanntes Mitglied",
+        "banned_at_relative": "Gebannt {date}",
+        "reason_inline": "Grund: {reason}",
         "system": "System"
+    },
+    "view": {
+        "list": "Listenansicht",
+        "blocks": "Kartenansicht",
+        "banned": "Gebannte Mitglieder anzeigen",
+        "members": "Mitglieder anzeigen",
+        "load_more": "Mehr laden",
+        "no_search_results": "Versuche einen anderen Suchbegriff oder leere das Suchfeld."
     },
     "table": {
         "columns": {

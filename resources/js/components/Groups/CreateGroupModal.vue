@@ -290,7 +290,6 @@ const submit = () => {
 		description: sanitizeMultilineText(data.description),
 		slug: normalizeGroupSlug(data.slug),
 	})).post(route('groups.store'), {
-		preserveScroll: true,
 		onError: (errors) => {
 			goToStepWithErrors(errors as Partial<Record<GroupCreateField, string>>);
 		},

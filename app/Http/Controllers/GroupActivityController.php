@@ -245,7 +245,13 @@ class GroupActivityController extends Controller
                         ->where('group_key', '!=', ActivitySlotBench::GROUP_KEY)
                         ->whereNotNull('assigned_character_id')
                         ->count(),
-                    'application_count' => $activity->applications->count(),
+                    'application_count' => $activity->applications
+                        ->whereIn('status', ActivityApplication::ACTIVE_STATUSES)
+                        ->count(),
+                    'has_existing_application' => $activity->applications
+                        ->where('user_id', $currentUserId)
+                        ->where('status', '!=', ActivityApplication::STATUS_WITHDRAWN)
+                        ->isNotEmpty(),
                     'progress_milestone_count' => $activity->progressMilestones->count(),
                     'created_at' => $activity->created_at?->toIso8601String(),
                     'updated_at' => $activity->updated_at?->toIso8601String(),

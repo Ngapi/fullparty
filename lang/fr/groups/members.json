@@ -8,6 +8,7 @@
         "search_placeholder": "Rechercher des membres",
         "joined_at": "A rejoint le {date}",
         "runs_participated": "{count} runs effectués",
+        "runs_badge": "{count} runs",
         "characters_label": "Personnages",
         "no_characters": "Aucun personnage vérifié lié pour le moment.",
         "not_available": "Non disponible",
@@ -28,7 +29,19 @@
             "actions": "Actions"
         },
         "no_reason": "Aucune raison fournie",
+        "badge": "Banni",
+        "unknown_member": "Membre inconnu",
+        "banned_at_relative": "Banni {date}",
+        "reason_inline": "Raison : {reason}",
         "system": "Système"
+    },
+    "view": {
+        "list": "Vue liste",
+        "blocks": "Vue cartes",
+        "banned": "Voir les membres bannis",
+        "members": "Voir les membres",
+        "load_more": "Charger plus",
+        "no_search_results": "Essayez un autre terme ou videz la recherche."
     },
     "table": {
         "columns": {

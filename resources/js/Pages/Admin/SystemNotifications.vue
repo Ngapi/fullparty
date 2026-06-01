@@ -101,26 +101,22 @@ watch(
 
 const saveBanner = () => {
 	bannerForm.put(route('admin.system-notifications.banner.store'), {
-		preserveScroll: true,
 	});
 };
 
 const clearBanner = () => {
 	bannerForm.delete(route('admin.system-notifications.banner.clear'), {
-		preserveScroll: true,
 	});
 };
 
 const sendMaintenance = () => {
 	maintenanceForm.post(route('admin.system-notifications.maintenance.store'), {
-		preserveScroll: true,
 		onSuccess: () => maintenanceForm.reset(),
 	});
 };
 
 const sendAnnouncement = () => {
 	announcementForm.post(route('admin.system-notifications.announcements.store'), {
-		preserveScroll: true,
 		onSuccess: () => announcementForm.reset(),
 	});
 };

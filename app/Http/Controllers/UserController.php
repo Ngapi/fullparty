@@ -516,7 +516,7 @@ class UserController extends Controller
                 'changes' => $changes,
                 'changed_setting_label_keys' => $changedSettingLabelKeys,
             ]),
-            isMandatory: true,
+            isMandatory: false,
             topic: NotificationTopic::ACCOUNT_SETTINGS,
         );
 

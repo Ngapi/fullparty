@@ -213,7 +213,6 @@ const editClient = (client: IntegrationClient) => {
 const submit = () => {
 	if (editingClientId.value === null) {
 		form.post(route('admin.integrations.store'), {
-			preserveScroll: true,
 			onSuccess: () => resetForm(),
 		});
 
@@ -221,7 +220,6 @@ const submit = () => {
 	}
 
 	form.put(route('admin.integrations.update', editingClientId.value), {
-		preserveScroll: true,
 		onSuccess: () => resetForm(),
 	});
 };
@@ -239,7 +237,6 @@ const regenerateApiToken = async (client: IntegrationClient) => {
 
 			return await new Promise<boolean>((resolve) => {
 				router.post(route('admin.integrations.api-token.regenerate', client.id), {}, {
-					preserveScroll: true,
 					onSuccess: () => resolve(true),
 					onError: () => resolve(false),
 					onFinish: () => patch({ confirmLoading: false }),
@@ -262,7 +259,6 @@ const regenerateWebhookSecret = async (client: IntegrationClient) => {
 
 			return await new Promise<boolean>((resolve) => {
 				router.post(route('admin.integrations.webhook-secret.regenerate', client.id), {}, {
-					preserveScroll: true,
 					onSuccess: () => resolve(true),
 					onError: () => resolve(false),
 					onFinish: () => patch({ confirmLoading: false }),
@@ -276,7 +272,6 @@ const runHealthcheck = (client: IntegrationClient) => {
 	healthcheckClientId.value = client.id;
 
 	router.post(route('admin.integrations.healthcheck.run', client.id), {}, {
-		preserveScroll: true,
 		onFinish: () => {
 			healthcheckClientId.value = null;
 		},

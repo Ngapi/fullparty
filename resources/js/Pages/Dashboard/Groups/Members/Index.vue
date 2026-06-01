@@ -4,7 +4,6 @@ import type { GroupBannedMemberRecord, GroupMemberManagementGroup, GroupMemberRe
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 import AccessBadge from "@/components/Groups/AccessBadge.vue";
-import GroupBannedMembersTable from "@/components/Groups/GroupBannedMembersTable.vue";
 import GroupMembersTable from "@/components/Groups/GroupMembersTable.vue";
 import PageHeader from "@/components/PageHeader.vue";
 import MembersNotesModal from "@/components/Shared/Notes/MembersNotesModal.vue";
@@ -42,13 +41,8 @@ const memberModeration = useGroupMemberModeration({
 			<div class="flex flex-col gap-6">
 				<GroupMembersTable
 					:members="members"
-					:notes="memberNotes"
-					:moderation="memberModeration"
-				/>
-
-				<GroupBannedMembersTable
-					v-if="group.permissions.can_view_bans"
 					:banned-members="bannedMembers"
+					:can-view-bans="group.permissions.can_view_bans"
 					:notes="memberNotes"
 					:moderation="memberModeration"
 				/>

@@ -327,13 +327,25 @@ const goToManagement = (activity: ActivityIndexItem) => {
 				:activity="activity"
 			>
 				<article
-					class="grid cursor-pointer grid-cols-[4.5rem_minmax(0,1fr)_auto] items-center gap-3 border border-white/10 bg-white/[0.035] px-3 py-3 transition hover:border-brand-400/40 hover:bg-brand-500/10"
+					class="relative grid cursor-pointer grid-cols-[4.5rem_minmax(0,1fr)_auto] items-center gap-3 overflow-visible border border-white/10 bg-white/[0.035] px-3 py-3 transition hover:border-brand-400/40 hover:bg-brand-500/10"
 					role="button"
 					tabindex="0"
 					@click="goToActivity(activity)"
 					@keydown.enter.prevent="goToActivity(activity)"
 					@keydown.space.prevent="goToActivity(activity)"
 				>
+					<div
+						v-if="activity.has_existing_application"
+						class="pointer-events-none absolute -left-2 -top-2 z-20 flex h-7 w-7 items-center justify-center"
+						:aria-label="t('groups.dashboard.upcoming_runs.view_application')"
+						:title="t('groups.dashboard.upcoming_runs.view_application')"
+					>
+						<UIcon
+							name="i-lucide-pin"
+							class="h-7 w-7 -rotate-35 text-brand-400 drop-shadow-[0_4px_10px_rgba(168,85,247,0.8)]"
+						/>
+					</div>
+
 					<div class="border-r border-white/10 pr-3 text-center">
 						<p class="text-sm font-semibold text-toned">
 							{{ activityTime(activity) }}

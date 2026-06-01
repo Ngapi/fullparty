@@ -103,7 +103,6 @@ const fieldStepMap: Record<string, number> = {
 
 const submit = () => {
 	form.post(route('groups.dashboard.activities.store', { group: props.group.slug }), {
-		preserveScroll: true,
 		onError: (errors) => {
 			const firstErrorField = Object.keys(errors)[0] ?? null;
 

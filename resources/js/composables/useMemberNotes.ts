@@ -181,7 +181,6 @@ export const useMemberNotes = (options: UseMemberNotesOptions) => {
 
 	const submitNoteUpdate = (note: MemberNote) => {
 		noteUpdateForm.put(route('groups.members.notes.update', [toValue(options.groupSlug), note.id]), {
-			preserveScroll: true,
 			onSuccess: () => {
 				showSuccessToast(t('groups.members.toasts.note_updated'));
 				cancelEditNote();
@@ -208,7 +207,6 @@ export const useMemberNotes = (options: UseMemberNotesOptions) => {
 
 	const submitAddendum = (note: MemberNote) => {
 		addendumForm.post(route('groups.members.notes.addenda.store', [toValue(options.groupSlug), note.id]), {
-			preserveScroll: true,
 			onSuccess: () => {
 				showSuccessToast(t('groups.members.toasts.note_addendum_added'));
 				cancelAddendum();
@@ -219,7 +217,6 @@ export const useMemberNotes = (options: UseMemberNotesOptions) => {
 
 	const submitAddendumUpdate = (addendum: MemberNoteAddendum) => {
 		addendumUpdateForm.put(route('groups.members.notes.addenda.update', [toValue(options.groupSlug), addendum.id]), {
-			preserveScroll: true,
 			onSuccess: () => {
 				showSuccessToast(t('groups.members.toasts.note_addendum_updated'));
 				cancelEditAddendum();
@@ -232,7 +229,6 @@ export const useMemberNotes = (options: UseMemberNotesOptions) => {
 		pendingDeleteAddendumId.value = addendum.id;
 
 		addendumDeleteForm.delete(route('groups.members.notes.addenda.destroy', [toValue(options.groupSlug), addendum.id]), {
-			preserveScroll: true,
 			onSuccess: () => {
 				showSuccessToast(t('groups.members.toasts.note_addendum_deleted'));
 
@@ -252,7 +248,6 @@ export const useMemberNotes = (options: UseMemberNotesOptions) => {
 		pendingDeleteNoteId.value = note.id;
 
 		noteDeleteForm.delete(route('groups.members.notes.destroy', [toValue(options.groupSlug), note.id]), {
-			preserveScroll: true,
 			onSuccess: () => {
 				showSuccessToast(t('groups.members.toasts.note_deleted'));
 
@@ -278,7 +273,6 @@ export const useMemberNotes = (options: UseMemberNotesOptions) => {
 		}
 
 		noteForm.post(route('groups.members.notes.store', [toValue(options.groupSlug), member.value.id]), {
-			preserveScroll: true,
 			onSuccess: () => {
 				showSuccessToast(t('groups.members.toasts.note_added'));
 				resetNoteForm();

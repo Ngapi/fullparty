@@ -226,6 +226,8 @@
             "subtitle": "Aktuelle Anmeldungen und Roster-Entscheidungen.",
             "view_all": "Alle Bewerbungen ansehen",
             "empty": "Noch keine aktuellen Bewerbungen.",
+            "run_is_in": "Run ist {time}",
+            "run_started": "Run hat begonnen",
             "statuses": {
                 "assigned": "Eingeteilt",
                 "pending": "Ausstehend",

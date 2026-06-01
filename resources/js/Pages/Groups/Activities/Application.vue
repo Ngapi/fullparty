@@ -234,7 +234,6 @@ const withdrawApplication = () => {
 			accessToken: props.guestAccessToken,
 			secretKey: props.secretKey || undefined,
 		}), {
-			preserveScroll: true,
 			onFinish: () => {
 				isWithdrawing.value = false;
 				withdrawalModalOpen.value = false;
@@ -247,7 +246,6 @@ const withdrawApplication = () => {
 	router.delete(route("account.applications.destroy", {
 		application: props.application.id,
 	}), {
-		preserveScroll: true,
 		onSuccess: () => {
 			toast.add({
 				title: t("applications.withdraw.success_title"),

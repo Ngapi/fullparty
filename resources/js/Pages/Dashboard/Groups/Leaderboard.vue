@@ -162,7 +162,6 @@ const refreshLeaderboard = () => {
 	isRefreshing.value = true;
 
 	router.post(route("groups.dashboard.leaderboard.refresh", props.group.slug), {}, {
-		preserveScroll: true,
 		onFinish: () => {
 			isRefreshing.value = false;
 		},

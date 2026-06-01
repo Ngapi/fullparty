@@ -106,7 +106,7 @@ const statusLegendItems = computed(() => [
 			</div>
 		</template>
 
-		<div v-if="visibleActivities.length > 0" class="flex max-h-[calc(100vh-16rem)] flex-col gap-3 overflow-y-auto pr-1">
+		<div v-if="visibleActivities.length > 0" class="flex max-h-[calc(100vh-16rem)] flex-col gap-3 overflow-y-auto pt-2 pr-1 pl-2">
 			<ActivityUpcomingListItem
 				v-for="activity in visibleActivities"
 				:key="activity.id"

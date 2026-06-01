@@ -67,7 +67,6 @@ const approve = (application: MembershipApplicationRecord) => {
 		group: props.group.slug,
 		application: application.id,
 	}), {}, {
-		preserveScroll: true,
 		onFinish: () => {
 			pendingActionId.value = null;
 		},
@@ -89,7 +88,6 @@ const submitDecline = () => {
 		group: props.group.slug,
 		application: declineApplication.value.id,
 	}), {
-		preserveScroll: true,
 		onSuccess: () => {
 			declineApplication.value = null;
 		},

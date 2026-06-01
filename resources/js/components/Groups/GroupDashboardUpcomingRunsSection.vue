@@ -57,7 +57,7 @@ const scrollByDirection = (direction: "left" | "right") => {
 
 			<div
 				ref="scrollContainer"
-				class=" flex snap-x snap-mandatory gap-4 overflow-x-auto pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+				class="flex snap-x snap-mandatory gap-4 overflow-x-auto px-3 pt-3 pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
 			>
 				<div
 					v-for="activity in activities"

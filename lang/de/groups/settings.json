@@ -4,7 +4,7 @@
     "general": {
         "title": "Allgemeine Einstellungen",
         "subtitle": "Aktualisiere die veränderbaren Details, die definieren, wie deine Gruppe erscheint und wie Mitglieder beitreten.",
-        "owner_only_notice": "Nur Gruppenbesitzer können diese Einstellungen aktualisieren. Moderatoren können sie hier einsehen.",
+        "owner_only_notice": "Nur Gruppenbesitzer und Admins können diese Einstellungen aktualisieren. Moderatoren können sie hier einsehen.",
         "visibility_summary_label": "Sichtbarkeitsübersicht",
         "visibility_summary": {
             "default_name": "Diese Gruppe",

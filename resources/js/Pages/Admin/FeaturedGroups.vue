@@ -91,7 +91,6 @@ const editFeaturedGroup = (featuredGroup: FeaturedGroupRecord) => {
 
 const submit = () => {
 	const options = {
-		preserveScroll: true,
 		onSuccess: () => resetForm(),
 	};
 
@@ -116,7 +115,6 @@ const deleteFeaturedGroup = async (featuredGroup: FeaturedGroupRecord) => {
 
 			return await new Promise<boolean>((resolve) => {
 				useForm({}).delete(route("admin.featured-groups.destroy", featuredGroup.id), {
-					preserveScroll: true,
 					onSuccess: () => resolve(true),
 					onError: () => resolve(false),
 					onFinish: () => patch({ confirmLoading: false }),

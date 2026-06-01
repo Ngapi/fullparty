@@ -8,6 +8,7 @@
     "search_placeholder": "Search members",
     "joined_at": "Joined {date}",
     "runs_participated": "{count} runs participated",
+    "runs_badge": "{count} runs",
     "characters_label": "Characters",
     "no_characters": "No verified characters linked yet.",
     "not_available": "Not available",
@@ -28,7 +29,19 @@
       "actions": "Actions"
     },
     "no_reason": "No reason provided",
+    "badge": "Banned",
+    "unknown_member": "Unknown member",
+    "banned_at_relative": "Banned {date}",
+    "reason_inline": "Reason: {reason}",
     "system": "System"
+  },
+  "view": {
+    "list": "List view",
+    "blocks": "Block view",
+    "banned": "View Banned Members",
+    "members": "View Members",
+    "load_more": "Load more",
+    "no_search_results": "Try another search term or clear the search box."
   },
   "table": {
     "columns": {

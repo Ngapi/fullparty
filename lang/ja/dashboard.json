@@ -226,6 +226,8 @@
             "subtitle": "最近の応募とロスター判断。",
             "view_all": "すべての応募を見る",
             "empty": "最近の応募はまだありません。",
+            "run_is_in": "ランは{time}",
+            "run_started": "ランは開始済み",
             "statuses": {
                 "assigned": "割り当て済み",
                 "pending": "保留中",

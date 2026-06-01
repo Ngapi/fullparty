@@ -55,7 +55,6 @@ const submitTransfer = () => {
 	router.post(route('groups.transfer-ownership', props.group.slug), {
 		user_id: selectedMemberId.value,
 	}, {
-		preserveScroll: true,
 		onSuccess: () => {
 			toast.add({
 				title: t('general.success'),

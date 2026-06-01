@@ -103,7 +103,6 @@ const addCreatedTag = (rawTag: string) => {
 
 const submit = () => {
 	form.put(route('groups.dashboard.discovery-settings.update', props.group.slug), {
-		preserveScroll: true,
 		onSuccess: () => {
 			toast.add({
 				title: t('general.success'),

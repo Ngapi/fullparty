@@ -49,6 +49,7 @@ export interface ActivityIndexItem {
 	slot_count: number
 	assigned_slot_count: number
 	application_count: number
+	has_existing_application: boolean
 	is_public: boolean
 	needs_application?: boolean
 	secret_key: string | null
@@ -129,6 +130,8 @@ export type AccountApplication = {
 		is_public: boolean
 		secret_key: string | null
 		type_name: LocalizedText
+		target_prog_point_key: string | null
+		target_prog_point_label: LocalizedText | null
 	}
 	character: {
 		name: string | null
@@ -136,6 +139,28 @@ export type AccountApplication = {
 		datacenter: string | null
 		avatar_url: string | null
 	}
+	assignment: {
+		group_key: string | null
+		group_label: LocalizedText | null
+		slot_key: string | null
+		slot_label: LocalizedText | null
+		character_class: {
+			id: number | null
+			name: string | null
+			shorthand: string | null
+			role: string | null
+		} | null
+		phantom_job: {
+			id: number | null
+			name: string | null
+		} | null
+		raid_position: {
+			key: string | null
+			label: LocalizedText | string | null
+		} | null
+		attendance_status: string | null
+		assigned_at: string | null
+	} | null
 }
 
 export type ActivityCalendarDay = {

@@ -316,6 +316,49 @@ it('shows only non-bench slot counts on the group runs page', function () {
             ->where('activities.0.assigned_slot_count', 1));
 });
 
+it('excludes historical applications from group runs page application counts', function () {
+    $owner = User::factory()->create();
+    $group = Group::factory()->open()->create([
+        'owner_id' => $owner->id,
+    ]);
+    $activityType = createCrudActivityType($owner);
+
+    $this->actingAs($owner);
+
+    $this->post(route('groups.dashboard.activities.store', [
+        'group' => $group->slug,
+    ]), [
+        'activity_type_id' => $activityType->id,
+        'status' => Activity::STATUS_SCHEDULED,
+        'title' => 'Application Count Check',
+    ])->assertRedirect(route('groups.dashboard.activities.index', [
+        'group' => $group->slug,
+    ]));
+
+    $activity = $group->activities()->latest('id')->firstOrFail();
+
+    foreach (ActivityApplication::ACTIVE_STATUSES as $status) {
+        ActivityApplication::factory()->create([
+            'activity_id' => $activity->id,
+            'status' => $status,
+        ]);
+    }
+
+    foreach ([ActivityApplication::STATUS_DECLINED, ActivityApplication::STATUS_CANCELLED, ActivityApplication::STATUS_WITHDRAWN] as $status) {
+        ActivityApplication::factory()->create([
+            'activity_id' => $activity->id,
+            'status' => $status,
+        ]);
+    }
+
+    $this->actingAs($owner)
+        ->get(route('groups.dashboard.activities.index', $group))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('activities.0.id', $activity->id)
+            ->where('activities.0.application_count', count(ActivityApplication::ACTIVE_STATUSES)));
+});
+
 it('sanitizes activity free-text fields when creating and updating activities', function () {
     $owner = User::factory()->create();
     $group = Group::factory()->open()->create([

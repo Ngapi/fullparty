@@ -226,6 +226,8 @@
             "subtitle": "Inscriptions récentes et décisions de roster.",
             "view_all": "Voir toutes les candidatures",
             "empty": "Aucune candidature récente pour l'instant.",
+            "run_is_in": "Run dans {time}",
+            "run_started": "Run commencé",
             "statuses": {
                 "assigned": "Assigné",
                 "pending": "En attente",

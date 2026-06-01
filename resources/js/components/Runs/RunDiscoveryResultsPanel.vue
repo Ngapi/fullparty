@@ -65,7 +65,7 @@ watch(selectedSort, (sort) => {
 				</div>
 			</div>
 
-			<div class="space-y-4 py-6 lg:min-h-0 lg:flex-1 lg:overflow-y-auto">
+			<div class="space-y-4 px-2 py-6 md:px-3 lg:min-h-0 lg:flex-1 lg:overflow-y-auto xl:px-4">
 				<div v-if="props.loading" class="space-y-4">
 					<div
 						v-for="index in 4"

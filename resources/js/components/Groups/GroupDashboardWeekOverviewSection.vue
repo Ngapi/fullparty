@@ -213,9 +213,21 @@ const scrollByDirection = (direction: "left" | "right") => {
 								v-for="activity in day.activities"
 								:key="activity.id"
 								:href="activity.links.view"
-								class="group overflow-hidden border border-white/10 border-t-2 bg-white/[0.03] transition hover:border-primary/30 hover:bg-primary/6"
+								class="group relative overflow-visible border border-white/10 border-t-2 bg-white/[0.03] transition hover:border-primary/30 hover:bg-primary/6"
 								:class="getActivityStatusBorderClass(activity.status)"
 							>
+								<div
+									v-if="activity.has_existing_application"
+									class="pointer-events-none absolute -left-2 -top-2 z-20 flex h-7 w-7 items-center justify-center"
+									:aria-label="t('groups.dashboard.upcoming_runs.view_application')"
+									:title="t('groups.dashboard.upcoming_runs.view_application')"
+								>
+									<UIcon
+										name="i-lucide-pin"
+										class="h-7 w-7 -rotate-35 text-brand-400 drop-shadow-[0_4px_10px_rgba(168,85,247,0.8)]"
+									/>
+								</div>
+
 								<div class="min-w-0 p-3">
 									<div class="flex items-start justify-between gap-2">
 										<p class="text-xs font-medium text-white/66">

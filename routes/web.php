@@ -533,6 +533,7 @@ Route::prefix('{locale?}')
 
             Route::get('/account/characters', [CharacterController::class, 'list'])->name('account.characters');
             Route::get('/account/applications', [AccountApplicationController::class, 'index'])->name('account.applications');
+            Route::get('/account/applications/history', [AccountApplicationController::class, 'history'])->name('account.applications.history');
             Route::delete('/account/applications/{application}', [AccountApplicationController::class, 'destroy'])->name('account.applications.destroy');
 
             /*

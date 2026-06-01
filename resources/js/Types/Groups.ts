@@ -262,6 +262,7 @@ export type GroupDashboardMemberPreview = {
 	id: number
 	name: string
 	avatar_url: string | null
+	home_background_image_url: string | null
 	role: GroupRole
 	joined_at: string | null
 }
@@ -301,6 +302,7 @@ export type GroupDashboardGroup = {
 	}
 	permissions: {
 		can_manage_group: boolean
+		can_update_group_settings?: boolean
 		can_manage_members: boolean
 		can_manage_discovery: boolean
 		can_manage_activities: boolean
@@ -420,6 +422,7 @@ export type GroupMemberManagementGroup = {
 	current_user_role: string
 	permissions: {
 		can_manage_members: boolean
+		can_update_group_settings?: boolean
 		can_manage_discovery?: boolean
 		can_review_membership_applications?: boolean
 		can_manage_membership_application_form?: boolean
@@ -441,6 +444,7 @@ export type GroupMemberRecord = {
 	id: number
 	name: string
 	avatar_url: string | null
+	home_background_image_url: string | null
 	role: GroupRole
 	joined_at: string | null
 	participated_run_count: number
@@ -459,6 +463,7 @@ export type GroupBannedMemberRecord = {
 	user_id: number | null
 	name: string | null
 	avatar_url: string | null
+	home_background_image_url: string | null
 	characters: GroupMemberCharacter[]
 	reason: string | null
 	banned_at: string | null

@@ -12,6 +12,11 @@
     "version_badge": "Published v{version}",
     "no_description": "まだ説明はありません。",
     "empty": "No activity types have been created yet.",
+    "empty_filtered": "検索条件に一致するアクティビティタイプはありません。",
+    "search_placeholder": "名前、スラッグ、タグ、難易度で検索",
+    "clear_search": "検索をクリア",
+    "pagination_summary": "{total}件中 {from}-{to}件を表示",
+    "pagination_empty": "表示できるアクティビティタイプはありません",
     "delete_confirm": "Delete this activity type? This will archive it.",
     "back": "Back to Activity Types",
     "form": {

@@ -54,7 +54,6 @@ const acceptInvite = () => {
 	}
 
 	router.post(route('groups.invites.accept', props.invite.token), {}, {
-		preserveScroll: true,
 	});
 };
 </script>

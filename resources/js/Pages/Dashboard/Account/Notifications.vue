@@ -80,7 +80,6 @@ const markAllAsRead = () => {
 	isMarkingAllRead.value = true
 
 	router.post(route('account.notifications.read-all'), {}, {
-		preserveScroll: true,
 		preserveState: true,
 		onSuccess: () => {
 			const timestamp = new Date().toISOString()

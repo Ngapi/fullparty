@@ -29,7 +29,7 @@ const props = defineProps<{
 		is_visible: boolean
 		slug: string
 		permissions: {
-			can_manage_group: boolean
+			can_update_group_settings: boolean
 		}
 	}
 }>();
@@ -141,7 +141,7 @@ const updateImage = (event: Event, field: 'profile_picture' | 'banner_image') =>
 };
 
 const submit = () => {
-	if (!props.group.permissions.can_manage_group) {
+	if (!props.group.permissions.can_update_group_settings) {
 		return;
 	}
 
@@ -183,7 +183,7 @@ onBeforeUnmount(() => {
 
 		<form class="flex flex-col gap-4" @submit.prevent="submit">
 			<UAlert
-				v-if="!group.permissions.can_manage_group"
+				v-if="!group.permissions.can_update_group_settings"
 				color="warning"
 				variant="subtle"
 				icon="i-lucide-shield-alert"
@@ -199,7 +199,7 @@ onBeforeUnmount(() => {
 					v-model="nameFieldValue"
 					class="w-full"
 					:placeholder="t('groups.settings.general.fields.name.placeholder')"
-					:disabled="!group.permissions.can_manage_group"
+					:disabled="!group.permissions.can_update_group_settings"
 				/>
 			</UFormField>
 
@@ -212,7 +212,7 @@ onBeforeUnmount(() => {
 					class="w-full"
 					:rows="4"
 					:placeholder="t('groups.settings.general.fields.description.placeholder')"
-					:disabled="!group.permissions.can_manage_group"
+					:disabled="!group.permissions.can_update_group_settings"
 				/>
 			</UFormField>
 
@@ -224,7 +224,7 @@ onBeforeUnmount(() => {
 				<div class="flex flex-col gap-3">
 					<label
 						class="file-upload-field"
-						:class="{ 'pointer-events-none opacity-60': !group.permissions.can_manage_group }"
+						:class="{ 'pointer-events-none opacity-60': !group.permissions.can_update_group_settings }"
 					>
 						<UIcon name="i-lucide-upload" size="16" />
 						<span class="text-sm font-medium">
@@ -234,7 +234,7 @@ onBeforeUnmount(() => {
 							class="sr-only"
 							type="file"
 							:accept="groupProfilePictureAccept"
-							:disabled="!group.permissions.can_manage_group"
+							:disabled="!group.permissions.can_update_group_settings"
 							@change="(event) => updateImage(event, 'profile_picture')"
 						>
 					</label>
@@ -267,7 +267,7 @@ onBeforeUnmount(() => {
 				<div class="flex flex-col gap-3">
 					<label
 						class="file-upload-field"
-						:class="{ 'pointer-events-none opacity-60': !group.permissions.can_manage_group }"
+						:class="{ 'pointer-events-none opacity-60': !group.permissions.can_update_group_settings }"
 					>
 						<UIcon name="i-lucide-image-up" size="16" />
 						<span class="text-sm font-medium">
@@ -277,7 +277,7 @@ onBeforeUnmount(() => {
 							class="sr-only"
 							type="file"
 							:accept="groupProfilePictureAccept"
-							:disabled="!group.permissions.can_manage_group"
+							:disabled="!group.permissions.can_update_group_settings"
 							@change="(event) => updateImage(event, 'banner_image')"
 						>
 					</label>
@@ -309,7 +309,7 @@ onBeforeUnmount(() => {
 					v-model="form.discord_invite_url"
 					class="w-full"
 					:placeholder="t('groups.settings.general.fields.discord_invite_url.placeholder')"
-					:disabled="!group.permissions.can_manage_group"
+					:disabled="!group.permissions.can_update_group_settings"
 				/>
 			</UFormField>
 
@@ -324,7 +324,7 @@ onBeforeUnmount(() => {
 					:items="datacenterOptions"
 					value-key="value"
 					:placeholder="t('groups.settings.general.fields.datacenter.placeholder')"
-					:disabled="!group.permissions.can_manage_group"
+					:disabled="!group.permissions.can_update_group_settings"
 				/>
 			</UFormField>
 
@@ -340,7 +340,7 @@ onBeforeUnmount(() => {
 					:items="joinModeOptions"
 					value-key="value"
 					:placeholder="t('groups.settings.general.fields.join_mode.placeholder')"
-					:disabled="!group.permissions.can_manage_group"
+					:disabled="!group.permissions.can_update_group_settings"
 				/>
 			</UFormField>
 
@@ -349,7 +349,7 @@ onBeforeUnmount(() => {
 					<p class="font-medium">{{ t('groups.settings.general.fields.is_visible.label') }}</p>
 					<p class="text-sm text-muted">{{ t('groups.settings.general.fields.is_visible.help') }}</p>
 				</div>
-				<USwitch v-model="form.is_visible" :disabled="!group.permissions.can_manage_group" />
+				<USwitch v-model="form.is_visible" :disabled="!group.permissions.can_update_group_settings" />
 			</div>
 
 			<div class="rounded-sm border border-default bg-muted/20 px-3 py-3">
@@ -364,7 +364,7 @@ onBeforeUnmount(() => {
 					size="lg"
 					:label="t('general.update')"
 					:loading="form.processing"
-					:disabled="!group.permissions.can_manage_group"
+					:disabled="!group.permissions.can_update_group_settings"
 				/>
 			</div>
 		</form>

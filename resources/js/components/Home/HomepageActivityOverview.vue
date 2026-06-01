@@ -149,6 +149,42 @@ const formatRelativeTime = (value: string | null) => {
 	return t("dashboard.labels.just_now")
 }
 
+const formatRunStartsIn = (value: string | null) => {
+	if (!value) {
+		return t("dashboard.labels.not_available")
+	}
+
+	const target = new Date(value).getTime()
+	const diffMs = target - Date.now()
+
+	if (diffMs <= 0) {
+		return t("dashboard.home_sections.applications.run_started")
+	}
+
+	const units: Array<[Intl.RelativeTimeFormatUnit, number]> = [
+		["year", 1000 * 60 * 60 * 24 * 365],
+		["month", 1000 * 60 * 60 * 24 * 30],
+		["day", 1000 * 60 * 60 * 24],
+		["hour", 1000 * 60 * 60],
+		["minute", 1000 * 60],
+	]
+
+	for (const [unit, threshold] of units) {
+		if (diffMs >= threshold) {
+			return t("dashboard.home_sections.applications.run_is_in", {
+				time: createRelativeTimeFormatter(locale.value, { numeric: "auto" }).format(
+					Math.round(diffMs / threshold),
+					unit,
+				),
+			})
+		}
+	}
+
+	return t("dashboard.home_sections.applications.run_is_in", {
+		time: createRelativeTimeFormatter(locale.value, { numeric: "auto" }).format(1, "minute"),
+	})
+}
+
 const groupInitials = (name: string) => name
 	.split(/\s+/)
 	.filter(Boolean)
@@ -342,8 +378,8 @@ const notificationCategoryLabel = (notification: NotificationRecord) => {
 								class="shrink-0"
 							/>
 
-							<p class="w-10 shrink-0 text-right text-sm text-neutral-400">
-								{{ formatRelativeTime(application.submitted_at) }}
+							<p class="w-28 shrink-0 text-right text-sm text-neutral-400">
+								{{ formatRunStartsIn(application.activity.starts_at) }}
 							</p>
 
 							<UIcon name="i-lucide-chevron-right" class="h-4 w-4 shrink-0 text-neutral-500 transition group-hover:text-violet-200" />

@@ -4,7 +4,10 @@ use App\Models\AuditLog;
 use App\Models\NotificationEvent;
 use App\Models\User;
 use App\Models\UserNotification;
+use App\Models\UserNotificationPreference;
 use App\Support\Notifications\NotificationCategory;
+use App\Support\Notifications\NotificationPreferenceChannel;
+use App\Support\Notifications\NotificationTopic;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -35,7 +38,7 @@ it('creates an in app notification when the username is updated', function () {
     $event = NotificationEvent::query()->where('type', 'user.settings.username_updated')->sole();
 
     expect($event->category)->toBe(NotificationCategory::ACCOUNT_CHARACTER_UPDATES)
-        ->and($event->is_mandatory)->toBeTrue()
+        ->and($event->is_mandatory)->toBeFalse()
         ->and($event->actor_user_id)->toBe($user->id)
         ->and($event->subject_type)->toBe(User::class)
         ->and($event->subject_id)->toBe($user->id)
@@ -49,6 +52,31 @@ it('creates an in app notification when the username is updated', function () {
     $userNotification = UserNotification::query()->where('notification_event_id', $event->id)->sole();
 
     expect($userNotification->user_id)->toBe($user->id);
+});
+
+it('does not create an in app settings notification when account settings notifications are disabled', function () {
+    $user = User::factory()->create([
+        'name' => 'Before Name',
+        'account_character_notifications' => true,
+    ]);
+
+    UserNotificationPreference::query()->create([
+        'user_id' => $user->id,
+        'topic' => NotificationTopic::ACCOUNT_SETTINGS,
+        'channel' => NotificationPreferenceChannel::IN_APP,
+        'enabled' => false,
+    ]);
+
+    $this->actingAs($user);
+
+    $this->post(route('settings.username'), [
+        'username' => 'After Name',
+    ])->assertRedirect(route('settings'));
+
+    $event = NotificationEvent::query()->where('type', 'user.settings.username_updated')->sole();
+
+    expect($event->is_mandatory)->toBeFalse()
+        ->and(UserNotification::query()->where('notification_event_id', $event->id)->exists())->toBeFalse();
 });
 
 it('sanitizes usernames before saving account settings changes', function () {
@@ -100,7 +128,7 @@ it('creates an in app notification when privacy settings are updated', function 
     $event = NotificationEvent::query()->where('type', 'user.settings.privacy_updated')->sole();
 
     expect($event->category)->toBe(NotificationCategory::ACCOUNT_CHARACTER_UPDATES)
-        ->and($event->is_mandatory)->toBeTrue()
+        ->and($event->is_mandatory)->toBeFalse()
         ->and($event->actor_user_id)->toBe($user->id)
         ->and($event->subject_type)->toBe(User::class)
         ->and($event->subject_id)->toBe($user->id)
@@ -179,7 +207,7 @@ it('updates the password and creates an in app notification when the current pas
     $event = NotificationEvent::query()->where('type', 'user.settings.password_updated')->sole();
 
     expect($event->category)->toBe(NotificationCategory::ACCOUNT_CHARACTER_UPDATES)
-        ->and($event->is_mandatory)->toBeTrue()
+        ->and($event->is_mandatory)->toBeFalse()
         ->and($event->actor_user_id)->toBe($user->id)
         ->and($event->subject_type)->toBe(User::class)
         ->and($event->subject_id)->toBe($user->id)

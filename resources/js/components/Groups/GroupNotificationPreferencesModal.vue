@@ -130,7 +130,6 @@ const submit = () => {
 	form.notification_preferences = preferencePayload();
 
 	form.patch(route("groups.notifications.update", props.group.slug), {
-		preserveScroll: true,
 		preserveState: true,
 		onSuccess: () => {
 			isOpen.value = false;

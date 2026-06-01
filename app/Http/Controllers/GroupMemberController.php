@@ -6,6 +6,7 @@ use App\Models\Group;
 use App\Models\GroupBan;
 use App\Models\GroupMembership;
 use App\Models\User;
+use App\Services\Groups\GroupCompletedParticipationService;
 use App\Services\Groups\GroupUserNoteVisibilityService;
 use Illuminate\Support\Collection;
 use Inertia\Inertia;
@@ -13,12 +14,17 @@ use Inertia\Response;
 
 class GroupMemberController extends Controller
 {
-    public function index(Group $group, GroupUserNoteVisibilityService $noteVisibilityService): Response
-    {
+    public function index(
+        Group $group,
+        GroupUserNoteVisibilityService $noteVisibilityService,
+        GroupCompletedParticipationService $completedParticipationService,
+    ): Response {
         $group->load([
             'owner',
             'memberships.user.characters',
+            'memberships.user.homeProfile',
             'bans.user.characters',
+            'bans.user.homeProfile',
             'bans.bannedBy',
         ]);
 
@@ -42,7 +48,14 @@ class GroupMemberController extends Controller
 
         return Inertia::render('Dashboard/Groups/Members/Index', [
             'group' => $this->serializeGroup($group, $currentUserId),
-            'members' => $this->serializeMembers($group, $currentUserId, $groupNotesByUserId, $sharedNotesByUserId, $noteVisibilityService),
+            'members' => $this->serializeMembers(
+                $group,
+                $currentUserId,
+                $groupNotesByUserId,
+                $sharedNotesByUserId,
+                $noteVisibilityService,
+                $completedParticipationService->countsByUser($group),
+            ),
             'bannedMembers' => $this->serializeBannedMembers($group, $currentUserId, $groupNotesByUserId, $sharedNotesByUserId, $noteVisibilityService),
         ]);
     }
@@ -70,7 +83,7 @@ class GroupMemberController extends Controller
                 'can_manage_group' => $group->isOwnedBy($currentUserId),
                 'can_manage_members' => $group->hasModeratorAccess($currentUserId),
                 'can_manage_discovery' => $group->hasAdminAccess($currentUserId),
-                'can_manage_roles' => $group->isOwnedBy($currentUserId),
+                'can_manage_roles' => $group->isOwnedBy($currentUserId) || $group->hasAdminAccess($currentUserId),
                 'can_view_bans' => $group->hasModeratorAccess($currentUserId),
                 'can_view_members' => $group->hasMember($currentUserId),
                 'can_review_membership_applications' => $group->usesMembershipApplications() && $group->hasModeratorAccess($currentUserId),
@@ -85,6 +98,7 @@ class GroupMemberController extends Controller
         Collection $groupNotesByUserId,
         Collection $sharedNotesByUserId,
         GroupUserNoteVisibilityService $noteVisibilityService,
+        Collection $completedParticipationCounts,
     ): array {
         return $group->memberships
             ->sort(function (GroupMembership $left, GroupMembership $right) {
@@ -102,9 +116,10 @@ class GroupMemberController extends Controller
                 'id' => $membership->user->id,
                 'name' => $membership->user->name,
                 'avatar_url' => $membership->user->avatar_url,
+                'home_background_image_url' => $membership->user->homeProfile?->background_image_url,
                 'role' => $membership->role,
                 'joined_at' => $membership->joined_at,
-                'participated_run_count' => 0,
+                'participated_run_count' => (int) ($completedParticipationCounts->get($membership->user_id) ?? 0),
                 'characters' => $membership->user->characters
                     ->sort(function ($left, $right) {
                         if ($left->is_primary === $right->is_primary) {
@@ -160,22 +175,36 @@ class GroupMemberController extends Controller
 
     private function canPromote(Group $group, GroupMembership $membership, int $currentUserId): bool
     {
-        return $group->isOwnedBy($currentUserId)
-            && $membership->user_id !== $currentUserId
-            && in_array($membership->role, [
+        if ($membership->user_id === $currentUserId || $membership->role === GroupMembership::ROLE_OWNER) {
+            return false;
+        }
+
+        if ($group->isOwnedBy($currentUserId)) {
+            return in_array($membership->role, [
                 GroupMembership::ROLE_MEMBER,
                 GroupMembership::ROLE_MODERATOR,
             ], true);
+        }
+
+        return $group->hasAdminAccess($currentUserId)
+            && $membership->role === GroupMembership::ROLE_MEMBER;
     }
 
     private function canDemote(Group $group, GroupMembership $membership, int $currentUserId): bool
     {
-        return $group->isOwnedBy($currentUserId)
-            && $membership->user_id !== $currentUserId
-            && in_array($membership->role, [
+        if ($membership->user_id === $currentUserId || $membership->role === GroupMembership::ROLE_OWNER) {
+            return false;
+        }
+
+        if ($group->isOwnedBy($currentUserId)) {
+            return in_array($membership->role, [
                 GroupMembership::ROLE_ADMIN,
                 GroupMembership::ROLE_MODERATOR,
             ], true);
+        }
+
+        return $group->hasAdminAccess($currentUserId)
+            && $membership->role === GroupMembership::ROLE_MODERATOR;
     }
 
     private function canKick(Group $group, GroupMembership $membership, int $currentUserId): bool
@@ -214,6 +243,7 @@ class GroupMemberController extends Controller
                 'user_id' => $ban->user?->id,
                 'name' => $ban->user?->name,
                 'avatar_url' => $ban->user?->avatar_url,
+                'home_background_image_url' => $ban->user?->homeProfile?->background_image_url,
                 'characters' => $ban->user?->characters
                     ?->sort(function ($left, $right) {
                         if ($left->is_primary === $right->is_primary) {
@@ -227,6 +257,7 @@ class GroupMemberController extends Controller
                         'id' => $character->id,
                         'name' => $character->name,
                         'world' => $character->world,
+                        'datacenter' => $character->datacenter,
                         'avatar_url' => $character->avatar_url,
                         'is_primary' => $character->is_primary,
                     ])

@@ -2,6 +2,7 @@
 
 use App\Http\Requests\GroupDetailsRequest;
 use App\Models\Group;
+use App\Models\GroupMembership;
 use App\Models\User;
 use App\Support\Groups\GroupDiscoveryBadgePalette;
 use App\Support\Input\TextInputSanitizer;
@@ -149,6 +150,70 @@ it('updates group profile and banner images from general settings', function () 
         ->and($bannerImageInfo['mime'] ?? null)->toBe('image/webp');
 });
 
+it('allows admins to update general group settings but forbids moderators', function () {
+    $owner = User::factory()->create();
+    $admin = User::factory()->create();
+    $moderator = User::factory()->create();
+    $group = Group::factory()->create([
+        'owner_id' => $owner->id,
+        'group_type' => Group::TYPE_COMMUNITY,
+        'name' => 'Original Group',
+    ]);
+
+    $group->memberships()->create([
+        'user_id' => $admin->id,
+        'role' => GroupMembership::ROLE_ADMIN,
+        'joined_at' => now(),
+    ]);
+    $group->memberships()->create([
+        'user_id' => $moderator->id,
+        'role' => GroupMembership::ROLE_MODERATOR,
+        'joined_at' => now(),
+    ]);
+
+    $this->actingAs($admin)
+        ->get(route('groups.dashboard.settings', $group))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('group.permissions.can_manage_group', false)
+            ->where('group.permissions.can_update_group_settings', true)
+        );
+
+    $this->actingAs($admin)
+        ->put(route('groups.dashboard.settings.update', $group), [
+            'name' => 'Admin Updated Group',
+            'description' => $group->description,
+            'discord_invite_url' => $group->discord_invite_url,
+            'datacenter' => $group->datacenter,
+            'join_mode' => $group->join_mode,
+            'is_visible' => $group->is_visible,
+        ])
+        ->assertRedirect();
+
+    expect($group->fresh()->name)->toBe('Admin Updated Group');
+
+    $this->actingAs($moderator)
+        ->get(route('groups.dashboard.settings', $group))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('group.permissions.can_manage_group', false)
+            ->where('group.permissions.can_update_group_settings', false)
+        );
+
+    $this->actingAs($moderator)
+        ->put(route('groups.dashboard.settings.update', $group), [
+            'name' => 'Moderator Updated Group',
+            'description' => $group->description,
+            'discord_invite_url' => $group->discord_invite_url,
+            'datacenter' => $group->datacenter,
+            'join_mode' => $group->join_mode,
+            'is_visible' => $group->is_visible,
+        ])
+        ->assertForbidden();
+
+    expect($group->fresh()->name)->toBe('Admin Updated Group');
+});
+
 it('allows owners and admins to view the discovery settings page', function () {
     $owner = User::factory()->create();
     $admin = User::factory()->create();
@@ -160,12 +225,12 @@ it('allows owners and admins to view the discovery settings page', function () {
 
     $group->memberships()->create([
         'user_id' => $admin->id,
-        'role' => 'admin',
+        'role' => GroupMembership::ROLE_ADMIN,
         'joined_at' => now(),
     ]);
     $group->memberships()->create([
         'user_id' => $moderator->id,
-        'role' => 'moderator',
+        'role' => GroupMembership::ROLE_MODERATOR,
         'joined_at' => now(),
     ]);
 
@@ -254,12 +319,12 @@ it('allows admins to update discovery settings but forbids moderators', function
 
     $group->memberships()->create([
         'user_id' => $admin->id,
-        'role' => 'admin',
+        'role' => GroupMembership::ROLE_ADMIN,
         'joined_at' => now(),
     ]);
     $group->memberships()->create([
         'user_id' => $moderator->id,
-        'role' => 'moderator',
+        'role' => GroupMembership::ROLE_MODERATOR,
         'joined_at' => now(),
     ]);
 

@@ -18,6 +18,7 @@ class ProductionSeeder extends Seeder
             CharacterClassSeeder::class,
             PhantomJobSeeder::class,
             LargeContentActivityTypeSeeder::class,
+            ExtremeActivityTypeSeeder::class,
             SavageActivityTypeSeeder::class,
             UltimateActivityTypeSeeder::class,
         ]);

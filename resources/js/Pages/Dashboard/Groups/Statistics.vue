@@ -187,7 +187,6 @@ const refreshStatistics = () => {
 	isRefreshing.value = true;
 
 	router.post(route("groups.dashboard.statistics.refresh", props.group.slug), {}, {
-		preserveScroll: true,
 		onFinish: () => {
 			isRefreshing.value = false;
 		},

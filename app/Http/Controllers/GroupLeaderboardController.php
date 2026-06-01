@@ -4,10 +4,10 @@ namespace App\Http\Controllers;
 
 use App\Models\Activity;
 use App\Models\ActivitySlot;
-use App\Models\ActivitySlotAssignment;
 use App\Models\Character;
 use App\Models\Group;
 use App\Services\Groups\ActivitySlotBench;
+use App\Services\Groups\GroupCompletedParticipationService;
 use Carbon\CarbonImmutable;
 use Carbon\CarbonInterface;
 use Illuminate\Http\RedirectResponse;
@@ -20,7 +20,7 @@ class GroupLeaderboardController extends Controller
 {
     private const CACHE_TTL_SECONDS = 86_400;
 
-    private const CACHE_VERSION = 1;
+    private const CACHE_VERSION = 2;
 
     private const REFRESH_COOLDOWN_SECONDS = 300;
 
@@ -31,6 +31,10 @@ class GroupLeaderboardController extends Controller
     private const HOST_SUCCESS_PRIOR_WEIGHT = 10;
 
     private const HOST_SUCCESS_MIN_COMPLETED_RUNS = 2;
+
+    public function __construct(
+        private readonly GroupCompletedParticipationService $completedParticipationService,
+    ) {}
 
     public function __invoke(Group $group): Response
     {
@@ -177,12 +181,9 @@ class GroupLeaderboardController extends Controller
      */
     private function buildLeaderboardPayload(Group $group): array
     {
-        $participationRecords = $this->participationRecords($group);
+        $participationRecords = $this->completedParticipationService->records($group);
         $raidLeaderRecords = $this->designatedSlotRecords($group, 'is_raid_leader');
         $hostRecords = $this->designatedSlotRecords($group, 'is_host');
-        $completedHostRecords = $hostRecords
-            ->filter(fn (array $record) => $record['activity']?->status === Activity::STATUS_COMPLETE)
-            ->values();
 
         return [
             'generated_at' => CarbonImmutable::now()->toIso8601String(),
@@ -191,88 +192,15 @@ class GroupLeaderboardController extends Controller
                 'ranked_participants' => $participationRecords->pluck('character_id')->unique()->count(),
                 'raid_leader_participations' => $raidLeaderRecords->count(),
                 'host_participations' => $hostRecords->count(),
-                'completed_hosted_runs' => $completedHostRecords->count(),
+                'completed_hosted_runs' => $hostRecords->count(),
             ],
             'rankings' => [
                 'overall' => $this->countRanking($participationRecords),
                 'raid_leaders' => $this->countRanking($raidLeaderRecords),
                 'hosts' => $this->countRanking($hostRecords),
-                'host_success' => $this->hostSuccessRanking($completedHostRecords),
+                'host_success' => $this->hostSuccessRanking($hostRecords),
             ],
         ];
-    }
-
-    /**
-     * @return Collection<int, array{activity_id: int, character_id: int, character: Character|null, activity_date: CarbonImmutable|null, source_priority: int}>
-     */
-    private function participationRecords(Group $group): Collection
-    {
-        $assignmentRecords = ActivitySlotAssignment::query()
-            ->where('activity_slot_assignments.group_id', $group->id)
-            ->whereHas('slot', fn ($query) => $query->where('group_key', '!=', ActivitySlotBench::GROUP_KEY))
-            ->with([
-                'activity:id,starts_at,status',
-                'character:id,name,world,datacenter,avatar_url',
-            ])
-            ->get([
-                'id',
-                'activity_id',
-                'group_id',
-                'activity_slot_id',
-                'character_id',
-                'assigned_at',
-                'ended_at',
-            ])
-            ->toBase()
-            ->filter(fn (ActivitySlotAssignment $assignment) => $assignment->character_id !== null)
-            ->map(fn (ActivitySlotAssignment $assignment) => [
-                'activity_id' => (int) $assignment->activity_id,
-                'character_id' => (int) $assignment->character_id,
-                'character' => $assignment->character,
-                'activity_date' => $this->toImmutable($assignment->activity?->starts_at ?? $assignment->assigned_at),
-                'source_priority' => 0,
-            ]);
-
-        $currentSlotRecords = ActivitySlot::query()
-            ->whereHas('activity', fn ($query) => $query->where('group_id', $group->id))
-            ->where('group_key', '!=', ActivitySlotBench::GROUP_KEY)
-            ->whereNotNull('assigned_character_id')
-            ->with([
-                'activity:id,group_id,starts_at,status',
-                'assignedCharacter:id,name,world,datacenter,avatar_url',
-            ])
-            ->get([
-                'id',
-                'activity_id',
-                'assigned_character_id',
-                'updated_at',
-            ])
-            ->toBase()
-            ->map(fn (ActivitySlot $slot) => [
-                'activity_id' => (int) $slot->activity_id,
-                'character_id' => (int) $slot->assigned_character_id,
-                'character' => $slot->assignedCharacter,
-                'activity_date' => $this->toImmutable($slot->activity?->starts_at ?? $slot->updated_at),
-                'source_priority' => 1,
-            ]);
-
-        return $assignmentRecords
-            ->merge($currentSlotRecords)
-            ->groupBy(fn (array $record) => "{$record['activity_id']}:{$record['character_id']}")
-            ->map(fn (Collection $records) => $records
-                ->sort(function (array $left, array $right) {
-                    $priorityComparison = $right['source_priority'] <=> $left['source_priority'];
-
-                    if ($priorityComparison !== 0) {
-                        return $priorityComparison;
-                    }
-
-                    return ($right['activity_date']?->getTimestamp() ?? 0)
-                        <=> ($left['activity_date']?->getTimestamp() ?? 0);
-                })
-                ->first())
-            ->filter()
-            ->values();
     }
 
     /**
@@ -281,12 +209,18 @@ class GroupLeaderboardController extends Controller
     private function designatedSlotRecords(Group $group, string $column): Collection
     {
         return ActivitySlot::query()
-            ->whereHas('activity', fn ($query) => $query->where('group_id', $group->id))
+            ->whereHas('activity', fn ($query) => $query
+                ->where('group_id', $group->id)
+                ->where(function ($query) {
+                    $query
+                        ->where('status', Activity::STATUS_COMPLETE)
+                        ->orWhere('is_completed', true);
+                }))
             ->where('group_key', '!=', ActivitySlotBench::GROUP_KEY)
             ->where($column, true)
             ->whereNotNull('assigned_character_id')
             ->with([
-                'activity:id,group_id,activity_type_version_id,status,starts_at,target_prog_point_key,furthest_progress_key',
+                'activity:id,group_id,activity_type_version_id,status,is_completed,starts_at,target_prog_point_key,furthest_progress_key',
                 'activity.activityTypeVersion:id,prog_points',
                 'assignedCharacter:id,name,world,datacenter,avatar_url',
             ])

@@ -36,7 +36,6 @@ const hasChanges = computed(() => JSON.stringify(form.fields) !== JSON.stringify
 
 const save = () => {
 	form.put(route("groups.dashboard.membership-application-form.update", props.group.slug), {
-		preserveScroll: true,
 	});
 };
 </script>

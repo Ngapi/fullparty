@@ -226,6 +226,8 @@
       "subtitle": "Recent signups and roster decisions.",
       "view_all": "View All Applications",
       "empty": "No recent applications yet.",
+      "run_is_in": "Run is {time}",
+      "run_started": "Run has started",
       "statuses": {
         "assigned": "Assigned",
         "pending": "Pending",
