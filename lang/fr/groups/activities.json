@@ -651,64 +651,64 @@
         "title": "Créer un run",
         "subtitle": "Configurez un nouveau run pour votre groupe.",
         "back": "Retour aux runs",
-        "placeholder": "The dedicated activity creation flow will live here.",
-        "submit": "Create Run",
-        "no_types_title": "No activity types available",
-        "no_types_description": "Create and publish an activity type from the admin area before creating activities for groups.",
+        "placeholder": "Le flux de création d'activité dédié sera disponible ici.",
+        "submit": "Créer un run",
+        "no_types_title": "Aucun type d'activité disponible",
+        "no_types_description": "Créez et publiez un type d'activité depuis l'espace d'administration avant de créer des activités pour les groupes.",
         "validation": {
-            "starts_at_not_past": "Les runs ne peuvent pas etre planifies dans le passe."
+            "starts_at_not_past": "Les runs ne peuvent pas être planifiés dans le passé."
         },
         "steps": {
             "schedule": {
                 "title": "Planning",
-                "description": "When are we dropping?"
+                "description": "Quand est-ce qu'on se lance ?"
             },
             "activity": {
                 "title": "Activité",
-                "description": "What content are we running?"
+                "description": "Quel contenu allons-nous faire ?"
             },
             "requirements": {
-                "title": "Requirements",
-                "description": "Who and what is needed?"
+                "title": "Prérequis",
+                "description": "Qui et quoi faut-il ?"
             },
             "review": {
-                "title": "Review",
-                "description": "Confirm and publish"
+                "title": "Récapitulatif",
+                "description": "Confirmer et publier"
             }
         },
         "navigation": {
             "back": "Retour",
             "next": "Suivant",
-            "review": "Review Run"
+            "review": "Vérifier le run"
         },
         "roles": {
             "owner": "Propriétaire",
             "moderator": "Modérateur"
         },
         "form": {
-            "title": "Activity Setup",
-            "subtitle": "Pick the activity type, basic schedule details, and who is organizing it."
+            "title": "Configuration de l'activité",
+            "subtitle": "Choisissez le type d'activité, les détails de base du planning et la personne qui l'organise."
         },
         "sections": {
             "basics": {
-                "title": "Basics",
-                "subtitle": "Choose the activity, organizer, and the main setup details."
+                "title": "Bases",
+                "subtitle": "Choisissez l'activité, l'organisateur et les principaux détails de configuration."
             },
             "schedule": {
                 "title": "Planning",
-                "subtitle": "Set the start time in FF14 Server Time and how long the activity will run."
+                "subtitle": "Définissez l'heure de début en Heure Serveur FF14 et la durée de l'activité."
             },
             "run_details": {
-                "title": "Run Details",
-                "subtitle": "Tune the discovery metadata people use to find the right run."
+                "title": "Détails du run",
+                "subtitle": "Ajustez les métadonnées de découverte que les gens utilisent pour trouver le bon run."
             },
             "access": {
-                "title": "Access",
-                "subtitle": "Decide who can see the activity and how people join it."
+                "title": "Accès",
+                "subtitle": "Décidez qui peut voir l'activité et comment les gens la rejoignent."
             },
             "notes": {
                 "title": "Notes",
-                "subtitle": "Add any extra context for the roster, applicants, or attendees."
+                "subtitle": "Ajoutez tout contexte supplémentaire pour la composition, les candidats ou les participants."
             }
         },
         "fields": {
@@ -718,120 +718,120 @@
             },
             "activity_type": {
                 "label": "Type d'activité",
-                "placeholder": "Select an activity type"
+                "placeholder": "Sélectionnez un type d'activité"
             },
             "organizer": {
                 "label": "Personnage organisateur",
-                "placeholder": "Select an organizer character",
-                "no_user": "User not set"
+                "placeholder": "Sélectionnez un personnage organisateur",
+                "no_user": "Utilisateur non défini"
             },
             "title": {
-                "label": "Custom Title",
-                "placeholder": "Optional custom title for this activity"
+                "label": "Titre personnalisé",
+                "placeholder": "Titre personnalisé optionnel pour cette activité"
             },
             "duration": {
                 "label": "Durée (heures)",
-                "placeholder": "Custom duration in hours",
-                "preset": "{count} Hour",
-                "custom": "Custom",
-                "select_placeholder": "Select a duration"
+                "placeholder": "Durée personnalisée en heures",
+                "preset": "{count} h",
+                "custom": "Personnalisée",
+                "select_placeholder": "Sélectionnez une durée"
             },
             "datacenter": {
                 "label": "Centre de données",
                 "placeholder": "Sélectionnez un centre de données"
             },
             "intensity": {
-                "label": "Run Intensity",
-                "placeholder": "Select an intensity"
+                "label": "Intensité du run",
+                "placeholder": "Sélectionnez une intensité"
             },
             "run_style": {
-                "label": "Run Style",
-                "placeholder": "Select a run style"
+                "label": "Style de run",
+                "placeholder": "Sélectionnez un style de run"
             },
             "min_item_level": {
-                "enabled_label": "Require Minimum Item Level",
-                "enabled_help": "Turn this off when item level should not matter for this run.",
-                "label": "Minimum Item Level",
-                "placeholder": "No minimum"
+                "enabled_label": "Exiger un niveau d'objet minimum",
+                "enabled_help": "Désactivez ceci si le niveau d'objet n'a pas d'importance pour ce run.",
+                "label": "Niveau d'objet minimum",
+                "placeholder": "Aucun minimum"
             },
             "beginner_friendly": {
-                "label": "Beginner Friendly",
-                "help": "Mark this run as welcoming to first timers or learners."
+                "label": "Débutants bienvenus",
+                "help": "Indiquez que ce run accueille volontiers les nouveaux venus ou les joueurs en apprentissage."
             },
             "prog_point": {
                 "label": "Point de progression cible",
-                "placeholder": "Select the intended prog point"
+                "placeholder": "Sélectionnez le point de progression visé"
             },
             "status": {
-                "label": "Initial Status",
-                "placeholder": "Select a status"
+                "label": "Statut initial",
+                "placeholder": "Sélectionnez un statut"
             },
             "notes": {
                 "label": "Notes",
-                "placeholder": "Optional notes for the roster and applicants"
+                "placeholder": "Notes optionnelles pour la composition et les candidats"
             },
             "start_date": {
-                "label": "Start Date"
+                "label": "Date de début"
             },
             "start_time": {
-                "label": "Start Time",
-                "hour_placeholder": "Hour",
+                "label": "Heure de début",
+                "hour_placeholder": "Heure",
                 "minute_placeholder": "Minute"
             },
             "starts_at": {
                 "label": "Commence le",
-                "server_time_hint": "All activity times are entered in FF14 Server Time (UTC+0)."
+                "server_time_hint": "Toutes les heures d'activité sont saisies en Heure Serveur FF14 (UTC+0)."
             },
             "is_public": {
-                "label": "Public Activity",
-                "help": "Public activities are visible based on the group's visibility rules."
+                "label": "Activité publique",
+                "help": "Les activités publiques sont visibles selon les règles de visibilité du groupe."
             },
             "needs_application": {
                 "label": "Candidature requise",
-                "help": "Turn this on if members should apply instead of assigning themselves."
+                "help": "Activez ceci si les membres doivent postuler au lieu de s'inscrire eux-mêmes."
             },
             "allow_guest_applications": {
                 "label": "Autoriser les candidatures invitées",
-                "help": "Let people apply without a FullParty account. They will use the guest application flow in a later stage."
+                "help": "Permettez aux gens de postuler sans compte FullParty. Ils utiliseront le flux de candidature invité à une étape ultérieure."
             }
         },
         "summary": {
-            "title": "Draft Summary",
-            "subtitle": "A quick preview of what this activity currently looks like.",
+            "title": "Récapitulatif du brouillon",
+            "subtitle": "Un aperçu rapide de l'apparence actuelle de cette activité.",
             "activity": "Activité",
             "slots": "Slots",
             "status": "Statut",
             "organizer": "Organisateur",
             "starts_at": "Commence le",
-            "starts_at_st": "FF14 ST",
-            "starts_at_local": "Your Local ({timezone})",
-            "duration": "Duration",
-            "duration_value": "{count}h",
+            "starts_at_st": "FF14 HS",
+            "starts_at_local": "Votre heure locale ({timezone})",
+            "duration": "Durée",
+            "duration_value": "{count} h",
             "visibility": "Visibilité",
             "visibility_public": "Public",
-            "visibility_private": "Private link only",
+            "visibility_private": "Lien privé uniquement",
             "datacenter": "Centre de données",
-            "run_style": "Run Style",
-            "intensity": "Intensity",
-            "difficulty": "Difficulty",
-            "min_item_level": "Minimum ILVL",
-            "min_item_level_disabled": "No minimum",
-            "beginner_friendly": "Beginner Friendly",
-            "assignment": "Signup Mode",
-            "assignment_application": "Applications required",
-            "assignment_self_assign": "Self assignment",
-            "guest_applications": "Guest Applications",
-            "guest_applications_enabled": "Allowed",
-            "guest_applications_disabled": "Account required",
-            "guest_applications_not_applicable": "Not used when applications are off",
+            "run_style": "Style de run",
+            "intensity": "Intensité",
+            "difficulty": "Difficulté",
+            "min_item_level": "ILVL minimum",
+            "min_item_level_disabled": "Aucun minimum",
+            "beginner_friendly": "Débutants bienvenus",
+            "assignment": "Mode d'inscription",
+            "assignment_application": "Candidature requise",
+            "assignment_self_assign": "Inscription libre",
+            "guest_applications": "Candidatures d'invités",
+            "guest_applications_enabled": "Autorisées",
+            "guest_applications_disabled": "Compte requis",
+            "guest_applications_not_applicable": "Non utilisé lorsque les candidatures sont désactivées",
             "target_prog_point": "Point de progression cible",
             "notes": "Notes",
-            "no_type": "No activity type selected",
-            "no_organizer": "Organizer not selected",
-            "no_date": "Date not set",
-            "no_target_prog_point": "No target prog point selected",
-            "no_notes": "No extra notes yet.",
-            "help": "This is just the scaffold for now. Next we can shape the exact create flow, defaults, and previews however you want."
+            "no_type": "Aucun type d'activité sélectionné",
+            "no_organizer": "Aucun organisateur sélectionné",
+            "no_date": "Date non définie",
+            "no_target_prog_point": "Aucun point de progression cible sélectionné",
+            "no_notes": "Aucune note supplémentaire pour l'instant.",
+            "help": "Ce n'est qu'une ébauche pour l'instant. Nous pourrons ensuite façonner le flux de création exact, les valeurs par défaut et les aperçus comme vous le souhaitez."
         }
     },
     "edit": {
