@@ -6,7 +6,10 @@ use App\Models\IntegrationClient;
 use App\Models\NotificationEvent;
 use App\Models\User;
 use App\Models\UserNotification;
+use App\Services\Notifications\NotificationPreferenceSettingsService;
 use App\Support\Notifications\NotificationCategory;
+use App\Support\Notifications\NotificationPreferenceChannel;
+use App\Support\Notifications\NotificationTopic;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Client\Request as HttpRequest;
 use Illuminate\Support\Facades\Http;
@@ -28,6 +31,33 @@ it('uses enabled defaults for notification categories while optional system noti
         ->and($user->system_notice_notifications)->toBeFalse()
         ->and($user->email_notifications)->toBeFalse()
         ->and($user->discord_notifications)->toBeFalse();
+});
+
+it('defaults supported discord topics on when the discord app is installed', function () {
+    $user = User::factory()->create([
+        'application_notifications' => true,
+        'run_and_reminder_notifications' => true,
+        'assignment_notifications' => true,
+        'account_character_notifications' => true,
+        'system_notice_notifications' => false,
+        'discord_notifications' => false,
+    ]);
+
+    DiscordUserIntegration::query()->create([
+        'user_id' => $user->id,
+        'discord_user_id' => 'discord-defaults-123',
+        'username' => 'Defaults Tester',
+        'user_app_installed_at' => now(),
+    ]);
+
+    $preferences = app(NotificationPreferenceSettingsService::class)
+        ->serializeUserPreferences($user->fresh(['discordUserIntegration']));
+
+    expect($preferences[NotificationTopic::APPLICATIONS_SUBMITTED][NotificationPreferenceChannel::DISCORD])->toBeTrue()
+        ->and($preferences[NotificationTopic::ASSIGNMENTS_ROSTER][NotificationPreferenceChannel::DISCORD])->toBeTrue()
+        ->and($preferences[NotificationTopic::RUNS_REMINDERS][NotificationPreferenceChannel::DISCORD])->toBeTrue()
+        ->and($preferences[NotificationTopic::CHARACTER_CHANGES][NotificationPreferenceChannel::DISCORD])->toBeTrue()
+        ->and($preferences[NotificationTopic::SYSTEM_MAINTENANCE][NotificationPreferenceChannel::DISCORD])->toBeFalse();
 });
 
 it('updates the new notification category preferences and delivery channels', function () {
@@ -122,6 +152,59 @@ it('updates the new notification category preferences and delivery channels', fu
 
     expect($userNotification->user_id)->toBe($user->id)
         ->and($user->fresh()->inAppNotifications)->toHaveCount(1);
+});
+
+it('stores granular notification preferences per topic and channel', function () {
+    $user = User::factory()->create([
+        'run_and_reminder_notifications' => true,
+        'group_update_notifications' => true,
+        'email_notifications' => true,
+        'discord_notifications' => false,
+    ]);
+
+    $this->actingAs($user)
+        ->post(route('settings.notifications'), [
+            'application_notifications' => true,
+            'run_and_reminder_notifications' => true,
+            'group_update_notifications' => true,
+            'assignment_notifications' => true,
+            'account_character_notifications' => true,
+            'system_notice_notifications' => true,
+            'email_notifications' => true,
+            'discord_notifications' => false,
+            'notification_preferences' => [
+                NotificationTopic::RUNS_REMINDERS => [
+                    NotificationPreferenceChannel::IN_APP => false,
+                    NotificationPreferenceChannel::EMAIL => true,
+                    NotificationPreferenceChannel::DISCORD => false,
+                ],
+                NotificationTopic::GROUP_RUN_POSTS => [
+                    NotificationPreferenceChannel::IN_APP => false,
+                ],
+            ],
+        ])
+        ->assertRedirect(route('settings'));
+
+    $this->assertDatabaseHas('user_notification_preferences', [
+        'user_id' => $user->id,
+        'topic' => NotificationTopic::RUNS_REMINDERS,
+        'channel' => NotificationPreferenceChannel::IN_APP,
+        'enabled' => false,
+    ]);
+
+    $this->assertDatabaseHas('user_notification_preferences', [
+        'user_id' => $user->id,
+        'topic' => NotificationTopic::RUNS_REMINDERS,
+        'channel' => NotificationPreferenceChannel::EMAIL,
+        'enabled' => true,
+    ]);
+
+    $this->assertDatabaseHas('user_notification_preferences', [
+        'user_id' => $user->id,
+        'topic' => NotificationTopic::GROUP_RUN_POSTS,
+        'channel' => NotificationPreferenceChannel::IN_APP,
+        'enabled' => false,
+    ]);
 });
 
 it('forces discord notifications off when the user has not installed the discord app', function () {

@@ -4,6 +4,8 @@ export type MemberNoteSeverity = "info" | "warning" | "critical"
 export type GroupType = "community" | "static"
 export type GroupJoinMode = "open" | "invite_only" | "application"
 export type GroupRole = "owner" | "admin" | "moderator" | "member"
+export type NotificationPreferenceChannel = "in_app" | "email" | "discord"
+export type GroupNotificationPreferences = Record<string, Partial<Record<NotificationPreferenceChannel, boolean | null>>>
 export type MembershipApplicationFieldType = "small_text" | "big_text" | "select" | "toggle"
 export type GroupCreateField =
 	| "name"
@@ -136,6 +138,7 @@ export type GroupIndexRecord = {
 	current_user_role: string | null
 	notifications: {
 		enabled: boolean
+		preferences: GroupNotificationPreferences
 	}
 	membership_application: {
 		pending: boolean
@@ -294,6 +297,7 @@ export type GroupDashboardGroup = {
 	current_user_role: string | null
 	notifications: {
 		enabled: boolean
+		preferences: GroupNotificationPreferences
 	}
 	permissions: {
 		can_manage_group: boolean

@@ -2,10 +2,12 @@
 import type { GroupDashboardGroup } from "@/Types/Groups";
 import { router } from "@inertiajs/vue3";
 import { route } from "ziggy-js";
+import { ref } from "vue";
 import { useI18n } from "vue-i18n";
 // @ts-ignore
 import { useConfirmationModal } from "@/composables/useConfirmationModal";
 import { useGroupNotificationToast } from "@/composables/useGroupNotificationToast";
+import GroupNotificationPreferencesModal from "@/components/Groups/GroupNotificationPreferencesModal.vue";
 
 const props = defineProps<{
 	group: GroupDashboardGroup
@@ -14,6 +16,7 @@ const props = defineProps<{
 const { t } = useI18n();
 const confirmationModal = useConfirmationModal();
 const { showGroupNotificationsToast } = useGroupNotificationToast();
+const notificationPreferencesOpen = ref(false);
 
 const notificationActionLabel = () => props.group.notifications.enabled
 	? t("groups.dashboard.actions.mute_notifications")
@@ -46,6 +49,14 @@ const toggleNotifications = () => {
 			showGroupNotificationsToast(enabled);
 		},
 	});
+};
+
+const openNotificationPreferences = () => {
+	if (!props.group.permissions.can_toggle_notifications) {
+		return;
+	}
+
+	notificationPreferencesOpen.value = true;
 };
 
 const leaveGroup = async () => {
@@ -130,6 +141,16 @@ const openDiscordInvite = () => {
 				@click="toggleNotifications"
 			/>
 			<UButton
+				v-if="group.permissions.can_toggle_notifications"
+				color="neutral"
+				variant="ghost"
+				icon="i-lucide-settings"
+				:aria-label="t('groups.notifications.preferences.title')"
+				:title="t('groups.notifications.preferences.title')"
+				class="justify-center"
+				@click="openNotificationPreferences"
+			/>
+			<UButton
 				v-if="group.permissions.can_leave"
 				color="error"
 				variant="ghost"
@@ -138,5 +159,9 @@ const openDiscordInvite = () => {
 				@click="leaveGroup"
 			/>
 		</div>
+		<GroupNotificationPreferencesModal
+			v-model:open="notificationPreferencesOpen"
+			:group="group"
+		/>
 	</div>
 </template>

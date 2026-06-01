@@ -23,10 +23,25 @@
     "notifications": {
         "title": "Benachrichtigungen",
         "save": "Einstellungen speichern",
+        "autosave_failed": "Diese Benachrichtigungseinstellungen konnten nicht gespeichert werden. Bitte versuche es erneut.",
         "categories_title": "Benachrichtigungskategorien",
         "categories_description": "Wähle aus, welche Arten von Aktivitäten in FullParty Benachrichtigungen für dich auslösen sollen.",
         "delivery_title": "Zustellkanäle",
         "delivery_description": "Wähle aus, über welche zusätzlichen Kanäle FullParty berechtigte Benachrichtigungen senden darf.",
+        "discord_app_title": "Discord-App",
+        "discord_app_description": "Verbinde die FullParty-Discord-App, um unterstützte Discord-Benachrichtigungen und Gruppenfunktionen zu nutzen.",
+        "discord_app_connected_title": "Discord-App verbunden",
+        "discord_app_connected_description": "FullParty kann unterstützte Discord-Benachrichtigungen an dieses Konto senden.",
+        "discord_app_not_connected_title": "Discord-App nicht verbunden",
+        "discord_app_not_connected_description": "Verbinde die Discord-App, um Discord-Zustellung und botgestützte Gruppenfunktionen zu aktivieren.",
+        "channels": {
+            "inApp": "Vor Ort",
+            "email": "E-Mail",
+            "discord": "Discord"
+        },
+        "customize": "Anpassen",
+        "customize_description": "Wähle aus, welche Teile dieser Benachrichtigungsgruppe welche Zustellkanäle nutzen sollen.",
+        "always_on": "Immer aktiv",
         "applications": "Bewerbungen",
         "assignments": "Zuweisungen",
         "runs_and_reminders": "Runs & Erinnerungen",
@@ -43,6 +58,84 @@
         "system_notices_description": "Kritische Wartungs- und Ausfallhinweise werden immer gesendet. Dieser Schalter steuert nur optionale Produktupdates, Feature-Ankündigungen und Projektstatusmeldungen.",
         "email_notifications_description": "Benachrichtigungen per E-Mail erhalten",
         "discord_notifications_description": "Benachrichtigungen über die FullParty-Discord-App senden",
+        "topics": {
+            "applications_submitted": {
+                "title": "Meine eingereichten Bewerbungen",
+                "description": "Bestätigungen, wenn du deine eigene Bewerbung sendest, zurückziehst oder änderst."
+            },
+            "applications_review": {
+                "title": "Neue Bewerbungen zur Prüfung",
+                "description": "Neue Bewerbungen, die von einem Run-Host geprüft werden müssen."
+            },
+            "applications_host_updates": {
+                "title": "Bewerbungsupdates für meine Runs",
+                "description": "Bearbeitungen und Rückzüge von Bewerbern bei Runs, die du hostest."
+            },
+            "applications_outcomes": {
+                "title": "Bewerbungsergebnisse",
+                "description": "Updates zu abgelehnten oder abgebrochenen Bewerbungen."
+            },
+            "assignments_roster": {
+                "title": "Roster-Platzierung",
+                "description": "Zuweisungen, veröffentlichte Roster, Entfernungen und Rückkehr in die Warteschlange."
+            },
+            "assignments_bench": {
+                "title": "Bench-Status",
+                "description": "Updates, wenn du auf die Bench gesetzt wirst."
+            },
+            "assignments_status": {
+                "title": "Anwesenheitsstatus",
+                "description": "Änderungen am Fehlstatus und Wiederherstellungen."
+            },
+            "assignments_designations": {
+                "title": "Run-Aufgaben",
+                "description": "Änderungen bei Host- und Raid-Leitungsmarkierungen."
+            },
+            "runs_reminders": {
+                "title": "Run-Erinnerungen",
+                "description": "Erinnerungen, wenn ein Run bald startet oder jetzt beginnt."
+            },
+            "runs_lifecycle": {
+                "title": "Run-Status",
+                "description": "Updates zu abgesagten und abgeschlossenen Runs."
+            },
+            "group_run_posts": {
+                "title": "Run-Beiträge der Gruppe",
+                "description": "Entwurfs- und geplante Run-Updates aus deinen Gruppen."
+            },
+            "group_membership": {
+                "title": "Mitgliederaktivität",
+                "description": "Mitglieder, die beitreten, gehen oder entfernt werden."
+            },
+            "group_roles": {
+                "title": "Gruppenrollen und Besitz",
+                "description": "Updates zu Beförderungen, Herabstufungen und Besitzerwechseln."
+            },
+            "connected_accounts": {
+                "title": "Verbundene Konten",
+                "description": "Updates, wenn Social-Konten verbunden oder getrennt werden."
+            },
+            "account_settings": {
+                "title": "Kontosicherheit",
+                "description": "Änderungen an Passwort, Benutzername, Datenschutz und Benachrichtigungen."
+            },
+            "character_changes": {
+                "title": "Charakteränderungen",
+                "description": "Charaktere, die hinzugefügt, als primär gesetzt oder vom Konto entfernt werden."
+            },
+            "character_refreshes": {
+                "title": "Charakteraktualisierungen",
+                "description": "Profildaten-Aktualisierungen aus deinen verknüpften Charakterquellen."
+            },
+            "system_maintenance": {
+                "title": "Kritische Wartung",
+                "description": "Wartungs- und Ausfallhinweise, die FullParty immer sendet."
+            },
+            "system_announcements": {
+                "title": "Produktankündigungen",
+                "description": "Optionale Produktupdates, Funktionsneuigkeiten und Projektmeldungen."
+            }
+        },
         "install_discord_app": "Discord-App installieren",
         "generate_discord_link_token": "Link-Token erstellen",
         "discord_link_token_title": "Discord-Link-Token",

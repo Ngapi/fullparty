@@ -6,6 +6,7 @@ import { useI18n } from "vue-i18n";
 import { route } from "ziggy-js";
 import { useConfirmationModal } from "@/composables/useConfirmationModal";
 import { useGroupNotificationToast } from "@/composables/useGroupNotificationToast";
+import GroupNotificationPreferencesModal from "@/components/Groups/GroupNotificationPreferencesModal.vue";
 
 const GroupDiscoveryInfoTab = defineAsyncComponent(() => import("@/components/Groups/GroupDiscoveryInfoTab.vue"));
 const GroupDiscoveryActivityTab = defineAsyncComponent(() => import("@/components/Groups/GroupDiscoveryActivityTab.vue"));
@@ -81,6 +82,7 @@ const accessStatusLabel = computed(() => {
 
 const bannerUrl = computed(() => props.group?.banner_image_url ?? "/prereqimages/forked.jpg");
 const isActionPending = ref(false);
+const notificationPreferencesOpen = ref(false);
 const canShowActionButtons = computed(() => Boolean(props.group) && !props.loading);
 const isMember = computed(() => Boolean(props.group?.current_user_role));
 const membershipActionLabel = computed(() => (
@@ -229,6 +231,14 @@ const toggleNotifications = () => {
 	});
 };
 
+const openNotificationPreferences = () => {
+	if (!props.group || isActionPending.value || !props.group.permissions.can_toggle_notifications) {
+		return;
+	}
+
+	notificationPreferencesOpen.value = true;
+};
+
 </script>
 
 <template>
@@ -336,6 +346,16 @@ const toggleNotifications = () => {
 											:disabled="isActionPending"
 											@click="toggleNotifications"
 										/>
+										<UButton
+											v-if="showNotificationsAction"
+											color="neutral"
+											variant="ghost"
+											icon="i-lucide-settings"
+											:aria-label="t('groups.notifications.preferences.title')"
+											:title="t('groups.notifications.preferences.title')"
+											:disabled="isActionPending"
+											@click="openNotificationPreferences"
+										/>
 									</div>
 								</div>
 							</div>
@@ -375,6 +395,12 @@ const toggleNotifications = () => {
 					</div>
 				</div>
 			</div>
+			<GroupNotificationPreferencesModal
+				v-if="group"
+				v-model:open="notificationPreferencesOpen"
+				:group="group"
+				@saved="refreshCurrentGroup"
+			/>
 		</template>
 	</USlideover>
 </template>

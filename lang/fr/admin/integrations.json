@@ -1,6 +1,6 @@
 {
     "title": "Intégrations",
-    "subtitle": "Autorisez des services de confiance et choisissez les événements FullParty qu'ils peuvent recevoir.",
+    "subtitle": "Autorisez des services de confiance et choisissez les fonctions FullParty qu'ils peuvent utiliser.",
     "admin_only": "Admin uniquement",
     "saved": "Paramètres d'intégration enregistrés.",
     "empty": "Aucun client d'intégration n'a encore été créé.",
@@ -66,6 +66,8 @@
         "discord_user_app_disconnected": "Application Discord déconnectée",
         "discord_notification_delivery": "Envoi de notification Discord",
         "discord_guild_run_reminder": "Rappel de run sur serveur Discord",
+        "discord_guild_run_starting_soon": "Run bientôt commencé sur serveur Discord",
+        "discord_guild_run_starting_now": "Run qui commence maintenant sur serveur Discord",
         "discord_guild_run_completed": "Run terminé sur serveur Discord",
         "discord_guild_run_cancelled": "Run annulé sur serveur Discord",
         "discord_guild_snapshot_requested": "Snapshot de serveur Discord demandé",
@@ -91,7 +93,7 @@
         "outbound_events_url": "URL des événements sortants",
         "healthcheck_url": "URL de healthcheck",
         "scopes": "Permissions API",
-        "allowed_events": "Événements à envoyer"
+        "allowed_events": "Fonctions autorisées"
     },
     "placeholders": {
         "name": "Bot Discord FullParty",

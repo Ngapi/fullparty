@@ -16,6 +16,8 @@ class NotificationEvent extends Model
     protected $fillable = [
         'type',
         'category',
+        'topic',
+        'group_id',
         'title_key',
         'body_key',
         'message_params',
@@ -32,6 +34,11 @@ class NotificationEvent extends Model
     public function actor(): BelongsTo
     {
         return $this->belongsTo(User::class, 'actor_user_id');
+    }
+
+    public function group(): BelongsTo
+    {
+        return $this->belongsTo(Group::class);
     }
 
     public function subject(): MorphTo

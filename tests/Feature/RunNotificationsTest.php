@@ -905,7 +905,7 @@ it('dispatches a guild discord run reminder event for linked group runs', functi
         'outbound_events_url' => 'https://discord-bot.fullparty.test/events',
         'webhook_signing_secret' => 'guild-reminder-secret',
         'allowed_events' => [
-            IntegrationClient::EVENT_DISCORD_GUILD_RUN_REMINDER,
+            IntegrationClient::EVENT_DISCORD_GUILD_RUN_STARTING_SOON,
         ],
     ]);
 

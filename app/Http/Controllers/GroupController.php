@@ -15,6 +15,7 @@ use App\Services\Groups\FeaturedGroupService;
 use App\Services\Groups\GeneratedGroupImageService;
 use App\Services\Groups\MembershipApplicationFormSchemaService;
 use App\Services\ManagedImageStorage;
+use App\Services\Notifications\NotificationPreferenceSettingsService;
 use App\Support\Audit\AuditScope;
 use App\Support\Audit\AuditSeverity;
 use App\Support\Groups\GroupDiscoveryBadgePalette;
@@ -45,6 +46,7 @@ class GroupController extends Controller
         private readonly GeneratedGroupImageService $generatedGroupImageService,
         private readonly MembershipApplicationFormSchemaService $membershipApplicationFormSchemaService,
         private readonly FeaturedGroupService $featuredGroupService,
+        private readonly NotificationPreferenceSettingsService $notificationPreferenceSettingsService,
         private readonly ServerMeta $serverMeta,
     ) {}
 
@@ -893,6 +895,9 @@ class GroupController extends Controller
             'current_user_role' => $currentMembership?->role,
             'notifications' => [
                 'enabled' => (bool) ($currentMembership?->notifications_enabled ?? true),
+                'preferences' => $currentMembership instanceof GroupMembership
+                    ? $this->notificationPreferenceSettingsService->serializeGroupPreferences($currentMembership->user, $group->id)
+                    : [],
             ],
             'membership_application' => [
                 'pending' => $hasPendingMembershipApplication,

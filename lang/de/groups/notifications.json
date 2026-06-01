@@ -1,4 +1,12 @@
 {
+    "preferences": {
+        "title": "Gruppenbenachrichtigungen anpassen",
+        "description": "Lege fest, welche Gruppenupdates deine Standard-Benachrichtigungen für {group} überschreiben.",
+        "inherit": "Standard verwenden",
+        "on": "Ein",
+        "off": "Aus",
+        "save": "Anpassungen speichern"
+    },
     "toasts": {
         "muted": "Gruppenbenachrichtigungen stummgeschaltet.",
         "unmuted": "Gruppenbenachrichtigungen aktiviert."

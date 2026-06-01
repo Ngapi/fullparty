@@ -8,6 +8,7 @@
             "search_placeholder": "ラン、グループ、コンテンツを検索",
             "reset": "フィルターをリセット",
             "all": "すべて",
+            "clear": "クリア",
             "sections": {
                 "saved_runs": "保存した募集",
                 "search": "検索",

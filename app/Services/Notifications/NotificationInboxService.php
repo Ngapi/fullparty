@@ -5,6 +5,7 @@ namespace App\Services\Notifications;
 use App\Models\SystemNotificationBroadcast;
 use App\Models\SystemNotificationBroadcastRead;
 use App\Models\User;
+use App\Support\Notifications\NotificationPreferenceChannel;
 use DateTimeInterface;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Pagination\LengthAwarePaginator as Paginator;
@@ -52,7 +53,21 @@ class NotificationInboxService
                 $join->on('reads.system_notification_broadcast_id', '=', 'broadcasts.id')
                     ->where('reads.user_id', '=', $user->id);
             })
-            ->when(! $user->system_notice_notifications, fn ($query) => $query->where('events.is_mandatory', true))
+            ->leftJoin('user_notification_preferences as broadcast_preferences', function ($join) use ($user) {
+                $join->on('broadcast_preferences.topic', '=', 'events.topic')
+                    ->where('broadcast_preferences.user_id', '=', $user->id)
+                    ->where('broadcast_preferences.channel', '=', NotificationPreferenceChannel::IN_APP);
+            })
+            ->where(function ($query) use ($user) {
+                $query
+                    ->where('events.is_mandatory', true)
+                    ->orWhere('broadcast_preferences.enabled', true)
+                    ->orWhere(function ($query) use ($user) {
+                        $user->system_notice_notifications
+                            ? $query->whereNull('broadcast_preferences.id')
+                            : $query->whereRaw('1 = 0');
+                    });
+            })
             ->whereNull('reads.read_at')
             ->count();
 
@@ -189,11 +204,25 @@ class NotificationInboxService
 
         $broadcasts = DB::table('system_notification_broadcasts as broadcasts')
             ->join('notification_events as events', 'events.id', '=', 'broadcasts.notification_event_id')
+            ->leftJoin('user_notification_preferences as broadcast_preferences', function ($join) use ($user) {
+                $join->on('broadcast_preferences.topic', '=', 'events.topic')
+                    ->where('broadcast_preferences.user_id', '=', $user->id)
+                    ->where('broadcast_preferences.channel', '=', NotificationPreferenceChannel::IN_APP);
+            })
             ->leftJoin('system_notification_broadcast_reads as reads', function ($join) use ($user) {
                 $join->on('reads.system_notification_broadcast_id', '=', 'broadcasts.id')
                     ->where('reads.user_id', '=', $user->id);
             })
-            ->when(! $user->system_notice_notifications, fn ($query) => $query->where('events.is_mandatory', true))
+            ->where(function ($query) use ($user) {
+                $query
+                    ->where('events.is_mandatory', true)
+                    ->orWhere('broadcast_preferences.enabled', true)
+                    ->orWhere(function ($query) use ($user) {
+                        $user->system_notice_notifications
+                            ? $query->whereNull('broadcast_preferences.id')
+                            : $query->whereRaw('1 = 0');
+                    });
+            })
             ->selectRaw('? as source_type', ['broadcast'])
             ->selectRaw('broadcasts.id as source_id')
             ->selectRaw('events.type')
@@ -221,11 +250,25 @@ class NotificationInboxService
     {
         return DB::table('system_notification_broadcasts as broadcasts')
             ->join('notification_events as events', 'events.id', '=', 'broadcasts.notification_event_id')
+            ->leftJoin('user_notification_preferences as broadcast_preferences', function ($join) use ($user) {
+                $join->on('broadcast_preferences.topic', '=', 'events.topic')
+                    ->where('broadcast_preferences.user_id', '=', $user->id)
+                    ->where('broadcast_preferences.channel', '=', NotificationPreferenceChannel::IN_APP);
+            })
             ->leftJoin('system_notification_broadcast_reads as reads', function ($join) use ($user) {
                 $join->on('reads.system_notification_broadcast_id', '=', 'broadcasts.id')
                     ->where('reads.user_id', '=', $user->id);
             })
-            ->when(! $user->system_notice_notifications, fn ($query) => $query->where('events.is_mandatory', true))
+            ->where(function ($query) use ($user) {
+                $query
+                    ->where('events.is_mandatory', true)
+                    ->orWhere('broadcast_preferences.enabled', true)
+                    ->orWhere(function ($query) use ($user) {
+                        $user->system_notice_notifications
+                            ? $query->whereNull('broadcast_preferences.id')
+                            : $query->whereRaw('1 = 0');
+                    });
+            })
             ->whereNull('reads.read_at')
             ->pluck('broadcasts.id')
             ->map(fn ($id) => (int) $id)
@@ -236,7 +279,22 @@ class NotificationInboxService
     {
         $broadcast->loadMissing('notificationEvent');
 
-        return (bool) $broadcast->notificationEvent?->is_mandatory || $user->system_notice_notifications;
+        $event = $broadcast->notificationEvent;
+
+        if (! $event) {
+            return false;
+        }
+
+        if ($event->is_mandatory) {
+            return true;
+        }
+
+        $preference = $user->notificationPreferences()
+            ->where('topic', $event->topic)
+            ->where('channel', NotificationPreferenceChannel::IN_APP)
+            ->first(['enabled']);
+
+        return $preference ? (bool) $preference->enabled : (bool) $user->system_notice_notifications;
     }
 
     private function decodeJsonColumn(mixed $value): ?array

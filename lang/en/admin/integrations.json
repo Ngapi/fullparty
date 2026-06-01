@@ -1,6 +1,6 @@
 {
   "title": "Integrations",
-  "subtitle": "Authorize trusted services and decide which FullParty events they can receive.",
+  "subtitle": "Authorize trusted services and decide which FullParty capabilities they may handle.",
   "admin_only": "Admin only",
   "saved": "Integration settings saved.",
   "empty": "No integration clients have been created yet.",
@@ -66,6 +66,8 @@
     "discord_user_app_disconnected": "Discord app disconnected",
     "discord_notification_delivery": "Discord notification delivery",
     "discord_guild_run_reminder": "Discord guild run reminder",
+    "discord_guild_run_starting_soon": "Discord guild run starting soon",
+    "discord_guild_run_starting_now": "Discord guild run starting now",
     "discord_guild_run_completed": "Discord guild run completed",
     "discord_guild_run_cancelled": "Discord guild run cancelled",
     "discord_guild_snapshot_requested": "Discord guild snapshot requested",
@@ -91,7 +93,7 @@
     "outbound_events_url": "Outbound Events URL",
     "healthcheck_url": "Healthcheck URL",
     "scopes": "API scopes",
-    "allowed_events": "Events to send"
+    "allowed_events": "Allowed capabilities"
   },
   "placeholders": {
     "name": "FullParty Discord Bot",

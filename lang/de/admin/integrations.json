@@ -1,6 +1,6 @@
 {
     "title": "Integrationen",
-    "subtitle": "Autorisiere vertrauenswürdige Dienste und lege fest, welche FullParty-Events sie erhalten dürfen.",
+    "subtitle": "Autorisiere vertrauenswürdige Dienste und lege fest, welche FullParty-Funktionen sie nutzen dürfen.",
     "admin_only": "Nur Admins",
     "saved": "Integrationseinstellungen gespeichert.",
     "empty": "Es wurden noch keine Integrationsclients erstellt.",
@@ -66,6 +66,8 @@
         "discord_user_app_disconnected": "Discord-App getrennt",
         "discord_notification_delivery": "Discord-Benachrichtigung zustellen",
         "discord_guild_run_reminder": "Discord-Server-Run-Erinnerung",
+        "discord_guild_run_starting_soon": "Discord-Server-Run startet bald",
+        "discord_guild_run_starting_now": "Discord-Server-Run startet jetzt",
         "discord_guild_run_completed": "Discord-Server-Run abgeschlossen",
         "discord_guild_run_cancelled": "Discord-Server-Run abgesagt",
         "discord_guild_snapshot_requested": "Discord-Server-Snapshot angefordert",
@@ -91,7 +93,7 @@
         "outbound_events_url": "URL für ausgehende Events",
         "healthcheck_url": "Healthcheck-URL",
         "scopes": "API-Berechtigungen",
-        "allowed_events": "Events senden"
+        "allowed_events": "Erlaubte Funktionen"
     },
     "placeholders": {
         "name": "FullParty Discord-Bot",

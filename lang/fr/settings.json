@@ -23,10 +23,25 @@
     "notifications": {
         "title": "Notifications",
         "save": "Enregistrer les préférences",
+        "autosave_failed": "Impossible d'enregistrer ces paramètres de notification. Veuillez réessayer.",
         "categories_title": "Catégories de notifications",
         "categories_description": "Choisissez quels types d'activité dans FullParty doivent générer des notifications pour vous.",
         "delivery_title": "Canaux de livraison",
         "delivery_description": "Choisissez les canaux supplémentaires que FullParty peut utiliser pour les notifications éligibles.",
+        "discord_app_title": "Application Discord",
+        "discord_app_description": "Connectez l'application Discord FullParty pour recevoir les notifications Discord prises en charge et utiliser les fonctions de groupe.",
+        "discord_app_connected_title": "Application Discord connectée",
+        "discord_app_connected_description": "FullParty peut envoyer les notifications Discord prises en charge à ce compte.",
+        "discord_app_not_connected_title": "Application Discord non connectée",
+        "discord_app_not_connected_description": "Connectez l'application Discord pour activer l'envoi Discord et les fonctions de groupe du bot.",
+        "channels": {
+            "inApp": "Sur le site",
+            "email": "E-mail",
+            "discord": "Discord"
+        },
+        "customize": "Personnaliser",
+        "customize_description": "Choisissez quelles parties de ce groupe de notifications utilisent chaque canal.",
+        "always_on": "Toujours actif",
         "applications": "Candidatures",
         "assignments": "Affectations",
         "runs_and_reminders": "Runs et rappels",
@@ -43,6 +58,84 @@
         "system_notices_description": "Les annonces critiques de maintenance et de panne sont toujours envoyées. Ce réglage ne contrôle que les mises à jour produit optionnelles, les annonces de fonctionnalités et les nouvelles du projet.",
         "email_notifications_description": "Recevoir des notifications par e-mail",
         "discord_notifications_description": "Envoyer les notifications via l'application Discord FullParty",
+        "topics": {
+            "applications_submitted": {
+                "title": "Mes candidatures envoyées",
+                "description": "Confirmations lorsque vous envoyez, retirez ou modifiez votre propre candidature."
+            },
+            "applications_review": {
+                "title": "Nouvelles candidatures à examiner",
+                "description": "Nouvelles candidatures en attente d'examen par l'hôte du run."
+            },
+            "applications_host_updates": {
+                "title": "Mises à jour des candidatures de mes runs",
+                "description": "Modifications et retraits des candidats sur les runs que vous hébergez."
+            },
+            "applications_outcomes": {
+                "title": "Résultats de candidature",
+                "description": "Mises à jour de candidatures refusées ou annulées."
+            },
+            "assignments_roster": {
+                "title": "Placement dans le roster",
+                "description": "Affectations, roster publié, suppressions et retours en file d'attente."
+            },
+            "assignments_bench": {
+                "title": "Statut de bench",
+                "description": "Mises à jour lorsque vous êtes placé sur le bench."
+            },
+            "assignments_status": {
+                "title": "Statut de présence",
+                "description": "Changements de statut absent et restaurations."
+            },
+            "assignments_designations": {
+                "title": "Responsabilités de run",
+                "description": "Changements de désignation d'hôte ou de raid leader."
+            },
+            "runs_reminders": {
+                "title": "Rappels de run",
+                "description": "Rappels de début imminent ou de début maintenant."
+            },
+            "runs_lifecycle": {
+                "title": "Cycle de vie du run",
+                "description": "Mises à jour de runs annulés ou terminés."
+            },
+            "group_run_posts": {
+                "title": "Runs publiés par le groupe",
+                "description": "Mises à jour de brouillons et de runs planifiés dans vos groupes."
+            },
+            "group_membership": {
+                "title": "Activité des membres",
+                "description": "Membres qui rejoignent, partent ou sont retirés."
+            },
+            "group_roles": {
+                "title": "Rôles et propriété du groupe",
+                "description": "Promotions, rétrogradations et transferts de propriété."
+            },
+            "connected_accounts": {
+                "title": "Comptes connectés",
+                "description": "Mises à jour lorsqu'un compte social est connecté ou dissocié."
+            },
+            "account_settings": {
+                "title": "Sécurité du compte",
+                "description": "Changements de mot de passe, nom d'utilisateur, confidentialité et notifications."
+            },
+            "character_changes": {
+                "title": "Changements de personnage",
+                "description": "Personnages ajoutés, définis comme principaux ou retirés de votre compte."
+            },
+            "character_refreshes": {
+                "title": "Actualisations de personnage",
+                "description": "Actualisations des données de profil depuis vos sources de personnage connectées."
+            },
+            "system_maintenance": {
+                "title": "Maintenance critique",
+                "description": "Avis de maintenance et de panne que FullParty envoie toujours."
+            },
+            "system_announcements": {
+                "title": "Annonces produit",
+                "description": "Mises à jour produit, nouveautés et annonces de projet optionnelles."
+            }
+        },
         "install_discord_app": "Installer l'application Discord",
         "generate_discord_link_token": "Générer un jeton de liaison",
         "discord_link_token_title": "Jeton de liaison Discord",

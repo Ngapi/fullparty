@@ -10,6 +10,8 @@ use App\Models\NotificationEvent;
 use App\Models\User;
 use App\Models\UserNotification;
 use App\Support\Input\TextInputSanitizer;
+use App\Support\Notifications\NotificationPreferenceChannel;
+use App\Support\Notifications\NotificationTopic;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
 uses(RefreshDatabase::class);
@@ -238,6 +240,88 @@ it('allows members to mute and unmute group notifications', function () {
         ->assertSessionDoesntHaveErrors();
 
     expect($group->memberships()->where('user_id', $member->id)->first()?->notifications_enabled)->toBeTrue();
+});
+
+it('allows group notification overrides to opt into and out of group run posts', function () {
+    $owner = User::factory()->create();
+    $globallyMutedMember = User::factory()->create([
+        'group_update_notifications' => false,
+    ]);
+    $globallyEnabledMember = User::factory()->create([
+        'group_update_notifications' => true,
+    ]);
+    $groupMutedMember = User::factory()->create([
+        'group_update_notifications' => true,
+    ]);
+
+    $group = Group::factory()->open()->create([
+        'owner_id' => $owner->id,
+    ]);
+
+    $group->memberships()->createMany([
+        [
+            'user_id' => $globallyMutedMember->id,
+            'role' => GroupMembership::ROLE_MEMBER,
+            'joined_at' => now(),
+        ],
+        [
+            'user_id' => $globallyEnabledMember->id,
+            'role' => GroupMembership::ROLE_MEMBER,
+            'joined_at' => now(),
+        ],
+        [
+            'user_id' => $groupMutedMember->id,
+            'role' => GroupMembership::ROLE_MEMBER,
+            'joined_at' => now(),
+            'notifications_enabled' => false,
+        ],
+    ]);
+
+    $this->actingAs($globallyMutedMember)
+        ->patch(route('groups.notifications.update', $group), [
+            'enabled' => true,
+            'notification_preferences' => [
+                NotificationTopic::GROUP_RUN_POSTS => [
+                    NotificationPreferenceChannel::IN_APP => true,
+                ],
+            ],
+        ])
+        ->assertRedirect();
+
+    $this->actingAs($globallyEnabledMember)
+        ->patch(route('groups.notifications.update', $group), [
+            'enabled' => true,
+            'notification_preferences' => [
+                NotificationTopic::GROUP_RUN_POSTS => [
+                    NotificationPreferenceChannel::IN_APP => false,
+                ],
+            ],
+        ])
+        ->assertRedirect();
+
+    extract(createGroupUpdateActivityType($owner));
+
+    $this->actingAs($owner)
+        ->post(route('groups.dashboard.activities.store', $group), [
+            'activity_type_id' => $type->id,
+            'status' => Activity::STATUS_SCHEDULED,
+            'title' => 'Override Schedule',
+            'is_public' => true,
+            'needs_application' => true,
+            'allow_guest_applications' => false,
+        ])
+        ->assertRedirect(route('groups.dashboard.activities.index', $group));
+
+    $event = NotificationEvent::query()->where('type', 'groups.run_scheduled')->sole();
+
+    $recipientIds = UserNotification::query()
+        ->where('notification_event_id', $event->id)
+        ->pluck('user_id')
+        ->sort()
+        ->values()
+        ->all();
+
+    expect($recipientIds)->toBe([$globallyMutedMember->id]);
 });
 
 it('notifies the affected user when they are promoted and demoted', function () {

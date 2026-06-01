@@ -8,6 +8,7 @@
             "search_placeholder": "Runs, Gruppen oder Inhalte suchen",
             "reset": "Filter zurücksetzen",
             "all": "Alle",
+            "clear": "Zurücksetzen",
             "sections": {
                 "saved_runs": "Gespeicherte Runs",
                 "search": "Suche",

@@ -23,10 +23,25 @@
   "notifications": {
     "title": "Notifications",
     "save": "Save Preferences",
+    "autosave_failed": "We could not save those notification settings. Please try again.",
     "categories_title": "Notification Categories",
     "categories_description": "Choose which kinds of product activity should create notifications for you.",
     "delivery_title": "Delivery Channels",
     "delivery_description": "Choose which extra channels FullParty can use for eligible notifications.",
+    "discord_app_title": "Discord App",
+    "discord_app_description": "Connect the FullParty Discord app to receive supported Discord notifications and use group Discord features.",
+    "discord_app_connected_title": "Discord app connected",
+    "discord_app_connected_description": "FullParty can send supported Discord notifications to this account.",
+    "discord_app_not_connected_title": "Discord app not connected",
+    "discord_app_not_connected_description": "Connect the Discord app to enable Discord delivery and bot-powered group features.",
+    "channels": {
+      "inApp": "On-site",
+      "email": "Email",
+      "discord": "Discord"
+    },
+    "customize": "Customize",
+    "customize_description": "Choose which parts of this notification group should use each delivery channel.",
+    "always_on": "Always on",
     "applications": "Applications",
     "assignments": "Assignments",
     "runs_and_reminders": "Runs & Reminders",
@@ -43,6 +58,84 @@
     "system_notices_description": "Critical maintenance and outage notices are always sent. This toggle only controls optional product updates, feature announcements, and project status news.",
     "email_notifications_description": "Receive notifications via email",
     "discord_notifications_description": "Send notifications through the FullParty Discord app",
+    "topics": {
+      "applications_submitted": {
+        "title": "My submitted applications",
+        "description": "Confirmations when you submit, withdraw, or change your own application."
+      },
+      "applications_review": {
+        "title": "New applications to review",
+        "description": "New applications waiting for a run host to review."
+      },
+      "applications_host_updates": {
+        "title": "Application updates for my runs",
+        "description": "Edits and withdrawals from applicants on runs you host."
+      },
+      "applications_outcomes": {
+        "title": "Application outcomes",
+        "description": "Declined or cancelled application updates."
+      },
+      "assignments_roster": {
+        "title": "Roster placement",
+        "description": "Assigned, published, removed, or returned-to-queue roster changes."
+      },
+      "assignments_bench": {
+        "title": "Bench status",
+        "description": "Updates when you are placed on the bench."
+      },
+      "assignments_status": {
+        "title": "Attendance status",
+        "description": "Missing status changes and restorations."
+      },
+      "assignments_designations": {
+        "title": "Run duties",
+        "description": "Host and raid leader designation changes."
+      },
+      "runs_reminders": {
+        "title": "Run reminders",
+        "description": "Starting soon and starting now reminders."
+      },
+      "runs_lifecycle": {
+        "title": "Run lifecycle",
+        "description": "Cancelled and completed run updates."
+      },
+      "group_run_posts": {
+        "title": "Group run posts",
+        "description": "Draft and scheduled run updates from your groups."
+      },
+      "group_membership": {
+        "title": "Membership activity",
+        "description": "Members joining, leaving, or being removed."
+      },
+      "group_roles": {
+        "title": "Group roles and ownership",
+        "description": "Promotion, demotion, and ownership transfer updates."
+      },
+      "connected_accounts": {
+        "title": "Connected accounts",
+        "description": "Social account link and unlink updates."
+      },
+      "account_settings": {
+        "title": "Account security",
+        "description": "Password, username, privacy, and notification settings changes."
+      },
+      "character_changes": {
+        "title": "Character changes",
+        "description": "Characters added, made primary, or removed from your account."
+      },
+      "character_refreshes": {
+        "title": "Character refreshes",
+        "description": "Profile data refreshes from your linked character sources."
+      },
+      "system_maintenance": {
+        "title": "Critical maintenance",
+        "description": "Maintenance and outage notices that FullParty always sends."
+      },
+      "system_announcements": {
+        "title": "Product announcements",
+        "description": "Optional product updates, feature news, and project notices."
+      }
+    },
     "install_discord_app": "Install Discord App",
     "generate_discord_link_token": "Generate Link Token",
     "discord_link_token_title": "Discord link token",

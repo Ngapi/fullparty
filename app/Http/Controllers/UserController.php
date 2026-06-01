@@ -6,12 +6,14 @@ use App\Events\DiscordUserAppDisconnected;
 use App\Http\Requests\ChangePasswordRequest;
 use App\Models\User;
 use App\Services\AuditLogger;
+use App\Services\Notifications\NotificationPreferenceSettingsService;
 use App\Services\Notifications\NotificationService;
 use App\Services\Users\UserAccountDeletionService;
 use App\Support\Audit\AuditScope;
 use App\Support\Audit\AuditSeverity;
 use App\Support\Input\RequestTextInputSanitizer;
 use App\Support\Notifications\NotificationCategory;
+use App\Support\Notifications\NotificationTopic;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -50,6 +52,7 @@ class UserController extends Controller
     public function __construct(
         private readonly AuditLogger $auditLogger,
         private readonly NotificationService $notificationService,
+        private readonly NotificationPreferenceSettingsService $notificationPreferenceSettingsService,
         private readonly UserAccountDeletionService $userAccountDeletionService,
         private readonly RequestTextInputSanitizer $requestTextInputSanitizer,
     ) {}
@@ -107,6 +110,7 @@ class UserController extends Controller
             'system_notice_notifications' => ['required', 'boolean'],
             'email_notifications' => ['required', 'boolean'],
             'discord_notifications' => ['required', 'boolean'],
+            'notification_preferences' => ['sometimes', 'array'],
         ]);
         // Discord delivery uses the installed Discord app, not Discord as a login method.
         if (! $request->user()->discordUserIntegration()->exists()) {
@@ -127,10 +131,19 @@ class UserController extends Controller
 
         $notificationPreferencesReviewedAt = $user->notification_preferences_reviewed_at ?? now();
 
-        $user->update([
-            ...$validated,
-            'notification_preferences_reviewed_at' => $notificationPreferencesReviewedAt,
-        ]);
+        $notificationPreferences = $validated['notification_preferences'] ?? [];
+        unset($validated['notification_preferences']);
+
+        DB::transaction(function () use ($user, $validated, $notificationPreferencesReviewedAt, $notificationPreferences): void {
+            $user->update([
+                ...$validated,
+                'notification_preferences_reviewed_at' => $notificationPreferencesReviewedAt,
+            ]);
+
+            if ($notificationPreferences !== []) {
+                $this->notificationPreferenceSettingsService->persistUserPreferences($user, $notificationPreferences);
+            }
+        });
 
         $onboardingState = $user->onboardingState()->firstOrCreate([
             'user_id' => $user->id,
@@ -177,6 +190,7 @@ class UserController extends Controller
                     'email_notifications' => (bool) $updatedUser->email_notifications,
                     'discord_notifications' => (bool) $updatedUser->discord_notifications,
                     'notification_preferences_reviewed_at' => $updatedUser->notification_preferences_reviewed_at?->toIso8601String(),
+                    'notification_preferences' => $this->notificationPreferenceSettingsService->serializeUserPreferences($updatedUser),
                 ],
             ]);
         }
@@ -503,6 +517,7 @@ class UserController extends Controller
                 'changed_setting_label_keys' => $changedSettingLabelKeys,
             ]),
             isMandatory: true,
+            topic: NotificationTopic::ACCOUNT_SETTINGS,
         );
 
         $this->notificationService->sendInAppNotifications($event, $user);

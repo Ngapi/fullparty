@@ -393,21 +393,20 @@ it('notifies the run host and applicant when an application is withdrawn', funct
         'application' => $application->id,
     ]))->assertRedirect(route('account.applications'));
 
-    $events = NotificationEvent::query()
-        ->where('type', 'applications.withdrawn')
-        ->orderBy('id')
-        ->get();
+    $hostEvent = NotificationEvent::query()
+        ->where('type', 'applications.withdrawn_for_review')
+        ->sole();
+    $applicantEvent = NotificationEvent::query()
+        ->where('type', 'applications.withdrawal_confirmed')
+        ->sole();
 
-    expect($events)->toHaveCount(2);
+    expect(NotificationEvent::query()->where('type', 'applications.withdrawn')->doesntExist())->toBeTrue();
 
-    $hostEvent = $events->firstWhere('action_url', route('groups.dashboard.activities.show', [
+    expect($hostEvent->action_url)->toBe(route('groups.dashboard.activities.show', [
         'group' => $group,
         'activity' => $activity,
-    ]));
-    $applicantEvent = $events->firstWhere('action_url', route('account.applications'));
-
-    expect($hostEvent)->not->toBeNull()
-        ->and($applicantEvent)->not->toBeNull()
+    ]))
+        ->and($applicantEvent->action_url)->toBe(route('account.applications'))
         ->and($hostEvent->message_params['character'])->toBe('Iris Sol')
         ->and($applicantEvent->message_params['character'])->toBe('Iris Sol');
 
@@ -463,7 +462,7 @@ it('does not send a review notification when the applicant hosts the run they wi
         'application' => $application->id,
     ]))->assertRedirect(route('account.applications'));
 
-    $event = NotificationEvent::query()->where('type', 'applications.withdrawn')->sole();
+    $event = NotificationEvent::query()->where('type', 'applications.withdrawal_confirmed')->sole();
 
     expect($event->action_url)->toBe(route('account.applications'));
     expect(UserNotification::query()->where('notification_event_id', $event->id)->pluck('user_id')->all())

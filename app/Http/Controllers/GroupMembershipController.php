@@ -8,6 +8,7 @@ use App\Models\ScheduledRun;
 use App\Models\User;
 use App\Services\AuditLogger;
 use App\Services\Notifications\GroupUpdateNotificationService;
+use App\Services\Notifications\NotificationPreferenceSettingsService;
 use App\Support\Audit\AuditScope;
 use App\Support\Audit\AuditSeverity;
 use App\Support\Input\RequestTextInputSanitizer;
@@ -21,6 +22,7 @@ class GroupMembershipController extends Controller
     public function __construct(
         private readonly AuditLogger $auditLogger,
         private readonly GroupUpdateNotificationService $groupUpdateNotificationService,
+        private readonly NotificationPreferenceSettingsService $notificationPreferenceSettingsService,
         private readonly RequestTextInputSanitizer $requestTextInputSanitizer,
     ) {}
 
@@ -131,6 +133,7 @@ class GroupMembershipController extends Controller
     {
         $validated = $request->validate([
             'enabled' => ['required', 'boolean'],
+            'notification_preferences' => ['sometimes', 'array'],
         ]);
 
         $membership = $group->memberships()
@@ -140,6 +143,14 @@ class GroupMembershipController extends Controller
         $membership->update([
             'notifications_enabled' => $validated['enabled'],
         ]);
+
+        if (array_key_exists('notification_preferences', $validated)) {
+            $this->notificationPreferenceSettingsService->persistGroupPreferences(
+                $request->user(),
+                $group->id,
+                $validated['notification_preferences'],
+            );
+        }
 
         return redirect()->back()->with('success', 'group_notifications_updated');
     }

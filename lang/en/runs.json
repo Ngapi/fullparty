@@ -8,6 +8,7 @@
       "search_placeholder": "Search runs, groups, or content",
       "reset": "Reset Filters",
       "all": "All",
+      "clear": "Clear",
       "sections": {
         "saved_runs": "Saved Runs",
         "search": "Search",

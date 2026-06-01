@@ -1,4 +1,12 @@
 {
+  "preferences": {
+    "title": "Group Notification Overrides",
+    "description": "Choose which group updates should override your default notification settings for {group}.",
+    "inherit": "Use Default",
+    "on": "On",
+    "off": "Off",
+    "save": "Save Overrides"
+  },
   "toasts": {
     "muted": "Group notifications muted.",
     "unmuted": "Group notifications enabled."

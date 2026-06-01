@@ -8,6 +8,8 @@ use App\Models\User;
 use App\Models\UserNotification;
 use App\Support\Notifications\NotificationCategory;
 use App\Support\Notifications\NotificationChannel;
+use App\Support\Notifications\NotificationPreferenceChannel;
+use App\Support\Notifications\NotificationTopic;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
@@ -18,6 +20,7 @@ class NotificationService
     public function __construct(
         private readonly NotificationDeliveryDispatcher $deliveryDispatcher,
         private readonly NotificationRealtimeService $notificationRealtimeService,
+        private readonly NotificationPreferenceResolver $preferenceResolver,
     ) {}
 
     public function createEvent(
@@ -31,15 +34,21 @@ class NotificationService
         Model|array|null $subject = null,
         ?array $payload = null,
         bool $isMandatory = false,
+        ?string $topic = null,
+        ?int $groupId = null,
     ): NotificationEvent {
         NotificationCategory::ensureValid($category);
+        $topic ??= NotificationTopic::forType($type, $category);
+        NotificationTopic::ensureValid($topic);
 
         $subjectPayload = $this->resolveSubject($subject);
 
         return NotificationEvent::query()->forceCreate([
             'type' => $type,
             'category' => $category,
+            'topic' => $topic,
             'is_mandatory' => $isMandatory,
+            'group_id' => $groupId,
             'actor_user_id' => $this->resolveActorId($actor),
             'subject_type' => $subjectPayload['subject_type'],
             'subject_id' => $subjectPayload['subject_id'],
@@ -60,7 +69,7 @@ class NotificationService
         $normalizedRecipients = $this->normalizeRecipients($recipients);
 
         return $normalizedRecipients
-            ->filter(fn (User $recipient) => $this->recipientWantsEvent($recipient, $event))
+            ->filter(fn (User $recipient) => $this->recipientWantsEvent($recipient, $event, NotificationPreferenceChannel::IN_APP))
             ->map(function (User $recipient) use ($event) {
                 $notification = UserNotification::query()->firstOrCreate([
                     'notification_event_id' => $event->id,
@@ -93,7 +102,7 @@ class NotificationService
         $normalizedRecipients = $this->normalizeRecipients($recipients);
 
         return $normalizedRecipients
-            ->filter(fn (User $recipient) => $this->recipientWantsEvent($recipient, $event))
+            ->filter(fn (User $recipient) => $this->recipientWantsEvent($recipient, $event, NotificationPreferenceChannel::IN_APP))
             ->map(function (User $recipient) use ($event, $aggregateKey, $incrementBy) {
                 $existingNotification = UserNotification::query()
                     ->where('user_id', $recipient->id)
@@ -223,7 +232,16 @@ class NotificationService
             ->orderBy('id');
 
         if (! $event->is_mandatory) {
-            $query->where(NotificationCategory::preferenceField($event->category), true);
+            $query->where(function ($query) use ($event): void {
+                $query
+                    ->where(NotificationCategory::preferenceField($event->category), true)
+                    ->orWhereHas('notificationPreferences', function ($preferenceQuery) use ($event): void {
+                        $preferenceQuery
+                            ->where('topic', $this->preferenceResolver->eventTopic($event))
+                            ->where('enabled', true)
+                            ->whereIn('channel', NotificationPreferenceChannel::OFF_SITE_VALUES);
+                    });
+            });
         }
 
         return $query->get();
@@ -281,15 +299,9 @@ class NotificationService
         );
     }
 
-    private function recipientWantsEvent(User $recipient, NotificationEvent $event): bool
+    private function recipientWantsEvent(User $recipient, NotificationEvent $event, string $channel): bool
     {
-        if ($event->is_mandatory) {
-            return true;
-        }
-
-        $preferenceField = NotificationCategory::preferenceField($event->category);
-
-        return (bool) $recipient->{$preferenceField};
+        return $this->preferenceResolver->wants($recipient, $event, $channel);
     }
 
     /**
@@ -297,10 +309,10 @@ class NotificationService
      */
     private function resolveDeliveryOutcome(NotificationEvent $event, User $recipient, string $channel): array
     {
-        if (! $this->recipientWantsEvent($recipient, $event)) {
+        if (! $this->recipientWantsEvent($recipient, $event, $channel)) {
             return [
                 'status' => NotificationDelivery::STATUS_SKIPPED,
-                'reason' => 'category_preference_disabled',
+                'reason' => $this->disabledPreferenceReason($event, $recipient, $channel),
                 'target' => $this->resolveChannelTarget($recipient, $channel),
             ];
         }
@@ -347,14 +359,6 @@ class NotificationService
     {
         $target = $this->resolveDiscordTarget($recipient);
 
-        if (! $recipient->discord_notifications) {
-            return [
-                'status' => NotificationDelivery::STATUS_SKIPPED,
-                'reason' => 'channel_preference_disabled',
-                'target' => $target,
-            ];
-        }
-
         if (! $target) {
             return [
                 'status' => NotificationDelivery::STATUS_SKIPPED,
@@ -377,6 +381,31 @@ class NotificationService
             NotificationChannel::DISCORD => $this->resolveDiscordTarget($recipient),
             default => null,
         };
+    }
+
+    private function disabledPreferenceReason(NotificationEvent $event, User $recipient, string $channel): string
+    {
+        $topic = $this->preferenceResolver->eventTopic($event);
+        $hasExplicitPreference = $recipient->notificationPreferences()
+            ->where('topic', $topic)
+            ->where('channel', $channel)
+            ->exists();
+
+        if (
+            ! $hasExplicitPreference
+            && ! $recipient->{NotificationCategory::preferenceField($event->category)}
+        ) {
+            return 'category_preference_disabled';
+        }
+
+        if (
+            ($channel === NotificationChannel::EMAIL && ! $recipient->email_notifications)
+            || ($channel === NotificationChannel::DISCORD && ! $recipient->discord_notifications)
+        ) {
+            return 'channel_preference_disabled';
+        }
+
+        return 'notification_preference_disabled';
     }
 
     private function resolveDiscordTarget(User $recipient): ?string

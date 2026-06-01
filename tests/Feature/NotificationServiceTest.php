@@ -15,6 +15,7 @@ use App\Services\Notifications\NotificationRealtimeService;
 use App\Services\Notifications\NotificationService;
 use App\Support\Notifications\NotificationCategory;
 use App\Support\Notifications\NotificationChannel;
+use App\Support\Notifications\NotificationTopic;
 use Illuminate\Broadcasting\BroadcastEvent;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Client\Request as HttpRequest;
@@ -385,6 +386,35 @@ it('can promote a previously skipped discord delivery to pending once the recipi
     expect(NotificationDelivery::query()->count())->toBe(1);
 });
 
+it('defaults supported discord delivery topics on once the recipient installs the discord app', function () {
+    $recipient = User::factory()->create([
+        'application_notifications' => true,
+        'discord_notifications' => false,
+    ]);
+
+    DiscordUserIntegration::query()->create([
+        'user_id' => $recipient->id,
+        'discord_user_id' => 'discord-default-delivery',
+        'username' => 'Default Delivery',
+        'user_app_installed_at' => now(),
+    ]);
+
+    $service = app(NotificationService::class);
+    $event = $service->createEvent(
+        type: 'applications.submitted',
+        category: NotificationCategory::APPLICATIONS,
+        titleKey: 'notifications.applications.submitted.title',
+        topic: NotificationTopic::APPLICATIONS_SUBMITTED,
+    );
+
+    $deliveries = $service->sendOffSiteNotifications($event, $recipient->fresh(), [NotificationChannel::DISCORD]);
+
+    expect($deliveries)->toHaveCount(1)
+        ->and($deliveries->sole()->status)->toBe(NotificationDelivery::STATUS_SKIPPED)
+        ->and($deliveries->sole()->target)->toBe('discord-default-delivery')
+        ->and($deliveries->sole()->status_reason)->toBe('discord_transport_unavailable');
+});
+
 it('sends discord deliveries through the configured discord bot integration', function () {
     $recipient = User::factory()->create([
         'name' => 'Discord Ready',
@@ -414,14 +444,12 @@ it('sends discord deliveries through the configured discord bot integration', fu
 
     $service = app(NotificationService::class);
     $event = $service->createEvent(
-        type: 'user.settings.username_updated',
+        type: 'user.social_account.linked',
         category: NotificationCategory::ACCOUNT_CHARACTER_UPDATES,
-        titleKey: 'notifications.user.settings.username_updated.title',
-        bodyKey: 'notifications.user.settings.username_updated.body',
+        titleKey: 'notifications.user.social_account.linked.title',
+        bodyKey: 'notifications.user.social_account.linked.body',
         messageParams: [
-            'changed_setting_label_keys' => [
-                'general.username',
-            ],
+            'provider' => 'Discord',
         ],
         actionUrl: '/settings',
     );
@@ -447,9 +475,9 @@ it('sends discord deliveries through the configured discord bot integration', fu
             ->and($payload['data']['notification_delivery_id'])->toBe($delivery->id)
             ->and($payload['data']['user']['id'])->toBe($recipient->id)
             ->and($payload['data']['discord_user']['id'])->toBe('discord-linked-789')
-            ->and($payload['data']['notification']['type'])->toBe('user.settings.username_updated')
+            ->and($payload['data']['notification']['type'])->toBe('user.social_account.linked')
             ->and($payload['data']['notification']['category'])->toBe(NotificationCategory::ACCOUNT_CHARACTER_UPDATES)
-            ->and($payload['data']['notification']['params']['changed_setting_label_keys'])->toBe(['general.username'])
+            ->and($payload['data']['notification']['params']['provider'])->toBe('Discord')
             ->and($payload['data']['notification']['action_url'])->toBe('/settings')
             ->and($payload['data']['notification'])->not->toHaveKeys(['title_key', 'body_key']);
 
@@ -471,14 +499,12 @@ it('sends email deliveries through the email delivery service and marks them as 
 
     $service = app(NotificationService::class);
     $event = $service->createEvent(
-        type: 'user.settings.username_updated',
+        type: 'user.social_account.linked',
         category: NotificationCategory::ACCOUNT_CHARACTER_UPDATES,
-        titleKey: 'notifications.user.settings.username_updated.title',
-        bodyKey: 'notifications.user.settings.username_updated.body',
+        titleKey: 'notifications.user.social_account.linked.title',
+        bodyKey: 'notifications.user.social_account.linked.body',
         messageParams: [
-            'changed_setting_label_keys' => [
-                'general.username',
-            ],
+            'provider' => 'Discord',
         ],
     );
 

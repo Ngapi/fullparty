@@ -8,6 +8,7 @@
             "search_placeholder": "Rechercher des runs, groupes ou contenus",
             "reset": "Réinitialiser les filtres",
             "all": "Tous",
+            "clear": "Effacer",
             "sections": {
                 "saved_runs": "Runs enregistrés",
                 "search": "Rechercher",

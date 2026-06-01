@@ -7,6 +7,7 @@ use App\Models\ActivityApplication;
 use App\Models\Group;
 use App\Models\GroupMembership;
 use App\Models\User;
+use App\Services\Notifications\NotificationPreferenceSettingsService;
 use App\Support\Groups\GroupDiscoveryBadgePalette;
 use App\Support\Seo\ServerMeta;
 use Illuminate\Support\Collection;
@@ -17,6 +18,7 @@ class GroupDashboardController extends Controller
 {
     public function __construct(
         private readonly GroupDiscoveryBadgePalette $groupDiscoveryBadgePalette,
+        private readonly NotificationPreferenceSettingsService $notificationPreferenceSettingsService,
         private readonly ServerMeta $serverMeta,
     ) {}
 
@@ -146,6 +148,9 @@ class GroupDashboardController extends Controller
                     ?->role,
                 'notifications' => [
                     'enabled' => (bool) ($currentMembership?->notifications_enabled ?? true),
+                    'preferences' => $currentMembership instanceof GroupMembership
+                        ? $this->notificationPreferenceSettingsService->serializeGroupPreferences($currentMembership->user, $group->id)
+                        : [],
                 ],
                 'permissions' => [
                     'can_manage_group' => $group->isOwnedBy($currentUserId),

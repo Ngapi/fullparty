@@ -12,6 +12,7 @@ use App\Models\Character;
 use App\Models\User;
 use App\Support\Activities\ActivityDisplayName;
 use App\Support\Notifications\NotificationCategory;
+use App\Support\Notifications\NotificationTopic;
 
 class AssignmentNotificationService
 {
@@ -191,6 +192,8 @@ class AssignmentNotificationService
             payload: array_merge($this->characterPayload($activity, $character, $slot), [
                 'status' => 'removed',
             ]),
+            topic: NotificationTopic::ASSIGNMENTS_ROSTER,
+            groupId: $activity->group?->id,
         );
 
         $this->notificationService->sendInAppNotifications($event, $recipient);
@@ -285,6 +288,8 @@ class AssignmentNotificationService
                 'designation_label' => $this->designationLabel($designation),
                 'designation_assigned' => $assigned,
             ] + $this->rosterPayload($slot),
+            topic: NotificationTopic::ASSIGNMENTS_DESIGNATIONS,
+            groupId: $activity->group?->id,
         );
 
         $this->notificationService->sendInAppNotifications($event, $recipient);
@@ -319,6 +324,8 @@ class AssignmentNotificationService
             actor: $actor instanceof User ? $actor : null,
             subject: $application,
             payload: $this->payload($application, $slot),
+            topic: $config['topic'],
+            groupId: $application->activity?->group?->id,
         );
 
         $this->notificationService->sendInAppNotifications($event, $recipient);
@@ -357,6 +364,8 @@ class AssignmentNotificationService
             actor: $actor instanceof User ? $actor : null,
             subject: $character,
             payload: $this->characterPayload($activity, $character, $slot),
+            topic: $config['topic'],
+            groupId: $activity->group?->id,
         );
 
         $this->notificationService->sendInAppNotifications($event, $recipient);
@@ -420,6 +429,8 @@ class AssignmentNotificationService
             payload: array_merge($this->characterPayload($activity, $character, $slot), [
                 'attendance_status' => $attendanceStatus,
             ]),
+            topic: NotificationTopic::ASSIGNMENTS_STATUS,
+            groupId: $activity->group?->id,
         );
 
         $this->notificationService->sendInAppNotifications($event, $recipient);
@@ -427,7 +438,7 @@ class AssignmentNotificationService
     }
 
     /**
-     * @return array{type: string, titleKey: string, bodyKey: string}|null
+     * @return array{type: string, titleKey: string, bodyKey: string, topic: string}|null
      */
     private function eventConfigForStatus(string $status, bool $published): ?array
     {
@@ -440,6 +451,7 @@ class AssignmentNotificationService
                 'bodyKey' => $published
                     ? 'notifications.assignments.roster_published_assigned.body'
                     : 'notifications.assignments.assigned.body',
+                'topic' => NotificationTopic::ASSIGNMENTS_ROSTER,
             ],
             ActivityApplication::STATUS_ON_BENCH => [
                 'type' => $published ? 'assignments.roster_published_bench' : 'assignments.on_bench',
@@ -449,11 +461,13 @@ class AssignmentNotificationService
                 'bodyKey' => $published
                     ? 'notifications.assignments.roster_published_bench.body'
                     : 'notifications.assignments.on_bench.body',
+                'topic' => NotificationTopic::ASSIGNMENTS_BENCH,
             ],
             ActivityApplication::STATUS_PENDING => $published ? null : [
                 'type' => 'assignments.returned_to_queue',
                 'titleKey' => 'notifications.assignments.returned_to_queue.title',
                 'bodyKey' => 'notifications.assignments.returned_to_queue.body',
+                'topic' => NotificationTopic::ASSIGNMENTS_ROSTER,
             ],
             default => null,
         };
@@ -465,7 +479,7 @@ class AssignmentNotificationService
 
         $recipient = $application->user;
 
-        if (! $recipient instanceof User || ! $recipient->assignment_notifications) {
+        if (! $recipient instanceof User) {
             return null;
         }
 
@@ -478,7 +492,7 @@ class AssignmentNotificationService
 
         $recipient = $character->user;
 
-        if (! $recipient instanceof User || ! $recipient->assignment_notifications) {
+        if (! $recipient instanceof User) {
             return null;
         }
 

@@ -8,6 +8,7 @@ use App\Models\Group;
 use App\Models\User;
 use App\Support\Activities\ActivityDisplayName;
 use App\Support\Notifications\NotificationCategory;
+use App\Support\Notifications\NotificationTopic;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 
 class ApplicationNotificationService
@@ -18,7 +19,7 @@ class ApplicationNotificationService
 
     public function notifySubmitted(ActivityApplication $application, mixed $actor): void
     {
-        $recipients = $this->hostRecipients($application);
+        $recipients = $this->hostRecipients($application, [NotificationTopic::APPLICATIONS_REVIEW]);
 
         if ($recipients->isNotEmpty()) {
             $event = $this->notificationService->createEvent(
@@ -31,6 +32,8 @@ class ApplicationNotificationService
                 actor: $actor instanceof User ? $actor : null,
                 subject: $application->activity,
                 payload: $this->payload($application),
+                topic: NotificationTopic::APPLICATIONS_REVIEW,
+                groupId: $application->activity?->group?->id,
             );
 
             $this->notificationService->sendAggregatedInAppNotifications(
@@ -45,7 +48,7 @@ class ApplicationNotificationService
 
     private function notifyApplicantSubmitted(ActivityApplication $application, mixed $actor): void
     {
-        $recipient = $this->applicantRecipient($application);
+        $recipient = $this->applicantRecipient($application, [NotificationTopic::APPLICATIONS_SUBMITTED]);
 
         if (! $recipient) {
             return;
@@ -61,6 +64,8 @@ class ApplicationNotificationService
             actor: $actor instanceof User ? $actor : null,
             subject: $application,
             payload: $this->payload($application),
+            topic: NotificationTopic::APPLICATIONS_SUBMITTED,
+            groupId: $application->activity?->group?->id,
         );
 
         $this->notificationService->sendInAppNotifications($event, $recipient);
@@ -69,7 +74,7 @@ class ApplicationNotificationService
 
     public function notifyUpdated(ActivityApplication $application, mixed $actor): void
     {
-        $recipients = $this->hostRecipients($application);
+        $recipients = $this->hostRecipients($application, [NotificationTopic::APPLICATIONS_HOST_UPDATES]);
 
         if ($recipients->isEmpty()) {
             return;
@@ -85,6 +90,8 @@ class ApplicationNotificationService
             actor: $actor instanceof User ? $actor : null,
             subject: $application,
             payload: $this->payload($application),
+            topic: NotificationTopic::APPLICATIONS_HOST_UPDATES,
+            groupId: $application->activity?->group?->id,
         );
 
         $this->notificationService->sendInAppNotifications($event, $recipients);
@@ -99,14 +106,14 @@ class ApplicationNotificationService
 
     private function notifyHostWithdrawn(ActivityApplication $application, mixed $actor): void
     {
-        $recipients = $this->hostRecipients($application);
+        $recipients = $this->hostRecipients($application, [NotificationTopic::APPLICATIONS_HOST_UPDATES]);
 
         if ($recipients->isEmpty()) {
             return;
         }
 
         $event = $this->notificationService->createEvent(
-            type: 'applications.withdrawn',
+            type: 'applications.withdrawn_for_review',
             category: NotificationCategory::APPLICATIONS,
             titleKey: 'notifications.applications.withdrawn.title',
             bodyKey: 'notifications.applications.withdrawn.body',
@@ -115,6 +122,8 @@ class ApplicationNotificationService
             actor: $actor instanceof User ? $actor : null,
             subject: $application,
             payload: $this->payload($application),
+            topic: NotificationTopic::APPLICATIONS_HOST_UPDATES,
+            groupId: $application->activity?->group?->id,
         );
 
         $this->notificationService->sendInAppNotifications($event, $recipients);
@@ -123,14 +132,14 @@ class ApplicationNotificationService
 
     private function notifyApplicantWithdrawn(ActivityApplication $application, mixed $actor): void
     {
-        $recipient = $this->applicantRecipient($application);
+        $recipient = $this->applicantRecipient($application, [NotificationTopic::APPLICATIONS_SUBMITTED]);
 
         if (! $recipient) {
             return;
         }
 
         $event = $this->notificationService->createEvent(
-            type: 'applications.withdrawn',
+            type: 'applications.withdrawal_confirmed',
             category: NotificationCategory::APPLICATIONS,
             titleKey: 'notifications.applications.withdrawn.title',
             bodyKey: 'notifications.applications.withdrawn.body',
@@ -139,6 +148,8 @@ class ApplicationNotificationService
             actor: $actor instanceof User ? $actor : null,
             subject: $application,
             payload: $this->payload($application),
+            topic: NotificationTopic::APPLICATIONS_SUBMITTED,
+            groupId: $application->activity?->group?->id,
         );
 
         $this->notificationService->sendInAppNotifications($event, $recipient);
@@ -147,7 +158,7 @@ class ApplicationNotificationService
 
     public function notifyDeclined(ActivityApplication $application, mixed $actor): void
     {
-        $recipient = $this->applicantRecipient($application);
+        $recipient = $this->applicantRecipient($application, [NotificationTopic::APPLICATIONS_OUTCOMES]);
 
         if (! $recipient) {
             return;
@@ -165,6 +176,8 @@ class ApplicationNotificationService
             actor: $actor instanceof User ? $actor : null,
             subject: $application,
             payload: $this->payload($application),
+            topic: NotificationTopic::APPLICATIONS_OUTCOMES,
+            groupId: $application->activity?->group?->id,
         );
 
         $this->notificationService->sendInAppNotifications($event, $recipient);
@@ -173,7 +186,7 @@ class ApplicationNotificationService
 
     public function notifyCancelled(ActivityApplication $application, mixed $actor): void
     {
-        $recipient = $this->applicantRecipient($application);
+        $recipient = $this->applicantRecipient($application, [NotificationTopic::APPLICATIONS_OUTCOMES]);
 
         if (! $recipient) {
             return;
@@ -189,6 +202,8 @@ class ApplicationNotificationService
             actor: $actor instanceof User ? $actor : null,
             subject: $application,
             payload: $this->payload($application),
+            topic: NotificationTopic::APPLICATIONS_OUTCOMES,
+            groupId: $application->activity?->group?->id,
         );
 
         $this->notificationService->sendInAppNotifications($event, $recipient);
@@ -198,7 +213,11 @@ class ApplicationNotificationService
     /**
      * @return EloquentCollection<int, User>
      */
-    private function hostRecipients(ActivityApplication $application): EloquentCollection
+    /**
+     * @param  array<int, string>  $topics
+     * @return EloquentCollection<int, User>
+     */
+    private function hostRecipients(ActivityApplication $application, array $topics): EloquentCollection
     {
         $activity = $application->activity;
         $hostId = $activity?->organized_by_user_id;
@@ -209,25 +228,44 @@ class ApplicationNotificationService
 
         return User::query()
             ->whereKey($hostId)
-            ->where('application_notifications', true)
             ->when(
                 $application->user_id !== null,
                 fn ($query) => $query->whereKeyNot($application->user_id),
             )
-            ->get();
+            ->get()
+            ->filter(fn (User $recipient) => $this->hasApplicationNotificationCandidatePreference($recipient, $topics))
+            ->values();
     }
 
-    private function applicantRecipient(ActivityApplication $application): ?User
+    /**
+     * @param  array<int, string>  $topics
+     */
+    private function applicantRecipient(ActivityApplication $application, array $topics): ?User
     {
         $application->loadMissing('user');
 
         $recipient = $application->user;
 
-        if (! $recipient instanceof User || ! $recipient->application_notifications) {
+        if (! $recipient instanceof User || ! $this->hasApplicationNotificationCandidatePreference($recipient, $topics)) {
             return null;
         }
 
         return $recipient;
+    }
+
+    /**
+     * @param  array<int, string>  $topics
+     */
+    private function hasApplicationNotificationCandidatePreference(User $recipient, array $topics): bool
+    {
+        if ($recipient->application_notifications) {
+            return true;
+        }
+
+        return $recipient->notificationPreferences()
+            ->whereIn('topic', $topics)
+            ->where('enabled', true)
+            ->exists();
     }
 
     /**

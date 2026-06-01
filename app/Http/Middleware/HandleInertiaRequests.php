@@ -8,6 +8,7 @@ use App\Models\SocialAccount;
 use App\Models\User;
 use App\Models\UserOnboardingState;
 use App\Services\Notifications\NotificationInboxService;
+use App\Services\Notifications\NotificationPreferenceSettingsService;
 use App\Services\SystemBannerService;
 use App\Support\Groups\GroupDiscoveryBadgePalette;
 use Illuminate\Http\Request;
@@ -18,6 +19,7 @@ class HandleInertiaRequests extends Middleware
 {
     public function __construct(
         private readonly NotificationInboxService $notificationInboxService,
+        private readonly NotificationPreferenceSettingsService $notificationPreferenceSettingsService,
         private readonly SystemBannerService $systemBannerService,
         private readonly GroupDiscoveryBadgePalette $groupDiscoveryBadgePalette,
     ) {}
@@ -173,6 +175,7 @@ class HandleInertiaRequests extends Middleware
             'system_notice_notifications' => (bool) $user->system_notice_notifications,
             'email_notifications' => (bool) $user->email_notifications,
             'discord_notifications' => (bool) $user->discord_notifications,
+            'notification_preferences' => $this->notificationPreferenceSettingsService->serializeUserPreferences($user),
             'time_display_mode' => $user->time_display_mode ?: User::TIME_DISPLAY_LOCAL,
             'discord_link_token_expires_at' => $user->discord_link_token_expires_at?->toIso8601String(),
             'discord_user_integration' => $user->discordUserIntegration ? [

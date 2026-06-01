@@ -584,7 +584,7 @@ const resetFilters = () => {
 								:class="isDateTimeFilterClear ? 'text-brand-300' : 'text-white/38 hover:text-white/68'"
 								@click="clearDateTimeFilters"
 							>
-								{{ t("runs.discovery.filters.all") }}
+								{{ t("runs.discovery.filters.clear") }}
 							</button>
 						</div>
 
@@ -797,7 +797,7 @@ const resetFilters = () => {
 								:class="selectedApplicationStatus === null ? 'text-brand-300' : 'text-white/38 hover:text-white/68'"
 								@click="selectedApplicationStatus = null"
 							>
-								{{ t("runs.discovery.filters.all") }}
+								{{ t("runs.discovery.filters.clear") }}
 							</button>
 						</div>
 
@@ -826,7 +826,7 @@ const resetFilters = () => {
 								:class="selectedIntensity === null ? 'text-brand-300' : 'text-white/38 hover:text-white/68'"
 								@click="selectedIntensity = null"
 							>
-								{{ t("runs.discovery.filters.all") }}
+								{{ t("runs.discovery.filters.clear") }}
 							</button>
 						</div>
 
@@ -855,7 +855,7 @@ const resetFilters = () => {
 								:class="selectedVoiceExpectation === null ? 'text-brand-300' : 'text-white/38 hover:text-white/68'"
 								@click="selectedVoiceExpectation = null"
 							>
-								{{ t("runs.discovery.filters.all") }}
+								{{ t("runs.discovery.filters.clear") }}
 							</button>
 						</div>
 

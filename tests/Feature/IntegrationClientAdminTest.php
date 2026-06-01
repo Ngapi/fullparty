@@ -49,12 +49,13 @@ it('renders integration clients for admins', function () {
             ->where('options.scopes.1', IntegrationClient::SCOPE_USERS_READ)
             ->where('options.scopes.2', IntegrationClient::SCOPE_USERS_WRITE)
             ->where('options.scopes.3', IntegrationClient::SCOPE_GUILDS_WRITE)
-            ->where('options.events.3', IntegrationClient::EVENT_DISCORD_GUILD_RUN_REMINDER)
-            ->where('options.events.4', IntegrationClient::EVENT_DISCORD_GUILD_RUN_COMPLETED)
-            ->where('options.events.5', IntegrationClient::EVENT_DISCORD_GUILD_RUN_CANCELLED)
-            ->where('options.events.6', IntegrationClient::EVENT_DISCORD_GUILD_SNAPSHOT_REQUESTED)
-            ->where('options.events.7', IntegrationClient::EVENT_DISCORD_GUILD_MEMBERSHIP_SNAPSHOT_REQUESTED)
-            ->where('options.events.8', IntegrationClient::EVENT_DISCORD_GUILD_SETTINGS_UPDATED)
+            ->where('options.events.3', IntegrationClient::EVENT_DISCORD_GUILD_RUN_STARTING_SOON)
+            ->where('options.events.4', IntegrationClient::EVENT_DISCORD_GUILD_RUN_STARTING_NOW)
+            ->where('options.events.5', IntegrationClient::EVENT_DISCORD_GUILD_RUN_COMPLETED)
+            ->where('options.events.6', IntegrationClient::EVENT_DISCORD_GUILD_RUN_CANCELLED)
+            ->where('options.events.7', IntegrationClient::EVENT_DISCORD_GUILD_SNAPSHOT_REQUESTED)
+            ->where('options.events.8', IntegrationClient::EVENT_DISCORD_GUILD_MEMBERSHIP_SNAPSHOT_REQUESTED)
+            ->where('options.events.9', IntegrationClient::EVENT_DISCORD_GUILD_SETTINGS_UPDATED)
         );
 });
 

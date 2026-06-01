@@ -6,6 +6,7 @@ use App\Models\Character;
 use App\Models\User;
 use App\Support\Notifications\NotificationCategory;
 use App\Support\Notifications\NotificationChannel;
+use App\Support\Notifications\NotificationTopic;
 
 class AccountCharacterNotificationService
 {
@@ -29,6 +30,7 @@ class AccountCharacterNotificationService
             payload: [
                 'provider' => $provider,
             ],
+            topic: NotificationTopic::ACCOUNT_CONNECTED_ACCOUNTS,
             sendOffSite: true,
         );
     }
@@ -49,6 +51,7 @@ class AccountCharacterNotificationService
             payload: [
                 'provider' => $provider,
             ],
+            topic: NotificationTopic::ACCOUNT_CONNECTED_ACCOUNTS,
             sendOffSite: true,
         );
     }
@@ -57,7 +60,7 @@ class AccountCharacterNotificationService
     {
         $recipient = $this->characterRecipient($character);
 
-        if (!$recipient) {
+        if (! $recipient) {
             return;
         }
 
@@ -80,6 +83,7 @@ class AccountCharacterNotificationService
                 'lodestone_id' => $character->lodestone_id,
                 'method' => $method,
             ],
+            topic: NotificationTopic::CHARACTER_CHANGES,
             sendOffSite: true,
         );
     }
@@ -88,7 +92,7 @@ class AccountCharacterNotificationService
     {
         $recipient = $this->characterRecipient($character);
 
-        if (!$recipient) {
+        if (! $recipient) {
             return;
         }
 
@@ -109,6 +113,7 @@ class AccountCharacterNotificationService
                 'character_id' => $character->id,
                 'lodestone_id' => $character->lodestone_id,
             ],
+            topic: NotificationTopic::CHARACTER_REFRESHES,
             sendOffSite: false,
         );
     }
@@ -117,7 +122,7 @@ class AccountCharacterNotificationService
     {
         $recipient = $this->characterRecipient($character);
 
-        if (!$recipient) {
+        if (! $recipient) {
             return;
         }
 
@@ -138,6 +143,7 @@ class AccountCharacterNotificationService
                 'character_id' => $character->id,
                 'lodestone_id' => $character->lodestone_id,
             ],
+            topic: NotificationTopic::CHARACTER_CHANGES,
             sendOffSite: true,
         );
     }
@@ -161,6 +167,7 @@ class AccountCharacterNotificationService
                 'character_id' => $character->id,
                 'lodestone_id' => $character->lodestone_id,
             ],
+            topic: NotificationTopic::CHARACTER_CHANGES,
             sendOffSite: true,
         );
     }
@@ -171,7 +178,7 @@ class AccountCharacterNotificationService
 
         $recipient = $character->user;
 
-        if (!$recipient instanceof User || !$recipient->account_character_notifications) {
+        if (! $recipient instanceof User) {
             return null;
         }
 
@@ -211,12 +218,9 @@ class AccountCharacterNotificationService
         mixed $actor,
         mixed $subject,
         array $payload,
+        string $topic,
         bool $sendOffSite,
     ): void {
-        if (!$recipient->account_character_notifications) {
-            return;
-        }
-
         $event = $this->notificationService->createEvent(
             type: $type,
             category: NotificationCategory::ACCOUNT_CHARACTER_UPDATES,
@@ -227,11 +231,12 @@ class AccountCharacterNotificationService
             actor: $actor instanceof User ? $actor : $recipient,
             subject: $subject,
             payload: $payload,
+            topic: $topic,
         );
 
         $this->notificationService->sendInAppNotifications($event, $recipient);
 
-        if (!$sendOffSite) {
+        if (! $sendOffSite) {
             return;
         }
 

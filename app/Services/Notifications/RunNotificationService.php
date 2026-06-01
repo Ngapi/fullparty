@@ -12,6 +12,7 @@ use App\Services\Integrations\IntegrationWebhookDispatcher;
 use App\Support\Activities\ActivityDisplayName;
 use App\Support\Notifications\NotificationCategory;
 use App\Support\Notifications\NotificationChannel;
+use App\Support\Notifications\NotificationTopic;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Support\Collection;
@@ -201,6 +202,10 @@ class RunNotificationService
                 'status' => $activity->status,
                 'starts_at' => $activity->starts_at?->toIso8601String(),
             ], $payload),
+            topic: str_starts_with($type, 'runs.starting_')
+                ? NotificationTopic::RUNS_REMINDERS
+                : NotificationTopic::RUNS_LIFECYCLE,
+            groupId: $activity->group?->id,
         );
     }
 
@@ -312,6 +317,7 @@ class RunNotificationService
                     'name' => $guildIntegration->name,
                 ],
             ],
+            permissionEvent: $this->guildRunReminderPermissionEvent($notificationType),
         );
     }
 
@@ -560,7 +566,7 @@ class RunNotificationService
 
                     return $application->user;
                 })
-                ->filter(fn ($user) => $user instanceof User && $user->run_and_reminder_notifications)
+                ->filter(fn ($user) => $user instanceof User)
                 ->unique('id')
                 ->values()
                 ->all()
@@ -599,7 +605,7 @@ class RunNotificationService
             $activity->applications
                 ->filter(fn (ActivityApplication $application) => in_array($application->status, $statuses, true))
                 ->map(fn (ActivityApplication $application) => $application->user)
-                ->filter(fn ($user) => $user instanceof User && $user->run_and_reminder_notifications)
+                ->filter(fn ($user) => $user instanceof User)
                 ->unique('id')
                 ->values()
                 ->all()
@@ -616,7 +622,7 @@ class RunNotificationService
         return new EloquentCollection(
             $activity->slots
                 ->map(fn (ActivitySlot $slot) => $slot->assignedCharacter?->user)
-                ->filter(fn ($user) => $user instanceof User && $user->run_and_reminder_notifications)
+                ->filter(fn ($user) => $user instanceof User)
                 ->unique('id')
                 ->values()
                 ->all()
@@ -668,7 +674,7 @@ class RunNotificationService
         return new EloquentCollection(
             collect($collections)
                 ->flatMap(fn (EloquentCollection $collection) => $collection->all())
-                ->filter(fn ($user) => $user instanceof User && $user->run_and_reminder_notifications)
+                ->filter(fn ($user) => $user instanceof User)
                 ->unique('id')
                 ->values()
                 ->all()
@@ -770,6 +776,15 @@ class RunNotificationService
     private function activityTitle(Activity $activity): string
     {
         return ActivityDisplayName::for($activity);
+    }
+
+    private function guildRunReminderPermissionEvent(string $notificationType): string
+    {
+        return match ($notificationType) {
+            'runs.starting_soon' => IntegrationClient::EVENT_DISCORD_GUILD_RUN_STARTING_SOON,
+            'runs.starting_now' => IntegrationClient::EVENT_DISCORD_GUILD_RUN_STARTING_NOW,
+            default => IntegrationClient::EVENT_DISCORD_GUILD_RUN_REMINDER,
+        };
     }
 
     private function reminderAlreadySent(Activity $activity, string $key): bool

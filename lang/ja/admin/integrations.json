@@ -1,6 +1,6 @@
 {
     "title": "インテグレーション",
-    "subtitle": "信頼できるサービスを認可し、受け取れるFullPartyイベントを設定します。",
+    "subtitle": "信頼できるサービスを認可し、利用できるFullParty機能を設定します。",
     "admin_only": "管理者のみ",
     "saved": "インテグレーション設定を保存しました。",
     "empty": "インテグレーションクライアントはまだ作成されていません。",
@@ -66,6 +66,8 @@
         "discord_user_app_disconnected": "Discordアプリの連携が解除された",
         "discord_notification_delivery": "Discord通知の配信",
         "discord_guild_run_reminder": "Discordサーバーのラン通知",
+        "discord_guild_run_starting_soon": "Discordサーバーのまもなく開始するラン",
+        "discord_guild_run_starting_now": "Discordサーバーの開始中ラン",
         "discord_guild_run_completed": "Discordサーバーのラン完了",
         "discord_guild_run_cancelled": "Discordサーバーのラン中止",
         "discord_guild_snapshot_requested": "Discordサーバースナップショット要求",
@@ -91,7 +93,7 @@
         "outbound_events_url": "送信用イベントURL",
         "healthcheck_url": "ヘルスチェックURL",
         "scopes": "APIスコープ",
-        "allowed_events": "送信するイベント"
+        "allowed_events": "許可する機能"
     },
     "placeholders": {
         "name": "FullParty Discord Bot",

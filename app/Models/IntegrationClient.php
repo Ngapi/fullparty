@@ -36,6 +36,10 @@ class IntegrationClient extends Model
 
     public const EVENT_DISCORD_GUILD_RUN_REMINDER = 'discord.guild.run_reminder';
 
+    public const EVENT_DISCORD_GUILD_RUN_STARTING_SOON = 'discord.guild.run_starting_soon';
+
+    public const EVENT_DISCORD_GUILD_RUN_STARTING_NOW = 'discord.guild.run_starting_now';
+
     public const EVENT_DISCORD_GUILD_RUN_COMPLETED = 'discord.guild.run_completed';
 
     public const EVENT_DISCORD_GUILD_RUN_CANCELLED = 'discord.guild.run_cancelled';

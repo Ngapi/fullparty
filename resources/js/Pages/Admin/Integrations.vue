@@ -83,6 +83,7 @@ const confirmationModal = useConfirmationModal();
 const editingClientId = ref<number | null>(null);
 const credentials = ref<IntegrationCredentials | null>(null);
 const healthcheckClientId = ref<number | null>(null);
+const defaultAllowedEvents = () => [...props.options.events];
 
 const form = useForm({
 	name: '',
@@ -91,7 +92,7 @@ const form = useForm({
 	outbound_events_url: '',
 	healthcheck_url: '',
 	scopes: ['runs:read', 'users:read', 'users:write', 'guilds:write'],
-	allowed_events: ['discord.user_app.installed', 'discord.user_app.disconnected', 'discord.notification.delivery', 'discord.guild.run_reminder', 'discord.guild.run_completed', 'discord.guild.run_cancelled', 'discord.guild.snapshot_requested', 'discord.guild.membership_snapshot_requested', 'discord.guild.settings_updated'],
+	allowed_events: defaultAllowedEvents(),
 });
 
 const typeOptions = computed(() => props.options.types.map((type) => ({
@@ -188,7 +189,7 @@ const resetForm = () => {
 		outbound_events_url: '',
 		healthcheck_url: '',
 		scopes: ['runs:read', 'users:read', 'users:write', 'guilds:write'],
-		allowed_events: ['discord.user_app.installed', 'discord.user_app.disconnected', 'discord.notification.delivery', 'discord.guild.run_reminder', 'discord.guild.run_completed', 'discord.guild.run_cancelled', 'discord.guild.snapshot_requested', 'discord.guild.membership_snapshot_requested', 'discord.guild.settings_updated'],
+		allowed_events: defaultAllowedEvents(),
 	});
 	form.reset();
 	form.clearErrors();
@@ -203,7 +204,7 @@ const editClient = (client: IntegrationClient) => {
 		outbound_events_url: client.outbound_events_url ?? '',
 		healthcheck_url: client.healthcheck_url ?? '',
 		scopes: [...client.scopes],
-		allowed_events: [...client.allowed_events],
+		allowed_events: client.allowed_events.filter((event) => props.options.events.includes(event)),
 	});
 	form.reset();
 	form.clearErrors();

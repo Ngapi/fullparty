@@ -106,6 +106,16 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->hasMany(NotificationDelivery::class)->latest();
     }
 
+    public function notificationPreferences(): HasMany
+    {
+        return $this->hasMany(UserNotificationPreference::class);
+    }
+
+    public function groupNotificationPreferences(): HasMany
+    {
+        return $this->hasMany(GroupNotificationPreference::class);
+    }
+
     public function ownedGroups(): HasMany
     {
         return $this->hasMany(Group::class, 'owner_id');

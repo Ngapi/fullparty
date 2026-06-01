@@ -8,6 +8,7 @@ use App\Models\GroupMembership;
 use App\Models\User;
 use App\Support\Activities\ActivityDisplayName;
 use App\Support\Notifications\NotificationCategory;
+use App\Support\Notifications\NotificationTopic;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 
 class GroupUpdateNotificationService
@@ -56,6 +57,8 @@ class GroupUpdateNotificationService
                 'activity_title' => $this->activityTitle($activity),
                 'status' => $activity->status,
             ],
+            topic: NotificationTopic::GROUP_RUN_POSTS,
+            groupId: $activity->group?->id,
         );
 
         $this->notificationService->sendInAppNotifications($event, $recipients);
@@ -93,6 +96,8 @@ class GroupUpdateNotificationService
                 'activity_title' => $this->activityTitle($activity),
                 'status' => $activity->status,
             ],
+            topic: NotificationTopic::GROUP_RUN_POSTS,
+            groupId: $activity->group?->id,
         );
 
         $this->notificationService->sendInAppNotifications($event, $recipients);
@@ -130,51 +135,51 @@ class GroupUpdateNotificationService
 
     public function notifyOwnershipTransferred(Group $group, User $previousOwner, User $newOwner, mixed $actor): void
     {
-        if ($previousOwner->group_update_notifications) {
-            $event = $this->notificationService->createEvent(
-                type: 'groups.ownership_transferred_from_you',
-                category: NotificationCategory::GROUP_UPDATES,
-                titleKey: 'notifications.groups.ownership_transferred_from_you.title',
-                bodyKey: 'notifications.groups.ownership_transferred_from_you.body',
-                messageParams: [
-                    'group' => $group->name,
-                    'user' => $newOwner->name,
-                ],
-                actionUrl: route('groups.dashboard', $group),
-                actor: $actor instanceof User ? $actor : null,
-                subject: $group,
-                payload: [
-                    'group_id' => $group->id,
-                    'group_slug' => $group->slug,
-                    'user_id' => $newOwner->id,
-                ],
-            );
+        $event = $this->notificationService->createEvent(
+            type: 'groups.ownership_transferred_from_you',
+            category: NotificationCategory::GROUP_UPDATES,
+            titleKey: 'notifications.groups.ownership_transferred_from_you.title',
+            bodyKey: 'notifications.groups.ownership_transferred_from_you.body',
+            messageParams: [
+                'group' => $group->name,
+                'user' => $newOwner->name,
+            ],
+            actionUrl: route('groups.dashboard', $group),
+            actor: $actor instanceof User ? $actor : null,
+            subject: $group,
+            payload: [
+                'group_id' => $group->id,
+                'group_slug' => $group->slug,
+                'user_id' => $newOwner->id,
+            ],
+            topic: NotificationTopic::GROUP_ROLES,
+            groupId: $group->id,
+        );
 
-            $this->notificationService->sendInAppNotifications($event, $previousOwner);
-        }
+        $this->notificationService->sendInAppNotifications($event, $previousOwner);
 
-        if ($newOwner->group_update_notifications) {
-            $event = $this->notificationService->createEvent(
-                type: 'groups.ownership_transferred_to_you',
-                category: NotificationCategory::GROUP_UPDATES,
-                titleKey: 'notifications.groups.ownership_transferred_to_you.title',
-                bodyKey: 'notifications.groups.ownership_transferred_to_you.body',
-                messageParams: [
-                    'group' => $group->name,
-                    'user' => $previousOwner->name,
-                ],
-                actionUrl: route('groups.dashboard', $group),
-                actor: $actor instanceof User ? $actor : null,
-                subject: $group,
-                payload: [
-                    'group_id' => $group->id,
-                    'group_slug' => $group->slug,
-                    'user_id' => $previousOwner->id,
-                ],
-            );
+        $event = $this->notificationService->createEvent(
+            type: 'groups.ownership_transferred_to_you',
+            category: NotificationCategory::GROUP_UPDATES,
+            titleKey: 'notifications.groups.ownership_transferred_to_you.title',
+            bodyKey: 'notifications.groups.ownership_transferred_to_you.body',
+            messageParams: [
+                'group' => $group->name,
+                'user' => $previousOwner->name,
+            ],
+            actionUrl: route('groups.dashboard', $group),
+            actor: $actor instanceof User ? $actor : null,
+            subject: $group,
+            payload: [
+                'group_id' => $group->id,
+                'group_slug' => $group->slug,
+                'user_id' => $previousOwner->id,
+            ],
+            topic: NotificationTopic::GROUP_ROLES,
+            groupId: $group->id,
+        );
 
-            $this->notificationService->sendInAppNotifications($event, $newOwner);
-        }
+        $this->notificationService->sendInAppNotifications($event, $newOwner);
     }
 
     public function notifyMemberJoined(Group $group, User $member, mixed $actor): void
@@ -222,10 +227,6 @@ class GroupUpdateNotificationService
         string $bodyKey,
         array $messageParams = [],
     ): void {
-        if (! $member->group_update_notifications) {
-            return;
-        }
-
         $event = $this->notificationService->createEvent(
             type: $type,
             category: NotificationCategory::GROUP_UPDATES,
@@ -245,6 +246,10 @@ class GroupUpdateNotificationService
                 'group_slug' => $group->slug,
                 'user_id' => $member->id,
             ],
+            topic: $type === 'groups.member_banned'
+                ? NotificationTopic::GROUP_MEMBERSHIP
+                : NotificationTopic::GROUP_ROLES,
+            groupId: $group->id,
         );
 
         $this->notificationService->sendInAppNotifications($event, $member);
@@ -281,6 +286,8 @@ class GroupUpdateNotificationService
                 'group_slug' => $group->slug,
                 'user_id' => $member->id,
             ],
+            topic: NotificationTopic::GROUP_MEMBERSHIP,
+            groupId: $group->id,
         );
 
         $this->notificationService->sendInAppNotifications($event, $recipients);
@@ -292,11 +299,9 @@ class GroupUpdateNotificationService
     private function moderatorRecipients(Group $group, ?int $excludeUserId = null): EloquentCollection
     {
         return User::query()
-            ->where('group_update_notifications', true)
             ->whereHas('groupMemberships', function ($query) use ($group): void {
                 $query
                     ->where('group_id', $group->id)
-                    ->where('notifications_enabled', true)
                     ->whereIn('role', [
                         GroupMembership::ROLE_OWNER,
                         GroupMembership::ROLE_ADMIN,
@@ -313,11 +318,9 @@ class GroupUpdateNotificationService
     private function memberRecipients(Group $group, ?int $excludeUserId = null): EloquentCollection
     {
         return User::query()
-            ->where('group_update_notifications', true)
             ->whereHas('groupMemberships', function ($query) use ($group): void {
                 $query
-                    ->where('group_id', $group->id)
-                    ->where('notifications_enabled', true);
+                    ->where('group_id', $group->id);
             })
             ->when($excludeUserId !== null, fn ($query) => $query->whereKeyNot($excludeUserId))
             ->get();

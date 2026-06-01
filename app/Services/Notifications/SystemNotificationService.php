@@ -2,10 +2,11 @@
 
 namespace App\Services\Notifications;
 
+use App\Jobs\DispatchSystemNotificationBroadcastJob;
 use App\Models\SystemNotificationBroadcast;
 use App\Models\User;
 use App\Support\Notifications\NotificationCategory;
-use App\Jobs\DispatchSystemNotificationBroadcastJob;
+use App\Support\Notifications\NotificationTopic;
 use Carbon\CarbonInterface;
 
 class SystemNotificationService
@@ -48,6 +49,7 @@ class SystemNotificationService
                 'scheduled_for' => $scheduledFor?->toIso8601String(),
             ],
             isMandatory: true,
+            topic: NotificationTopic::SYSTEM_MAINTENANCE,
         );
 
         $broadcast = SystemNotificationBroadcast::query()->create([
@@ -82,6 +84,7 @@ class SystemNotificationService
                 'message' => $message,
             ],
             isMandatory: false,
+            topic: NotificationTopic::SYSTEM_ANNOUNCEMENTS,
         );
 
         $broadcast = SystemNotificationBroadcast::query()->create([

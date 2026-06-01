@@ -15,9 +15,9 @@ class IntegrationWebhookDispatcher
      * @param  array<string, mixed>  $data
      * @return array{attempted: int, sent: int, failed: int, deliveries: array<int, array<string, mixed>>}
      */
-    public function dispatchDiscordBotEvent(string $event, array $data): array
+    public function dispatchDiscordBotEvent(string $event, array $data, ?string $permissionEvent = null): array
     {
-        $deliveries = $this->discordBotClientsForEvent($event)
+        $deliveries = $this->discordBotClientsForEvent($permissionEvent ?? $event)
             ->map(fn (IntegrationClient $client): array => $this->dispatch($client, $event, $data))
             ->values()
             ->all();
@@ -34,9 +34,9 @@ class IntegrationWebhookDispatcher
      * @param  array<string, mixed>  $data
      * @return array<string, mixed>|null
      */
-    public function requestDiscordBotEvent(string $event, array $data): ?array
+    public function requestDiscordBotEvent(string $event, array $data, ?string $permissionEvent = null): ?array
     {
-        foreach ($this->discordBotClientsForEvent($event) as $client) {
+        foreach ($this->discordBotClientsForEvent($permissionEvent ?? $event) as $client) {
             $delivery = $this->dispatch($client, $event, $data, captureResponse: true);
 
             if ($delivery['status'] === 'sent') {

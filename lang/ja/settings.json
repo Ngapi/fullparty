@@ -23,10 +23,25 @@
     "notifications": {
         "title": "通知",
         "save": "設定を保存",
+        "autosave_failed": "通知設定を保存できませんでした。もう一度お試しください。",
         "categories_title": "通知カテゴリ",
         "categories_description": "どの種類の FullParty の出来事で通知を受け取るかを選択します。",
         "delivery_title": "通知チャンネル",
         "delivery_description": "対象の通知を FullParty がどの追加チャンネルで送信できるかを選択します。",
+        "discord_app_title": "Discordアプリ",
+        "discord_app_description": "FullParty Discordアプリを連携すると、対応しているDiscord通知とグループ機能を利用できます。",
+        "discord_app_connected_title": "Discordアプリ連携済み",
+        "discord_app_connected_description": "FullPartyは対応しているDiscord通知をこのアカウントへ送信できます。",
+        "discord_app_not_connected_title": "Discordアプリ未連携",
+        "discord_app_not_connected_description": "Discord送信とボット連携のグループ機能を使うには、Discordアプリを連携してください。",
+        "channels": {
+            "inApp": "サイト内",
+            "email": "メール",
+            "discord": "Discord"
+        },
+        "customize": "詳細設定",
+        "customize_description": "この通知グループで、どの項目をどのチャンネルへ送るかを選択します。",
+        "always_on": "常にオン",
         "applications": "応募",
         "assignments": "割り当て",
         "runs_and_reminders": "ランとリマインダー",
@@ -43,6 +58,84 @@
         "system_notices_description": "重要なメンテナンスや障害通知は常に送信されます。この設定で制御するのは、任意の機能告知、製品更新、プロジェクト状況のお知らせのみです。",
         "email_notifications_description": "メールで通知を受け取る",
         "discord_notifications_description": "FullParty Discord アプリ経由で通知を送信する",
+        "topics": {
+            "applications_submitted": {
+                "title": "自分の応募",
+                "description": "自分の応募の送信、取り下げ、変更の確認通知です。"
+            },
+            "applications_review": {
+                "title": "審査待ちの新規応募",
+                "description": "ラン主催者が確認する必要のある新しい応募です。"
+            },
+            "applications_host_updates": {
+                "title": "自分のランへの応募更新",
+                "description": "自分が主催するランでの応募編集や取り下げです。"
+            },
+            "applications_outcomes": {
+                "title": "応募結果",
+                "description": "辞退、却下、キャンセルされた応募の更新です。"
+            },
+            "assignments_roster": {
+                "title": "ロスター配置",
+                "description": "割り当て、公開済みロスター、削除、審査待ちへの戻しです。"
+            },
+            "assignments_bench": {
+                "title": "ベンチ状態",
+                "description": "ベンチに配置されたときの更新です。"
+            },
+            "assignments_status": {
+                "title": "出欠状態",
+                "description": "欠席扱いとその解除に関する更新です。"
+            },
+            "assignments_designations": {
+                "title": "ラン内の役割",
+                "description": "ホストやレイドリーダー指定の変更です。"
+            },
+            "runs_reminders": {
+                "title": "ランのリマインダー",
+                "description": "開始間近、または開始時刻になったことを知らせます。"
+            },
+            "runs_lifecycle": {
+                "title": "ランの状態変更",
+                "description": "キャンセル済み、完了済みランの更新です。"
+            },
+            "group_run_posts": {
+                "title": "グループのラン投稿",
+                "description": "参加中グループの下書きや予定済みランの更新です。"
+            },
+            "group_membership": {
+                "title": "メンバー動向",
+                "description": "メンバーの参加、退出、削除に関する更新です。"
+            },
+            "group_roles": {
+                "title": "グループ権限と所有権",
+                "description": "昇格、降格、所有権移譲の更新です。"
+            },
+            "connected_accounts": {
+                "title": "連携アカウント",
+                "description": "ソーシャルアカウントの連携と解除の更新です。"
+            },
+            "account_settings": {
+                "title": "アカウントの安全性",
+                "description": "パスワード、ユーザー名、プライバシー、通知設定の変更です。"
+            },
+            "character_changes": {
+                "title": "キャラクター変更",
+                "description": "キャラクターの追加、メイン設定、アカウントからの削除です。"
+            },
+            "character_refreshes": {
+                "title": "キャラクター更新",
+                "description": "連携元から取得したプロフィールデータの更新です。"
+            },
+            "system_maintenance": {
+                "title": "重要なメンテナンス",
+                "description": "FullPartyが常に送信するメンテナンスや障害のお知らせです。"
+            },
+            "system_announcements": {
+                "title": "プロダクト告知",
+                "description": "任意の製品更新、機能ニュース、プロジェクト告知です。"
+            }
+        },
         "install_discord_app": "Discordアプリをインストール",
         "generate_discord_link_token": "連携トークンを生成",
         "discord_link_token_title": "Discord連携トークン",

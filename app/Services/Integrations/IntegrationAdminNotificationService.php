@@ -6,6 +6,7 @@ use App\Models\IntegrationClient;
 use App\Models\User;
 use App\Services\Notifications\NotificationService;
 use App\Support\Notifications\NotificationCategory;
+use App\Support\Notifications\NotificationTopic;
 use Illuminate\Support\Str;
 
 class IntegrationAdminNotificationService
@@ -42,6 +43,7 @@ class IntegrationAdminNotificationService
                 'event' => $event,
             ],
             isMandatory: true,
+            topic: NotificationTopic::SYSTEM_ADMIN_ALERTS,
         );
 
         $this->notificationService->sendInAppNotifications($notificationEvent, $admins);
