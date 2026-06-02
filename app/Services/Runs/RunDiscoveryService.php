@@ -629,7 +629,7 @@ final class RunDiscoveryService
                 'name' => $activity->organizerCharacter->name,
                 'avatar_url' => $activity->organizerCharacter->avatar_url,
             ] : null,
-            'description' => filled($activity->description) ? (string) $activity->description : null,
+            'description' => filled($activity->notes) ? (string) $activity->notes : null,
             'min_item_level' => $activity->min_item_level,
             'run_style' => $activity->run_style,
             'intensity' => $activity->intensity,
@@ -691,7 +691,7 @@ final class RunDiscoveryService
 
         $haystacks = [
             $activity->title,
-            $activity->description,
+            $activity->notes,
             $activity->group?->name,
             $activity->group?->slug,
             $activity->activityType?->slug,

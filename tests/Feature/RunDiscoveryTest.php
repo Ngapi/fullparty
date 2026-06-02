@@ -108,6 +108,7 @@ it('returns matching discoverable run ids for the filter payload', function () {
         'activity_type_version_id' => $activityType->current_published_version_id,
         'status' => Activity::STATUS_SCHEDULED,
         'title' => 'Moon Enrage Push',
+        'notes' => 'Bring mitigation notes and be ready for enrage cleanup.',
         'starts_at' => now()->addWeek()->startOfWeek()->addDays(2)->setTime(18, 30),
         'datacenter' => 'Light',
         'intensity' => Activity::INTENSITY_MIDCORE,
@@ -144,7 +145,7 @@ it('returns matching discoverable run ids for the filter payload', function () {
     ]);
 
     $params = [
-        'query' => 'Moon',
+        'query' => 'mitigation',
         'activity_type' => 'savage-raids',
         'prog_point' => 'enrage',
         'region' => 'EU',
@@ -170,6 +171,7 @@ it('returns matching discoverable run ids for the filter payload', function () {
         ->assertJsonPath('ids', [$matchingActivity->id])
         ->assertJsonPath('items.0.id', $matchingActivity->id)
         ->assertJsonPath('items.0.title', 'Moon Enrage Push')
+        ->assertJsonPath('items.0.description', 'Bring mitigation notes and be ready for enrage cleanup.')
         ->assertJsonPath('items.0.group_name', $matchingGroup->name)
         ->assertJsonPath('items.0.group_slug', $matchingGroup->slug)
         ->assertJsonPath('items.0.can_apply', true);
